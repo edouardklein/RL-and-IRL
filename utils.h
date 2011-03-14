@@ -4,3 +4,6 @@ unsigned int nb_lines( char* fn );
 gsl_matrix* file2matrix( char* fn, unsigned int col );
 /* Return an int chosen randomly in [min:max] */
 int random_int( int min, int max );
+/* Return 0 w.p. 0.9 and 1 w.p. 0.1 */
+int rand_1_in_10();
+

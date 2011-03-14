@@ -29,3 +29,11 @@ gsl_matrix* file2matrix( char* fn, unsigned int col ){
 int random_int( int min, int max ){
   return rand()%(max-min+1) + min;
 }
+
+/* Return 0 w.p. 0.9 and 1 w.p. 0.1 */
+int rand_1_in_10(){
+  if( (double)rand() > (double)RAND_MAX*0.1 ){
+    return 0;
+  }
+  return 1;
+}

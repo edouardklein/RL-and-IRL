@@ -14,24 +14,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-
-/* Return an int in [1:4] */
-int rand_4(){
-  return rand()%4 + 1;
-}
-
-/* Return an int in [0:1] */
-int rand_2(){
-  return rand()%2;
-}
-
-/* Return 0 w.p. 0.9 and 1 w.p. 0.1 */
-int rand_1_in_10(){
-  if( (double)rand() > (double)RAND_MAX*0.1 ){
-    return 0;
-  }
-  return 1;
-}
+#include <gsl/gsl_matrix.h>
+#include "utils.h"
 
 int main(int argc, char* argv[]){
   srand(time(NULL)+getpid()); rand(); rand();rand();
@@ -41,10 +25,10 @@ int main(int argc, char* argv[]){
   }
   unsigned int trajLength = atoi(argv[1]);
   
-  int s = rand_4();
+  int s = random_int( 1, 4 );
 
   for( unsigned int j = 0 ; j < trajLength ; j++ ){
-    int a = rand_2();
+    int a = random_int( 0, 1 );
     int is_noisy = rand_1_in_10();
     int true_a = a;
     if( is_noisy ){
