@@ -4,7 +4,8 @@
 #include "greedy.h"
 #include "LSPI.h"
 #include "utils.h"
-
+#include "GridWorld_simulator.h"
+#define NB_IT_MAX 40
 /* Compute the mean reward over nb_ep episodes */
 double quality( gsl_matrix* (*simulator)(int), 
 		unsigned int s, unsigned int a, 
@@ -23,71 +24,6 @@ double quality( gsl_matrix* (*simulator)(int),
   gsl_matrix_free( D );
   return quality;
 }
-
-#include "GridWorld.h"
-void print_action( int x, int y ){
-  gsl_matrix* state = gsl_matrix_alloc( 1, 2 );
-  gsl_matrix_set( state, 0, 0, (double)x );
-  gsl_matrix_set( state, 0, 1, (double)y );
-  gsl_matrix* a = greedy_policy( state );
-  int action = (int)gsl_matrix_get( a, 0, 0 );
-  gsl_matrix_free( a );
-  gsl_matrix_free( state );
-  switch( action ){
-  case UP:
-    printf("UP   ");
-    break;
-  case DOWN:
-    printf("DOWN ");
-    break;
-  case LEFT:
-    printf("LEFT ");
-    break;
-  case RIGHT:
-    printf("RIGHT");
-    break;
-  }
-}
-void print_cell_reward( int x, int y, gsl_matrix* theta, 
-			gsl_matrix* (*psi)(gsl_matrix*) ){
-  gsl_matrix* state = gsl_matrix_alloc( 1, 2 );
-  gsl_matrix_set( state, 0, 0, (double)x );
-  gsl_matrix_set( state, 0, 1, (double)y );
-  gsl_matrix* psi_s = psi( state );
-  gsl_matrix* r = gsl_matrix_alloc( 1, 1 );
-  gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0,
-		   theta, psi_s, 0.0, r );
-  double reward = gsl_matrix_get( r, 0, 0 );
-  gsl_matrix_free( r );
-  gsl_matrix_free( state );
-  gsl_matrix_free( psi_s );
-  printf("%5lf ", reward );
-}
-
-void print_policy(){
-  for( int x = 1; x<=5 ; x++ ){
-    for( int y = 1; y<=5 ; y++ ){
-      printf("(%d,%d) : ",x,y);
-      print_action( x, y );
-      printf(" ");
-    }
-    printf("\n");
-  }
-}
-
-void print_reward(gsl_matrix* theta, 
-		  gsl_matrix* (*psi)(gsl_matrix*)){
-  for( int x = 1; x<=5 ; x++ ){
-    for( int y = 1; y<=5 ; y++ ){
-      printf("(%d,%d) : ",x,y);
-      print_cell_reward( x, y, theta, psi );
-      printf(" ");
-    }
-    printf("\n");
-  }
-}
-
-
 
 /* Compute an estimate of \mu using the monte carlo method,
    given a set of trajectories 
@@ -112,11 +48,6 @@ gsl_matrix* monte_carlo_mu( gsl_matrix* states,gsl_matrix* EOEs,
     gsl_matrix* delta_mu = psi( &s.matrix );
     double gamma_t = pow( gamma, t );
     gsl_matrix_scale( delta_mu, gamma_t );
-    /* printf("Delta_mu : \n"); */
-    /* for( int i = 0; i<delta_mu->size1; i++ ){ */
-    /*   printf("%lf ",gsl_matrix_get( delta_mu, i, 0) ); */
-    /* } */
-    /* printf("\n"); */
     gsl_matrix_add( answer, delta_mu );
     gsl_matrix_free( delta_mu );
     int eoe = (int)gsl_matrix_get( EOEs, i, 0 );
@@ -128,15 +59,6 @@ gsl_matrix* monte_carlo_mu( gsl_matrix* states,gsl_matrix* EOEs,
     }
   }
   gsl_matrix_scale( answer, 1./(double)nb_traj );
-  /* printf("Computation if Mu, with the following EOEs : \n"); */
-  /* for( int i = 0; i<EOEs->size1; i++ ){ */
-  /*   printf("%lf ",gsl_matrix_get( EOEs, i, 0) ); */
-  /* } */
-  /* printf("Mu, according to MC : (nb_traj : %lf) \n",(double)nb_traj); */
-  /* for( int i = 0; i<answer->size1; i++ ){ */
-  /*   printf("%lf ",gsl_matrix_get( answer, i, 0) ); */
-  /* } */
-  /* printf("\n"); */
   return answer;
 }
 
@@ -169,18 +91,10 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
   gsl_matrix_free( g_mOmega );
   gsl_matrix_free( g_mActions );
   /* \mu \leftarrow mc( D_\pi, \gamma, \psi ) */
-  /* printf("Transition matrix : taille %d, %d \n", trans->size1, trans->size2); */
-  /* for( int i = 0; i<trans->size1; i++){ */
-  /*   for(int j = 0; j<trans->size2; j++ ){ */
-  /*     printf("%lf ", gsl_matrix_get( trans, i, j) ); */
-  /*   } */
-  /*   printf("\n"); */
-  /* } */
   gsl_matrix_view states = 
     gsl_matrix_submatrix( trans, 0, 0, trans->size1, s );
   gsl_matrix_view EOEs = 
     gsl_matrix_submatrix( trans, 0, 2*s+a+1, trans->size1, 1 );
-  //printf("Mu pi \n");
   gsl_matrix* mu = 
     monte_carlo_mu( &states.matrix, &EOEs.matrix, gamma, psi );
   gsl_matrix_free( trans );
@@ -189,7 +103,6 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
 				 expert_trans->size1, s );
   EOEs = gsl_matrix_submatrix( expert_trans, 0, 2*s+a+1,
 			       expert_trans->size1, 1 );
-  //printf("Mu E \n");
   gsl_matrix* mu_E = 
     monte_carlo_mu( &states.matrix, &EOEs.matrix, gamma, psi );
   /* \theta \leftarrow \mu_E - \mu */
@@ -207,27 +120,8 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
   gsl_vector_sub( diff, &muE_v.vector );
   double t = gsl_blas_dnrm2( diff );
   unsigned int nb_it = 0;
-  double q = -1;
-  while( t > epsilon ){
-    //    q = quality( simulator, s,a,omega, 1000 );
-    printf("%d %lf\n",nb_it, t );
-    /* printf("\n\nEntree dans la boucle, t=%lf\n",t); */
-    /* printf("Politique responsable du mu actuel : \n"); */
-    /* g_mOmega = gsl_matrix_calloc( k, 1 ); */
-    /* gsl_matrix_memcpy( g_mOmega, omega ); */
-    /* g_mActions = file2matrix( ACTION_FILE, g_iA ); */
-    /* print_policy(); */
-    /* printf("Mu : \n"); */
-    /* print_reward( mu, psi ); */
-    /* printf("Mu_E : \n"); */
-    /* print_reward( mu_E, psi ); */
-    /* printf("Mu_bar : \n"); */
-    /* print_reward( bar_mu, psi ); */
-    /* printf("Récompense actuelle : \n"); */
-    /* print_reward( theta, psi ); */
-    /* gsl_matrix_free( g_mOmega ); */
-    /* gsl_matrix_free( g_mActions ); */
-    //getchar();
+  while( t > epsilon && nb_it < NB_IT_MAX ){
+    printf("%d %d %d %lf\n", m, nb_it, g_iNb_samples, t );
     /* D.r \leftarrow \theta^T\psi(D.s) */
     for( unsigned int i = 0 ; i < D->size1 ; i++ ){
       gsl_matrix_view state = 
@@ -299,7 +193,7 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
     t = gsl_blas_dnrm2( diff );
     nb_it++;
   }
-  printf("%d %lf \n",nb_it,  t );
+  printf("%d %d %d %lf\n", m, nb_it, g_iNb_samples, t );
   gsl_matrix_free( omega_0 );
   gsl_matrix_free( mu );
   gsl_matrix_free( mu_E );

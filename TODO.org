@@ -1,0 +1,13 @@
+* Code
+** LSTD
+*** TODO Factoriser le A de LSTD
+    La matrice A est la même dans LSTDQ et LSTD Mu, il faudrait 
+    factoriser le code.
+*** TODO Factoriser LSTD on et LSTD off
+    Bêtement, le code de LSTD suppose que l'on a accès à la 
+    politique de l'extérieur, en  tant que fonction de S dans A.
+    Ce n'est pas le cas dans le cas de l'expert, où l'on utilise
+    LSTD de manière on policy. Il faudrait que on et off soient
+    des wrappers vers une seule fonction qui n'utilise pas
+    D mais une matrice s a s' a' ploup. 
+

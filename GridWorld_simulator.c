@@ -7,6 +7,8 @@
 #define TRANS_WIDTH 7 /*2*2 for s and s', 1 each for a,r,eoe*/
 #define MAX_EPISODE_LENGTH (2*GRID_HEIGHT+2*GRID_WIDTH)
 
+unsigned int g_iNb_samples = 0;
+
 /* Simulate nbEpisodes episodes in the Gridworld using greedy_policy()*/
 gsl_matrix* gridworld_simulator( int nbEpisodes ){
   srand(time(NULL)+getpid()); rand(); rand();rand();
@@ -20,6 +22,7 @@ gsl_matrix* gridworld_simulator( int nbEpisodes ){
     int eoe = 1;
     while( eoe==1 ){
       nb_steps++;
+      g_iNb_samples++;
       if( nb_steps == MAX_EPISODE_LENGTH ){
 	eoe = 0;
       }
@@ -72,7 +75,7 @@ gsl_matrix* gridworld_simulator( int nbEpisodes ){
       gsl_matrix_set( transitions, j, 1, (double)state_y );
       gsl_matrix_set( transitions, j, 2, (double)action );
       gsl_matrix_set( transitions, j, 3, (double)next_state_x );
-      gsl_matrix_set( transitions, j, 4, (double)next_state_x );
+      gsl_matrix_set( transitions, j, 4, (double)next_state_y );
       gsl_matrix_set( transitions, j, 5, (double)reward );
       gsl_matrix_set( transitions, j, 6, (double)eoe );
       j++;

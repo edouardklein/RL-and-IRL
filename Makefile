@@ -41,6 +41,19 @@ utils.o: utils.h utils.c
 greedy.o: greedy.h greedy.c
 	gcc -c $(CFLAGS) greedy.c
 
+#Common to curves A and B
+GridWorld_simulator.o: GridWorld_simulator.c GridWorld.h utils.h
+	gcc -c $(CFLAGS) GridWorld_simulator.c
+
+GridWorld_generator.exe: GridWorld_generator.o utils.o
+	gcc -o GridWorld_generator.exe $(LFLAGS) GridWorld_generator.o utils.o
+
+GridWorld_generator.o: GridWorld_generator.c GridWorld.h utils.h
+	gcc -c $(CFLAGS) GridWorld_generator.c
+
+abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h
+	gcc -c $(CFLAGS) abbeel2004apprenticeship.c
+
 #Courbe A :
 courbe_a.pdf: courbe_a.ps
 	ps2pdf courbe_a.ps
@@ -60,17 +73,40 @@ courbe_a.exe: courbe_a.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o a
 courbe_a.o: courbe_a.c GridWorld.h utils.h LSPI.h greedy.h GridWorld_simulator.h abbeel2004apprenticeship.h
 	gcc -c $(CFLAGS) courbe_a.c
 
-GridWorld_simulator.o: GridWorld_simulator.c GridWorld.h utils.h
-	gcc -c $(CFLAGS) GridWorld_simulator.c
+#Courbe B : 
+courbe_b.pdf: courbe_b.ps
+	ps2pdf courbe_b.ps
 
-GridWorld_generator.exe: GridWorld_generator.o utils.o
-	gcc -o GridWorld_generator.exe $(LFLAGS) GridWorld_generator.o utils.o
+courbe_b.ps: courbe_b_50.dat courbe_b_100.dat courbe_b_150.dat courbe_b_200.dat courbe_b.gp
+	gnuplot courbe_b.gp
 
-GridWorld_generator.o: GridWorld_generator.c GridWorld.h utils.h
-	gcc -c $(CFLAGS) GridWorld_generator.c
+courbe_b_50.dat: courbe_b.dat
+	cat courbe_b.dat | grep -E "^5" > courbe_b_50.dat
 
-abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h
-	gcc -c $(CFLAGS) abbeel2004apprenticeship.c
+courbe_b_100.dat: courbe_b.dat
+	cat courbe_b.dat | grep -E "^10" > courbe_b_100.dat
+
+courbe_b_150.dat: courbe_b.dat
+	cat courbe_b.dat | grep -E "^15" > courbe_b_150.dat
+
+courbe_b_200.dat: courbe_b.dat
+	cat courbe_b.dat | grep -E "^20" > courbe_b_200.dat
+
+courbe_b.dat: courbe_b.samples courbe_b.exe
+	./courbe_b.exe > courbe_b.dat
+
+courbe_b.samples: GridWorld_generator.exe 
+	./GridWorld_generator.exe > Samples.dat && touch courbe_b.samples
+
+courbe_b.exe: courbe_b.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o
+	gcc -o courbe_b.exe $(LFLAGS) courbe_b.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o
+
+courbe_b.o: courbe_b.c GridWorld.h utils.h LSPI.h greedy.h GridWorld_simulator.h abbeel2004apprenticeship.h LSTDmu.h
+	gcc -c $(CFLAGS) courbe_b.c
+
+LSTDmu.o: LSTDmu.h LSTDmu.c
+	gcc -c $(CFLAGS) LSTDmu.c
+
 
 
 clean:

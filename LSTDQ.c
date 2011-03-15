@@ -12,13 +12,13 @@ gsl_matrix* lstd_q( gsl_matrix* D, unsigned int k,
   gsl_matrix* A = gsl_matrix_calloc( k, k );
   // \tilde b \leftarrow 0
   gsl_matrix* b = gsl_matrix_calloc( k, 1 );
-  // for each (s,a,r,s,eoe) \in D
+  // for each (s,a,s',r,eoe) \in D
   for( unsigned int i=0; i < D->size1 ; i++ ){
     // \tilde A \leftarrow \tilde A + \phi(s,a)\left(\phi(s,a) 
     // - \gamma \phi(s',\pi(s'))\right)^T
     gsl_matrix_view sa = gsl_matrix_submatrix(D, i, 0, 1, s+a);
     gsl_matrix* phi_sa = phi( &sa.matrix );
-    gsl_matrix* sa_dash = gsl_matrix_calloc( 1, s+a );
+    gsl_matrix* sa_dash = gsl_matrix_alloc( 1, s+a );
     gsl_matrix_view sdash_dst = gsl_matrix_submatrix( sa_dash, 
 						      0, 0,
 						      1, s);

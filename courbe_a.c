@@ -17,7 +17,7 @@
 #define EPSILON_LSPI 0.1
 #define M_QUALITY 1000 /* Number of episodes when */
                 /* computing the quality of a policy*/
-#define M_EXP 100 /* Number of episodes when */
+#define M_EXP 200 /* Number of episodes when */
        /* creating D_expert */
 #define M 100 /* Number of episodes for MC */
 
