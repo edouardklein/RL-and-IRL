@@ -41,7 +41,7 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu, unsigned int k,
   gsl_matrix* b = gsl_matrix_calloc( k, p );
   // for each (s,a,s',\psi(s),eoe) \in D_mu
   /**/
-  printf("Nb of samples : %d\n",D_mu->size1);
+  //printf("Nb of samples : %d\n",D_mu->size1);
   /**/
   for( unsigned int i=0; i < D_mu->size1 ; i++ ){
     // \tilde A \leftarrow \tilde A + \phi(s,a)\left(\phi(s,a) 
@@ -103,7 +103,8 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu, unsigned int k,
     gsl_matrix_free( phi_sa );
     gsl_matrix_free( delta_b );
   }
- //\tilde \omega^\pi \leftarrow \tilde A^{-1}\tilde b
+  /*\tilde \omega^\pi \leftarrow 
+    (\tildeA + \lambda Id) ^{-1}\tilde b */
   /* for( int j = 0; j<100;j++){ */
   /*   for(int k=0; k<100;k++){ */
   /*     printf("%1lf ",gsl_matrix_get(A,j,k)); */
@@ -114,16 +115,17 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu, unsigned int k,
   gsl_matrix_set_identity( lambdaI );
   gsl_matrix_scale( lambdaI, LAMBDA );
   gsl_matrix_add( A, lambdaI );
+  gsl_matrix_free( lambdaI );
   gsl_matrix* omega_pi = gsl_matrix_alloc( k, p );
+  gsl_permutation* _p = gsl_permutation_alloc( k );
+  int signum;
+  gsl_linalg_LU_decomp( A, _p, &signum );
   for( unsigned int i = 0 ; i < p ; i++ ){
     gsl_vector_view b_v = gsl_matrix_column( b, i );
     gsl_vector_view o_v = gsl_matrix_column( omega_pi, i );
-    gsl_permutation* _p = gsl_permutation_alloc( k );
-    int signum;
-    gsl_linalg_LU_decomp( A, _p, &signum );
     gsl_linalg_LU_solve( A, _p, &b_v.vector, &o_v.vector );
-    gsl_permutation_free( _p );
   }
+  gsl_permutation_free( _p );
   gsl_matrix_free( A );
   gsl_matrix_free( b );
    //\mu_\pi(s) \leftarrow \tilde\omega_\pi^T\phi(s,\pi(s))
@@ -163,7 +165,7 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu, unsigned int k,
   gsl_matrix* b = gsl_matrix_calloc( k, p );
   // for each (s,a,s',\psi(s),eoe) \in D_mu
    /**/
-  printf("Nb of samples : %d\n",D_mu->size1);
+  //printf("Nb of samples : %d\n",D_mu->size1);
   /**/
   for( unsigned int i=0; i < D_mu->size1 ; i++ ){
     // \tilde A \leftarrow \tilde A + \phi(s,a)\left(\phi(s,a) 
@@ -184,14 +186,14 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu, unsigned int k,
     gsl_matrix* adash_src = pi( &sdash_src.matrix );
     gsl_matrix_memcpy( &adash_dst.matrix, adash_src );
     /**/
-    printf("(s,a,s',a') = (%d,%d),%d,(%d,%d),%d\n",
-    	   (int) gsl_matrix_get( &sa.matrix, 0, 0 ),
-    	   (int)gsl_matrix_get( &sa.matrix, 0, 1 ),
-    	   (int)gsl_matrix_get( &sa.matrix, 0, 2 ),
-    	   (int)gsl_matrix_get( sa_dash, 0, 0 ),
-    	   (int)gsl_matrix_get( sa_dash, 0, 1 ),
-    	   (int)gsl_matrix_get( sa_dash, 0, 2 )
-    	   );
+    /* printf("(s,a,s',a') = (%d,%d),%d,(%d,%d),%d\n", */
+    /* 	   (int) gsl_matrix_get( &sa.matrix, 0, 0 ), */
+    /* 	   (int)gsl_matrix_get( &sa.matrix, 0, 1 ), */
+    /* 	   (int)gsl_matrix_get( &sa.matrix, 0, 2 ), */
+    /* 	   (int)gsl_matrix_get( sa_dash, 0, 0 ), */
+    /* 	   (int)gsl_matrix_get( sa_dash, 0, 1 ), */
+    /* 	   (int)gsl_matrix_get( sa_dash, 0, 2 ) */
+    /* 	   ); */
     /**/
     gsl_matrix* phi_dash = phi( sa_dash );
     gsl_matrix_scale( phi_dash, gamma );
@@ -206,13 +208,13 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu, unsigned int k,
     gsl_matrix_add( A, deltaA );
     /**/
     /* printf("EOE : %lf\n",eoe); */
-    printf("MATRICE delta A\n");
-    for( int j = 0; j<16;j++){
-      for(int k=0; k<16;k++){
-	printf("% 6.1g ",gsl_matrix_get(deltaA,j,k));
-      }
-      printf("\n");
-    }
+    /* printf("MATRICE delta A\n"); */
+    /* for( int j = 0; j<16;j++){ */
+    /*   for(int k=0; k<16;k++){ */
+    /* 	printf("% 6.1g ",gsl_matrix_get(deltaA,j,k)); */
+    /*   } */
+    /*   printf("\n"); */
+    /* } */
 
     /* printf("phi(sa) : \n"); */
     /* for( int j=0;j<16;j++){ */
@@ -248,13 +250,13 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu, unsigned int k,
 		    phi_sa, &psi_s.matrix, 0.0, delta_b );
     gsl_matrix_add( b, delta_b );
     /**/
-    printf("MATRICE delta b\n");
-    for( int j = 0; j<16;j++){
-      for(int k=0; k<4;k++){
-	printf("% 6.1g ",gsl_matrix_get(delta_b,j,k));
-      }
-      printf("\n");
-    }
+    /* printf("MATRICE delta b\n"); */
+    /* for( int j = 0; j<16;j++){ */
+    /*   for(int k=0; k<4;k++){ */
+    /* 	printf("% 6.1g ",gsl_matrix_get(delta_b,j,k)); */
+    /*   } */
+    /*   printf("\n"); */
+    /* } */
     /**/
     gsl_matrix_free( deltaA );
     gsl_matrix_free( delta_phi );
@@ -264,54 +266,58 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu, unsigned int k,
     gsl_matrix_free( phi_sa );
     gsl_matrix_free( delta_b );
   }
-  //\tilde \omega^\pi \leftarrow \tilde A^{-1}\tilde b
+  /*\tilde \omega^\pi \leftarrow 
+    (\tildeA + \lambda Id) ^{-1}\tilde b */
   gsl_matrix* lambdaI = gsl_matrix_alloc( A->size1, A->size2 );
   gsl_matrix_set_identity( lambdaI );
   gsl_matrix_scale( lambdaI, LAMBDA );
   gsl_matrix_add( A, lambdaI );
+  gsl_matrix_free( lambdaI );
   gsl_matrix* omega_pi = gsl_matrix_alloc( k, p );
+  gsl_matrix* A_back = gsl_matrix_alloc( A->size1, A->size2 );
+  gsl_matrix_memcpy( A_back, A );
+  gsl_permutation* _p = gsl_permutation_alloc( k );
+  int signum;
+  gsl_linalg_LU_decomp( A, _p, &signum );
   for( unsigned int i = 0 ; i < p ; i++ ){
     gsl_vector_view b_v = gsl_matrix_column( b, i );
     gsl_vector_view o_v = gsl_matrix_column( omega_pi, i );
-    gsl_permutation* _p = gsl_permutation_alloc( k );
-    int signum;
-    gsl_linalg_LU_decomp( A, _p, &signum );
     gsl_linalg_LU_solve( A, _p, &b_v.vector, &o_v.vector );
-    gsl_permutation_free( _p );
   }
+  gsl_permutation_free( _p );
   /**/
-  printf("MATRICE A\n");
-  for( int j = 0; j<16;j++){
-    for(int k=0; k<16;k++){
-      printf("% 6.5g ",gsl_matrix_get(A,j,k));
-    }
-    printf("\n");
-  }
-  printf("MATRICE omega\n");
-  for( int j = 0; j<16;j++){
-    for(int k=0; k<4;k++){
-      printf("% 6.5g ",gsl_matrix_get(omega_pi,j,k));
-    }
-    printf("\n");
-  }
-  gsl_matrix* blop = gsl_matrix_alloc( b->size1, b->size2 );
-  gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1.0,
-		 A,omega_pi,0.0,blop);
-  printf("MATRICE b\n");
-  for( int j = 0; j<16;j++){
-    for(int k=0; k<4;k++){
-      printf("% 6.5g ",gsl_matrix_get(b,j,k));
-    }
-    printf("\n");
-  }
-  printf("MATRICE tilde b\n");
-  for( int j = 0; j<16;j++){
-    for(int k=0; k<4;k++){
-      printf("% 6.5g ",gsl_matrix_get(blop,j,k));
-    }
-    printf("\n");
-  }
-  gsl_matrix_free( blop );
+  /* printf("MATRICE A\n"); */
+  /* for( int j = 0; j<16;j++){ */
+  /*   for(int k=0; k<16;k++){ */
+  /*     printf("% 6.5g ",gsl_matrix_get(A_back,j,k)); */
+  /*   } */
+  /*   printf("\n"); */
+  /* } */
+  /* printf("MATRICE omega\n"); */
+  /* for( int j = 0; j<16;j++){ */
+  /*   for(int k=0; k<4;k++){ */
+  /*     printf("% 6.5g ",gsl_matrix_get(omega_pi,j,k)); */
+  /*   } */
+  /*   printf("\n"); */
+  /* } */
+  /* gsl_matrix* blop = gsl_matrix_alloc( b->size1, b->size2 ); */
+  /* gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1.0, */
+  /* 		 A_back,omega_pi,0.0,blop); */
+  /* printf("MATRICE b\n"); */
+  /* for( int j = 0; j<16;j++){ */
+  /*   for(int k=0; k<4;k++){ */
+  /*     printf("% 6.5g ",gsl_matrix_get(b,j,k)); */
+  /*   } */
+  /*   printf("\n"); */
+  /* } */
+  /* printf("MATRICE tilde b\n"); */
+  /* for( int j = 0; j<16;j++){ */
+  /*   for(int k=0; k<4;k++){ */
+  /*     printf("% 6.5g ",gsl_matrix_get(blop,j,k)); */
+  /*   } */
+  /*   printf("\n"); */
+  /* } */
+  /* gsl_matrix_free( blop ); */
   /**/
   gsl_matrix_free( A );
   gsl_matrix_free( b );
@@ -425,10 +431,14 @@ proj_lstd_lspi_ANIRL( gsl_matrix* expert_trans,
      \phi, \gamma) */
   gsl_matrix* mu_E = 
     lstd_mu_op( D_E, k, p, s, a, phi, psi, gamma );
-  /* \theta \leftarrow \mu_E - \mu */
+  /* \theta \leftarrow {\mu_E - \mu\over ||\mu_E - \mu||_2} */
   gsl_matrix* theta = gsl_matrix_alloc( mu->size1, mu->size2 );
   gsl_matrix_memcpy( theta, mu_E );
   gsl_matrix_sub( theta, mu );
+  gsl_vector_view theta_v = gsl_matrix_column( theta, 0 );
+  double theta_norm = gsl_blas_dnrm2( &theta_v.vector );
+  if( theta_norm != 0 )
+    gsl_matrix_scale( theta, 1./theta_norm );
   /* \bar\mu \leftarrow \mu*/
   gsl_matrix* bar_mu = gsl_matrix_alloc( mu->size1, mu->size2 );
   gsl_matrix_memcpy( bar_mu, mu );
@@ -441,58 +451,58 @@ proj_lstd_lspi_ANIRL( gsl_matrix* expert_trans,
   double t = gsl_blas_dnrm2( diff );
   unsigned int nb_it = 0;
     /**/
-    /* \mu \leftarrow mc( D_\pi, \gamma, \psi ) */
-    gsl_matrix_view states = 
-      gsl_matrix_submatrix( expert_trans, 0, 0, 
-			    expert_trans->size1, s );
-    gsl_matrix_view EOEs = 
-      gsl_matrix_submatrix( expert_trans, 0, 2*s+a+1, 
-			    expert_trans->size1, 1 );
-    gsl_matrix* muE_mc = 
-      monte_carlo_mu( &states.matrix, &EOEs.matrix,gamma, psi );
-    printf("Mu E : (by MC)\n");
-    for( int i = 0; i<mu->size1;i++){
-      printf("%lf ",gsl_matrix_get(muE_mc,i,0));
-    }
-    printf("\n");
-    gsl_matrix_free(muE_mc);
-    printf("Mu E : (by LSTD) \n");
-    for( int i = 0; i<mu->size1;i++){
-      printf("%lf ",gsl_matrix_get(mu_E,i,0));
-    }
-    printf("\n");
+    /* /\* \mu \leftarrow mc( D_\pi, \gamma, \psi ) *\/ */
+    /* gsl_matrix_view states =  */
+    /*   gsl_matrix_submatrix( expert_trans, 0, 0,  */
+    /* 			    expert_trans->size1, s ); */
+    /* gsl_matrix_view EOEs =  */
+    /*   gsl_matrix_submatrix( expert_trans, 0, 2*s+a+1,  */
+    /* 			    expert_trans->size1, 1 ); */
+    /* gsl_matrix* muE_mc =  */
+    /*   monte_carlo_mu( &states.matrix, &EOEs.matrix,gamma, psi ); */
+    /* printf("Mu E : (by MC)\n"); */
+    /* for( int i = 0; i<mu->size1;i++){ */
+    /*   printf("%lf ",gsl_matrix_get(muE_mc,i,0)); */
+    /* } */
+    /* printf("\n"); */
+    /* gsl_matrix_free(muE_mc); */
+    /* printf("Mu E : (by LSTD) \n"); */
+    /* for( int i = 0; i<mu->size1;i++){ */
+    /*   printf("%lf ",gsl_matrix_get(mu_E,i,0)); */
+    /* } */
+    /* printf("\n"); */
     //exit(-1);
     /**/
   while( t > epsilon ){
     printf("%d %d %d %lf\n", m, nb_it, g_iNb_samples, t );
     /**/
     /* D_\pi \leftarrow simulator( m, \omega ) */
-    g_mOmega = gsl_matrix_calloc( k, 1 );
-    gsl_matrix_memcpy( g_mOmega, omega );
-    g_mActions = file2matrix( ACTION_FILE, g_iA );
-    gsl_matrix* trans = gridworld_simulator( 30 );
-    gsl_matrix_free( g_mOmega );
-    gsl_matrix_free( g_mActions );
+    /* g_mOmega = gsl_matrix_calloc( k, 1 ); */
+    /* gsl_matrix_memcpy( g_mOmega, omega ); */
+    /* g_mActions = file2matrix( ACTION_FILE, g_iA ); */
+    /* gsl_matrix* trans = gridworld_simulator( 30 ); */
+    /* gsl_matrix_free( g_mOmega ); */
+    /* gsl_matrix_free( g_mActions ); */
     /* \mu \leftarrow mc( D_\pi, \gamma, \psi ) */
-    gsl_matrix_view states = 
-      gsl_matrix_submatrix( trans, 0, 0, trans->size1, s );
-    gsl_matrix_view EOEs = 
-      gsl_matrix_submatrix( trans, 0, 2*s+a+1, trans->size1, 1 );
-    gsl_matrix* mu_mc = 
-      monte_carlo_mu( &states.matrix, &EOEs.matrix,gamma, psi );
-    gsl_matrix_free( trans );
-    printf("Mu : (by MC)\n");
-    for( int i = 0; i<mu->size1;i++){
-      printf("%lf ",gsl_matrix_get(mu_mc,i,0));
-    }
-    printf("\n");
-    gsl_matrix_free(mu_mc);
-    printf("Mu : (by LSTD) \n");
-    for( int i = 0; i<mu->size1;i++){
-      printf("%lf ",gsl_matrix_get(mu,i,0));
-    }
-    printf("\n");
-    exit(1);
+    /* gsl_matrix_view states =  */
+    /*   gsl_matrix_submatrix( trans, 0, 0, trans->size1, s ); */
+    /* gsl_matrix_view EOEs =  */
+    /*   gsl_matrix_submatrix( trans, 0, 2*s+a+1, trans->size1, 1 ); */
+    /* gsl_matrix* mu_mc =  */
+    /*   monte_carlo_mu( &states.matrix, &EOEs.matrix,gamma, psi ); */
+    /* gsl_matrix_free( trans ); */
+    /* printf("Mu : (by MC)\n"); */
+    /* for( int i = 0; i<mu->size1;i++){ */
+    /*   printf("%lf ",gsl_matrix_get(mu_mc,i,0)); */
+    /* } */
+    /* printf("\n"); */
+    /* gsl_matrix_free(mu_mc); */
+    /* printf("Mu : (by LSTD) \n"); */
+    /* for( int i = 0; i<mu->size1;i++){ */
+    /*   printf("%lf ",gsl_matrix_get(mu,i,0)); */
+    /* } */
+    /* printf("\n"); */
+    //exit(1);
     /**/
     /* D.r \leftarrow \theta^T\psi(D.s) */
     for( unsigned int i = 0 ; i < D->size1 ; i++ ){
@@ -510,7 +520,8 @@ proj_lstd_lspi_ANIRL( gsl_matrix* expert_trans,
     gsl_matrix_free( omega );
     omega = lspi( D, k, s, a, phi, gamma_lspi, epsilon_lspi, 
 		  omega_0 );
-    /* \mu \leftarrow mc( D_\pi, \gamma, \psi ) */
+    /* \mu \leftarrow LSTD_\mu( D_\mu, k, p, s, a, \phi,
+       \psi, \gamma, \pi ) */
     g_mOmega = gsl_matrix_calloc( k, 1 );
     gsl_matrix_memcpy( g_mOmega, omega );
     g_mActions = file2matrix( ACTION_FILE, g_iA );
@@ -552,6 +563,10 @@ proj_lstd_lspi_ANIRL( gsl_matrix* expert_trans,
     /* \theta \leftarrow \mu_E - \bar\mu */
     gsl_matrix_memcpy( theta, mu_E );
     gsl_matrix_sub( theta, bar_mu );
+    theta_v = gsl_matrix_column( theta, 0 );
+    theta_norm = gsl_blas_dnrm2( &theta_v.vector );
+    if( theta_norm != 0 )
+      gsl_matrix_scale( theta, 1./theta_norm );
     /* t\leftarrow ||\mu_E - \bar\mu||_2 */
     gsl_vector_memcpy( diff, &barmu_v.vector );
     gsl_vector_sub( diff, &muE_v.vector );

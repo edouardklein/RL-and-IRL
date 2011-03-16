@@ -10,4 +10,7 @@
     LSTD de manière on policy. Il faudrait que on et off soient
     des wrappers vers une seule fonction qui n'utilise pas
     D mais une matrice s a s' a' ploup. 
+*** TODO Trouver et détruire la fuite de mémoire
+*** TODO Normer Theta
+*** TODO Utiliser une seule banque de données
 

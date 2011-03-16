@@ -2,6 +2,9 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
+#define LAMBDA 0.1 /* Regularisation can be needed when the */
+		   /* A matrix becomes singular */
+
 
 gsl_matrix* lstd_q( gsl_matrix* D, unsigned int k,
 		    unsigned int s, unsigned int a,
@@ -53,7 +56,13 @@ gsl_matrix* lstd_q( gsl_matrix* D, unsigned int k,
     gsl_matrix_free( sa_dash );
     gsl_matrix_free( phi_sa );
   }
-  //\tilde \omega^\pi \leftarrow \tilde A^{-1}\tilde b
+  /*\tilde \omega^\pi \leftarrow 
+    (\tildeA + \lambda Id) ^{-1}\tilde b */
+  gsl_matrix* lambdaI = gsl_matrix_alloc( A->size1, A->size2 );
+  gsl_matrix_set_identity( lambdaI );
+  gsl_matrix_scale( lambdaI, LAMBDA );
+  gsl_matrix_add( A, lambdaI );
+  gsl_matrix_free( lambdaI );
   gsl_vector_view b_v = gsl_matrix_column( b, 0 );
   gsl_matrix* omega_pi = gsl_matrix_alloc( k, 1 );
   gsl_vector_view o_v = gsl_matrix_column( omega_pi, 0 );
