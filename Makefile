@@ -77,20 +77,20 @@ courbe_a.o: courbe_a.c GridWorld.h utils.h LSPI.h greedy.h GridWorld_simulator.h
 courbe_b.pdf: courbe_b.ps
 	ps2pdf courbe_b.ps
 
-courbe_b.ps: courbe_b_50.dat courbe_b_100.dat courbe_b_150.dat courbe_b_200.dat courbe_b.gp
+courbe_b.ps: courbe_b_50.dat courbe_b_100.dat courbe_b_150.dat courbe_b_Nous.dat courbe_b.gp
 	gnuplot courbe_b.gp
 
 courbe_b_50.dat: courbe_b.dat
 	cat courbe_b.dat | grep -E "^5" > courbe_b_50.dat
 
 courbe_b_100.dat: courbe_b.dat
-	cat courbe_b.dat | grep -E "^10" > courbe_b_100.dat
+	cat courbe_b.dat | grep -E "^20" > courbe_b_100.dat
 
 courbe_b_150.dat: courbe_b.dat
-	cat courbe_b.dat | grep -E "^15" > courbe_b_150.dat
+	cat courbe_b.dat | grep -E "^35" > courbe_b_150.dat
 
-courbe_b_200.dat: courbe_b.dat
-	cat courbe_b.dat | grep -E "^20" > courbe_b_200.dat
+courbe_b_Nous.dat: courbe_b.dat
+	cat courbe_b.dat | grep -E "^0" | grep -E "000$$" > courbe_b_Nous.dat
 
 courbe_b.dat: courbe_b.samples courbe_b.exe
 	./courbe_b.exe > courbe_b.dat

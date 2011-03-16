@@ -12,6 +12,7 @@
 gsl_matrix* monte_carlo_mu( gsl_matrix* states,gsl_matrix* EOEs,
 			    double gamma,
 			    gsl_matrix* (*psi)(gsl_matrix*));
+#include "abbeel2004apprenticeship.h"
 /**/
 
 #define LAMBDA 0.1 /* Regularisation is needed when computing*/
@@ -358,12 +359,13 @@ proj_lstd_lspi_ANIRL( gsl_matrix* expert_trans,
 		      double epsilon, double epsilon_lspi,
 		      gsl_matrix* (*phi)(gsl_matrix*),
 		      gsl_matrix* (*psi)(gsl_matrix*)){
+  double q_max = 0;
   gsl_matrix* s_0 = gsl_matrix_alloc( 1, s );
   gsl_matrix_view s_0_src = gsl_matrix_submatrix( expert_trans,
 						  0, 0,
 						  1, s );
   gsl_matrix_memcpy( s_0, &s_0_src.matrix );
-  unsigned int m = expert_trans->size1 + D->size1;
+  unsigned int m = 0;
   gsl_matrix* omega_0 = gsl_matrix_calloc( k, 1 );
   /* \omega \leftarrow 0 */
   gsl_matrix* omega = gsl_matrix_calloc( k, 1 );
@@ -474,6 +476,12 @@ proj_lstd_lspi_ANIRL( gsl_matrix* expert_trans,
     //exit(-1);
     /**/
   while( t > epsilon ){
+    /**/
+    double q = quality( gridworld_simulator, s, a, 
+			omega, 1000 );
+    if( q > q_max )
+      q_max = q;
+    /**/
     printf("%d %d %d %lf\n", m, nb_it, g_iNb_samples, t );
     /**/
     /* D_\pi \leftarrow simulator( m, \omega ) */
@@ -560,7 +568,8 @@ proj_lstd_lspi_ANIRL( gsl_matrix* expert_trans,
     gsl_matrix_free( mu_barmu );
     gsl_matrix_free( muE_barmu );
     gsl_matrix_free( delta_bar_mu );
-    /* \theta \leftarrow \mu_E - \bar\mu */
+    /* \theta \leftarrow 
+       {\mu_E - \bar\mu\over ||\mu_E - \bar\mu||_2} */
     gsl_matrix_memcpy( theta, mu_E );
     gsl_matrix_sub( theta, bar_mu );
     theta_v = gsl_matrix_column( theta, 0 );
@@ -574,6 +583,13 @@ proj_lstd_lspi_ANIRL( gsl_matrix* expert_trans,
     nb_it++;
   }
   printf("%d %d %d %lf\n", m, nb_it, g_iNb_samples, t );
+  /**/
+  double  q = quality( gridworld_simulator, s, a, 
+	       omega, 1000 );
+  if( q>q_max )
+    q_max = q;
+  /**/
+  printf("LSTD MAXQ %d %lf\n", m, q_max );
   gsl_matrix_free( omega_0 );
   gsl_matrix_free( mu );
   gsl_matrix_free( mu_E );

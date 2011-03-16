@@ -44,33 +44,34 @@ int main( void ){
   gsl_matrix* omega_expert = lspi( D, K, S, A, &phi, 
 				   GAMMA, EPSILON, omega_0 );
   unsigned int M;
-  /* for(M = 5; M<=20; M+=15 ){ */
-  /*   g_mOmega = gsl_matrix_alloc( K, 1 ); */
-  /*   gsl_matrix_memcpy( g_mOmega, omega_expert ); */
-  /*   g_mActions = file2matrix( ACTION_FILE, g_iA ); */
-  /*   g_iNb_samples = D->size1; */
-  /*   gsl_matrix* D_expert = gridworld_simulator( M ); */
-  /*   gsl_matrix_free( g_mOmega ); */
-  /*   gsl_matrix_free( g_mActions ); */
-  /*   gsl_matrix* omega_imitation =  */
-  /*     proj_mc_lspi_ANIRL( D_expert, &gridworld_simulator, D, S, */
-  /* 			  A, K, M, GAMMA, GAMMA_LSPI, EPSILON,  */
-  /* 			  EPSILON_LSPI, &phi, &psi );     */
-  /*   gsl_matrix_free( omega_imitation ); */
-  /*   gsl_matrix_free( D_expert ); */
-  /* } */
-  M = 30;
-  g_mOmega = gsl_matrix_alloc( K, 1 );
-  gsl_matrix_memcpy( g_mOmega, omega_expert );
-  g_mActions = file2matrix( ACTION_FILE, g_iA );
-  g_iNb_samples = D->size1;
-  gsl_matrix* D_expert = gridworld_simulator( M );
-  gsl_matrix_free( g_mOmega );
-  gsl_matrix_free( g_mActions );
-  gsl_matrix* omega_lstd = 
-    proj_lstd_lspi_ANIRL( D_expert, D, S, A, K, P, GAMMA, 
-			  GAMMA_LSPI, EPSILON, EPSILON_LSPI,
-			  &phi, &psi );
-  gsl_matrix_free( omega_lstd );
+  for(M = 5; M<=35; M+=15 ){
+    g_mOmega = gsl_matrix_alloc( K, 1 );
+    gsl_matrix_memcpy( g_mOmega, omega_expert );
+    g_mActions = file2matrix( ACTION_FILE, g_iA );
+    g_iNb_samples = D->size1;
+    gsl_matrix* D_expert = gridworld_simulator( M );
+    gsl_matrix_free( g_mOmega );
+    gsl_matrix_free( g_mActions );
+    gsl_matrix* omega_imitation =
+      proj_mc_lspi_ANIRL( D_expert, &gridworld_simulator, D, S,
+  			  A, K, M, GAMMA, GAMMA_LSPI, EPSILON,
+  			  EPSILON_LSPI, &phi, &psi );
+    gsl_matrix_free( omega_imitation );
+    gsl_matrix_free( D_expert );
+  }
+  for(M = 1; M<=100; M+=20 ){
+    g_mOmega = gsl_matrix_alloc( K, 1 );
+    gsl_matrix_memcpy( g_mOmega, omega_expert );
+    g_mActions = file2matrix( ACTION_FILE, g_iA );
+    g_iNb_samples = 0;
+    gsl_matrix* D_expert = gridworld_simulator( M );
+    gsl_matrix_free( g_mOmega );
+    gsl_matrix_free( g_mActions );
+    gsl_matrix* omega_lstd = 
+      proj_lstd_lspi_ANIRL( D_expert, D_expert, S, A, K, P, GAMMA, 
+			    GAMMA_LSPI, EPSILON, EPSILON_LSPI,
+			    &phi, &psi );
+    gsl_matrix_free( omega_lstd );
+  }
   return 0;
 }

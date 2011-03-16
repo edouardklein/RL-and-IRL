@@ -13,7 +13,9 @@ double quality( gsl_matrix* (*simulator)(int),
   g_mOmega = gsl_matrix_alloc( omega->size1, 1 );
   gsl_matrix_memcpy( g_mOmega, omega );
   g_mActions = file2matrix( ACTION_FILE, g_iA );
+  unsigned int nb_samples_backup = g_iNb_samples;
   gsl_matrix* D = simulator( nb_ep );
+  g_iNb_samples = nb_samples_backup;
   gsl_matrix_free( g_mOmega );
   gsl_matrix_free( g_mActions );
   double cumulated_reward = 0;
@@ -80,6 +82,7 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
 				double epsilon_lspi,
 				gsl_matrix* (*phi)(gsl_matrix*),
 				gsl_matrix* (*psi)(gsl_matrix*)){
+  double max_q = 0;
   gsl_matrix* omega_0 = gsl_matrix_calloc( k, 1 );
   /* \omega \leftarrow 0 */
   gsl_matrix* omega = gsl_matrix_calloc( k, 1 );
@@ -105,14 +108,18 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
 			       expert_trans->size1, 1 );
   gsl_matrix* mu_E = 
     monte_carlo_mu( &states.matrix, &EOEs.matrix, gamma, psi );
-  /* \theta \leftarrow \mu_E - \mu */
-  gsl_matrix* theta = gsl_matrix_alloc( mu->size1, mu->size2 );
+  /* \theta \leftarrow {\mu_E - \mu\over ||\mu_E - \mu||_2} */
+  gsl_matrix* theta = gsl_matrix_alloc(mu->size1, mu->size2 );
   gsl_matrix_memcpy( theta, mu_E );
   gsl_matrix_sub( theta, mu );
+  gsl_vector_view theta_v = gsl_matrix_column( theta, 0 );
+  double theta_norm = gsl_blas_dnrm2( &theta_v.vector );
+  if( theta_norm != 0 )
+    gsl_matrix_scale( theta, 1./theta_norm );
   /* \bar\mu \leftarrow \mu*/
   gsl_matrix* bar_mu = gsl_matrix_alloc( mu->size1, mu->size2 );
   gsl_matrix_memcpy( bar_mu, mu );
-  /* t = ||\mu_E - \bar\mu||_2*/
+  /* t \leftarrow ||\mu_E - \bar\mu||_2*/
   gsl_vector_view barmu_v = gsl_matrix_column( bar_mu, 0 );
   gsl_vector_view muE_v = gsl_matrix_column( mu_E, 0 );
   gsl_vector* diff = gsl_vector_calloc( mu->size1 );
@@ -121,6 +128,13 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
   double t = gsl_blas_dnrm2( diff );
   unsigned int nb_it = 0;
   while( t > epsilon && nb_it < NB_IT_MAX ){
+    /**/
+    double q = quality( gridworld_simulator, s, a, 
+			omega, 1000 );
+    if( q > max_q ){
+      max_q = q;
+    }
+    /**/
     printf("%d %d %d %lf\n", m, nb_it, g_iNb_samples, t );
     /* D.r \leftarrow \theta^T\psi(D.s) */
     for( unsigned int i = 0 ; i < D->size1 ; i++ ){
@@ -184,16 +198,27 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
     gsl_matrix_free( mu_barmu );
     gsl_matrix_free( muE_barmu );
     gsl_matrix_free( delta_bar_mu );
-    /* \theta \leftarrow \mu_E - \bar\mu */
+    /* \theta \leftarrow 
+       {\mu_E - \bar\mu\over ||\mu_E - \bar\mu||_2} */
     gsl_matrix_memcpy( theta, mu_E );
     gsl_matrix_sub( theta, bar_mu );
+    theta_v = gsl_matrix_column( theta, 0 );
+    theta_norm = gsl_blas_dnrm2( &theta_v.vector );
+    if( theta_norm != 0 )
+      gsl_matrix_scale( theta, 1./theta_norm );
     /* t\leftarrow ||\mu_E - \bar\mu||_2 */
     gsl_vector_memcpy( diff, &barmu_v.vector );
     gsl_vector_sub( diff, &muE_v.vector );
     t = gsl_blas_dnrm2( diff );
     nb_it++;
   }
+  double q = quality( gridworld_simulator, s, a, 
+		      omega, 1000 );
+  if( q > max_q ){
+    max_q = q;
+  }
   printf("%d %d %d %lf\n", m, nb_it, g_iNb_samples, t );
+  printf("AN MAXQ %d %lf\n", m, max_q);
   gsl_matrix_free( omega_0 );
   gsl_matrix_free( mu );
   gsl_matrix_free( mu_E );
