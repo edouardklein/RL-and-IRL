@@ -1,12 +1,6 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
-
-unsigned int g_iS = -1; //Dimension of S
-unsigned int g_iA = -1; //Dimension on A
-unsigned int g_iK = -1; //Number of features
-gsl_matrix* g_mOmega = NULL; //Omega
-gsl_matrix* (*g_fPhi)(gsl_matrix*) = NULL; //\phi
-gsl_matrix* g_mActions = NULL; //All actions, one per line
+#include "RL_Globals.h"
 
 gsl_matrix* greedy_policy( gsl_matrix* state ){
   gsl_matrix* sa = gsl_matrix_alloc( 1, g_iS + g_iA );

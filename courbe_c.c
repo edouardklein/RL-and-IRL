@@ -45,7 +45,7 @@ double g_dEpsilon_lspi = 0.1;
 double g_dLambda_lstdmu = 0.1;
 double g_dGamma_anirl = 0.9;
 double g_dEpsilon_anirl = 0.1;
-unsigned int g_iIt_max_anirl = 100;
+unsigned int g_iIt_max_anirl = 40;
 gsl_matrix* g_mActions = NULL; 
 gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
 gsl_matrix* (*g_fSimulator)(int) = &gridworld_simulator;
@@ -54,18 +54,20 @@ int main( void ){
   gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
   g_mActions = file2matrix( ACTION_FILE, g_iA );
   gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  /*As a side effect, this sets most of  the global variables 
+    needed by greedy, and consequently by the simulator*/
   gsl_matrix* omega_expert = lspi( D, omega_0 );
   g_mOmega_E = omega_expert;
   expert_just_set();
-  unsigned int M = 35;
-  //  for(M = 40; M<=100; M+=60 ){
-  g_iNb_samples = D->size1;
-  g_mOmega =  omega_expert;
-  gsl_matrix* D_expert = gridworld_simulator( M );
-  gsl_matrix* omega_imitation =
-    proj_mc_lspi_ANIRL( D_expert, D, M );
-  gsl_matrix_free( omega_imitation );
-  gsl_matrix_free( D_expert );
-  //}
+  unsigned int M;
+  for(M = 40; M<=100; M+=60 ){
+    g_iNb_samples = D->size1;
+    g_mOmega =  omega_expert;
+    gsl_matrix* D_expert = gridworld_simulator( M );
+    gsl_matrix* omega_imitation =
+      proj_mc_lspi_ANIRL( D_expert, D, M );
+    gsl_matrix_free( omega_imitation );
+    gsl_matrix_free( D_expert );
+  }
   return 0;
 }

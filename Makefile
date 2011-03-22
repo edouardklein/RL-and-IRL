@@ -16,8 +16,8 @@ lagoudakis2003least_figure10.dat: lagoudakis2003least_figure10.samples lagoudaki
 lagoudakis2003least_figure10.samples: ChainWalk_generator.exe 
 	for i in `seq -w 1000`; do ./ChainWalk_generator.exe 50 > Samples$$i; done && touch lagoudakis2003least_figure10.samples
 
-lagoudakis2003least_figure10.exe: lagoudakis2003least_figure10.o LSPI.o LSTDQ.o utils.o greedy.o
-	gcc -o lagoudakis2003least_figure10.exe lagoudakis2003least_figure10.o LSPI.o LSTDQ.o utils.o greedy.o $(LFLAGS)
+lagoudakis2003least_figure10.exe: lagoudakis2003least_figure10.o LSPI.o LSTDQ.o utils.o greedy.o 
+	gcc -o lagoudakis2003least_figure10.exe lagoudakis2003least_figure10.o LSPI.o LSTDQ.o utils.o greedy.o  $(LFLAGS)
 
 lagoudakis2003least_figure10.o: lagoudakis2003least_figure10.c LSPI.h utils.h
 	gcc -c $(CFLAGS) lagoudakis2003least_figure10.c
@@ -29,7 +29,7 @@ ChainWalk_generator.o: ChainWalk_generator.c utils.h
 	gcc -c $(CFLAGS) ChainWalk_generator.c
 
 #Common
-LSPI.o: LSPI.h LSPI.c utils.h LSTDQ.h greedy.h
+LSPI.o: LSPI.h LSPI.c utils.h LSTDQ.h greedy.h 
 	gcc -c $(CFLAGS) LSPI.c
 
 LSTDQ.o: LSTDQ.h LSTDQ.c
@@ -51,8 +51,12 @@ GridWorld_generator.exe: GridWorld_generator.o utils.o
 GridWorld_generator.o: GridWorld_generator.c GridWorld.h utils.h
 	gcc -c $(CFLAGS) GridWorld_generator.c
 
-abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h
+abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h criteria.h
 	gcc -c $(CFLAGS) abbeel2004apprenticeship.c
+
+criteria.o: criteria.h criteria.c RL_Globals.h
+	gcc -c $(CFLAGS) criteria.c
+
 
 #Courbe A :
 courbe_a.pdf: courbe_a.ps
@@ -67,10 +71,10 @@ courbe_a.dat: courbe_a.samples courbe_a.exe
 courbe_a.samples: GridWorld_generator.exe 
 	./GridWorld_generator.exe > Samples.dat && touch courbe_a.samples
 
-courbe_a.exe: courbe_a.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o
-	gcc -o courbe_a.exe $(LFLAGS) courbe_a.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o
+courbe_a.exe: courbe_a.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o criteria.o
+	gcc -o courbe_a.exe $(LFLAGS) courbe_a.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o criteria.o
 
-courbe_a.o: courbe_a.c GridWorld.h utils.h LSPI.h greedy.h GridWorld_simulator.h abbeel2004apprenticeship.h
+courbe_a.o: courbe_a.c GridWorld.h utils.h LSPI.h greedy.h GridWorld_simulator.h abbeel2004apprenticeship.h criteria.h
 	gcc -c $(CFLAGS) courbe_a.c
 
 #Courbe B : 
@@ -90,7 +94,7 @@ courbe_b_150.dat: courbe_b.dat
 	cat courbe_b.dat | grep -E "^35" > courbe_b_150.dat
 
 courbe_b_Nous.dat: courbe_b.dat
-	cat courbe_b.dat | grep -E "^0" | grep -E "000$$" > courbe_b_Nous.dat
+	cat courbe_b.dat | grep -E "^0 1" > courbe_b_Nous.dat
 
 courbe_b.dat: courbe_b.samples courbe_b.exe
 	./courbe_b.exe > courbe_b.dat
@@ -98,14 +102,16 @@ courbe_b.dat: courbe_b.samples courbe_b.exe
 courbe_b.samples: GridWorld_generator.exe 
 	./GridWorld_generator.exe > Samples.dat && touch courbe_b.samples
 
-courbe_b.exe: courbe_b.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o
-	gcc -o courbe_b.exe $(LFLAGS) courbe_b.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o
+courbe_b.exe: courbe_b.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	gcc -o courbe_b.exe $(LFLAGS) courbe_b.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
 
 courbe_b.o: courbe_b.c GridWorld.h utils.h LSPI.h greedy.h GridWorld_simulator.h abbeel2004apprenticeship.h LSTDmu.h
 	gcc -c $(CFLAGS) courbe_b.c
 
-LSTDmu.o: LSTDmu.h LSTDmu.c
+LSTDmu.o: LSTDmu.h LSTDmu.c greedy.h utils.h criteria.h LSPI.h
 	gcc -c $(CFLAGS) LSTDmu.c
+
+
 
 
 

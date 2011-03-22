@@ -1,7 +1,10 @@
-/* Compute the mean reward over nb_ep episodes */
-double quality( gsl_matrix* (*simulator)(int), 
-		unsigned int s, unsigned int a, 
-		gsl_matrix* omega, unsigned int nb_ep );
+/* Compute an estimate of \mu using the monte carlo method,
+   given a set of trajectories 
+   \hat\mu = {1\over m }\sum_{i=0}^m
+   \sum_{t=0}^\infty\gamma^t\psi(s_t^{(i)})
+*/
+gsl_matrix* monte_carlo_mu( gsl_matrix* D );
+
 /* Abbeel and Ng's IRL algorithm (ANIRL), with the projection 
    method, monte-carlo estimation and LSPI as the MDP solver.
    Given a simulator and an expert's trace, returns the \omega 
@@ -9,14 +12,6 @@ double quality( gsl_matrix* (*simulator)(int),
    under the reward R = \theta^T\psi. 
    Note that \omega \equiv \pi
 */
-gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* expert_trans,
-				gsl_matrix* (*simulator)(int),
+gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,
 				gsl_matrix* D,
-				unsigned int s, unsigned int a,
-				unsigned int k, unsigned int m,
-				double gamma, 
-				double gamma_lspi,
-				double epsilon,
-				double epsilon_lspi,
-				gsl_matrix* (*phi)(gsl_matrix*),
-			       gsl_matrix* (*psi)(gsl_matrix*));
+				unsigned int m);

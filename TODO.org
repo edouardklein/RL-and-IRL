@@ -10,6 +10,10 @@
     LSTD de manière on policy. Il faudrait que on et off soient
     des wrappers vers une seule fonction qui n'utilise pas
     D mais une matrice s a s' a' ploup. 
+*** TODO Factoriser les parties communes de l'ANIRL
+    ANIRL avec MC et avec LSTDMu ont des parties communes.
+    Ce serait une bonne idée de les factoriser dans des fonctions
+    à part.
 *** TODO Trouver et détruire la fuite de mémoire
 *** DONE Normer Theta
 *** DONE Utiliser une seule banque de données

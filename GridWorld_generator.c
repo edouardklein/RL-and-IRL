@@ -5,7 +5,7 @@
 #include <gsl/gsl_matrix.h>
 #include "utils.h"
 #include "GridWorld.h"
-#define NUMBER_OF_WALKS 45
+#define NUMBER_OF_WALKS 100
 #define MAX_WALK_LENGTH  (GRID_HEIGHT+GRID_WIDTH)
 
 int main(void){

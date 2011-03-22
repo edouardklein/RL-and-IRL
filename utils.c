@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
 #include <stdlib.h>
 
 /* Count the number of lines in a text file */
@@ -36,4 +37,16 @@ int rand_1_in_10(){
     return 0;
   }
   return 1;
+}
+
+/* ||m1-m2||_2 */
+double diff_norm( gsl_matrix* m1, gsl_matrix* m2 ){
+  gsl_vector_view v1 = gsl_matrix_column( m1, 0 );
+  gsl_vector_view v2 = gsl_matrix_column( m2, 0 );
+  gsl_vector* diff = gsl_vector_calloc( m1->size1 );
+  gsl_vector_memcpy( diff, &v1.vector );
+  gsl_vector_sub( diff, &v2.vector );
+  double answer = gsl_blas_dnrm2( diff );
+  gsl_vector_free( diff );
+  return answer;
 }

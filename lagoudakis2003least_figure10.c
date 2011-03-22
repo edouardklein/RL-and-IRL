@@ -11,17 +11,13 @@
 #include "LSPI.h"
 #include "utils.h"
 #define D_WIDTH 5 /* s a s' r eoe, one number each */
-#define S 1 /*State space dimension*/
-#define A 1 /*Action space dimension*/
-#define K 6 /*Feature space dimension*/
-#define GAMMA 0.9 /*Discount factor*/
-#define EPSILON 0.1 /*Halt criteria*/
 
 #define S_CARD 4 /*State space cardinal*/
 #define N_EXP  1000 /* Number of experiences on which we */
                     /* compute the mean and the var*/
 #define D_PREFIX "Samples" /* Prefix for the files containing */
                            /* the transitions*/
+#define ACTION_FILE "actions_lagoudakis.mat"
 
 gsl_matrix* phi( gsl_matrix* sa ){
   gsl_matrix* answer = gsl_matrix_calloc( 6, 1 );
@@ -35,22 +31,34 @@ gsl_matrix* phi( gsl_matrix* sa ){
   return answer;
 }
 
+unsigned int g_iS = 1; /*State space dimension*/
+unsigned int g_iA = 1; /*Action space dimension*/
+unsigned int g_iK = 6; /*Feature space dimension*/
+double g_dGamma_lstdq =  0.9; /*Discount factor*/
+double g_dEpsilon_lspi = 0.1; /*Halt criterion*/
+gsl_matrix* g_mOmega = NULL; //Omega
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi; //\phi
+gsl_matrix* g_mActions = NULL; //All actions, one per line
+unsigned int g_iIt_max_lspi = 20;
+double g_dLambda_lstdQ = 0.5; //Regularization influences
+//variance in the final curve (a lot). Try 0, then 0.1, 
+//then 0.5
+
 int main( void ){
-  gsl_matrix* omega_0 = gsl_matrix_calloc( K, 1 );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
   gsl_matrix* mQ = gsl_matrix_alloc( 1, 1 );
   gsl_matrix* values_L = gsl_matrix_calloc( N_EXP, S_CARD );
   gsl_matrix* values_R = gsl_matrix_calloc( N_EXP, S_CARD );
-
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
 
   for( unsigned int i = 0; i < N_EXP ; i++ ){
     //    fprintf( stderr, "LSPI on sample set %d\n", i );	
     char D_name[1024];
     sprintf( D_name, "%s%04d", D_PREFIX, i+1 );
     gsl_matrix* D = file2matrix( D_name, D_WIDTH );
-    gsl_matrix* omega_star = lspi( D, K, S, A, &phi, GAMMA,
-				   EPSILON, omega_0);
+    gsl_matrix* omega_star = lspi( D, omega_0 );
     for( unsigned int s = 1; s <= 4; s++ ){
-      gsl_matrix* sa = gsl_matrix_alloc( 1, S+A );
+      gsl_matrix* sa = gsl_matrix_alloc( 1, g_iS+g_iA );
       gsl_matrix_set( sa, 0, 0, (double)s );
       gsl_matrix_set( sa, 0, 1, 0. );//Left
       gsl_matrix* phi_sa = phi( sa );
