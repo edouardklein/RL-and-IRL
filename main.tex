@@ -9,19 +9,20 @@
 \newtheorem{lemma}{Lemma}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{algorithm}
-\usepackage{algorithmic}
 \usepackage{natbib}
 \usepackage{graphicx}
+\usepackage{subfigure}
+%\usepackage{algorithm2e}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 
 \title{Batch, Off-Policy Apprencticeship Learning}
 \author{Edouard Klein \and Matthieu Geist \and Olivier Pietquin \\
 Supélec, IMS\\
 Metz, France \\
-\{edouard.klein|matthieu.geist|olivier.pietquin\}@supelec.fr}
+\{edouard.klein$|$matthieu.geist$|$olivier.pietquin\}@supelec.fr}
 \begin{document}
 \maketitle
-\tableofcontents
 \begin{abstract}
 We consider the IRL framework for apprenticeship learning. %1
 Current IRL algorithms use a simple Monte-Carlo estimation to approximate the feature expectation of both the expert and the policy under evaluation. %2
@@ -29,21 +30,26 @@ In this paper, we propose another method for estimating the feature expectation 
 This new method allows for batch, off-policy appreticeship learning in situations where the dynamics of the system remains unknown. %4
 By testing it on a classical problem, we show that our method is empirically sound.%5
 We also provide some theoretical results.%6
-\end{abstract} 
+\end{abstract}
 \section{Introduction}
-When a system can be empirically controlled by an expert whose behaviour is difficult to describe formally, apprenticeship learning is a way to let a machine control the system by mimicking the expert.\\
+The optimal control problem can be expressed as having a machine control a system, with the goal of fulfilling a specific task. Various solutions to this problem exist. Things can get hard to deal with, however, when precisely defining the task is in itself a challenge. When the system can be empirically controlled by an expert, even when his behaviour is difficult to describe formally, apprenticeship learning is a way to let a machine control the system by mimicking the expert.\\
 
-This is a restriction of the more general problem of task transfer, where the goal of the expert is to be guessed and then pursued with the machine own means.\\
+When the task at hand can be formally described, the problem of optimal control can be solved by tools from the \emph{Reinforcement Learning} (RL) framework. An extensive introduction to this matter can be found in \citep{sutton1998reinforcement} : the control problem is projected into a sequential decision problem inside a \emph{Markov Decision Process}. The agent transits from \emph{state} to \emph{state}, the decision taking the form of choosing an \emph{action} at each visited state. For each \emph{transition}, the agent receives a \emph{reward}. The \emph{reward function} (a mapping from each state to a real value) defines the task. The agent's goal is to maximize the long-term reward by maximizing what is called the \emph{expected discounted reward} : the expectation of the sum of all rewards to be obtained, multiplied by a deacreasing-over-time factor (called the \emph{discount factor}). For a given \emph{policy} (a mapping from each state to an action) that the agent follows, the mapping from each state to the expected discounted reward is called the \emph{value function}. The \emph{optimal policy}, hopefully found by the agent, is the unique policy of which the value fuction is, for every state, superior or equal to all the other policie's value functions.\\
 
-\emph{Inverse Reinforcement Learning} is a framework created to tackle both of these problems. \citet{russell1998learning} first defined it in the terms used today, drawing from animal behavior research and more loosely from macroeconomics research : given an expert's sensory input and decisions, determine the reward (i.e. the \emph{goal}) optimized by that expert. This reward is then to be optimized via tools developped whithin the \emph{Reinforcement Learning} framework \citep{sutton1998reinforcement}.\\
+It is not necessary for a model of the environment or for a simulator to be available, as for example the LSTD (\citep{bradtke1996linear}) algorithm can approximate the value function in a batch, off-policy, model-free setting. Building on it, the LSPI (\citep{lagoudakis2003least}) algorithm can be used to actually solve the RL problem in such settings : given a set of random or arbitrary transitions and the corresponding rewards, find the optimal policy.\\
 
-\citet{ng2000algorithms} proposed new algorithms to solve the IRL problem, followed by an article \citep{abbeel2004apprenticeship} about the more specific problem of apprenticeship learning, in which imitation metrics are introduced. The method proposed in this work is built upon this paper, and compared against it.\\
+\citet{russell1998learning} first defined the \emph{Inverse Reinforcement Learning} (IRL) problem in the terms used today, drawing from animal behavior research and more loosely from macroeconomics research. What is looked for is not the policy as it is in the RL problem, but the reward, which defines the task and of which the expected discounted sum is maximized by an expert. IRL is a framework in which it could be possible to attack the apprenticeship learning problem mentionned earlier.\\
 
-The main limitation in \citet{abbeel2004apprenticeship}'s work is the need for a model of the environnement or, at least, a simulator. \\
+\citet{ng2000algorithms} first proposed an algorithm to solve the IRL problem, sheding light on a problem foreseen in \citep{russell1998learning} : the IRL problem is mathematically ill-defined as it admits a infinity of solutions, including degenerative ones (e.g. the null reward accepts any policy as an optimal policy).\\
+
+This work was followed by an article \citep{abbeel2004apprenticeship} focussing on the more specific, but better defined problem of apprenticeship learning using the IRL framework. This work makes use of the IRL framework by using an approximator for the reward function, and looking for the parameters for which the approximated reward function is the best. This however only concerns the apprenticeship learning (a.k.a. imitation learning) because the metric used, although intended to discriminate the expert's performance and the current policy's performance \emph{under the current approximate reward}, can be seen as a measure of proximity of the different states visitation frequencies.
+
+This metric, called the \emph{feature expectation}, is akin to the expected discounted reward discussed when describing the RL framework. It does however not sum the reward but the features of the visited states, features defined by the choice of the reward function approximator. It can be assessed either by analytical resolution (when the model is available) of a Monte-Carlo estimation (when a simulator is available).\\
+ 
+The main limitation in \citet{abbeel2004apprenticeship}'s work (from now on reffered to as the ANIRL algorithm) is the need for a model of the environnement or, at least, a simulator. We build directly upon this work by presenting a new algorithm, LSTD$\mu$, which along with the use of LSPI and LSTD allows the use of the ANIRL algorithm in a batch, off-policy, model-free setting.\\
 
 FIXME:Autres approches qu'Abbeel, notamment celles qui cherchent à contourner le même problème.\\
 
-With the LSTD \citep{bradtke1996linear} and LSPI \citep{lagoudakis2003least} algorithms, one can work out the Reinforcement Learning problem without the need for a model. We extend these capabilities to \citet{abbeel2004apprenticeship}'s algorithm by assessing the imitation metrics through LSTD. We also do not need a simulator, the data from the expert being used to feed LSPI.\\
 \section{Background}
 A \emph{Markov Decision Process} is a tuple $\{S,A,\gamma,R\}$ with :
 \begin{itemize}
@@ -101,11 +107,12 @@ We introduce the matrix $\zeta$ such as :
 \end{equation}
 $\zeta$ is given by :
 \begin{equation}
-\zeta = A^{-1}b
+\zeta = \tilde A^{-1}\tilde b
 \end{equation}
 with :
 \begin{eqnarray}
-FIXME: copier depuis le code
+\tilde A = \sum_{\{s,a,s'\} \in D}\phi(s,a)\left(\phi(s,a) - \gamma \phi(s',\pi(s'))\right)^T\\
+\tilde b = \sum_{\{s,a,s'\} \in D} \phi(s,a)\psi(s)^T
 \end{eqnarray}
 
 This approach is superior to the Monte-Carlo estimation suggested by \citet{abbeel2004apprenticeship}, as it allows for a batch, off policy estimation of $\mu_\pi$, even when no model of the environment is known and no simulator is available whereas the Monte-Carlo estimation needs either a model or a simulator, and only allow for an estimation of $\mu_\pi(s_0)$.\\
@@ -113,6 +120,61 @@ This approach is superior to the Monte-Carlo estimation suggested by \citet{abbe
 Coupled with the LSPI algorithm, this allows an adaptation of \citet{abbeel2004apprenticeship} algorithm to "real-life" settings where the only data available come from the expert's trajectories.\\
 
 FIXME: Un mot sur pourquoi il est inutile de faire des itérations sur mu directement ?
+\begin{figure*}
+ \begin{minipage}[t]{.45\textwidth}
+ \begin{algorithm}[H]
+   \caption{lstd\_ANIRL} 
+   \label{alg:lstd_anirl} 
+   \begin{algorithmic}[1]
+     \STATE $\zeta \leftarrow 0$
+     \STATE $D_\mu \leftarrow D $
+     \STATE $D_\mu.r \leftarrow \psi(D.s)$
+     \STATE $\mu \leftarrow LSTD\mu( D_\mu )$
+     \STATE $D_E.r \leftarrow \psi(D_E.s)$
+     \STATE $\mu_E \leftarrow LSTD\mu( D_E )$
+     \STATE $\theta \leftarrow {\mu_E - \mu\over ||\mu_E - \mu||_2}$
+     \STATE $ \bar\mu \leftarrow \mu $
+     \STATE $ t \leftarrow ||\mu_E - \bar\mu||_2 $
+     \WHILE{$ t > \epsilon $}
+     \STATE $D.r \leftarrow \theta^T\psi(D.s)$
+     \STATE $ \omega \leftarrow LSPI(D) $
+     \STATE $ \mu \leftarrow LSTD\mu( D_\mu )$
+     \ENDWHILE
+   \end{algorithmic}
+ \end{algorithm}
+ \end{minipage}
+ \hfill
+ \begin{minipage}[t]{.45\textwidth}
+   \begin{algorithm}[H]
+     \caption{Mission-side2 Greedy} 
+     \label{alg2} 
+     \begin{algorithmic}[1]
+       \STATE whatever your alg does
+       \FOR{each mission $M_{j}$ in sorted order} 
+       \STATE do something
+       \ENDFOR
+     \end{algorithmic}
+   \end{algorithm}
+ \end{minipage}
+ \hfill
+\end{figure*}
+
+%% \begin{figure*}
+%%   \subfigure{
+%%     \begin{algorithm}
+%%       $A\leftarrow 0$
+%%     \end{algorithm}
+%%   }
+  %% \qquad
+  %% \subfigure{
+    %% \begin{algorithm}[H]
+    %%   \caption{Algo deux}
+    %%   \begin{algorithmic}
+    %%     $b\leftarrow 0$
+    %%   \end{algorithmic}
+    %% \end{algorithm}
+    %%   } 
+%% \end{figure*}
 
 FIXME: Dérouler les deux algorithmes complets côte à côte dans une forme lisible, car c'est un peu la galère en lisant le papier d'Abbeel.
 \section{Analysis}
@@ -127,18 +189,18 @@ On the other hand lstd\_ANIRL uses LSPI and LSTD$\mu$, fed only with the expert'
 Figure \ref{fig:E} shows the performance of both algorithms with repect to the number of samples from the expert made available.\\
 
 With respect to computing power, our algorithm needed far less iteration to get the job done.
-\begin{figure*}
-\includegraphics[width=\textwidth]{../Code/courbe_e.pdf}
+\begin{figure}
+\includegraphics[width=.5\textwidth]{../Code/courbe_e.pdf}
 \caption{$||\mu_E(s_0)-\mu_\pi(s_0)||_2$ with respect to the number of samples available from the expert. Our algorithm is not as good as \citet{abbeel2004apprenticeship} with very few samples, but make up for it very soon.}
 \label{fig:E}
-\end{figure*}
+\end{figure}
 \section{Quality criterion}
 FIXME: Discussion sur les critères utilisés, ouverture vers le transfert de tâche.
-\begin{figure*}
-\includegraphics[width=\textwidth]{../Code/courbe_a.pdf}
+\begin{figure}
+\includegraphics[width=.5\textwidth]{../Code/courbe_a.pdf}
 \caption{Different criteria with respect to the number of iterations. See how decorelated they can be.}
 \label{fig:A}
-\end{figure*}
+\end{figure}
 \section{Future Work}
 FIXME: Une seule itération, est-ce normal ? Abbeel reste-t-il meilleur sur un problème plus complexe ? Transfert de tâche ? Est-il nécessaire de choisir sa politique avec LSTDMu, puisqu'il finit en une seule fois ?
 \section{Conclusion}
