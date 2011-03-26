@@ -95,6 +95,7 @@ The IRL problem seeks the reward the expert is maximizing. The imitation problem
 The quality of the imitation is assessed via the error term $||\mu_\pi(s_0)-\mu_E(s_0)||_2$. Given that the norm of $\theta$ is bounded, this error term also gives a feeling of the difference of performance under the estimated reward function $\hat R$ :
 \begin{equation}
 |V^\pi(s_0)-V^E(s_0)| \leq ||\theta||_2||\mu_\pi(s_0)-\mu_E(s_0)||_2
+\label{eqn:vmu}
 \end{equation}
 
 The main shortcoming of this algorithm lies in its need for either a model of the environnement or at least a sample source $D$, in order to approximate the feature expectation of both the expert and the current policy via a Monte-Carlo estimator.
@@ -126,10 +127,11 @@ FIXME: Un mot sur pourquoi il est inutile de faire des itérations sur mu direct
    \caption{lstd\_ANIRL} 
    \label{alg:lstd_anirl} 
    \begin{algorithmic}[1]
-     \STATE $\zeta \leftarrow 0$
+     \STATE $\omega \leftarrow 0$
      \STATE $D_\mu \leftarrow D $
      \STATE $D_\mu.r \leftarrow \psi(D.s)$
-     \STATE $\mu \leftarrow LSTD\mu( D_\mu )$
+     \STATE $\zeta \leftarrow LSTD\mu( D_\mu )$
+     \STATE $\mu \leftarrow \zeta^T\psi(s,\pi_\omega(s))$
      \STATE $D_E.r \leftarrow \psi(D_E.s)$
      \STATE $\mu_E \leftarrow LSTD\mu( D_E )$
      \STATE $\theta \leftarrow {\mu_E - \mu\over ||\mu_E - \mu||_2}$
@@ -138,7 +140,10 @@ FIXME: Un mot sur pourquoi il est inutile de faire des itérations sur mu direct
      \WHILE{$ t > \epsilon $}
      \STATE $D.r \leftarrow \theta^T\psi(D.s)$
      \STATE $ \omega \leftarrow LSPI(D) $
-     \STATE $ \mu \leftarrow LSTD\mu( D_\mu )$
+     \STATE $ \mu \leftarrow LSTD\mu( D_\mu, \pi_\omega )$
+     \STATE $\bar\mu \leftarrow \bar\mu + { (\mu-\bar\mu)^T (\mu_E-\bar\mu) \over (\mu-\bar\mu)^T (\mu-\bar\mu) } (\mu-\bar\mu) $
+     \STATE $\theta \leftarrow 
+       {\mu_E - \bar\mu\over ||\mu_E - \bar\mu||_2}$
      \ENDWHILE
    \end{algorithmic}
  \end{algorithm}
@@ -180,26 +185,43 @@ FIXME: Dérouler les deux algorithmes complets côte à côte dans une forme lis
 \section{Analysis}
 FIXME: Matthieu ?
 \section{Experimental benchmark}
-The experimental benchmark chosen here is the same as in \citep{ng2000algorithms}, a 5x5 grid world. The expert policy maximizes the following reward : 0 everywhere but in the upper-right square, where it is 1.\\
+The experimental benchmark chosen here is the same as in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the case of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The expert policy maximizes the following reward : 0 everywhere but in the upper-right square, where it is 1. An episodes ends when the upper right square is attained, or after 20 steps. At the start of each episode, the expert is in the lower-left corner of the grid (the opposite of where the reward is).\\
 
-Both \cite{abbeel2004apprenticeship}'s algorithm (mc\_ANIRL) and our adaptation (lstd\_ANIRL) are tested side by side. We use the projection method in both algorithm. As a MDP solver, mc\_ANIRL is given LSPI with a (very) big matrix $D$ as a sample source. $\mu_\pi(s_0)$ and $\mu_E(s_0)$ are computed thanks to a (very) big Monte-Carlo estimation. Both are, for all intended purpose on this toy problem, as good as a perfect theoretical solver.\\
+Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ are the typical features of a tabular representation : 0 everywhere but at a given index $i$ for which the value is 1. There is a bijective mapping from the input space elements ($S$ for $\psi$, $S \times A$ for $\phi$) to the indexes $i$ for which the coordinate of the feature is 1.\\
 
-On the other hand lstd\_ANIRL uses LSPI and LSTD$\mu$, fed only with the expert's transitions. This corresponds to a real-life setting where data generation is expensive and the system can not be controlled by an untrained machine.\\
+Both \citet{abbeel2004apprenticeship}'s algorithm (mc\_ANIRL) and our adaptation (lstd\_ANIRL) are tested side by side. We use the projection method in both algorithms.\\
 
-Figure \ref{fig:E} shows the performance of both algorithms with repect to the number of samples from the expert made available.\\
+As a MDP solver, mc\_ANIRL is given LSPI with a (very) big matrix $D$ as a sample source. $\mu_\pi(s_0)$ and $\mu_E(s_0)$ are computed thanks to a (very) big Monte-Carlo estimation. Both are, for all intended purpose on this toy problem, as good as a perfect theoretical solver. We thus are in the case intended by \citet{abbeel2004apprenticeship}.\\
 
-With respect to computing power, our algorithm needed far less iteration to get the job done.
+On the other hand lstd\_ANIRL is used as if it could not have access to the simulator. It uses LSPI and LSTD$\mu$, fed only with the expert's transitions. This corresponds to a real-life setting where data generation is expensive and the system can not be controlled by an untrained machine.\\
+
+We want to compare the porformance of both versions of the algorithm with repect to the number of samples available from the expert, as these samples usually are the bottleneck. The discussion about the choice of the performance metric has its own dedicated section (section \ref{sec:perf}). We use here the $||\mu(s_0) - \mu_E(s_0)||_2$ error term.\\
+
+Figure \ref{fig:E} shows, for some numbers of samples from the expert, the value of $|\mu(s_0)-\mu_E(s_0)||_2$ after the algorithm has converged, or at least did 40 iterations. The best policy is found by lstd\_ANIRL after one iteration only (this is being investigated), whereas in mc\_ANIRL convergence happens after at least ten iterations, and the best policy is not always the last. The score of the best policy (not the last) is what is plotted here.\\
+
+We can see that although lstd\_ANIRL is not as good as mc\_ANIRL when very few samples are available, both algorithm quickly converge to almost the same value (we don't know yet if the seemingly slightly best performance of lstd\_ANIRL is an artifact). The fact that lstd\_ANIRL can work in a batch, off-policy and model-free setting, while requesting less computing power than mc\_ANIRL makes it suitable to a range of task inaccessible to the mc\_ANIRL version.
+\section{Quality criterion}
+
+Figure \ref{fig:A} and \ref{fig:B} illustrate the difficulty of choosing the quality criterion. These plots show four different quality ciretria during a run of mc\_ANIRL and several runs of lstd\_ANIRL. The $||\mu(s_0) - \mu_E(s_0)||_2$ term is widely discussed in \citep{abbeel2004apprenticeship}'s additional material. It bears an interesting relation with the difference between the expert's value function and the current value function with respect \emph{to the current reward} (equation \ref{eqn:vmu}).\\
+
+The fact that  the curves of  $||\mu(s_0) - \mu_E(s_0)||_2$ and $||\hat\mu(s_0) - \hat\mu_E(s_0)||_2$ are indistinguishable in figure \ref{fig:A} means that for it has access to a cheap simulator, mc\_ANIRL is as if it worked within an analitycal framework. This however can not be said of lstd\_ANIRL, for which the two curves are indeed different (Figure \ref{fig:B}). Not knowing the true value of $\mu_E(s_0)$ may be a problem for lstd\_ANIRL, as it can introduce an error int the halt criterion of the algorithm, $t = ||\bar\mu-\hat\mu_E(s_0)||$. After the algorithm has converged (it systematically does after only one iteration, this is being investigated), there is no way to know whether the policy is actually good or not (note that lstd\_ANIRL normally does not have acces to what was plotted in figure \ref{fig:E}).\\
+
+It shall be noted that although it plays its role, the halt criterion is not a good measure of the quality of the current policy in mc\_ANIRL either, as it can be low when the policy is bad. The best policy, however, can be easily chosen from the $||\mu(s_0) - \mu_E(s_0)||_2$ term, which mc\_ANIRL can compute. When this term is low, the objective performance (that is, $V^E(s_0)-V^\pi(s_0)$ with respect to the unknow true reward function) is low too.
 \begin{figure}
 \includegraphics[width=.5\textwidth]{../Code/courbe_e.pdf}
 \caption{$||\mu_E(s_0)-\mu_\pi(s_0)||_2$ with respect to the number of samples available from the expert. Our algorithm is not as good as \citet{abbeel2004apprenticeship} with very few samples, but make up for it very soon.}
 \label{fig:E}
 \end{figure}
-\section{Quality criterion}
-FIXME: Discussion sur les critères utilisés, ouverture vers le transfert de tâche.
+\label{sec:perf}
 \begin{figure}
 \includegraphics[width=.5\textwidth]{../Code/courbe_a.pdf}
-\caption{Different criteria with respect to the number of iterations. See how decorelated they can be.}
+\caption{Different criteria with respect to the number of iterations for a run of mc\_ANIRL.}
 \label{fig:A}
+\end{figure}
+\begin{figure}
+\includegraphics[width=.5\textwidth]{../Code/courbe_b.pdf}
+\caption{Different criteria with respect to the number of samples from the expert, for several runs of lstd\_ANIRL.}
+\label{fig:B}
 \end{figure}
 \section{Future Work}
 FIXME: Une seule itération, est-ce normal ? Abbeel reste-t-il meilleur sur un problème plus complexe ? Transfert de tâche ? Est-il nécessaire de choisir sa politique avec LSTDMu, puisqu'il finit en une seule fois ?
