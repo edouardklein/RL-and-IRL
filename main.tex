@@ -47,20 +47,7 @@
 
 \maketitle
 \begin{abstract}
-  This paper adresses the problem of apprenticeship learning, that
-  is learning control policies from demonstration by an expert. An
-  efficient framework for it is inverse reinforcement learning
-  (IRL). Based on the assumption that the expert maximizes a utility
-  function, IRL aims at learning the reward which defines this
-  utility function from example trajectories. Many IRL algorithms
-  assume that the reward function is linearly parameterized and rely
-  on the computation of some associated \emph{feature expectations},
-  which is done through Monte Carlo simulation. However, this
-  assumes to have full trajectories for the expert policy as well as
-  at least a generative model for intermediate policies. In this
-  paper, we introduce a temporal difference method, namely LSTD-$\mu$, to compute these
-  feature expectations. This allows extending apprenticeship
-  learning to a batch and off-policy setting.
+ Ce papier s'intéresse au problème de l'apprentissage par imitation, c'est à dire la résolution du problème du contrôle optimal à partir de données tirées d'une desmonstration d'expert. L'apprentissage par renforcement inverse (IRL) propose un cadre essicace pour résoudre ce problème. En se basant sur l'hypothèse que l'expert maximise un critère, l'IRL essaie d'apprendre la récompense qui définit ce critère à partir de trajectoires d'exemple. Beaucoup d'algorithmes d'IRL font l'hypothèse de l'existence d'un bon approximateur linéaire pour la fonction de récompense et calculent l'attribut moyen (le cumul moyen pondéré des fonctions de base, relatives à la paramétrisation linéaire supposée de la récompense, évaluées en les états d'une trajectoire associée à une certaine politique)  via une estimation de Monte-Carlo. Cela implique d'avoir accès à des trajectoires complète de l'expert ainsi qu'à au moins un modèle génératif pour tester les politiques intermédiaires. Dans ce papier nous introduisons une méthode de différence temporelle, LSTD-$\mu$, pour calculer cet attribut moyen. Cela permet d'étendre l'apprentissage par imitation aux cas \emph{batch} et \emph{off-policy}.
 \end{abstract}
 \section{Introduction}
 
