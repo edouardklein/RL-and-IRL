@@ -33,23 +33,80 @@ By testing it on a classical problem, we show that our method is empirically sou
 We also provide some theoretical results.%6
 \end{abstract}
 \section{Introduction}
-The optimal control problem can be expressed as having a machine control a system, with the goal of fulfilling a specific task. Various solutions to this problem exist. Things can get hard to deal with, however, when precisely defining the task is in itself a challenge. When the system can be empirically controlled by an expert, even when his behaviour is difficult to describe formally, apprenticeship learning is a way to let a machine control the system by mimicking the expert.\\
+The optimal control problem can be expressed as having a machine
+control a system, with the goal of fulfilling a specific task.
+Various solutions to this problem exist. Notably, the reinforcement
+learning (RL) paradigm~\citep{sutton1998reinforcement} is a general framework in
+which an agent learns to control optimally a dynamic system through
+interactions with it. The task is specified through a reward
+function, the agent objective being to take sequential decisions so
+as to maximize the expected cumulative reward.
 
-When the task at hand can be formally described, the problem of optimal control can be solved by tools from the \emph{Reinforcement Learning} (RL) framework. An extensive introduction to this matter can be found in \citep{sutton1998reinforcement} : the control problem is projected into a sequential decision problem inside a \emph{Markov Decision Process}. The agent transits from \emph{state} to \emph{state}, the decision taking the form of choosing an \emph{action} at each visited state. For each \emph{transition}, the agent receives a \emph{reward}. The \emph{reward function} (a mapping from each state to a real value) defines the task. The agent's goal is to maximize the long-term reward by maximizing what is called the \emph{expected discounted reward} : the expectation of the sum of all rewards to be obtained, multiplied by a deacreasing-over-time factor (called the \emph{discount factor}). For a given \emph{policy} (a mapping from each state to an action) that the agent follows, the mapping from each state to the expected discounted reward is called the \emph{value function}. The \emph{optimal policy}, hopefully found by the agent, is the unique policy of which the value fuction is, for every state, superior or equal to all the other policie's value functions.\\
+However, things can get hard to deal with  when precisely defining
+the task is in itself a challenge. When the system can be
+empirically controlled by an expert, even when its behavior is
+difficult to describe formally, apprenticeship learning is a way to
+let a machine control the system by mimicking the expert. Rather
+than directly mimicking the expert with some supervised learning
+approach, inverse reinforcement learning (IRL)~\citep{ng2000algorithms}
+consists in learning a reward function under which the policy
+demonstrated by an expert is optimal. Mimicking the expert therefore
+ends up to learning an optimal policy according to this reward
+function. A significant advantage of such an approach is that
+expert's actions can be guessed in states which have not been
+encountered during demonstration.
 
-It is not necessary for a model of the environment or for a simulator to be available, as for example the LSTD (\citep{bradtke1996linear}) algorithm can approximate the value function in a batch, off-policy, model-free setting. Building on it, the LSPI (\citep{lagoudakis2003least}) algorithm can be used to actually solve the RL problem in such settings : given a set of random or arbitrary transitions and the corresponding rewards, find the optimal policy.\\
+Basically, there are three families of IRL algorithms:
+feature-expectation-based~\citep{abbeel2004apprenticeship,syed2008game,syed2008apprenticeship,ziebart2008maximum,boularias2011bootstrapping},
+marge-maximization-based~\citep{ratliff2006maximum,ratliff2007boosting,ratliff2007imitation,kolter2008hierarchical}
+and approaches based on the parameterization of the policy by the
+reward function~\citep{Ramachandran2007bayesian,Neu2007apprenticeship}. The first family
+assumes a linearly parameterized reward function. This naturally
+leads to a linearly parameterized value function, the associated
+feature vector being the so-called feature expectation (defined as
+the cumulative discounted reward's feature vector under a given
+policy, see Section~\ref{sec:back} for a formal definition).
+These approaches learn a reward function such that the feature
+expectation of the optimal policy (according to the learnt reward
+function) is close to the feature expectation of the expert policy.
+This is a sufficient condition to have close value functions. The
+second family expresses IRL as a constrained optimization problem in
+which expert's examples have higher expected reward than all other
+policies by a certain margin. Moreover, suboptimality of the expert
+can be considered through the introduction of slack variables. The
+last family parameterizes policies with a reward function. Assuming
+that the expert acts according to a Gibbs policy (respectively to
+the optimal value function related to the reward function which is
+optimized), it is possible to estimate the likelihood of a set of
+state-action pairs provided by the expert. The algorithms differs in
+the way this likelihood is maximized.
 
-\citet{russell1998learning} first defined the \emph{Inverse Reinforcement Learning} (IRL) problem in the terms used today, drawing from animal behavior research and more loosely from macroeconomics research. What is looked for is not the policy as it is in the RL problem, but the reward, which defines the task and of which the expected discounted sum is maximized by an expert. IRL is a framework in which it could be possible to attack the apprenticeship learning problem mentionned earlier.\\
+This paper focuses on the first family of algorithms, and more
+precisely on its founding algorithm~\citep{abbeel2004apprenticeship}. All of them
+rely on the computation of the feature expectation (which depends on
+policies but not on rewards) of (i) the expert and (ii) some
+intermediate policies. The expert's feature expectation is computed
+using a simple Monte Carlo approach (which requires full
+trajectories of the expert). Other feature expectations are either
+computed exactly (which requires knowing analytically the dynamic of
+the system) or with a Monte Carlo approach (which requires to
+simulate the system). The contribution of this paper is LSTD-$\mu$,
+a new temporal-difference-based algorithm to estimate these feature
+expectations. It relaxes the predeceasing assumptions: transitions
+of the expert are sufficient (rather than full trajectories) and nor
+the model neither a simulator are necessary to compute intermediate
+feature expectations. This paper focuses on the algorithm introduced
+in~\citep{abbeel2004apprenticeship}, but we are confident that the proposed
+approach can be extended to other algorithms based on feature
+expectation computation~\citep{syed2008game,syed2008apprenticeship,ziebart2008maximum}.
 
-\citet{ng2000algorithms} first proposed an algorithm to solve the IRL problem, sheding light on a problem foreseen in \citep{russell1998learning} : the IRL problem is mathematically ill-defined as it admits a infinity of solutions, including degenerative ones (e.g. the null reward accepts any policy as an optimal policy).\\
-
-This work was followed by an article \citep{abbeel2004apprenticeship} focussing on the more specific, but better defined problem of apprenticeship learning using the IRL framework. This work makes use of the IRL framework by using an approximator for the reward function, and looking for the parameters for which the approximated reward function is the best. This however only concerns the apprenticeship learning (a.k.a. imitation learning) because the metric used, although intended to discriminate the expert's performance and the current policy's performance \emph{under the current approximate reward}, can be seen as a measure of proximity of the different states visitation frequencies.
-
-This metric, called the \emph{feature expectation}, is akin to the expected discounted reward discussed when describing the RL framework. It does however not sum the reward but the features of the visited states, features defined by the choice of the reward function approximator. It can be assessed either by analytical resolution (when the model is available) of a Monte-Carlo estimation (when a simulator is available).\\
- 
-The main limitation in \citet{abbeel2004apprenticeship}'s work (from now on reffered to as the ANIRL algorithm) is the need for a model of the environnement or, at least, a simulator. We build directly upon this work by presenting a new algorithm, LSTD$\mu$, which along with the use of LSPI and LSTD allows the use of the ANIRL algorithm in a batch, off-policy, model-free setting.\\
-
-FIXME:Autres approches qu'Abbeel, notamment celles qui cherchent à contourner le même problème.\\
+The rest of this paper is organized as follows.
+Section~\ref{sec:back} provides the necessary background,
+notably the definition of feature expectation and its use in the
+seminal IRL algorithm of~\citep{abbeel2004apprenticeship}.
+Section~\ref{sec:lstdmu} presents LSTD-$\mu$, our main contribution.
+Section~\ref{sec:exp} provides some preliminary experiments and
+Section~\ref{sec:conclusion} opens perspectives.
 
 \section{Background}
 \label{sec:back}
@@ -102,6 +159,7 @@ The quality of the imitation is assessed via the error term $||\mu_\pi(s_0)-\mu_
 
 The main shortcoming of this algorithm lies in its need for either a model of the environnement or at least a sample source $D$, in order to approximate the feature expectation of both the expert and the current policy via a Monte-Carlo estimator.
 \section{LSTD-$\mu$}
+\label{sec:lstdmu}
 The similarity between equations \ref{eqn:mu} and \ref{eqn:V} (both are Bellman equations) allows the use of the LSTD algorithm in order to estimate the feature expectation of a policy.\\
 
 We introduce the matrix $\zeta$ such as :
@@ -127,6 +185,7 @@ FIXME: Un mot sur pourquoi il est inutile de faire des itérations sur mu direct
 \section{Analysis}
 FIXME: Matthieu ?
 \section{Experimental benchmark}
+\label{sec:exp}
 The experimental benchmark chosen here is the same as in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the case of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The reward optimized by the expert is 0 everywhere but in the upper-right square, where it is 1. For every policy, an episodes ends when the upper right square is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is).\\
 
 Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ (see section \ref{sec:back}) are the typical features of a tabular representation : 0 everywhere but at a given index $i$ for which the value is 1. There is a bijective mapping from the input space elements ($S$ for $\psi$, $S \times A$ for $\phi$) to the indexes $i$ for which the coordinate of the feature is 1.\\
@@ -167,9 +226,8 @@ It shall be noted that although it plays its role, the halt criterion is not a g
 \caption{Different criteria with respect to the number of samples from the expert, for several runs of lstd\_ANIRL.}
 \label{fig:B}
 \end{figure}
-\section{Future Work}
-FIXME: Une seule itération, est-ce normal ? Abbeel reste-t-il meilleur sur un problème plus complexe ? Transfert de tâche ? Est-il nécessaire de choisir sa politique avec LSTDMu, puisqu'il finit en une seule fois ?
 \section{Conclusion}
+\label{sec:conclusion}
 \bibliographystyle{named}
 \bibliography{../Biblio/Biblio}
 \end{document} 
