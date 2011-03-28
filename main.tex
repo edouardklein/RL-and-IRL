@@ -34,34 +34,39 @@ By testing it on a classical problem, we show that our method is empirically sou
 We also provide some theoretical results.%6
 \end{abstract}
 \section{Introduction}
-The optimal control problem can be expressed as having a machine
-control a system, with the goal of fulfilling a specific task.
-Various solutions to this problem exist. Notably, the reinforcement
-learning (RL) paradigm~\citep{sutton1998reinforcement} is a general framework in
-which an agent learns to control optimally a dynamic system through
-interactions with it. The task is specified through a reward
-function, the agent objective being to take sequential decisions so
-as to maximize the expected cumulative reward.
 
-However, things can get hard to deal with  when precisely defining
-the task is in itself a challenge. When the system can be
-empirically controlled by an expert, even when its behavior is
-difficult to describe formally, apprenticeship learning is a way to
-let a machine control the system by mimicking the expert. Rather
-than directly mimicking the expert with some supervised learning
-approach, inverse reinforcement learning (IRL)~\citep{ng2000algorithms}
+Optimal control consist in having a machine controlling a system
+with the goal of fulfilling a specific task, optimality being
+defined as how well the task is performed. Various solutions to this
+problem exist from automation to planification. Notably, the
+reinforcement learning (RL) paradigm~\citep{sutton1998reinforcement} is a general
+machine learning framework in which an agent learns to control
+optimally a dynamic system through interactions with it. The task is
+specified through a reward function, the agent objective being to
+take sequential decisions so as to maximize the expected cumulative
+reward.
+
+However, defining optimality (and thus the reward function) can
+itself be a challenge. If the system can be empirically controlled
+by an expert, even though his/her behavior can be difficult to
+describe formally, apprenticeship learning is a way to have a
+machine controlling the system by mimicking the expert. Rather than
+directly mimicking the expert with some supervised learning
+approach, Inverse Reinforcement Learning (IRL)~\citep{ng2000algorithms}
 consists in learning a reward function under which the policy
 demonstrated by an expert is optimal. Mimicking the expert therefore
 ends up to learning an optimal policy according to this reward
 function. A significant advantage of such an approach is that
 expert's actions can be guessed in states which have not been
-encountered during demonstration.
+encountered during demonstration. Firstly introduced in \citep{russell1998learning}, another advantage claimed by the author would be to
+find a compact and complete representation of the task in the form
+of the reward function.
 
-Basically, there are three families of IRL algorithms:
-feature-expectation-based~\citep{abbeel2004apprenticeship,syed2008game,syed2008apprenticeship,ziebart2008maximum,boularias2011bootstrapping},
-marge-maximization-based~\citep{ratliff2006maximum,ratliff2007boosting,ratliff2007imitation,kolter2008hierarchical}
+There roughly exist three families of IRL algorithms:
+feature-expectation-based~\cite{abbeel2004apprenticeship,syed2008apprenticeship,syed2008game,ziebart2008maximum},
+marge-maximization-based~\cite{ratliff2006maximum,ratliff2007imitation,ratliff2007boosting,kolter2008hierarchical}
 and approaches based on the parameterization of the policy by the
-reward function~\citep{Ramachandran2007bayesian,Neu2007apprenticeship}. The first family
+reward function~\cite{ramachandran2007bayesian,neu2007apprenticeship}. The first family
 assumes a linearly parameterized reward function. This naturally
 leads to a linearly parameterized value function, the associated
 feature vector being the so-called feature expectation (defined as
@@ -83,31 +88,32 @@ state-action pairs provided by the expert. The algorithms differs in
 the way this likelihood is maximized.
 
 This paper focuses on the first family of algorithms, and more
-precisely on its founding algorithm~\citep{abbeel2004apprenticeship}. All of them
+precisely on the seminal work of~\cite{abbeel2004apprenticeship}. All of them
 rely on the computation of the feature expectation (which depends on
 policies but not on rewards) of (i) the expert and (ii) some
 intermediate policies. The expert's feature expectation is computed
 using a simple Monte Carlo approach (which requires full
 trajectories of the expert). Other feature expectations are either
-computed exactly (which requires knowing analytically the dynamic of
-the system) or with a Monte Carlo approach (which requires to
+computed exactly (which requires knowing analytically the dynamics
+of the system) or with a Monte Carlo approach (which requires to
 simulate the system). The contribution of this paper is LSTD-$\mu$,
 a new temporal-difference-based algorithm to estimate these feature
 expectations. It relaxes the predeceasing assumptions: transitions
 of the expert are sufficient (rather than full trajectories) and nor
 the model neither a simulator are necessary to compute intermediate
 feature expectations. This paper focuses on the algorithm introduced
-in~\citep{abbeel2004apprenticeship}, but we are confident that the proposed
+in~\cite{abbeel2004apprenticeship}, but we are confident that the proposed
 approach can be extended to other algorithms based on feature
-expectation computation~\citep{syed2008game,syed2008apprenticeship,ziebart2008maximum}.
+expectation computation~\cite{syed2008apprenticeship,syed2008game,ziebart2008maximum}.
 
 The rest of this paper is organized as follows.
 Section~\ref{sec:back} provides the necessary background,
 notably the definition of feature expectation and its use in the
-seminal IRL algorithm of~\citep{abbeel2004apprenticeship}.
+seminal IRL algorithm of~\cite{abbeel2004apprenticeship}.
 Section~\ref{sec:lstdmu} presents LSTD-$\mu$, our main contribution.
 Section~\ref{sec:exp} provides some preliminary experiments and
 Section~\ref{sec:conclusion} opens perspectives.
+
 
 \section{Background}
 \label{sec:back}
