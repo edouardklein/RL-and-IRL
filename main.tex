@@ -1,16 +1,29 @@
-\typeout{Batch, Off-Policy Apprenticeship Learning}
-\documentclass{article}
-\usepackage{ijcai11}
-\usepackage{times}
+\documentclass{jfpda2011}
+% Ne pas modifier ========================================================================
+\usepackage{amssymb}
+\usepackage{natbib}
+
+% Typographie française ==================================================================
+\usepackage[english,frenchb]{babel} % typographie francaise
+\usepackage[utf8]{inputenc} % saisie de caracteres accentues, etc.
+\usepackage{lmodern} % polices vectorielles
+\usepackage{xspace} % gestion des espaces a la francaise
+\AddThinSpaceBeforeFootnotes % appel de note legerement decale du mot prec.
+\FrenchFootnotes % numeros de notes a la francaise
+
+% Vos environnements =====================================================================
+\newtheorem{prop}{Proposition}
+\newenvironment{pf}{{\bf Proof }}{\hfill$\Box$\par}
+\newcommand{\spaceafterproof}{\vspace{1em}}
+
+% Corps de l'article =====================================================================
 \usepackage{color}
 % the following package is optional:
 %\usepackage{latexsym} 
-\usepackage{amsthm}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
+%\usepackage{amsthm}
+%% \newtheorem{theorem}{Theorem}
+%% \newtheorem{lemma}{Lemma}
 \usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{natbib}
 \usepackage{graphicx}
 \usepackage{subfigure}
 %\usepackage{algorithm2e}
@@ -18,12 +31,20 @@
 \usepackage{algorithmic}
 \newcommand{\argmax}{\operatorname*{argmax}} %\operatorname* pour les op. pouvant admettre des limites...
 
-\title{Batch, Off-Policy Apprencticeship Learning}
-\author{Edouard Klein \and Matthieu Geist \and Olivier Pietquin \\
-Supélec, IMS\\
-Metz, France \\
-\{edouard.klein$|$matthieu.geist$|$olivier.pietquin\}@supelec.fr}
+\title{Batch, Off-Policy, Model-free Apprencticeship Learning}
+%\author{Robert}
+%   1. Supelec-Metz Campus, IMS Reasearch group, France. \texttt{prenom.nom@supelec.fr}}
+\author{Edouard Klein\inst{1}\inst{3} \and Matthieu Geist\inst{1} \and Olivier Pietquin\inst{1}\inst{2}}
+ \institute{
+ 1. Supélec-Metz Campus, IMS Research group, France, \texttt{nom.prenom@supelec.fr}\\
+ 2. UMI 2958 CNRS - GeorgiaTech, France\\
+ 3. Equipe ABC, Loria, INRIA Grand-Est, Nancy, France.
+ }
+\date{\today}
+
 \begin{document}
+
+
 \maketitle
 \begin{abstract}
 We consider the IRL framework for apprenticeship learning. %1
@@ -394,22 +415,22 @@ The simple idea of using LSTD to estimate the feature expectation can be applied
 
 The exact reason why LSTD$\mu$ converges so fast should be investigated and a bigger experiment should be run, possibly on a continuous problem.\\
 \begin{figure}
-\includegraphics[width=.5\textwidth]{../Code/courbe_e.pdf}
+\includegraphics[width=\textwidth]{../Code/courbe_e.pdf}
 \caption{$||\mu_E(s_0)-\mu_\pi(s_0)||_2$ with respect to the number of samples available from the expert. Our algorithm is not as good as \citet{abbeel2004apprenticeship} with very few samples, but make up for it very soon.}
 \label{fig:E}
 \end{figure}
 \label{sec:perf}
 \begin{figure}
-\includegraphics[width=.5\textwidth]{../Code/courbe_a.pdf}
+\includegraphics[width=\textwidth]{../Code/courbe_a.pdf}
 \caption{Different criteria with respect to the number of iterations for a run of mc\_ANIRL.}
 \label{fig:A}
 \end{figure}
 \begin{figure}
-\includegraphics[width=.5\textwidth]{../Code/courbe_b.pdf}
+\includegraphics[width=\textwidth]{../Code/courbe_b.pdf}
 \caption{Different criteria with respect to the number of samples from the expert, for several runs of lstd\_ANIRL.}
 \label{fig:B}
 \end{figure}
-\bibliographystyle{named}
+%\bibliographystyle{named}
 \bibliography{../Biblio/Biblio}
 \end{document} 
 
