@@ -246,31 +246,112 @@ problems, we introduce a temporal-difference-based algorithm to
 estimate these feature expectations.
 
 \section{LSTD-$\mu$}
-\label{sec:lstdmu}
-The similarity between equations \ref{eqn:mu} and \ref{eqn:V} (both are Bellman equations) allows the use of the LSTD algorithm in order to estimate the feature expectation of a policy.\\
-
-We introduce the matrix $\zeta$ such as :
+Let us write the definition of the $i^\text{th}$ component of a
+feature expectation $\mu^\pi(s)$ for some policy $\pi$:
 \begin{equation}
-\hat \mu_\pi (s) = \zeta^T\phi(s,\pi(s))
+  \mu_i^\pi(s) = E[\sum_{t=0}^\infty \gamma^t \phi_i(s_t)|s_0=s,\pi]
 \end{equation}
-$\zeta$ is given by :
+This is exactly the definition of the value function of the policy
+$\pi$ for the MDP considered with the $i^\text{th}$ basis function
+$\phi_i(s)$ as the reward function. There exists many algorithms to
+estimate a value function, any of them can be used to estimate
+$\mu_i^\pi$. Based on this remark, we propose to use specifically
+the least-squares temporal difference (LSTD)
+algorithm~\citep{bradtke1996linear} to estimate each component of the
+feature expectation (as each of these components can be understood
+as a value function related to a specific and known reward
+function).
+
+Assume that a set of transitions $\{(s_t,r_t,s_{t+1})_{1\leq t \leq
+n}\}$ sampled according to the policy $\pi$ is available. We assume
+that value functions are searched for in some  hypothesis space
+$\mathcal{H}_\psi = \{ \hat{V}_\xi(s) = \sum_{i=1}^q \xi_i \psi_i(s)
+= \xi^T \psi(s), \xi\in\mathbb{R}^q\}$. As reward and value
+functions are possibly quite different, another hypothesis space is
+considered for value function estimation. But if $\mathcal{H}_\phi$
+is rich enough, one can still consider
+$\mathcal{H}_\psi=\mathcal{H}_\phi$. Therefore, we are looking for
+an approximation of the following form:
 \begin{equation}
-\zeta = \tilde A^{-1}\tilde b
+  \hat{\mu}_i^\pi(s) = (\xi_i^*)^T \psi(s)
 \end{equation}
-with :
-\begin{eqnarray}
-\tilde A = \sum_{\{s,a,s'\} \in D}\phi(s,a)\left(\phi(s,a) - \gamma \phi(s',\pi(s'))\right)^T\\
-\tilde b = \sum_{\{s,a,s'\} \in D} \phi(s,a)\psi(s)^T
-\end{eqnarray}
+The parameter vector $\xi_i^*$ is here the LSTD estimate:
+\begin{equation}
+  \xi_i^* = \left(\sum_{t=1}^n
+  \psi(s_t)(\psi(s_t)-\gamma\psi(s'_{t}))^T\right)^{-1}
+  \sum_{t=1}^n \psi(s_t) \phi_i(s_t)
+\end{equation}
+For apprenticeship learning, we are interested more particularly in
+$\hat{\mu}^\pi(s_0)$. Let $\Psi = (\psi_i(s_t))_{t,i}$ be the
+$n\times q$ matrix of values predictors, $\Delta\Psi = (\psi_i(s_t)
+- \gamma\psi_i(s'_t))_{t,i}$ be the related $n\times q$ matrix and
+$\Phi = (\phi_i(s_t))_{t,i}$ the $n\times p$ matrix of reward
+predictors. It can be easily checked that $\hat{\mu}^\pi(s_0)$
+satisfies:
+\begin{equation}
+  (\hat{\mu}^\pi(s_0))^T = \psi(s_0)^T (\Psi^T \Delta\Psi)^{-1} \Psi^T \Phi
+\end{equation}
+This provides an efficient way to estimate the feature expectation
+of the expert in $s_0$.
 
-This approach is superior to the Monte-Carlo estimation suggested by \citet{abbeel2004apprenticeship}, as it allows for a batch, off policy estimation of $\mu_\pi$, even when no model of the environment is known and no simulator is available whereas the Monte-Carlo estimation needs either a model or a simulator, and only allow for an estimation of $\mu_\pi(s_0)$.\\
+There remains to compute the feature expectations of intermediate
+policies, which should be done in an off-policy manner (that is
+without explicitly sampling trajectories according to the policy of
+interest). To do so, still interpreting each component of the
+feature expectation as a value function, we introduce a state-action
+feature expectation defined as follows (much as the classic
+$Q$-function extends the value function):
+\begin{equation}
+  \mu^\pi(s,a) = E[\sum_{t=0}^\infty \gamma^t
+  \phi(s_t)|s_0=s,a_0=a,\pi]
+\end{equation}
+Compared to the classic feature expectation, this definition adds a
+degree of freedom on the first action to be chosen before following
+the policy $\pi$. With a slightly different definition of the
+related hypothesis space, each component of this feature expectation
+can still be estimated using the LSTD algorithm (namely using the
+LSTD-Q algorithm~\citep{lagoudakis2003least}). The clear advantage of
+introducing the state-action feature expectation is that this
+additional degree of freedom allows off-policy learning. Assuming
+that $\mathcal{H}_\psi$ defines state-action feature vectors and
+that a set of transitions $\{(s_t,a_t,r_t,s_{t+1})_{1\leq t \leq
+n}\}$ sampled according to some behaviorial policy $\pi_0$ is
+available, the parameter vector $\xi_i^*$ related to the
+$i^\text{th}$ component of the state-action feature expectation
+$\mu^\pi(s)$ (policy $\pi$ being different from policy $\pi_0$) is
+given by:
+\begin{equation}
+  \xi_i^* = \left(\sum_{t=1}^n
+  \psi(s_t,a_t)(\psi(s_t,a_t)-\gamma\psi(s'_{t},\pi(s'_t)))^T\right)^{-1}
+  \sum_{t=1}^n \psi(s_t,a_t) \phi_i(s_t)
+\end{equation}
+Extending LSTD-$\mu$ to state-action LSTD-$\mu$ is done in the same
+manner as LSTD is extended to LSTD-Q~\citep{lagoudakis2003least},
+technical details are not provided here for the clarity of
+exposition.
 
-Coupled with the LSPI algorithm, this allows an adaptation of \citet{abbeel2004apprenticeship} algorithm to "real-life" settings where the only data available come from the expert's trajectories.\\
+Given the (state-action) LSTD-$\mu$ algorithm, the apprenticeship
+learning algorithm of~\citep{abbeel2004apprenticeship} (see
+Section~\ref{sec:back}) can be easily extended to a batch and
+off-policy setting. The solely available data is a set of
+transitions sampled according to the expert policy. The
+corresponding feature expectation for the starting state $s_0$ is
+estimated with the LSTD-$\mu$ algorithm. At step~4 of this
+algorithm, the MDP is (approximately) solved using
+LSPI~\citep{lagoudakis2003least} (an approximate policy iteration
+algorithm using LSTD-Q as the off-policy $Q$-function estimator).
+The corresponding feature expectation at state $s_0$ is estimated
+using the proposed state-action LSTD-$\mu$.
 
-FIXME: Un mot sur pourquoi il est inutile de faire des itérations sur mu directement ?
+Before presenting some experimental results, let us stress that
+LSTD-$\mu$ is simply the LSTD algorithm applied to a specific reward
+function. Although quite clear, the idea of using a temporal
+difference algorithm to estimate the feature expectation is new, as
+far as we know. A clear advantage of the proposed approach is that
+any theoretical result holding for LSTD also holds for LSTD-$\mu$,
+such as convergence~\citep{nedic2003least} or
+finite-sample~\citep{lazaric2010finiteLSTD} analysis for example.
 
-\section{Analysis}
-FIXME: Matthieu ?
 \section{Experimental benchmark}
 \label{sec:exp}
 The experimental benchmark chosen here is the same as in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the case of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The reward optimized by the expert is 0 everywhere but in the upper-right square, where it is 1. For every policy, an episodes ends when the upper right square is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is).\\
