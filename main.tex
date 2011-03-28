@@ -110,6 +110,7 @@ Section~\ref{sec:exp} provides some preliminary experiments and
 Section~\ref{sec:conclusion} opens perspectives.
 
 \section{Background}
+\label{sec:back}
 A sequential decision problem is often framed as a Markov Decision
 Process (MDP)~\citep{puterman1994markov}. A MDP is a tuple
 $\{S,A,P,R,\gamma\}$ with $S$ being the state space, $A$ the action
@@ -180,6 +181,7 @@ of $\mathcal{H}_\phi$:
 \begin{align}
   |V^{\pi_E}(s_0) - V^{\tilde{\pi}}(s_0)| &=
   |\theta^T(\mu^{\pi_E}(s_0)-\mu^{\tilde{\pi}}(s_0))|
+  \label{eqn:vs0}
   \\
   &\leq \|\mu^{\pi_E}(s_0)-\mu^{\tilde{\pi}}(s_0)\|_2
 \end{align}
@@ -250,6 +252,7 @@ Let us write the definition of the $i^\text{th}$ component of a
 feature expectation $\mu^\pi(s)$ for some policy $\pi$:
 \begin{equation}
   \mu_i^\pi(s) = E[\sum_{t=0}^\infty \gamma^t \phi_i(s_t)|s_0=s,\pi]
+  \label{eqn:phi}
 \end{equation}
 This is exactly the definition of the value function of the policy
 $\pi$ for the MDP considered with the $i^\text{th}$ basis function
@@ -274,6 +277,7 @@ $\mathcal{H}_\psi=\mathcal{H}_\phi$. Therefore, we are looking for
 an approximation of the following form:
 \begin{equation}
   \hat{\mu}_i^\pi(s) = (\xi_i^*)^T \psi(s)
+  \label{eqn:psi}
 \end{equation}
 The parameter vector $\xi_i^*$ is here the LSTD estimate:
 \begin{equation}
@@ -354,28 +358,25 @@ finite-sample~\citep{lazaric2010finiteLSTD} analysis for example.
 
 \section{Experimental benchmark}
 \label{sec:exp}
-The experimental benchmark chosen here is the same as in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the case of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The reward optimized by the expert is 0 everywhere but in the upper-right square, where it is 1. For every policy, an episodes ends when the upper right square is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is).\\
+\subsection{Experiment description and results}
+The experimental benchmark chosen here is the same as in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the case of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The reward optimized by the expert is 0 everywhere but in the upper-right square, where it is 1. For every policy, an episode ends when the upper right square is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is).\\
 
-Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ (see section \ref{sec:back}) are the typical features of a tabular representation : 0 everywhere but at a given index $i$ for which the value is 1. There is a bijective mapping from the input space elements ($S$ for $\psi$, $S \times A$ for $\phi$) to the indexes $i$ for which the coordinate of the feature is 1.\\
+Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ (see equations \ref{eqn:phi} and \ref{eqn:psi} for a remainder of their meaning) are the typical features of a tabular representation : 0 everywhere but at a given index $i$ for which the value is 1. There is a bijective mapping from the input space elements to the indexes $i$ for which the coordinate of the feature is 1.\\
 
-Both \citet{abbeel2004apprenticeship}'s algorithm (mc\_ANIRL) and our adaptation (lstd\_ANIRL) are tested side by side. The pseudo code of the implementation we used can be found figure \ref{fig:alg}.\\
-
-The MDP solver of mc\_ANIRL is LSPI with a (very) big matrix $D$ as a sample source. $\mu_\pi(s_0)$ and $\mu_E(s_0)$ are computed thanks to a (very) big Monte-Carlo estimation. Both these computations are  as good as perfect theoretical solvers for all intended purpose on this toy problem. We thus are in the case intended by \citet{abbeel2004apprenticeship}.\\
-
+Both \citet{abbeel2004apprenticeship}'s algorithm (mc\_ANIRL) and our adaptation (lstd\_ANIRL) are tested side by side. The MDP solver of mc\_ANIRL is LSPI with a (very) big matrix $D$ as a sample source. $\mu_\pi(s_0)$ and $\mu_E(s_0)$ are computed thanks to a (very) big Monte-Carlo estimation. Both these computations are  as good as perfect theoretical solvers for all intended purpose on this toy problem. We thus are in the case intended by \citet{abbeel2004apprenticeship}.\\
 On the other hand lstd\_ANIRL is used as if it could not have access to the simulator. It uses LSPI and LSTD$\mu$, fed only with the expert's transitions. This corresponds to a real-life setting where data generation is expensive and the system can not be controlled by an untrained machine.\\
 
-We want to compare the porformance of both versions of the algorithm with repect to the number of samples available from the expert, as these samples usually are the bottleneck. The discussion about the choice of the performance metric has its own dedicated section (section \ref{sec:perf}). We use here the $||\mu(s_0) - \mu_E(s_0)||_2$ error term.\\
+We want to compare the porformance of both versions of the algorithm with repect to the number of samples available from the expert, as these samples usually are the bottleneck. The discussion about the choice of the performance metric has its own dedicated subsection (subsection \ref{sec:perf}). We use here the $||\mu(s_0) - \mu_E(s_0)||_2$ error term.\\
 
-Figure \ref{fig:E} shows, for some numbers of samples from the expert, the value of $||\mu(s_0)-\mu_E(s_0)||_2$ after the algorithm converged or attained the maximum number of iterations (we used 40). The best policy is found by lstd\_ANIRL after one iteration only (this is being investigated), whereas in mc\_ANIRL convergence happens after at least ten iterations, and the best policy is not always the last. The score of the best policy (not the last) is what is plotted here.\\
+Figure \ref{fig:E} shows, for some numbers of samples from the expert, the value of $||\mu(s_0)-\mu_E(s_0)||_2$ after the algorithm converged or attained the maximum number of iterations (we used 40). The best policy is found by lstd\_ANIRL after one iteration only\footnote{Precise reasons for what it happens are not clear now, but certainly have something to do with the fact that all the estimations are made along the same distribution of samples.} whereas in mc\_ANIRL convergence happens after at least ten iterations and the best policy is not always the last. The score of the best policy (not the last) is what is plotted here.\\
 
 We can see that although lstd\_ANIRL is not as good as mc\_ANIRL when very few samples are available, both algorithm quickly converge to almost the same value (we don't know yet if the seemingly slightly better performance of lstd\_ANIRL is an artifact). The fact that lstd\_ANIRL can work in a batch, off-policy and model-free setting, while requesting less computing power than mc\_ANIRL makes it suitable to a range of task inaccessible to the mc\_ANIRL version (for example controlling a machine tool working on expensive materials).
-\section{Quality criterion}
-
+\subsection{Discussion about the quality criterion}
 Figure \ref{fig:A} and \ref{fig:B} illustrate the difficulty of choosing the quality criterion. These plots show four different quality ciretria during a run of mc\_ANIRL and several runs of lstd\_ANIRL, for which the abscissa can not be the number of iterations.\\
 
-The $||\mu(s_0) - \mu_E(s_0)||_2$ term is widely discussed in \citep{abbeel2004apprenticeship}'s additional material. It bears an interesting relation with the difference between the expert's value function and the current value function with respect \emph{to the current reward} (equation \ref{eqn:vmu}).\\
+The $||\mu(s_0) - \mu_E(s_0)||_2$ term is widely discussed in \citep{abbeel2004apprenticeship}'s additional material. It bears an interesting relation with the difference between the expert's value function and the current value function in the initial state with respect \emph{to the current reward} (equation \ref{eqn:vs0}).\\
 
-The fact that  the curves of  $||\mu(s_0) - \mu_E(s_0)||_2$ and $||\hat\mu(s_0) - \hat\mu_E(s_0)||_2$ are indistinguishable in figure \ref{fig:A} means that for it has access to a cheap simulator, mc\_ANIRL is as if it worked within an analitycal framework. This however can not be said of lstd\_ANIRL, for which the two curves are indeed different (Figure \ref{fig:B}). Not knowing the true value of $\mu_E(s_0)$ may be a problem for lstd\_ANIRL, as it can introduce an error int the halt criterion of the algorithm, $t = ||\bar\mu-\hat\mu_E(s_0)||$. After the algorithm has converged (it systematically does after only one iteration, this is being investigated), there is no way to know whether the policy is actually good or not.\\
+The fact that  the curves of  $||\mu(s_0) - \mu_E(s_0)||_2$ and $||\hat\mu(s_0) - \hat\mu_E(s_0)||_2$ are indistinguishable in figure \ref{fig:A} means that for it has access to a cheap simulator, mc\_ANIRL is as if it worked within an analitycal framework. This however can not be said of lstd\_ANIRL, for which the two curves are indeed different (Figure \ref{fig:B}). Not knowing the true value of $\mu_E(s_0)$ may be a problem for lstd\_ANIRL, as it can introduce an error int the halt criterion of the algorithm\footnote{This equation differs from what has been given as the second step of the algorithm in section \ref{sec:back}. This is because we implemented the version of the algorithm that uses a projection (see \citet{abbeel2004apprenticeship}'s supplementary material for an in-depth discussion of both versions). Although the mathematical expressions are different, both convey the same meaning and are exchangeable.}, $t = ||\bar\mu-\hat\mu_E(s_0)||$. After the algorithm has converged there is no way to know whether the policy is actually good or not other than actually testing it.\\
 
 It shall be noted that although it plays its role, the halt criterion is not a good measure of the quality of the current policy in mc\_ANIRL either, as it can be low when the policy is bad. The best policy, however, can be easily chosen from the $||\mu(s_0) - \mu_E(s_0)||_2$ term, which mc\_ANIRL can compute. When this term is low, the objective performance (that is, $V^E(s_0)-V^\pi(s_0)$ with respect to the unknow true reward function) is low too. 
 \begin{figure}
@@ -395,6 +396,7 @@ It shall be noted that although it plays its role, the halt criterion is not a g
 \label{fig:B}
 \end{figure}
 \section{Conclusion}
+        
 \label{sec:conclusion}
 \bibliographystyle{named}
 \bibliography{../Biblio/Biblio}
