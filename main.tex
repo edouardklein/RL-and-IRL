@@ -2,6 +2,7 @@
 \documentclass{article}
 \usepackage{ijcai11}
 \usepackage{times}
+\usepackage{color}
 % the following package is optional:
 %\usepackage{latexsym} 
 \usepackage{amsthm}
@@ -128,22 +129,28 @@ FIXME: Un mot sur pourquoi il est inutile de faire des itérations sur mu direct
    \label{alg:lstd_anirl} 
    \begin{algorithmic}[1]
      \STATE $\omega \leftarrow 0$
+     {\color{blue}
      \STATE $D_\mu \leftarrow D $
      \STATE $D_\mu.r \leftarrow \psi(D.s)$
-     \STATE $\zeta \leftarrow LSTD\mu( D_\mu )$
-     \STATE $\mu \leftarrow \zeta^T\psi(s,\pi_\omega(s))$
+     \STATE $\zeta \leftarrow LSTD\mu( D_\mu, \pi_\omega )$
+     \STATE $\mu \leftarrow \zeta^T\phi(s_0,\pi_\omega(s_0))$
      \STATE $D_E.r \leftarrow \psi(D_E.s)$
-     \STATE $\mu_E \leftarrow LSTD\mu( D_E )$
+     \STATE $\zeta \leftarrow LSTD\mu( D_E )$ 
+     \STATE $\mu_E \leftarrow \zeta^T\phi(D_E.s_0, D_E.a_0)$
+     }
      \STATE $\theta \leftarrow {\mu_E - \mu\over ||\mu_E - \mu||_2}$
      \STATE $ \bar\mu \leftarrow \mu $
      \STATE $ t \leftarrow ||\mu_E - \bar\mu||_2 $
      \WHILE{$ t > \epsilon $}
      \STATE $D.r \leftarrow \theta^T\psi(D.s)$
-     \STATE $ \omega \leftarrow LSPI(D) $
-     \STATE $ \mu \leftarrow LSTD\mu( D_\mu, \pi_\omega )$
+     \STATE $ \omega \leftarrow LSPI( D, \omega_0 ) $
+     {\color{blue}
+     \STATE $ \zeta \leftarrow LSTD\mu( D_\mu, \pi_\omega )$   
+     \STATE $ \mu \leftarrow \zeta^T\phi(s_0,\pi_\omega(s_0))$}
      \STATE $\bar\mu \leftarrow \bar\mu + { (\mu-\bar\mu)^T (\mu_E-\bar\mu) \over (\mu-\bar\mu)^T (\mu-\bar\mu) } (\mu-\bar\mu) $
      \STATE $\theta \leftarrow 
        {\mu_E - \bar\mu\over ||\mu_E - \bar\mu||_2}$
+     \STATE $ t\leftarrow ||\mu_E - \bar\mu||_2$
      \ENDWHILE
    \end{algorithmic}
  \end{algorithm}
@@ -151,17 +158,35 @@ FIXME: Un mot sur pourquoi il est inutile de faire des itérations sur mu direct
  \hfill
  \begin{minipage}[t]{.45\textwidth}
    \begin{algorithm}[H]
-     \caption{Mission-side2 Greedy} 
-     \label{alg2} 
-     \begin{algorithmic}[1]
-       \STATE whatever your alg does
-       \FOR{each mission $M_{j}$ in sorted order} 
-       \STATE do something
-       \ENDFOR
-     \end{algorithmic}
+   \caption{mc\_ANIRL} 
+   \label{alg:mc_anirl} 
+   \begin{algorithmic}[1]
+     \STATE $\omega \leftarrow 0$
+     {\color{blue}
+     \STATE $D_\pi \leftarrow simulator( \omega )$
+     \STATE $\mu \leftarrow \sum\limits_{s\in D_\pi.s}\psi(s)$
+     \STATE $\mu_E \leftarrow \sum\limits_{s\in D_E.s}\psi(s)$
+     }
+     \STATE $\theta \leftarrow {\mu_E - \mu\over ||\mu_E - \mu||_2}$
+     \STATE $ \bar\mu \leftarrow \mu $
+     \STATE $ t \leftarrow ||\mu_E - \bar\mu||_2 $
+     \WHILE{$ t > \epsilon $}
+     \STATE $D.r \leftarrow \theta^T\psi(D.s)$
+     \STATE $ \omega \leftarrow LSPI( D, \omega_0 ) $
+     {\color{blue}
+     \STATE $D_\pi \leftarrow simulator( \omega )$
+     \STATE $\mu \leftarrow \sum\limits_{s\in D_\pi.s}\psi(s)$
+     }
+     \STATE $\bar\mu \leftarrow \bar\mu + { (\mu-\bar\mu)^T (\mu_E-\bar\mu) \over (\mu-\bar\mu)^T (\mu-\bar\mu) } (\mu-\bar\mu) $
+     \STATE $\theta \leftarrow 
+       {\mu_E - \bar\mu\over ||\mu_E - \bar\mu||_2}$
+     \STATE $ t\leftarrow ||\mu_E - \bar\mu||_2$
+     \ENDWHILE
+     \end{algorithmic}  
    \end{algorithm}
  \end{minipage}
  \hfill
+ \caption{Both algorithms side by side, with specific parts in blue}
 \end{figure*}
 
 %% \begin{figure*}
@@ -185,7 +210,7 @@ FIXME: Dérouler les deux algorithmes complets côte à côte dans une forme lis
 \section{Analysis}
 FIXME: Matthieu ?
 \section{Experimental benchmark}
-The experimental benchmark chosen here is the same as in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the case of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The expert policy maximizes the following reward : 0 everywhere but in the upper-right square, where it is 1. An episodes ends when the upper right square is attained, or after 20 steps. At the start of each episode, the expert is in the lower-left corner of the grid (the opposite of where the reward is).\\
+The experimental benchmark chosen here is the same as in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the case of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The reward optimized by the expert is 0 everywhere but in the upper-right square, where it is 1. For every policy, an episodes ends when the upper right square is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is).\\
 
 Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ are the typical features of a tabular representation : 0 everywhere but at a given index $i$ for which the value is 1. There is a bijective mapping from the input space elements ($S$ for $\psi$, $S \times A$ for $\phi$) to the indexes $i$ for which the coordinate of the feature is 1.\\
 
