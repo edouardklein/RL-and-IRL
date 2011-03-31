@@ -1,11 +1,9 @@
 set term postscript enhanced color
 set output "courbe_b.ps"
 set grid
-set xlabel "Number of samples"
+set xlabel "Nb Samples"
 set ylabel "||{/Symbol m}_E - {/Symbol m}_{bar}||_2"
-set log x
-set yrange [-0.5:8]
-plot "courbe_b_50.dat" u 3:4 smooth csplines ls 2 title "M=5", "courbe_b_50.dat" u 3:4 w points ls 2 notitle,\
-"courbe_b_100.dat" u 3:4 smooth csplines ls 3 title "M=10", "courbe_b_100.dat" u 3:4 w points ls 3 notitle,\
-"courbe_b_150.dat" u 3:4 smooth csplines ls 4 title "M=15", "courbe_b_150.dat" u 3:4 w points ls 4 notitle,\
-"courbe_b_Nous.dat" u 3:4 title "LSTD{/Symbol m}" ls 1
+plot "courbe_b.dat" u 3:4 smooth csplines title "Critere d'arret" ls 1, "courbe_b.dat" u 3:4 w points ls 1 notitle,\
+"courbe_b.dat" u 3:5 w lines title "Erreur mesuree" ls 2, "courbe_b.dat" u 3:5 w points ls 2 notitle,\
+"courbe_b.dat" u 3:6 w lines title "Erreur vraie" ls 3, "courbe_b.dat" u 3:6 w points ls 3 notitle,\
+"courbe_b.dat" u 3:7 w lines title "Diff performance" ls 4, "courbe_b.dat" u 3:7 w points ls 4 notitle

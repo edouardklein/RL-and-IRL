@@ -36,3 +36,9 @@ extern unsigned int g_iNb_samples;
    policy because only a handful of state action
    couples are visited, thus making the A matrix singular */
 extern double g_dLambda_lstdmu; 
+
+/* When using MC in ANIRL, we store the best score when
+   the measured error is at its lowest yet*/
+extern double g_dBest_error;
+extern double g_dBest_true_error;
+extern double g_dBest_diff;

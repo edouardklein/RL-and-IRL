@@ -263,11 +263,11 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
     gsl_matrix_submatrix( D_mu, 0, g_iS+g_iA+g_iS+g_iP, 
 			  D->size1, 1 ); 
   gsl_matrix_memcpy( &Dmueoe.matrix, &Deoe.matrix );
-  /* \mu \leftarrow LSTD_\mu( D_\mu, k, p, s, a, \phi,
+  /* \mu \leftarrow LSTD\mu( D_\mu, k, p, s, a, \phi,
      \psi, \gamma, \pi ) */
   g_mOmega = omega;
   gsl_matrix* mu = lstd_mu( D_mu, &greedy_policy, s_0 );
-  /* D_E.r \leftarrow \psi(s) */
+  /* D_E.r \leftarrow \psi(D_E.s) */
   gsl_matrix* D_E_mu = 
     gsl_matrix_alloc( D_E->size1, g_iS+g_iA+g_iS+g_iP+1 );
   gsl_matrix_view DEsas_dst = 
@@ -308,9 +308,10 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   /* \bar\mu \leftarrow \mu*/
   gsl_matrix* bar_mu = gsl_matrix_alloc( g_iP, 1 );
   gsl_matrix_memcpy( bar_mu, mu );
-  /* t = ||\mu_E - \bar\mu||_2*/
+  /* t \leftarrow ||\mu_E - \bar\mu||_2*/
   double t = diff_norm( mu_E, bar_mu );
   unsigned int nb_it = 0;
+  /* while t > \epsilon */
   while( t > g_dEpsilon_anirl ){
     /* Output of the different criteria */
     double empirical_err = diff_norm( mu_E, mu );

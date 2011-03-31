@@ -1,5 +1,6 @@
 * Code
 ** LSTD
+*** TODO Chenger le nom omega pour LSTDmu (zeta ?)
 *** TODO Factoriser le A de LSTD
     La matrice A est la même dans LSTDQ et LSTD Mu, il faudrait 
     factoriser le code.

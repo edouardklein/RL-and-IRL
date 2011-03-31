@@ -66,7 +66,7 @@ int main( void ){
   gsl_matrix* omega_expert = lspi( D, omega_0 );
   g_mOmega_E = omega_expert;
   expert_just_set();
-  unsigned int M = 35;
+  unsigned int M = 40;
   g_iNb_samples = D->size1;
   g_mOmega =  omega_expert;
   gsl_matrix* D_expert = gridworld_simulator( M );
