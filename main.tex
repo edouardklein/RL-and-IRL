@@ -413,19 +413,19 @@ The simple idea of using LSTD to estimate the feature expectation could be appli
 The exact reason why LSTD$\mu$ converges so fast should be investigated and a bigger experiment should be run, possibly on a continuous problem.\\
 \begin{figure}
 \centering
-\input{../Code/courbe_e}
+\input{../Code/GridWorld/both_error_EB}
 \caption{$||\mu^{\pi}(s_0) - \mu^{\pi_E}(s_0)||_2$ where $\pi$ is the policy for which this term is the lowest for the whole run, with respect to the number of samples available from the expert. Our algorithm is not as good as \citet{abbeel2004apprenticeship} with very few samples, but make up for it very soon.}
 \label{fig:E}
 \end{figure}
 \begin{figure}
 \centering
-\input{../Code/courbe_a}
+\input{../Code/GridWorld/criteria_mc}
 \caption{Different criteria with respect to the number of iterations for a run of mc\_ANIRL.}
 \label{fig:A}
 \end{figure}
 \begin{figure}
 \centering
-\input{../Code/courbe_b}
+\input{../Code/GridWorld/criteria_lstd_EB}
 \caption{Different criteria with respect to the number of samples from the expert, for several runs of lstd\_ANIRL.}
 \label{fig:B}
 \end{figure}
