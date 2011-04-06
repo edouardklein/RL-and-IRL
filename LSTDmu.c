@@ -2,6 +2,7 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
+#include <math.h>
 #include "greedy.h"
 #include "utils.h"
 #include "criteria.h"
@@ -116,6 +117,7 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
 		  omega_pi, phi_s_pi_s, 0.0, mu );
   gsl_matrix_free( omega_pi );
   gsl_matrix_free( s_pi_s );
+  gsl_matrix_free( phi_s_pi_s );
   gsl_matrix_free( a_0 );
   gsl_matrix_free( s_0 );
   return mu;
@@ -216,6 +218,7 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
   gsl_matrix_free( omega_pi );
   gsl_matrix_free( s_pi_s );
   gsl_matrix_free( pi_s_src );
+  gsl_matrix_free( phi_s_pi_s );
   return mu;
 }
 
@@ -297,6 +300,7 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   /* \mu_E \leftarrow on-LSTD_\mu( D_E, k, p, s, a, \psi,
      \phi, \gamma) */
   gsl_matrix* mu_E = lstd_mu_op( D_E_mu );
+  gsl_matrix_free( D_E_mu );
   /* \theta \leftarrow {\mu_E - \mu\over ||\mu_E - \mu||_2} */
   gsl_matrix* theta = gsl_matrix_alloc( g_iP, 1 );
   gsl_matrix_memcpy( theta, mu_E );
@@ -311,15 +315,25 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   /* t \leftarrow ||\mu_E - \bar\mu||_2*/
   double t = diff_norm( mu_E, bar_mu );
   unsigned int nb_it = 0;
+  g_dBest_error = diff_norm( mu_E, mu );
+  g_dBest_true_error = true_diff_norm( omega );
+  g_dBest_diff = true_V_diff( omega );
+  g_dBest_t = t;
   /* while t > \epsilon */
-  while( t > g_dEpsilon_anirl ){
+  while( t > g_dEpsilon_anirl && nb_it < g_iIt_max_anirl ){
     /* Output of the different criteria */
     double empirical_err = diff_norm( mu_E, mu );
     double true_err = true_diff_norm( omega );
     double true_V = true_V_diff( omega );
-    printf( "%d %d %d %lf %lf %lf %lf\n", 
-	    m, nb_it, g_iNb_samples, 
+    printf( "%d %d %lf %lf %lf %lf\n", 
+	    m, nb_it, 
 	    t, empirical_err, true_err, true_V );
+    if( empirical_err <= g_dBest_error ){
+      g_dBest_error = empirical_err;
+      g_dBest_true_error = true_err;
+      g_dBest_diff = true_V;
+      g_dBest_t = t;
+    }
     /* D.r \leftarrow \theta^T\psi(D.s) */
     for( unsigned int i = 0 ; i < D->size1 ; i++ ){
       gsl_matrix_view state = 
@@ -360,6 +374,22 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
     gsl_matrix_memcpy( delta_bar_mu, mu_barmu );
     double scale = gsl_matrix_get( num, 0, 0 ) / 
       gsl_matrix_get( denom, 0, 0 );
+    if( isnan( scale ) ){
+      gsl_matrix_free( num );
+      gsl_matrix_free( denom );
+      gsl_matrix_free( mu_barmu );
+      gsl_matrix_free( muE_barmu );
+      gsl_matrix_free( delta_bar_mu );
+      gsl_matrix_free( s_0 );
+      gsl_matrix_free( D_mu );
+      gsl_matrix_free( omega_0 );
+      gsl_matrix_free( mu );
+      gsl_matrix_free( mu_E );
+      gsl_matrix_free( bar_mu );
+      gsl_matrix_free( theta );
+      fprintf(stderr,"lstd_ANIRL returning early because it's stuck\n");
+      return omega;
+    }
     gsl_matrix_scale( delta_bar_mu, scale );
     gsl_matrix_add( bar_mu, delta_bar_mu );
     gsl_matrix_free( num );
@@ -383,9 +413,17 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   double empirical_err = diff_norm( mu_E, mu );
   double true_err = true_diff_norm( omega );
   double true_V = true_V_diff( omega );
-  printf( "%d %d %d %lf %lf %lf %lf\n", 
-	  m, nb_it, g_iNb_samples, 
+  printf( "%d %d %lf %lf %lf %lf\n", 
+	  m, nb_it, 
 	  t, empirical_err, true_err, true_V );
+  if( empirical_err <= g_dBest_error ){
+    g_dBest_error = empirical_err;
+    g_dBest_true_error = true_err;
+    g_dBest_diff = true_V;
+    g_dBest_t = t;
+  }
+  gsl_matrix_free( s_0 );
+  gsl_matrix_free( D_mu );
   gsl_matrix_free( omega_0 );
   gsl_matrix_free( mu );
   gsl_matrix_free( mu_E );
