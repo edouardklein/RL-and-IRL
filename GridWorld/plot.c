@@ -1,6 +1,6 @@
 #include <gsl/gsl_matrix.h>
 #include "GridWorld.h"
-#include "GridWorld_simulator.h"
+#include "simulator.h"
 #include "utils.h"
 #include "LSPI.h"
 #include "abbeel2004apprenticeship.h"
@@ -10,16 +10,7 @@
 #include "IRL_Globals.h"
 #define D_FILE_NAME "Samples.dat"
 #define TRANS_WIDTH 7
-#define ACTION_FILE "actions_abbeel.mat"
-/* #include "greedy.h" */
-/* #define K (GRID_HEIGHT*GRID_WIDTH*4) /\* dim(\phi) *\/ */
-/* #define P (GRID_HEIGHT*GRID_WIDTH) /\* dim(\psi) *\/ */
-/* #define S 2 */
-/* #define A 1 */
-/* #define GAMMA 0.9 */
-/* #define GAMMA_LSPI 0.9 */
-/* #define EPSILON 0.1 */
-/* #define EPSILON_LSPI 0.1 */
+#define ACTION_FILE "actions.mat"
 
 unsigned int g_iK = (GRID_HEIGHT*GRID_WIDTH*4); /* dim(\phi) */
 unsigned int g_iP = (GRID_HEIGHT*GRID_WIDTH); /* dim(\psi) */
@@ -66,7 +57,8 @@ int main( void ){
   gsl_matrix* omega_expert = lspi( D, omega_0 );
   g_mOmega_E = omega_expert;
   expert_just_set();
-  unsigned int M = 40;
+  /* Courbe A : différences entre les mesures pour MC */
+  unsigned int M = 500;
   g_iNb_samples = D->size1;
   g_mOmega =  omega_expert;
   gsl_matrix* D_expert = gridworld_simulator( M );
@@ -74,13 +66,28 @@ int main( void ){
     proj_mc_lspi_ANIRL( D_expert, D, M );
   gsl_matrix_free( omega_imitation );
   gsl_matrix_free( D_expert );
-  for(M = 1; M<=100; M+=20 ){
+  /*Courbes B & C : Performance de MC et LSTDmu*/
+  M = 501; //To differentiate from above when greping.
+  //See the Makefile
+  int m_exp[] = {1,10,30,50,75,100,200};
+  for( int i=0; i<7 ; i++ ){
     g_iNb_samples = 0;
     g_mOmega =  omega_expert;
-    gsl_matrix* D_expert = gridworld_simulator( M );
+    gsl_matrix* D_expert = gridworld_simulator( m_exp[i] );
+    unsigned int nb_samples_exp = g_iNb_samples;
     gsl_matrix* omega_lstd = 
       proj_lstd_lspi_ANIRL( D_expert, D_expert );
     gsl_matrix_free( omega_lstd );
+    printf("B %d %lf %lf %lf %lf\n", nb_samples_exp, 
+	   g_dBest_t, g_dBest_error, 
+	   g_dBest_true_error, g_dBest_diff );
+    gsl_matrix* omega_imitation =
+      proj_mc_lspi_ANIRL( D_expert, D, M );
+    gsl_matrix_free( omega_imitation );
+    gsl_matrix_free( D_expert );
+    printf("C %d %lf %lf %lf %lf\n", nb_samples_exp, 
+	   g_dBest_t, g_dBest_error, 
+	   g_dBest_true_error, g_dBest_diff );
   }
   return 0;
 }

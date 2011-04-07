@@ -1,34 +1,34 @@
 CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
 LFLAGS=`pkg-config --libs gsl` -lm -g
 
-all:
+all: lagoudakis2003least_figure10.pdf both_error_discrete_EB.pdf criteria_discrete_lstd_EB.pdf criteria_discrete_mc.pdf 
 
 #Figure 10 of \cite{lagoudakis2003least}
-lagoudakis2003least_figure10.pdf: lagoudakis2003least_figure10.ps
-	ps2pdf lagoudakis2003least_figure10.ps
+lagoudakis2003least_figure10.pdf: LSPI.o LSTDQ.o utils.o greedy.o
+	make -C ChainWalk lagoudakis2003least_figure10.pdf && cp ChainWalk/lagoudakis2003least_figure10.pdf ./
 
-lagoudakis2003least_figure10.ps: lagoudakis2003least_figure10.dat lagoudakis2003least_figure10.gp
-	gnuplot lagoudakis2003least_figure10.gp
+#Different criteria on the gridworld for Monte_Carlo w.r.t. iterations
+criteria_discrete_mc.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C GridWorld criteria_mc.tex && cp GridWorld/criteria_mc.pdf ./criteria_discrete_mc.pdf
 
-lagoudakis2003least_figure10.dat: lagoudakis2003least_figure10.samples lagoudakis2003least_figure10.exe
-	./lagoudakis2003least_figure10.exe > lagoudakis2003least_figure10.dat
+#Different criteria for LSTD w.r.t. number of samples from the expert
+criteria_discrete_lstd.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C GridWorld criteria_lstd.pdf && cp GridWorld/criteria_lstd.pdf ./criteria_discrete_lstd.pdf
 
-lagoudakis2003least_figure10.samples: ChainWalk_generator.exe 
-	for i in `seq -w 1000`; do ./ChainWalk_generator.exe 50 > Samples$$i; done && touch lagoudakis2003least_figure10.samples
+#True error for LSTD and MC on the GridWorld
+both_error_discrete.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C GridWorld both_error.pdf && cp GridWorld/both_error.pdf ./both_error_discrete.pdf
 
-lagoudakis2003least_figure10.exe: lagoudakis2003least_figure10.o LSPI.o LSTDQ.o utils.o greedy.o 
-	gcc -o lagoudakis2003least_figure10.exe lagoudakis2003least_figure10.o LSPI.o LSTDQ.o utils.o greedy.o  $(LFLAGS)
+#True error for LSTD and MC on the GridWorld, with error bars
+both_error_discrete_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C GridWorld both_error_EB.tex && cp GridWorld/both_error_EB.pdf ./both_error_discrete_EB.pdf
 
-lagoudakis2003least_figure10.o: lagoudakis2003least_figure10.c LSPI.h utils.h
-	gcc -c $(CFLAGS) lagoudakis2003least_figure10.c
+#Different criteria for LSTD w.r.t. number of samples from the expert, with error bars
+criteria_discrete_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C GridWorld criteria_lstd_EB.tex && cp GridWorld/criteria_lstd_EB.pdf ./criteria_discrete_lstd_EB.pdf
 
-ChainWalk_generator.exe: ChainWalk_generator.o utils.o
-	gcc -o ChainWalk_generator.exe  $(LFLAGS) ChainWalk_generator.o utils.o
 
-ChainWalk_generator.o: ChainWalk_generator.c utils.h
-	gcc -c $(CFLAGS) ChainWalk_generator.c
-
-#Common
+#Common to all
 LSPI.o: LSPI.h LSPI.c utils.h LSTDQ.h greedy.h 
 	gcc -c $(CFLAGS) LSPI.c
 
@@ -42,14 +42,17 @@ greedy.o: greedy.h greedy.c
 	gcc -c $(CFLAGS) greedy.c
 
 #Common for LSTDMu
-GridWorld_simulator.o: GridWorld_simulator.c GridWorld.h utils.h
-	gcc -c $(CFLAGS) GridWorld_simulator.c
+InvertedPendulum.o: InvertedPendulum.c InvertedPendulum.h utils.h
+	gcc -c $(CFLAGS) InvertedPendulum.c
 
-GridWorld_generator.exe: GridWorld_generator.o utils.o
-	gcc -o GridWorld_generator.exe $(LFLAGS) GridWorld_generator.o utils.o
+InvertedPendulum_simulator.o: InvertedPendulum_simulator.c InvertedPendulum.h utils.h
+	gcc -c $(CFLAGS) InvertedPendulum_simulator.c 
 
-GridWorld_generator.o: GridWorld_generator.c GridWorld.h utils.h
-	gcc -c $(CFLAGS) GridWorld_generator.c
+InvertedPendulum_generator.exe: InvertedPendulum_generator.o utils.o InvertedPendulum.o
+	gcc -o InvertedPendulum_generator.exe $(LFLAGS) InvertedPendulum_generator.o utils.o InvertedPendulum.o
+
+InvertedPendulum_generator.o: InvertedPendulum_generator.c InvertedPendulum.h utils.h 
+	gcc -c $(CFLAGS) InvertedPendulum_generator.c
 
 abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h criteria.h
 	gcc -c $(CFLAGS) abbeel2004apprenticeship.c
@@ -57,62 +60,21 @@ abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.
 criteria.o: criteria.h criteria.c RL_Globals.h
 	gcc -c $(CFLAGS) criteria.c
 
-courbe_lstdmu.dat: courbe_lstdmu.samples courbe_lstdmu.exe
-	./courbe_lstdmu.exe | tee courbe_lstdmu.dat
+courbe_lstdmu_continuous.samples: InvertedPendulum_generator.exe 
+	./InvertedPendulum_generator.exe > SamplesC.dat && touch courbe_lstdmu_countinuous.samples
 
-courbe_lstdmu.samples: GridWorld_generator.exe 
-	./GridWorld_generator.exe > Samples.dat && touch courbe_lstdmu.samples
+courbe_lstdmu_continuous.exe: courbe_lstdmu_continuous.o utils.o LSPI.o InvertedPendulum_simulator.o InvertedPendulum.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	gcc -o courbe_lstdmu_continuous.exe $(LFLAGS) courbe_lstdmu_continuous.o utils.o LSPI.o InvertedPendulum_simulator.o InvertedPendulum.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o criteria.o 
 
-courbe_lstdmu.exe: courbe_lstdmu.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	gcc -o courbe_lstdmu.exe $(LFLAGS) courbe_lstdmu.o utils.o LSPI.o GridWorld_simulator.o greedy.o LSTDQ.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-
-courbe_lstdmu.o: courbe_lstdmu.c GridWorld.h utils.h LSPI.h greedy.h GridWorld_simulator.h abbeel2004apprenticeship.h LSTDmu.h
-	gcc -c $(CFLAGS) courbe_lstdmu.c
+courbe_lstdmu_continuous.o: courbe_lstdmu_continuous.c InvertedPendulum.h utils.h LSPI.h greedy.h GridWorld_simulator.h abbeel2004apprenticeship.h LSTDmu.h
+	gcc -c $(CFLAGS) courbe_lstdmu_continuous.c
 
 LSTDmu.o: LSTDmu.h LSTDmu.c greedy.h utils.h criteria.h LSPI.h
 	gcc -c $(CFLAGS) LSTDmu.c
 
-#Courbe A :
-courbe_a.pdf: courbe_a.ps
-	ps2pdf courbe_a.ps
-
-courbe_a.ps: courbe_a.dat courbe_a.gp
-	gnuplot courbe_a.gp
-
-courbe_a.dat: courbe_lstdmu.dat
-	cat courbe_lstdmu.dat | grep "^500" > courbe_a.dat
-
-#Courbe B : 
-courbe_b.pdf: courbe_b.ps
-	ps2pdf courbe_b.ps
-
-courbe_b.ps: courbe_b.dat courbe_b.gp
-	gnuplot courbe_b.gp
-
-courbe_b.dat: courbe_lstdmu.dat
-	cat courbe_lstdmu.dat | grep -E "^0 1" > courbe_b.dat
-
-#Courbe B : 
-courbe_c.pdf: courbe_c.ps
-	ps2pdf courbe_c.ps
-
-courbe_c.ps: courbe_c.dat courbe_c.gp
-	gnuplot courbe_c.gp
-
-courbe_c.dat: courbe_lstdmu.dat
-	cat courbe_lstdmu.dat | grep -E "^C " | sed "s/C//"> courbe_c.dat
-#Courbe D :
-courbe_d.pdf: courbe_d.ps
-	ps2pdf courbe_d.ps
-
-courbe_d.ps: courbe_b.dat courbe_c.dat courbe_d.gp
-	gnuplot courbe_d.gp
-#Courbe E :
-courbe_e.pdf: courbe_e.ps
-	ps2pdf courbe_e.ps
-
-courbe_e.ps: courbe_b.dat courbe_c.dat courbe_e.gp
-	gnuplot courbe_e.gp
-
 clean:
-	rm *.o *.exe Samples* *.ps *.pdf *.samples *.dat
+	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*~"    | xargs -tr rm &&\
+	make -C ChainWalk clean		
+	make -C GridWorld clean

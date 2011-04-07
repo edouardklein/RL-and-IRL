@@ -6,7 +6,7 @@
 #include "abbeel2004apprenticeship.h"
 #include "utils.h"
 
-#define PERFECT_MC_LENGTH 1000
+#define PERFECT_MC_LENGTH 2000
 
 /* Public global where the omega of the expert is stored */
 gsl_matrix* g_mOmega_E = NULL;
@@ -66,7 +66,15 @@ void expert_just_set(){
   g_iNb_samples = nb_samples_backup;
   g_mMu_E = monte_carlo_mu( D );
   g_dV_E = value_func( D );
+  fprintf(stderr,"V_E(s_0) = %lf\n",g_dV_E);
   gsl_matrix_free( D );
+}
+
+/* Must call this one if expert_just_set has been
+   called before, in order to free the memory
+*/
+void expert_free(){
+  gsl_matrix_free( g_mMu_E );
 }
 
 

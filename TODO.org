@@ -1,6 +1,6 @@
 * Code
 ** LSTD
-*** TODO Chenger le nom omega pour LSTDmu (zeta ?)
+*** TODO Changer le nom omega pour LSTDmu (zeta ?)
 *** TODO Factoriser le A de LSTD
     La matrice A est la même dans LSTDQ et LSTD Mu, il faudrait 
     factoriser le code.
@@ -16,6 +16,11 @@
     Ce serait une bonne idée de les factoriser dans des fonctions
     à part.
 *** TODO Trouver et détruire la fuite de mémoire
+*** TODO Enlever la variable g_iNb_samples
+    vérifier qu'elle ne sert à rien auparavant
 *** DONE Normer Theta
 *** DONE Utiliser une seule banque de données
+** Autres
+*** TODO Transformer ErrorBars.py en un Makefile
+    Il a probablement moyen de faire en sorte que la vérification des données existantes s'écrive en quelques règles simples
 

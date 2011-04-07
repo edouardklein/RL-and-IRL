@@ -15,6 +15,11 @@ double true_diff_norm( gsl_matrix* omega );
 */
 void expert_just_set();
 
+/* Must call this one if expert_just_set has been
+   called before, in order to free the memory
+*/
+void expert_free();
+
 /* Compute V(s0) for the given set of trajectories */
 double value_func( gsl_matrix* D );
 

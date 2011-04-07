@@ -17,7 +17,7 @@
                     /* compute the mean and the var*/
 #define D_PREFIX "Samples" /* Prefix for the files containing */
                            /* the transitions*/
-#define ACTION_FILE "actions_lagoudakis.mat"
+#define ACTION_FILE "actions.mat"
 
 gsl_matrix* phi( gsl_matrix* sa ){
   gsl_matrix* answer = gsl_matrix_calloc( 6, 1 );

@@ -37,8 +37,14 @@ extern unsigned int g_iNb_samples;
    couples are visited, thus making the A matrix singular */
 extern double g_dLambda_lstdmu; 
 
-/* When using MC in ANIRL, we store the best score when
-   the measured error is at its lowest yet*/
+/* When using ANIRL, we store the best score when
+   the measured error is at its lowest yet. This does not
+   mean that the other criteria (especially t) also are at 
+   their lowest.
+   These are declared in abbeel2004apprenticeship.c
+   but also used in LSTDmu.c
+*/
 extern double g_dBest_error;
 extern double g_dBest_true_error;
 extern double g_dBest_diff;
+extern double g_dBest_t;

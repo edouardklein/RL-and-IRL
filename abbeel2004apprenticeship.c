@@ -10,11 +10,12 @@
 /* #include "greedy.h" */
 /* #include "GridWorld_simulator.h" */
 
-/* When using MC in ANIRL, we store the best score when
+/* When using ANIRL, we store the best score when
    the measured error is at its lowest yet*/
 double g_dBest_error;
 double g_dBest_true_error;
 double g_dBest_diff;
+double g_dBest_t;
 
 /* Compute an estimate of \mu using the monte carlo method,
    given a set of trajectories 
@@ -86,18 +87,20 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,
   g_dBest_error = diff_norm( mu_E, mu );
   g_dBest_true_error = true_diff_norm( omega );
   g_dBest_diff = true_V_diff( omega );
+  g_dBest_t = t;
   while( t > g_dEpsilon_anirl && nb_it < g_iIt_max_anirl ){
     /* Output of the different criteria */
     double empirical_err = diff_norm( mu_E, mu );
     double true_err = true_diff_norm( omega );
     double true_V = true_V_diff( omega );
-    printf( "%d %d %d %lf %lf %lf %lf\n", 
-	    m, nb_it, g_iNb_samples, 
+    printf( "%d %d %lf %lf %lf %lf\n", 
+	    m, nb_it,
 	    t, empirical_err, true_err, true_V );
     if( empirical_err <= g_dBest_error ){
       g_dBest_error = empirical_err;
       g_dBest_true_error = true_err;
       g_dBest_diff = true_V;
+      g_dBest_t = t;
     }
     /* D.r \leftarrow \theta^T\psi(D.s) */
     for( unsigned int i = 0 ; i < D->size1 ; i++ ){
@@ -167,13 +170,14 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,
   double empirical_err = diff_norm( mu_E, mu );
   double true_err = true_diff_norm( omega );
   double true_V = true_V_diff( omega );
-  printf( "%d %d %d %lf %lf %lf %lf\n", 
-	  m, nb_it, g_iNb_samples, 
+  printf( "%d %d %lf %lf %lf %lf\n", 
+	  m, nb_it, 
 	  t, empirical_err, true_err, true_V );
   if( empirical_err <= g_dBest_error ){
     g_dBest_error = empirical_err;
     g_dBest_true_error = true_err;
     g_dBest_diff = true_V;
+    g_dBest_t = t;
   }
   gsl_matrix_free( omega_0 );
   gsl_matrix_free( mu );
