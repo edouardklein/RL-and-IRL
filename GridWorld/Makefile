@@ -79,11 +79,13 @@ both_error_EB.pdf: both_error_EB.eps
 both_error_EB.eps: both_error.dat-0 both_error.dat-1 both_error_EB.gp
 	gnuplot both_error_EB.gp
 
+.PHONY: ErrorBars
+
 both_error.dat-0: ErrorBars
 
 both_errot.dat-1: ErrorBars
 
-ErrorBars: conf.py
+ErrorBars: 
 	../../Utils/ErrorBars.py
 
 both_error.pdf: both_error.eps
