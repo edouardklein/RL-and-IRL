@@ -48,3 +48,4 @@ extern double g_dBest_error;
 extern double g_dBest_true_error;
 extern double g_dBest_diff;
 extern double g_dBest_t;
+extern gsl_matrix* g_mBest_omega;

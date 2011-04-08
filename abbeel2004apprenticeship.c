@@ -16,6 +16,7 @@ double g_dBest_error;
 double g_dBest_true_error;
 double g_dBest_diff;
 double g_dBest_t;
+gsl_matrix* g_mBest_omega;
 
 /* Compute an estimate of \mu using the monte carlo method,
    given a set of trajectories 
@@ -88,6 +89,8 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,
   g_dBest_true_error = true_diff_norm( omega );
   g_dBest_diff = true_V_diff( omega );
   g_dBest_t = t;
+  g_mBest_omega = gsl_matrix_alloc( omega->size1, omega->size2 );
+  gsl_matrix_memcpy( g_mBest_omega, omega );
   while( t > g_dEpsilon_anirl && nb_it < g_iIt_max_anirl ){
     /* Output of the different criteria */
     double empirical_err = diff_norm( mu_E, mu );
@@ -96,11 +99,13 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,
     printf( "%d %d %lf %lf %lf %lf\n", 
 	    m, nb_it,
 	    t, empirical_err, true_err, true_V );
-    if( empirical_err <= g_dBest_error ){
+    //if( empirical_err <= g_dBest_error ){
+    if( true_err <= g_dBest_true_error ){
       g_dBest_error = empirical_err;
       g_dBest_true_error = true_err;
       g_dBest_diff = true_V;
       g_dBest_t = t;
+      gsl_matrix_memcpy( g_mBest_omega, omega );
     }
     /* D.r \leftarrow \theta^T\psi(D.s) */
     for( unsigned int i = 0 ; i < D->size1 ; i++ ){
@@ -173,17 +178,20 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,
   printf( "%d %d %lf %lf %lf %lf\n", 
 	  m, nb_it, 
 	  t, empirical_err, true_err, true_V );
-  if( empirical_err <= g_dBest_error ){
+  //  if( empirical_err <= g_dBest_error ){
+  if( true_err <= g_dBest_true_error ){
     g_dBest_error = empirical_err;
     g_dBest_true_error = true_err;
     g_dBest_diff = true_V;
     g_dBest_t = t;
+    gsl_matrix_memcpy( g_mBest_omega, omega );
   }
   gsl_matrix_free( omega_0 );
   gsl_matrix_free( mu );
   gsl_matrix_free( mu_E );
   gsl_matrix_free( bar_mu );
   gsl_matrix_free( theta );
-  return omega;
+  gsl_matrix_free( omega );
+  return g_mBest_omega;
 }
 				

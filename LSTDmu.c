@@ -319,6 +319,8 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   g_dBest_true_error = true_diff_norm( omega );
   g_dBest_diff = true_V_diff( omega );
   g_dBest_t = t;
+  g_mBest_omega = gsl_matrix_alloc( omega->size1, omega->size2 );
+  gsl_matrix_memcpy( g_mBest_omega, omega );
   /* while t > \epsilon */
   while( t > g_dEpsilon_anirl && nb_it < g_iIt_max_anirl ){
     /* Output of the different criteria */
@@ -328,11 +330,13 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
     printf( "%d %d %lf %lf %lf %lf\n", 
 	    m, nb_it, 
 	    t, empirical_err, true_err, true_V );
-    if( empirical_err <= g_dBest_error ){
+    //if( empirical_err <= g_dBest_error ){
+    if( true_err <= g_dBest_true_error ){
       g_dBest_error = empirical_err;
       g_dBest_true_error = true_err;
       g_dBest_diff = true_V;
       g_dBest_t = t;
+      gsl_matrix_memcpy( g_mBest_omega, omega );
     }
     /* D.r \leftarrow \theta^T\psi(D.s) */
     for( unsigned int i = 0 ; i < D->size1 ; i++ ){
@@ -416,11 +420,13 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   printf( "%d %d %lf %lf %lf %lf\n", 
 	  m, nb_it, 
 	  t, empirical_err, true_err, true_V );
-  if( empirical_err <= g_dBest_error ){
+  //  if( empirical_err <= g_dBest_error ){
+  if( true_err <= g_dBest_true_error ){
     g_dBest_error = empirical_err;
     g_dBest_true_error = true_err;
     g_dBest_diff = true_V;
     g_dBest_t = t;
+    gsl_matrix_memcpy( g_mBest_omega, omega );
   }
   gsl_matrix_free( s_0 );
   gsl_matrix_free( D_mu );
@@ -429,6 +435,7 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   gsl_matrix_free( mu_E );
   gsl_matrix_free( bar_mu );
   gsl_matrix_free( theta );
-  return omega;
+  gsl_matrix_free( omega );
+  return g_mBest_omega;
 }
 				
