@@ -88,39 +88,57 @@ int main( void ){
   expert_just_set();
   fprintf(stderr,"done\n");
   
-  /* g_iNb_samples = 0; */
-  /* g_mOmega = omega_0; */
-  /* gsl_matrix* discard = inverted_pendulum_simulator( 100 ); */
-  /* gsl_matrix_free( discard ); */
-  /* unsigned int mean_control_steps = g_iNb_samples/100; */
-  /* fprintf(stderr,"Performance of default policy : %d\n",mean_control_steps); */
-
-  //g_mOmega =  omega_expert;
-  /* g_mOmega = gsl_matrix_calloc( g_iK, 1 ); */
-  /* for( int ii = 0; ii<30;ii++){ */
-  /*   gsl_matrix_set( g_mOmega,ii,0,1.0); */
-  /* } */
-  /* gsl_matrix* state = gsl_matrix_alloc( 1, 2 ); */
-  /* for( double i = -1. ; i <= 1 ; i+=0.05 ){ */
-  /*   for( double j = -1 ; j <= 1 ; j+=0.05 ){ */
-  /*     gsl_matrix_set( state, 0, 0, i*PI/2.); */
-  /*     gsl_matrix_set( state, 0, 1, j*PI/2.); */
-  /*     double v = greedy_value_function( state ); */
-  /*     printf("%lf %lf %lf\n", i*PI/2., j*PI/2.,v ); */
-  /*   } */
-  /*   printf("\n"); */
-  /* } */
 
   gsl_matrix* D_expert;
-
   gsl_matrix* omega_imitation;
-  unsigned int M = 1001; //To differentiate from above when greping.
-  //See the Makefile
+  //La première courbe montre que sans matrice D, 
+  //quelque soit la taille de la matrice D_E,
+  //la variante LSTD ne fonctionne pas tandis que
+  //la variante MC fonctionne
   int m_exp[] = {1,10,100};
   for( int i=0; i<3 ; i++ ){
     g_iNb_samples = 0;
     g_mOmega =  omega_expert;
-    g_iMax_episode_len = 30;
+    g_iMax_episode_len = 100;
+    D_expert = inverted_pendulum_simulator( m_exp[i] );
+    unsigned int nb_samples_exp = g_iNb_samples;
+    g_iMax_episode_len = 100;
+    gsl_matrix* omega_lstd =
+      proj_lstd_lspi_ANIRL( D_expert, D_expert );
+    g_mOmega = omega_lstd;
+    g_iNb_samples = 0;
+    g_iMax_episode_len = 3000;
+    gsl_matrix* discard = inverted_pendulum_simulator( 100 );
+    gsl_matrix_free( discard );
+    unsigned int mean_control_steps = g_iNb_samples/100;
+    gsl_matrix_free( omega_lstd );
+    printf("1-LSTD %d %lf %lf %lf %lf %d\n", nb_samples_exp,
+  	   g_dBest_t, g_dBest_error,
+  	   g_dBest_true_error, g_dBest_diff, mean_control_steps );
+    g_iMax_episode_len = 100;
+    omega_imitation =
+      proj_mc_lspi_ANIRL( D_expert, D, 2000 );
+    g_mOmega = omega_imitation;
+    g_iNb_samples = 0;
+    g_iMax_episode_len = 3000;
+    discard = inverted_pendulum_simulator( 100 );
+    gsl_matrix_free( discard );
+    mean_control_steps = g_iNb_samples/100;
+    gsl_matrix_free( omega_imitation );
+    gsl_matrix_free( D_expert );
+    printf("1-MC %d %lf %lf %lf %lf %d\n", nb_samples_exp,
+  	   g_dBest_t, g_dBest_error,
+  	   g_dBest_true_error, g_dBest_diff, mean_control_steps);
+  }
+
+
+  //La seconde courbe montre qu'avec une matrice D, 
+  //quelque soit la taille de la matrice D_E,
+  //les deux variantes fonctionnent
+  for( int i=0; i<3 ; i++ ){
+    g_iNb_samples = 0;
+    g_mOmega =  omega_expert;
+    g_iMax_episode_len = 100;
     D_expert = inverted_pendulum_simulator( m_exp[i] );
     unsigned int nb_samples_exp = g_iNb_samples;
     g_iMax_episode_len = 100;
@@ -133,12 +151,12 @@ int main( void ){
     gsl_matrix_free( discard );
     unsigned int mean_control_steps = g_iNb_samples/100;
     gsl_matrix_free( omega_lstd );
-    printf("B %d %lf %lf %lf %lf %d\n", nb_samples_exp,
+    printf("2-LSTD %d %lf %lf %lf %lf %d\n", nb_samples_exp,
   	   g_dBest_t, g_dBest_error,
   	   g_dBest_true_error, g_dBest_diff, mean_control_steps );
     g_iMax_episode_len = 100;
     omega_imitation =
-      proj_mc_lspi_ANIRL( D_expert, D, M );
+      proj_mc_lspi_ANIRL( D_expert, D, 2000 );
     g_mOmega = omega_imitation;
     g_iNb_samples = 0;
     g_iMax_episode_len = 3000;
@@ -147,10 +165,50 @@ int main( void ){
     mean_control_steps = g_iNb_samples/100;
     gsl_matrix_free( omega_imitation );
     gsl_matrix_free( D_expert );
-    printf("C %d %lf %lf %lf %lf %d\n", nb_samples_exp,
+    printf("2-MC %d %lf %lf %lf %lf %d\n", nb_samples_exp,
   	   g_dBest_t, g_dBest_error,
   	   g_dBest_true_error, g_dBest_diff, mean_control_steps);
   }
+
+
+  /* gsl_matrix* omega_imitation;*/
+  /* unsigned int M = 1001; //To differentiate from above when greping. */
+  /* //See the Makefile */
+  /* int m_exp[] = {1,10,100}; */
+  /* for( int i=0; i<3 ; i++ ){ */
+  /*   g_iNb_samples = 0; */
+  /*   g_mOmega =  omega_expert; */
+  /*   g_iMax_episode_len = 30; */
+  /*   D_expert = inverted_pendulum_simulator( m_exp[i] ); */
+  /*   unsigned int nb_samples_exp = g_iNb_samples; */
+  /*   g_iMax_episode_len = 100; */
+  /*   gsl_matrix* omega_lstd = */
+  /*     proj_lstd_lspi_ANIRL( D_expert, D ); */
+  /*   g_mOmega = omega_lstd; */
+  /*   g_iNb_samples = 0; */
+  /*   g_iMax_episode_len = 3000; */
+  /*   gsl_matrix* discard = inverted_pendulum_simulator( 100 ); */
+  /*   gsl_matrix_free( discard ); */
+  /*   unsigned int mean_control_steps = g_iNb_samples/100; */
+  /*   gsl_matrix_free( omega_lstd ); */
+  /*   printf("B %d %lf %lf %lf %lf %d\n", nb_samples_exp, */
+  /* 	   g_dBest_t, g_dBest_error, */
+  /* 	   g_dBest_true_error, g_dBest_diff, mean_control_steps ); */
+  /*   g_iMax_episode_len = 100; */
+  /*   omega_imitation = */
+  /*     proj_mc_lspi_ANIRL( D_expert, D, M ); */
+  /*   g_mOmega = omega_imitation; */
+  /*   g_iNb_samples = 0; */
+  /*   g_iMax_episode_len = 3000; */
+  /*   discard = inverted_pendulum_simulator( 100 ); */
+  /*   gsl_matrix_free( discard ); */
+  /*   mean_control_steps = g_iNb_samples/100; */
+  /*   gsl_matrix_free( omega_imitation ); */
+  /*   gsl_matrix_free( D_expert ); */
+  /*   printf("C %d %lf %lf %lf %lf %d\n", nb_samples_exp, */
+  /* 	   g_dBest_t, g_dBest_error, */
+  /* 	   g_dBest_true_error, g_dBest_diff, mean_control_steps); */
+  /* } */
   gsl_matrix_free( g_mActions );
   gsl_matrix_free( omega_expert );
   expert_free();

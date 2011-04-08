@@ -15,9 +15,11 @@
     ANIRL avec MC et avec LSTDMu ont des parties communes.
     Ce serait une bonne idée de les factoriser dans des fonctions
     à part.
-*** TODO Trouver et détruire la fuite de mémoire
+*** DONE Trouver et détruire la fuite de mémoire
+    CLOSED: [2011-04-08 ven. 15:57]
 *** TODO Enlever la variable g_iNb_samples
     vérifier qu'elle ne sert à rien auparavant
+*** TODO Passer M en paramètre n'a plus de sens
 *** DONE Normer Theta
 *** DONE Utiliser une seule banque de données
 ** Autres
