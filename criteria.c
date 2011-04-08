@@ -66,7 +66,6 @@ void expert_just_set(){
   g_iNb_samples = nb_samples_backup;
   g_mMu_E = monte_carlo_mu( D );
   g_dV_E = value_func( D );
-  fprintf(stderr,"V_E(s_0) = %lf\n",g_dV_E);
   gsl_matrix_free( D );
 }
 
