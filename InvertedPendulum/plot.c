@@ -59,6 +59,17 @@ gsl_matrix* psi( gsl_matrix* s ){
   return answer;
 }
 
+gsl_matrix* initial_state( void ){
+  gsl_matrix* answer = gsl_matrix_alloc( 1, 2 );
+  double pos;
+  double speed;
+  iv_init( &pos, &speed );
+  gsl_matrix_set( answer, 0, 0, pos );
+  gsl_matrix_set( answer, 0, 1, speed );
+  return answer;
+}
+
+
 unsigned int g_iS = 2;
 unsigned int g_iA = 1;
 unsigned int g_iIt_max_lspi = 50;
@@ -74,6 +85,7 @@ unsigned int g_iIt_max_anirl = 2;
 gsl_matrix* g_mActions = NULL; 
 gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
 gsl_matrix* (*g_fSimulator)(int) = &inverted_pendulum_simulator;
+gsl_matrix* (*g_fS_0)(void) = &initial_state;
 unsigned int g_iMax_episode_len = 30; //Shorter episodes are 
 //better for MC, as s_0 is seen more often
 
