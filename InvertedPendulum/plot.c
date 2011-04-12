@@ -63,9 +63,11 @@ gsl_matrix* initial_state( void ){
   gsl_matrix* answer = gsl_matrix_alloc( 1, 2 );
   double pos;
   double speed;
-  iv_init( &pos, &speed );
-  gsl_matrix_set( answer, 0, 0, pos );
-  gsl_matrix_set( answer, 0, 1, speed );
+  for( unsigned int i=0; i<1; i++ ){
+    iv_init( &pos, &speed );
+    gsl_matrix_set( answer, i, 0, pos );
+    gsl_matrix_set( answer, i, 1, speed );
+  }
   return answer;
 }
 

@@ -5,17 +5,17 @@
 #include "utils.h"
 
 void iv_init( double* pos, double* speed ){
-  *pos = 0.04;
-  //(double)rand()/(double)RAND_MAX*0.01;
-  *speed = -0.02;
-  //  (double)rand()/(double)RAND_MAX*0.01;
+  *pos = 
+    (double)rand()/(double)RAND_MAX*0.1;
+  *speed = 
+    (double)rand()/(double)RAND_MAX*0.1;
   int sign = random_int( 0, 1 );
   if (sign == 0){
-    //*pos=-*pos;
+    *pos=-*pos;
   }
   sign = random_int( 0, 1 );
   if (sign == 0){
-    //*speed=-*speed;
+    *speed=-*speed;
   }
 }
 
