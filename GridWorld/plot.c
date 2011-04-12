@@ -34,6 +34,13 @@ gsl_matrix* psi( gsl_matrix* s ){
   return answer;
 }
 
+gsl_matrix* initial_state( void ){
+  gsl_matrix* answer = gsl_matrix_alloc( 1, 2 );
+  gsl_matrix_set( answer, 0, 0, 1.0 );
+  gsl_matrix_set( answer, 0, 1, 1.0 );
+  return answer;
+}
+
 unsigned int g_iS = 2;
 unsigned int g_iA = 1;
 unsigned int g_iIt_max_lspi = 20;
@@ -49,6 +56,7 @@ unsigned int g_iIt_max_anirl = 40;
 gsl_matrix* g_mActions = NULL; 
 gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
 gsl_matrix* (*g_fSimulator)(int) = &gridworld_simulator;
+gsl_matrix* (*g_fS_0)(void) = &initial_state;
 
 int main( void ){
   gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );

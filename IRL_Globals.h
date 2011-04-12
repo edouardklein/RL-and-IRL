@@ -49,3 +49,9 @@ extern double g_dBest_true_error;
 extern double g_dBest_diff;
 extern double g_dBest_t;
 extern gsl_matrix* g_mBest_omega;
+
+/* The initial state(s) for which \mu is to be computed is 
+   given to LSTDmu through this function. One state per line.
+   When using Monte-Carlo, it is assumed that the first sample
+   or each trajectory is among the initial state(s)*/
+extern gsl_matrix* (*g_fS_0)( void );

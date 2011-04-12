@@ -20,10 +20,6 @@
    s_0 is taken from the first transition of D_\mu
 */
 gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
-  gsl_matrix* s_0 = gsl_matrix_alloc( 1, g_iS );
-  gsl_matrix_view s_0_src = gsl_matrix_submatrix( D_mu, 0, 0,
-						  1, g_iS );
-  gsl_matrix_memcpy( s_0, &s_0_src.matrix );
   // \tilde A \leftarrow 0
   gsl_matrix* A = gsl_matrix_calloc( g_iP, g_iP );
   // \tilde b \leftarrow 0
@@ -78,13 +74,23 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
   gsl_permutation_free( p );
   gsl_matrix_free( A );
   gsl_matrix_free( b );
-   //\mu_\pi(s) \leftarrow \tilde\omega_\pi^T\psi(s)
-  gsl_matrix* psi_s_0 = g_fPsi( s_0 );
-  gsl_matrix* mu = gsl_matrix_alloc( g_iP, 1 );
-  gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0,
-		  omega_pi, psi_s_0, 0.0, mu );
+  //\mu_\pi(s_0) \leftarrow 
+  //\sum_{s_0}\tilde\omega_\pi^T\psi(s_0)
+  gsl_matrix* s_0 = g_fS_0();
+  gsl_matrix* mu = gsl_matrix_calloc( g_iP, 1 );
+  gsl_matrix* delta_mu = gsl_matrix_alloc( g_iP, 1 );
+  for( unsigned int i = 0; i<s_0->size1;i++){
+    gsl_matrix_view mS_0 = gsl_matrix_submatrix( s_0, i, 0, 
+						 1, g_iS );
+    gsl_matrix* psi_s_0 = g_fPsi( &mS_0.matrix );
+    gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0,
+		    omega_pi, psi_s_0, 0.0, delta_mu );
+    gsl_matrix_add( mu, delta_mu );
+    gsl_matrix_free( psi_s_0 );
+  }
+  gsl_matrix_scale( mu, 1./((double)s_0->size1) );
+  gsl_matrix_free( delta_mu );
   gsl_matrix_free( omega_pi );
-  gsl_matrix_free( psi_s_0 );
   gsl_matrix_free( s_0 );
   return mu;
 }
@@ -95,8 +101,7 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
    s a s' psi(s) eoe
 */
 gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
-		      gsl_matrix* (*pi)(gsl_matrix*), 
-		      gsl_matrix* s_0 ){
+		      gsl_matrix* (*pi)(gsl_matrix*)){
   // \tilde A \leftarrow 0
   gsl_matrix* A = gsl_matrix_calloc( g_iK, g_iK );
   // \tilde b \leftarrow 0
@@ -166,28 +171,38 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
   gsl_permutation_free( p );
   gsl_matrix_free( A );
   gsl_matrix_free( b );
-  //\mu_\pi(s) \leftarrow \tilde\omega_\pi^T\phi(s,\pi(s))
+  //\mu_\pi(s_0) \leftarrow 
+  //\sum_{s_0}\tilde\omega_\pi^T\phi(s_0,\pi(s_0))
   gsl_matrix* s_pi_s = gsl_matrix_alloc( 1, g_iS+g_iA );
-  gsl_matrix_view s_dst = gsl_matrix_submatrix( s_pi_s, 
-						0, 0,
-						1, g_iS);
-  gsl_matrix_memcpy( &s_dst.matrix, s_0 );
-  gsl_matrix_view pi_s_dst = gsl_matrix_submatrix( s_pi_s,
-						    0, g_iS, 
-						    1, g_iA);
-  gsl_matrix* pi_s_src = pi( s_0 );
-  gsl_matrix_memcpy( &pi_s_dst.matrix, pi_s_src );
-  gsl_matrix* phi_s_pi_s = g_fPhi( s_pi_s );
-  gsl_matrix* mu = gsl_matrix_alloc( g_iP, 1 );
-  gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0,
-		  omega_pi, phi_s_pi_s, 0.0, mu );
-  gsl_matrix_free( omega_pi );
+  gsl_matrix* s_0 = g_fS_0();
+  gsl_matrix* mu = gsl_matrix_calloc( g_iP, 1 );
+  gsl_matrix* delta_mu = gsl_matrix_alloc( g_iP, 1 );
+  for( unsigned int i = 0; i<s_0->size1;i++){
+    gsl_matrix_view mS_0 = gsl_matrix_submatrix( s_0, i, 0, 
+						 1, g_iS );
+    gsl_matrix_view s_dst = gsl_matrix_submatrix( s_pi_s, 
+						  0, 0,
+						  1, g_iS);
+    gsl_matrix_memcpy( &s_dst.matrix, &mS_0.matrix );
+    gsl_matrix_view pi_s_dst = gsl_matrix_submatrix( s_pi_s,
+						     0, g_iS, 
+						     1, g_iA);
+    gsl_matrix* pi_s_src = pi( &mS_0.matrix );
+    gsl_matrix_memcpy( &pi_s_dst.matrix, pi_s_src );
+    gsl_matrix* phi_s_pi_s = g_fPhi( s_pi_s );
+    gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0,
+		    omega_pi, phi_s_pi_s, 0.0, delta_mu );
+    gsl_matrix_add( mu, delta_mu );
+    gsl_matrix_free( phi_s_pi_s );
+    gsl_matrix_free( pi_s_src );
+  }
+  gsl_matrix_scale( mu, 1./((double)s_0->size1) );
   gsl_matrix_free( s_pi_s );
-  gsl_matrix_free( pi_s_src );
-  gsl_matrix_free( phi_s_pi_s );
+  gsl_matrix_free( delta_mu );
+  gsl_matrix_free( omega_pi );
+  gsl_matrix_free( s_0 );
   return mu;
 }
-
 /* Abbeel and Ng's IRL algorithm (ANIRL), with the projection 
    method, LSTDMu estimation and LSPI as the MDP solver.
    Given an expert's trace, returns the \omega 
@@ -197,11 +212,6 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
 */
 gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E, 
 				  gsl_matrix* D ){
-  gsl_matrix* s_0 = gsl_matrix_alloc( 1, g_iS );
-  gsl_matrix_view s_0_src = gsl_matrix_submatrix( D_E,
-						  0, 0,
-						  1, g_iS );
-  gsl_matrix_memcpy( s_0, &s_0_src.matrix );
   unsigned int m = 0; //0 is characteristic of LSTDMu when 
   //plotting
   gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
@@ -235,7 +245,7 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   /* \mu \leftarrow LSTD\mu( D_\mu, k, p, s, a, \phi,
      \psi, \gamma, \pi ) */
   g_mOmega = omega;
-  gsl_matrix* mu = lstd_mu( D_mu, &greedy_policy, s_0 );
+  gsl_matrix* mu = lstd_mu( D_mu, &greedy_policy );
   /* D_E.r \leftarrow \psi(D_E.s) */
   gsl_matrix* D_E_mu = 
     gsl_matrix_alloc( D_E->size1, g_iS+g_iA+g_iS+g_iP+1 );
@@ -323,7 +333,7 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
        \psi, \gamma, \pi ) */
     g_mOmega = omega;
     gsl_matrix_free( mu );
-    mu = lstd_mu( D_mu, &greedy_policy, s_0);
+    mu = lstd_mu( D_mu, &greedy_policy );
     /* \bar\mu \leftarrow \bar\mu + 
      { (\mu-\bar\mu)^T (\mu_E-\bar\mu) \over 
      (\mu-\bar\mu)^T (\mu-\bar\mu) }
@@ -350,7 +360,6 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
       gsl_matrix_free( mu_barmu );
       gsl_matrix_free( muE_barmu );
       gsl_matrix_free( delta_bar_mu );
-      gsl_matrix_free( s_0 );
       gsl_matrix_free( D_mu );
       gsl_matrix_free( omega_0 );
       gsl_matrix_free( mu );
@@ -394,7 +403,6 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
     g_dBest_t = t;
     gsl_matrix_memcpy( g_mBest_omega, omega );
   }
-  gsl_matrix_free( s_0 );
   gsl_matrix_free( D_mu );
   gsl_matrix_free( omega_0 );
   gsl_matrix_free( mu );
