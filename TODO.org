@@ -22,6 +22,8 @@
 *** TODO Passer M en paramètre n'a plus de sens
 *** DONE Normer Theta
 *** DONE Utiliser une seule banque de données
+*** DONE Transformer LSTDmu version Q en LSTDmu version V
+    CLOSED: [2011-04-11 lun. 14:29]
 ** Autres
 *** TODO Transformer ErrorBars.py en un Makefile
     Il a probablement moyen de faire en sorte que la vérification des données existantes s'écrive en quelques règles simples

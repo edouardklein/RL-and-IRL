@@ -17,69 +17,46 @@
    in its on policy form. Typically used for the expert.
    The D_mu matrix has the form
    s a s' psi(s) eoe
-   s_0,a_0 are taken from the first transition of D_\mu
+   s_0 is taken from the first transition of D_\mu
 */
 gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
   gsl_matrix* s_0 = gsl_matrix_alloc( 1, g_iS );
-  gsl_matrix* a_0 = gsl_matrix_alloc( 1, g_iA );
   gsl_matrix_view s_0_src = gsl_matrix_submatrix( D_mu, 0, 0,
 						  1, g_iS );
-  gsl_matrix_view a_0_src = gsl_matrix_submatrix( D_mu, 0, g_iS,
-						  1, g_iA );
   gsl_matrix_memcpy( s_0, &s_0_src.matrix );
-  gsl_matrix_memcpy( a_0, &a_0_src.matrix );
   // \tilde A \leftarrow 0
-  gsl_matrix* A = gsl_matrix_calloc( g_iK, g_iK );
+  gsl_matrix* A = gsl_matrix_calloc( g_iP, g_iP );
   // \tilde b \leftarrow 0
-  gsl_matrix* b = gsl_matrix_calloc( g_iK, g_iP );
+  gsl_matrix* b = gsl_matrix_calloc( g_iP, g_iP );
   // for each (s,a,s',\psi(s),eoe) \in D_mu
   for( unsigned int i=0; i < D_mu->size1 ; i++ ){
-    // \tilde A \leftarrow \tilde A + \phi(s,a)\left(\phi(s,a) 
-    // - \gamma \phi(s',a')\right)^T
-    gsl_matrix_view sa = gsl_matrix_submatrix(D_mu,i,0, 1, 
-					      g_iS+g_iA);
-    gsl_matrix* phi_sa = g_fPhi( &sa.matrix );
-    gsl_matrix* sa_dash = gsl_matrix_calloc( 1, g_iS+g_iA );
-    gsl_matrix_view sdash_dst = gsl_matrix_submatrix( sa_dash, 
-						      0, 0,
-						      1, g_iS);
-    gsl_matrix_view sdash_src = 
-      gsl_matrix_submatrix( D_mu, i, g_iS+g_iA, 1, g_iS );
-    gsl_matrix_memcpy( &sdash_dst.matrix, &sdash_src.matrix );
-    gsl_matrix_view adash_dst = gsl_matrix_submatrix( sa_dash,
-						      0, g_iS, 
-						      1, g_iA);
-    int a_index = i+1;
-    if( a_index >= D_mu->size1 )
-      a_index = i;
-    gsl_matrix_view adash_src = 
-      gsl_matrix_submatrix( D_mu, a_index, g_iS, 1, g_iA );
-    gsl_matrix_memcpy( &adash_dst.matrix, &adash_src.matrix );
-    gsl_matrix* phi_dash = g_fPhi( sa_dash );
-    gsl_matrix_scale( phi_dash, g_dGamma_anirl );
-    double eoe = gsl_matrix_get( D_mu, i, g_iS+g_iA+g_iS+g_iP );
-    gsl_matrix_scale( phi_dash, eoe );
-    gsl_matrix* delta_phi = gsl_matrix_calloc( g_iK, 1 );
-    gsl_matrix_memcpy( delta_phi, phi_sa );
-    gsl_matrix_sub( delta_phi, phi_dash );
-    gsl_matrix* deltaA = gsl_matrix_calloc( g_iK, g_iK );
-    gsl_blas_dgemm( CblasNoTrans, CblasTrans, 1., 
-		      phi_sa, delta_phi, 0., deltaA);
-    gsl_matrix_add( A, deltaA );
-    //\tilde b \leftarrow \tilde b + \phi(s,a)\psi(s)^T
+    // \tilde A \leftarrow \tilde A + \psi(s)\left(\psi(s) 
+    // - \gamma \psi(s')\right)^T
     gsl_matrix_view psi_s = 
       gsl_matrix_submatrix( D_mu, i, g_iS+g_iA+g_iS, 1, g_iP );
-    gsl_matrix* delta_b = gsl_matrix_alloc( g_iK, g_iP );
+    gsl_matrix_view s_dash = 
+      gsl_matrix_submatrix( D_mu, i, g_iS+g_iA, 1, g_iS);
+    gsl_matrix* psi_dash = g_fPsi( &s_dash.matrix );
+    gsl_matrix_scale( psi_dash, g_dGamma_anirl );
+    double eoe = gsl_matrix_get( D_mu, i, g_iS+g_iA+g_iS+g_iP );
+    gsl_matrix_scale( psi_dash, eoe );
+    gsl_matrix* delta_psi = gsl_matrix_calloc( g_iP, 1 );
+    gsl_matrix_transpose_memcpy( delta_psi, &psi_s.matrix );
+    gsl_matrix_sub( delta_psi, psi_dash );
+    gsl_matrix* deltaA = gsl_matrix_calloc( g_iP, g_iP );
+    gsl_blas_dgemm( CblasTrans, CblasTrans, 1., 
+		      &psi_s.matrix, delta_psi, 0., deltaA);
+    gsl_matrix_add( A, deltaA );
+    //\tilde b \leftarrow \tilde b + \psi(s)\psi(s)^T
+    gsl_matrix* delta_b = gsl_matrix_alloc( g_iP, g_iP );
     /* \psi(s) is in line in the code but in column in the 
      comments */
-    gsl_blas_dgemm( CblasNoTrans, CblasNoTrans, 1.0,
-		    phi_sa, &psi_s.matrix, 0.0, delta_b );
+    gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0,
+		    &psi_s.matrix, &psi_s.matrix, 0.0, delta_b );
     gsl_matrix_add( b, delta_b );
     gsl_matrix_free( deltaA );
-    gsl_matrix_free( delta_phi );
-    gsl_matrix_free( phi_dash );
-    gsl_matrix_free( sa_dash );
-    gsl_matrix_free( phi_sa );
+    gsl_matrix_free( delta_psi );
+    gsl_matrix_free( psi_dash );
     gsl_matrix_free( delta_b );
   }
   /*\tilde \omega^\pi \leftarrow 
@@ -89,8 +66,8 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
   gsl_matrix_scale( lambdaI, g_dLambda_lstdmu );
   gsl_matrix_add( A, lambdaI );
   gsl_matrix_free( lambdaI );
-  gsl_matrix* omega_pi = gsl_matrix_alloc( g_iK, g_iP );
-  gsl_permutation* p = gsl_permutation_alloc( g_iK );
+  gsl_matrix* omega_pi = gsl_matrix_alloc( g_iP, g_iP );
+  gsl_permutation* p = gsl_permutation_alloc( g_iP );
   int signum;
   gsl_linalg_LU_decomp( A, p, &signum );
   for( unsigned int i = 0 ; i < g_iP ; i++ ){
@@ -101,24 +78,13 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
   gsl_permutation_free( p );
   gsl_matrix_free( A );
   gsl_matrix_free( b );
-   //\mu_\pi(s) \leftarrow \tilde\omega_\pi^T\phi(s,\pi(s))
-  gsl_matrix* s_pi_s = gsl_matrix_alloc( 1, g_iS+g_iA );
-  gsl_matrix_view s_dst = gsl_matrix_submatrix( s_pi_s, 
-						0, 0,
-						1, g_iS);
-  gsl_matrix_memcpy( &s_dst.matrix, s_0 );
-  gsl_matrix_view pi_s_dst = gsl_matrix_submatrix( s_pi_s,
-						   0, g_iS, 
-						   1, g_iA);
-  gsl_matrix_memcpy( &pi_s_dst.matrix, a_0 );
-  gsl_matrix* phi_s_pi_s = g_fPhi( s_pi_s );
+   //\mu_\pi(s) \leftarrow \tilde\omega_\pi^T\psi(s)
+  gsl_matrix* psi_s_0 = g_fPsi( s_0 );
   gsl_matrix* mu = gsl_matrix_alloc( g_iP, 1 );
   gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0,
-		  omega_pi, phi_s_pi_s, 0.0, mu );
+		  omega_pi, psi_s_0, 0.0, mu );
   gsl_matrix_free( omega_pi );
-  gsl_matrix_free( s_pi_s );
-  gsl_matrix_free( phi_s_pi_s );
-  gsl_matrix_free( a_0 );
+  gsl_matrix_free( psi_s_0 );
   gsl_matrix_free( s_0 );
   return mu;
 }
