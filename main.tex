@@ -31,7 +31,7 @@
 \usepackage{algorithmic}
 \newcommand{\argmax}{\operatorname*{argmax}} %\operatorname* pour les op. pouvant admettre des limites...
 
-\title{Apprentissage par imitation étendu au cas batch, off-policy et sans modèle}
+\title{Apprentissage par imitation dans un cadre \emph{batch}, \emph{off-policy} et sans modèle}
 %\author{Robert}
 %   1. Supelec-Metz Campus, IMS Reasearch group, France. \texttt{prenom.nom@supelec.fr}}
 \author{Edouard Klein\inst{1}\inst{3} \and Matthieu Geist\inst{1} \and Olivier Pietquin\inst{1}\inst{2}}
@@ -47,11 +47,11 @@
 
 \maketitle
 \begin{abstract}
- Ce papier s'intéresse au problème de l'apprentissage par imitation, c'est à dire la résolution du problème du contrôle optimal à partir de données tirées d'une desmonstration d'expert. L'apprentissage par renforcement inverse (IRL) propose un cadre efficace pour résoudre ce problème. En se basant sur l'hypothèse que l'expert maximise un critère, l'IRL essaie d'apprendre la récompense qui définit ce critère à partir de trajectoires d'exemple. Beaucoup d'algorithmes d'IRL font l'hypothèse de l'existence d'un bon approximateur linéaire pour la fonction de récompense et calculent l'attribut moyen (le cumul moyen pondéré des fonctions de base, relatives à la paramétrisation linéaire supposée de la récompense, évaluées en les états d'une trajectoire associée à une certaine politique)  via une estimation de Monte-Carlo. Cela implique d'avoir accès à des trajectoires complète de l'expert ainsi qu'à au moins un modèle génératif pour tester les politiques intermédiaires. Dans ce papier nous introduisons une méthode de différence temporelle, LSTD-$\mu$, pour calculer cet attribut moyen. Cela permet d'étendre l'apprentissage par imitation aux cas \emph{batch} et \emph{off-policy}.
+ Ce papier traite le problème de l'apprentissage par imitation, c'est à dire la résolution du problème du contrôle optimal à partir de données tirées de démonstrations d'un expert. L'apprentissage par renforcement inverse (IRL) propose un cadre efficace pour résoudre ce problème. En se basant sur l'hypothèse que l'expert maximise une fonction de valeur,  l'IRL essaie d'apprendre la récompense qui définit cette dernière à partir de trajectoires d'exemple. Beaucoup d'algorithmes d'IRL font l'hypothèse de l'existence d'unn approximateur linéaire pour la fonction de récompense et calculent l'attribut moyen (le cumul moyen pondéré des fonctions de base, relatives à la paramétrisation linéaire supposée de la récompense, évaluées en les états d'une trajectoire associée à une certaine politique)  via une estimation de Monte-Carlo. Cela implique d'avoir accès à des trajectoires complètes de l'expert ainsi qu'à au moins un modèle génératif pour tester les politiques intermédiaires. Dans ce papier nous introduisons une méthode de différences temporelles, LSTD-$\mu$, pour calculer cet attribut moyen. Cela permet d'étendre l'apprentissage par imitation aux cas \emph{batch} et \emph{off-policy}.
 \end{abstract}
 \section{Introduction}
 
-Optimal control consist in having a machine controlling a system
+Optimal control consists in putting a machine in control of a system
 with the goal of fulfilling a specific task, optimality being
 defined as how well the task is performed. Various solutions to this
 problem exist from automation to planification. Notably, the
@@ -62,7 +62,7 @@ specified through a reward function, the agent objective being to
 take sequential decisions so as to maximize the expected cumulative
 reward.
 
-However, defining optimality (and thus the reward function) can
+However, defining optimality (through the reward function) can
 itself be a challenge. If the system can be empirically controlled
 by an expert, even though his/her behavior can be difficult to
 describe formally, apprenticeship learning is a way to have a
@@ -70,7 +70,7 @@ machine controlling the system by mimicking the expert. Rather than
 directly mimicking the expert with some supervised learning
 approach, Inverse Reinforcement Learning (IRL)~\citep{ng2000algorithms}
 consists in learning a reward function under which the policy
-demonstrated by an expert is optimal. Mimicking the expert therefore
+demonstrated by the expert is optimal. Mimicking the expert therefore
 ends up to learning an optimal policy according to this reward
 function. A significant advantage of such an approach is that
 expert's actions can be guessed in states which have not been
@@ -78,7 +78,7 @@ encountered during demonstration. Firstly introduced in \citep{russell1998learni
 find a compact and complete representation of the task in the form
 of the reward function.
 
-There roughly exist three families of IRL algorithms:
+There roughly exists three families of IRL algorithms:
 feature-expectation-based~\citep{abbeel2004apprenticeship,syed2008apprenticeship,syed2008game,ziebart2008maximum},
 marge-maximization-based~\citep{ratliff2006maximum,ratliff2007imitation,ratliff2007boosting,kolter2008hierarchical}
 and approaches based on the parameterization of the policy by the
@@ -91,9 +91,9 @@ policy, see Section~\ref{sec:back} for a formal definition).
 These approaches learn a reward function such that the feature
 expectation of the optimal policy (according to the learnt reward
 function) is close to the feature expectation of the expert policy.
-This is a sufficient condition to have close value functions. The
+This is a sufficient condition to have close value functions (for any parameterized reward function, and therefore particularly the optimized one). The
 second family expresses IRL as a constrained optimization problem in
-which expert's examples have higher expected reward than all other
+which expert's examples have higher expected cumulative reward than all other
 policies by a certain margin. Moreover, suboptimality of the expert
 can be considered through the introduction of slack variables. The
 last family parameterizes policies with a reward function. Assuming
@@ -111,8 +111,7 @@ intermediate policies. The expert's feature expectation is computed
 using a simple Monte Carlo approach (which requires full
 trajectories of the expert). Other feature expectations are either
 computed exactly (which requires knowing analytically the dynamics
-of the system) or with a Monte Carlo approach (which requires to
-simulate the system). The contribution of this paper is LSTD-$\mu$,
+of the system) or with a Monte Carlo approach (which requires simulating the system). The contribution of this paper is LSTD-$\mu$,
 a new temporal-difference-based algorithm to estimate these feature
 expectations. It relaxes the predeceasing assumptions: transitions
 of the expert are sufficient (rather than full trajectories) and nor
@@ -120,7 +119,7 @@ the model neither a simulator are necessary to compute intermediate
 feature expectations. This paper focuses on the algorithm introduced
 in~\citep{abbeel2004apprenticeship}, but we are confident that the proposed
 approach can be extended to other algorithms based on feature
-expectation computation~\citep{syed2008apprenticeship,syed2008game,ziebart2008maximum}.
+expectation computation~\citep{syed2008apprenticeship,syed2008game,ziebart2008maximum}, or even \citep{ratliff2006maximum,ratliff2007imitation,ratliff2007boosting}.
 
 The rest of this paper is organized as follows.
 Section~\ref{sec:back} provides the necessary background,
@@ -161,14 +160,14 @@ reward function from sampled trajectories of the expert. This is a
 difficult and ill-posed problem~\citep{ng2000algorithms}. Apprenticeship
 learning through IRL, which is the problem at hand in this paper,
 has a somehow weaker objective: it aims at learning a policy
-$\hat{\pi}$ which is (approximately) as good as the expert policy
+$\tilde{\pi}$ which is (approximately) as good as the expert policy
 $\pi_E$ under the unknown reward function $R^*$, for a known initial
 state $s_0$ (this condition can be weakened by assuming a
-distribution for initial states, this is not done here for clarity
+distribution over initial states ; this is not done here for clarity
 of exposition). Now, the approach proposed in~\citep{abbeel2004apprenticeship} is
 presented.
 
-We assume that the true reward function belongs to some hypothesis
+We assume that the true reward funnotiction belongs to some hypothesis
 space $\mathcal{H}_\phi = \{\theta^T \phi(s),
 \theta\in\mathbb{R}^p\}$, of which we assume the basis functions to
 be bounded by 1: $|\phi_i(s)|\leq 1, \forall s\in S, 1\leq i \leq
@@ -237,7 +236,7 @@ achieve this goal:
   policy\footnote{A simple solution, not mentioned in~\citep{abbeel2004apprenticeship},
   is to choose the policy of which the feature expectation is the
   closest to the one of the expert.}).
-  Notice that the last policy is not necessary the best;
+  Notice that the last policy is not necessary the best (as illustrated in Section \ref{sec:exp});
   %
   \item solve the MDP with the reward function $R^{(j)}(s) =
   (\theta^{(j)})^T\phi(s)$ and denote $\pi^{(j)}$ the associated
@@ -257,7 +256,7 @@ feature expectations. In~\citep{abbeel2004apprenticeship}, $\mu^{\pi_E}(s_0)$ is
 estimated using a Monte Carlo approach over $m$ trajectories:
 \begin{equation}
   \hat{\mu}_E(s_0) = \frac{1}{m} \sum_{h=1}^m \sum_{t=0}^\infty
-  \gamma^i \phi(s_t^{(h)})
+  \gamma^t \phi(s_t^{(h)})
 \end{equation}
 This approach does not hold if only transitions of the expert are
 available, or if trajectories are too long (in this case, it is
@@ -361,7 +360,7 @@ Given the (state-action) LSTD-$\mu$ algorithm, the apprenticeship
 learning algorithm of~\citep{abbeel2004apprenticeship} (see
 Section~\ref{sec:back}) can be easily extended to a batch and
 off-policy setting. The solely available data is a set of
-transitions sampled according to the expert policy. The
+transitions sampled according to the expert policy  (and possibly a set of sub-optimal but good trajectories). The
 corresponding feature expectation for the starting state $s_0$ is
 estimated with the LSTD-$\mu$ algorithm. At step~4 of this
 algorithm, the MDP is (approximately) solved using
@@ -377,57 +376,65 @@ difference algorithm to estimate the feature expectation is new, as
 far as we know. A clear advantage of the proposed approach is that
 any theoretical result holding for LSTD also holds for LSTD-$\mu$,
 such as convergence~\citep{nedic2003least} or
-finite-sample~\citep{lazaric2010finiteLSTD} analysis for example.
+finite-sample~\citep{lazaric2010finiteLSTD} analysis for example, also, the algorithm learns from transitions and not trajectories.
 
 \section{Experimental benchmark}
 \label{sec:exp}
-Preliminary experimental results have been obtained. Subsection \ref{ssec:exp} details the protocol and the results while subsection \ref{ssec:quality} inspects the meaning of the different quality criteria. 
+This section provides some preliminary experimental results on a simple maze benchmark. Subsection \ref{ssec:exp} details the protocol and the results while subsection \ref{ssec:quality} inspects the meaning of the different quality criteria. 
 \subsection{Experiment description and results}
 \label{ssec:exp}
-The experimental benchmark chosen here is one of those proposed in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the case of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The reward optimized by the expert is 0 everywhere except in the upper-right square, where it is 1. For every policy, an episode ends when the upper right square is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is).\\
+The experimental benchmark chosen here is one of those proposed in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the cell of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The reward optimized by the expert is 0 everywhere except in the upper-right cell, where it is 1. For every policy, an episode ends when the upper right cell is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is).\\
 
-Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ (see equations (\ref{eqn:phi}) and (\ref{eqn:psi}) for a remainder of their meaning) are the typical features of a tabular representation : 0 everywhere but at a given index $i$ for which the value is 1. There is a bijective mapping from the input space elements to the indexes $i$ for which the coordinate of the feature is 1.\\
+Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ (see equations (\ref{eqn:phi}) and (\ref{eqn:psi}) for a remainder of their meaning) are the typical features of a tabular representation :0 everywhere except the component corresponding to the current state (-action pair).\\
 
-Both \citet{abbeel2004apprenticeship}'s algorithm (from now on referred to as mc\_ANIRL\footnote{Abbeel \& Ng IRL}) and our adaptation (referred t as lstd\_ANIRL) are tested side by side. The MDP solver of mc\_ANIRL is LSPI with a sample source that covers the whole grid (each state has a mean visitation count of more than 150) and draws its action randomly. $\mu^{\pi^(j)}(s_0)$ and $\mu^{\pi_E}(s_0)$ are computed thanks to a Monte-Carlo estimation with enough samples to reduce the variance to less than $0.0001\%$ of the mean. We consider both these computations as perfect theoretical solvers for all intended purpose on this toy problem. We thus are in the case intended by \citet{abbeel2004apprenticeship}.\\
-On the other hand lstd\_ANIRL is used as if it could not have access to the simulator. It uses LSPI and LSTD$\mu$, fed only with the expert's transitions. This corresponds to a real-life setting where data generation is expensive and the system can not be controlled by an untrained machine.\\
+Both \citet{abbeel2004apprenticeship}'s algorithm (from now on referred to as the MC variant) and our adaptation (referred to as the LSTD variant) are tested side by side. The MDP solver of the mc variant is LSPI with a sample source that covers the whole grid (each state has a mean visitation count of more than 150) and draws its action randomly. Both $\mu^{\pi^(j)}(s_0)$ and $\mu^{\pi_E}(s_0)$ are computed thanks to a Monte-Carlo estimation with enough samples to make the variance negligible. We consider both these computations as perfect theoretical solvers for all intended purpose on this toy problem. We thus are in the case intended by \citet{abbeel2004apprenticeship}.\\
+On the other hand the LSTD variant is used without accessing a simulator. It uses LSPI and LSTD$\mu$, fed only with the expert's transitions (although we could also use non expert transitions if available). This corresponds to a real-life setting where data generation is expensive and the system can not be controlled by an untrained machine.\\
 
-We want to compare the porformance of both versions of the algorithm with repect to the number of samples available from the expert, as these samples usually are the bottleneck. Indeed as they are quite costly (in both means and human time) to generate they are often not in abundance hence the critical need for an algorithm to be expert-sample efficient. The discussion about the choice of the performance metric has its own dedicated subsection (subsection \ref{ssec:quality}). We use here the $||\mu^{\pi^(j)}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term.\\
+We want to compare the efficiency of both versions of the algorithm with repect to the number of samples available from the expert, as these samples usually are the bottleneck. Indeed as they are quite costly (in both means and human time) to generate they are often not in abundance hence the critical need for an algorithm to be expert-sample efficient. Having a simulator at sake can also be difficult. For the simple problem we use this is however not an issue. The discussion about the choice of the performance metric has its own dedicated subsection (subsection \ref{ssec:quality}). We use here the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term.\\
 
-Figure \ref{fig:E} shows, for some numbers of samples from the expert, the value of $||\mu^{\pi^(j)}(s_0)-\mu^{\pi_E}(s_0)||_2$ after the algorithm converged or attained the maximum number of iterations (we used 40). The best policy is found by lstd\_ANIRL after one iteration only\footnote{Precise reasons for what it happens are not clear now, but certainly have something to do with the fact that all the estimations are made along the same distribution of samples.} whereas in mc\_ANIRL convergence happens after at least ten iterations and the best policy is not always the last. The score of the best policy (not the last) according to the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term is what is plotted here.\\
+Figure \ref{fig:E} shows, for some numbers of samples from the expert, the value of $||\mu^{\pi^{(j)}}(s_0)-\mu^{\pi_E}(s_0)||_2$ after the algorithm converged or attained the maximum number of iterations (we used 40). The best policy is found by LSTD variant after one iteration only\footnote{Precise reasons for what it happens are not clear now, but certainly have something to do with the fact that all the estimations are made along the same distribution of samples.} whereas in the MC variant, convergence happens after at least ten iterations. The best policy is not always the last, and although it experimentally always have been with the LSTD variant, there is absolutely no way to tell whether this is a feature. The score of the best policy (not the last) according to the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term is plotted here.\\
 
-We can see that although lstd\_ANIRL is not as good as mc\_ANIRL when very few samples are available, both algorithm quickly converge to almost the same value (although not low, the number of run so far is not statistically significant enough to allow us to state that the seemingly slightly better performance of lstd\_ANIRL is not an artifact). The fact that lstd\_ANIRL can work in a batch, off-policy and model-free setting, while requesting less computing power than mc\_ANIRL makes it suitable to a range of task inaccessible to the mc\_ANIRL version.
+We can see that although the LSTD variant is not as good as the MC variant when very few samples are available, both algorithm quickly converge to almost the same value ; our version converges to a slightly lower error value. The error bars shown correspond to the standard deviation over 100 runs. The fact that our variant can work in a batch, off-policy and model-free setting should make it suitable to a range of task inaccessible to the MC variant.
 \subsection{Discussion about the quality criterion}
 \label{ssec:quality}
-Figure \ref{fig:A} and \ref{fig:B} illustrate the difficulty of choosing the quality criterion ; these plots show four different quality ciretria during a run of mc\_ANIRL and several runs of lstd\_ANIRL. For the latter, the abscissa can not be the number of iterations as it always converges in one iteration.\\
+Figure \ref{fig:A} and \ref{fig:B} illustrate the difficulty of choosing the quality criterion ; Figure \ref{fig:A} shows four different quality ciretria during a run of the MC variant. Figure \ref{fig:B} shows the same criteria for several runs of the LSTD variant, as the abscissa can not be the number of iterations (as in Figure \ref{fig:A}) because it always converges in one iteration. The $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ term is widely discussed in \citep{abbeel2004apprenticeship}'s additional material. It bears an interesting relation with the difference between the expert's value function and the current value function in the initial state with respect \emph{to the current reward} (equation \ref{eqn:vs0}).\\
 
-The $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ term is widely discussed in \citep{abbeel2004apprenticeship}'s additional material. It bears an interesting relation with the difference between the expert's value function and the current value function in the initial state with respect \emph{to the current reward} (equation \ref{eqn:vs0}).\\
+The fact that  the curves of the true error term $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ and  its estimate $||\hat\mu^{\pi^{(j)}}(s_0) - \hat\mu^{\pi_E}(s_0)||_2$ are indistinguishable in Figure \ref{fig:A} means that, for it has access to a cheap simulator, the MC variant works as if it had access to the exact values. This however can not be said of the LSTD variant, for which the two curves are indeed different (Figure \ref{fig:B}). Not knowing the true value of $\mu^{\pi_E}(s_0)$ may be a problem for our variant, as it can introduce an error in the stopping criterion of the algorithm\footnote{This equation differs from what has been given as the second step of the algorithm in section \ref{sec:back}. This is because we implemented the version of the algorithm that uses a projection (see \citet{abbeel2004apprenticeship}'s supplementary material for an in-depth discussion of both versions). Although the mathematical expressions are different, both convey the same meaning and are exchangeable.}, $t = ||\bar\mu^{(j)}-\hat\mu^{\pi_E}(s_0)||$ where $\bar\mu^{(j)}$ is the projection of $\mu^{\pi_E}$ on $(\mu^{\pi^{(j-1)}},\mu^{\pi^{(j)}})$. After the algorithm has converged there is no way to know whether the policy is actually good or not other than actually testing it.\\
 
-The fact that  the curves of the true error term $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ and  its estimate $||\hat\mu^{\pi^{(j)}}(s_0) - \hat\mu^{\pi_E}(s_0)||_2$ are indistinguishable in figure \ref{fig:A} means that for it has access to a cheap simulator, mc\_ANIRL works as if it had access to the exact values. This however can not be said of lstd\_ANIRL, for which the two curves are indeed different (Figure \ref{fig:B}). Not knowing the true value of $\mu^{\pi_E}(s_0)$ may be a problem for lstd\_ANIRL, as it can introduce an error int the halt criterion of the algorithm\footnote{This equation differs from what has been given as the second step of the algorithm in section \ref{sec:back}. This is because we implemented the version of the algorithm that uses a projection (see \citet{abbeel2004apprenticeship}'s supplementary material for an in-depth discussion of both versions). Although the mathematical expressions are different, both convey the same meaning and are exchangeable.}, $t = ||\bar\mu^{(j)}-\hat\mu^{\pi_E}(s_0)||$ where $\bar\mu^{(j)}$ is the projection of $\mu^{\pi_E}$ on $(\mu^{\pi^{(j-1)}},\mu^{\pi^{(j)}})$. After the algorithm has converged there is no way to know whether the policy is actually good or not other than actually testing it.\\
-
-It shall be noted that although it plays its role, the halt criterion is not a good measure of the quality of the current policy in mc\_ANIRL either, as it can be low when the policy is bad. The best policy, however, can be easily chosen from the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ term, which mc\_ANIRL can compute. When this term is low, the objective performance (that is, $V^{\pi_E}(s_0)-V^{\pi^{(j)}}(s_0)$ with respect to the unknow true reward function) is low too. 
+It shall be noted that although it plays its role, the halt criterion is not a good measure of the quality of the current policy in the MC variant either, as it can be low (and thus halt the algorithm) when the policy is bad. The best policy, however, can be easily chosen among all those created during the execution of the algorithm thanks to the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ term, which the MC variant can compute. When this term is low, the objective performance (that is, $V^{\pi_E}(s_0)-V^{\pi^{(j)}}(s_0)$ with respect to the unknow true reward function) is low too. 
 \section{Conclusion}
 \label{sec:conclusion}
-Given some transitions generated by an expert controlling a system and maximizing in the long run an unknown reward, we ported \citet{abbeel2004apprenticeship}'s approach to apprenticeship learning vie inverse reinforcement learning to a batch, model-free, off-policy setting at the cost of the need for a bigger number of samples from the expert. We believe this cost is not prohibitive as our approach only requires isolated samples which are often less difficult to get than whole trajectories as needed by the original approach. Furthermore, our method requires less computing power as it converges after only one iteration (that is, as far as we witnessed in our experimental setting).\\
-
-The simple idea of using LSTD to estimate the feature expectation could be applied to other algorithms as well, for example \cite{abbeel2004apprenticeship,syed2008apprenticeship,syed2008game,ziebart2008maximum}.\\
-The exact reason why LSTD$\mu$ converges so fast should be investigated and a bigger experiment should be run, possibly on a continuous problem.\\
+Given some transitions generated by an expert controlling a system and maximizing in the long run an unknown reward, we ported \citet{abbeel2004apprenticeship}'s approach to apprenticeship learning vie inverse reinforcement learning to a batch, model-free, off-policy setting. Experimentally, there is a need for a bigger number of samples from the expert. We believe this cost is not prohibitive as our approach only requires isolated samples which are often less difficult to get than whole trajectories as needed by the original approach.
+The simple idea of using LSTD to estimate the feature expectation could be applied to other algorithms as well, for example \citep{abbeel2004apprenticeship,syed2008apprenticeship,syed2008game,ziebart2008maximum}.\\
 \begin{figure}
 \centering
 \input{../Code/GridWorld/both_error_EB}
-\caption{$||\mu^{\pi}(s_0) - \mu^{\pi_E}(s_0)||_2$ where $\pi$ is the policy for which this term is the lowest for the whole run, with respect to the number of samples available from the expert. Our algorithm is not as good as \citet{abbeel2004apprenticeship} with very few samples, but make up for it very soon.}
+\caption{$||\mu^{\pi}(s_0) - \mu^{\pi_E}(s_0)||_2$ where $\pi$ is the policy for which this term is the lowest for the whole run, with respect to the number of samples available from the expert. Our algorithm is not as good as \citet{abbeel2004apprenticeship} with very few samples, but make up for it very soon and converges to a lower value. The error bars represent the standard deviation over 100 runs.}
 \label{fig:E}
 \end{figure}
 \begin{figure}
 \centering
 \input{../Code/GridWorld/criteria_mc}
-\caption{Different criteria with respect to the number of iterations for a run of mc\_ANIRL.}
+\caption{Different criteria with respect to the number of iterations for a run of the MC variant.}
 \label{fig:A}
 \end{figure}
 \begin{figure}
 \centering
 \input{../Code/GridWorld/criteria_lstd_EB}
-\caption{Different criteria with respect to the number of samples from the expert, for several runs of lstd\_ANIRL.}
+\caption{Different criteria with respect to the number of samples from the expert, for several runs of the LSTD variant. We can see that the algorithm is blind, as all it has access to is always zero. The true error values, however, smoothly converge to something small. Knowing how many expert samples are actually needed in a real world problem is an open question. The error bars represent the standard deviation over 100 runs.}
 \label{fig:B}
+\end{figure}
+\begin{figure}
+\centering
+\input{../Code/InvertedPendulum/threshold_EB}
+\caption{Continuous}
+\label{fig:DSKLFLFK}
+\end{figure}
+\begin{figure}
+\centering
+\input{../Code/InvertedPendulum/threshold}
+\caption{Continuous}
+\label{fig:DSKLFsdfdf}
 \end{figure}
 %\bibliographystyle{named}
 \bibliography{../Biblio/Biblio}
