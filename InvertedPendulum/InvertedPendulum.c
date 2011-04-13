@@ -35,6 +35,9 @@ void iv_step( double state_p, double state_v,
   case RIGHT:
     iControl = 50 + noise;
     break;
+  default:
+    fprintf(stderr,"Dying\n");
+    exit(-1);
   }
   double g = 9.8;
   double m = 2.0;

@@ -1,5 +1,5 @@
-CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
-LFLAGS=`pkg-config --libs gsl` -lm -g
+CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
+LFLAGS=`pkg-config --libs gsl` -lm -O3
 
 all: lagoudakis2003least_figure10.pdf both_error_discrete_EB.pdf criteria_discrete_lstd_EB.pdf criteria_discrete_mc.pdf 
 
