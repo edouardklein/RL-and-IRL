@@ -30,15 +30,19 @@ plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbe
 plot.o: plot.c InvertedPendulum.h ../utils.h ../LSPI.h ../greedy.h simulator.h ../abbeel2004apprenticeship.h ../LSTDmu.h
 	gcc -c $(CFLAGS) plot.c
 
-#Threshold at which LSTDmu starts working for 1 and 100 episodes from the expert
+#Threshold at which LSTDmu and MC start working for 1 episode from the expert
 threshold_EB.tex: threshold_EB.pdf
 	cat threshold_EB.tex | sed "s|threshold_EB|../Code/InvertedPendulum/threshold_EB|g" > tmp.tex && mv tmp.tex threshold_EB.tex
 
 threshold_EB.pdf: threshold_EB.eps
 	epstopdf threshold_EB.eps
 
-threshold_EB.eps: threshold_1.dat-0 threshold_100.dat-0 threshold_EB.gp ErrorBars
+threshold_EB.eps: threshold_lstd.dat-0 threshold_mc.dat-0 threshold_EB.gp ErrorBars
 	gnuplot threshold_EB.gp
+
+threshold_lstd.dat-0: ErrorBars
+
+threshold_mc.dat-0: ErrorBars
 
 .PHONY: ErrorBars
 
@@ -51,18 +55,18 @@ threshold.tex: threshold.pdf
 threshold.pdf: threshold.eps
 	epstopdf threshold.eps
 
-threshold.eps: threshold_1.dat threshold_100.dat threshold.gp
+threshold.eps: threshold_lstd.dat threshold_mc.dat threshold.gp
 	gnuplot threshold.gp
 
-threshold_1.dat: plot.dat
-	cat plot.dat | grep "^1-LSTD" | sed 's/1-LSTD //' | cut -d' ' -f'2 3' > threshold_1.dat
+threshold_lstd.dat: plot.dat
+	cat plot.dat | grep "^LSTD" | sed 's/LSTD //' | cut -d' ' -f'2 3' > threshold_lstd.dat
 
-clean_threshold_1.dat: clean_plot.dat
+clean_threshold_lstd.dat: clean_plot.dat
 
-threshold_100.dat: plot.dat
-	cat plot.dat | grep "^100-LSTD" | sed 's/100-LSTD //' | cut -d' ' -f'2 3' > threshold_100.dat
+threshold_mc.dat: plot.dat
+	cat plot.dat | grep "MC" | sed 's/MC //' | cut -d' ' -f'2 3' > threshold_mc.dat
 
-clean_threshold_100.dat: clean_plot.dat
+clean_threshold_mc.dat: clean_plot.dat
 
 
 

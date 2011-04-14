@@ -104,36 +104,44 @@ int main( void ){
   
 
   gsl_matrix* D_expert;
-  int m_exp[] = {1,100};
   int D_len[] = {1,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,3000};
-  //Cette courbe illustre l'influence des
-  //paramètres que sont la taille de D et la taille 
-  //de D_E sur la variante LSTDmu
-  for( int i=0; i<2 ; i++ ){
-    for( int j=0; j<21;j++){
-      g_iNb_samples = 0;
-      g_mOmega =  omega_expert;
-      g_iMax_episode_len = 100;
-      D_expert = inverted_pendulum_simulator( m_exp[i] );
-      unsigned int nb_samples_exp = g_iNb_samples;
-      gsl_matrix_view sub_D = 
-	gsl_matrix_submatrix( D, 0, 0, D_len[j], TRANS_WIDTH );
-      g_iMax_episode_len = 100;
-      gsl_matrix* omega_lstd =
-	proj_lstd_lspi_ANIRL( D_expert, &sub_D.matrix );
-      g_mOmega = omega_lstd;
-      g_iNb_samples = 0;
-      g_iMax_episode_len = 3000;
-      gsl_matrix* discard = inverted_pendulum_simulator( 100 );
-      gsl_matrix_free( discard );
-      unsigned int mean_control_steps = g_iNb_samples/100;
-      gsl_matrix_free( omega_lstd );
-      printf("%d-LSTD %d %d %d\n", m_exp[i], nb_samples_exp,
-	     D_len[j],  mean_control_steps );
-    }
-  }
-
-  
+  //Cette courbe illustre l'influence de
+  // la taille de D sur les deux variantes
+  for( int j=0; j<21;j++){
+    g_iNb_samples = 0;
+    g_mOmega =  omega_expert;
+    g_iMax_episode_len = 100;
+    D_expert = inverted_pendulum_simulator( 1 );
+    unsigned int nb_samples_exp = g_iNb_samples;
+    gsl_matrix_view sub_D = 
+      gsl_matrix_submatrix( D, 0, 0, D_len[j], TRANS_WIDTH );
+    g_iMax_episode_len = 100;
+    gsl_matrix* omega_lstd =
+      proj_lstd_lspi_ANIRL( D_expert, &sub_D.matrix );
+    g_mOmega = omega_lstd;
+    g_iNb_samples = 0;
+    g_iMax_episode_len = 3000;
+    gsl_matrix* discard = inverted_pendulum_simulator( 100 );
+    gsl_matrix_free( discard );
+    unsigned int mean_control_steps = g_iNb_samples/100;
+    gsl_matrix_free( omega_lstd );
+    printf("LSTD %d %d %d\n", nb_samples_exp,
+	   D_len[j],  mean_control_steps );
+    g_iMax_episode_len = 100;
+    gsl_matrix* omega_mc =
+      proj_mc_lspi_ANIRL( D_expert, &sub_D.matrix, 2000 );
+    g_mOmega = omega_mc;
+    g_iNb_samples = 0;
+    g_iMax_episode_len = 3000;
+    discard = inverted_pendulum_simulator( 100 );
+    gsl_matrix_free( discard );
+    mean_control_steps = g_iNb_samples/100;
+    gsl_matrix_free( omega_mc );
+    printf("MC %d %d %d\n", nb_samples_exp,
+	   D_len[j],  mean_control_steps );
+    
+    gsl_matrix_free( D_expert );    
+    } 
   
   gsl_matrix_free( g_mActions );
   gsl_matrix_free( omega_expert );
