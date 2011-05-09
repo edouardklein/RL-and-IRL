@@ -78,5 +78,5 @@ clean:
 	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
 
-nuke: #You probably don't want to make this one
+nuke: #You probably don't want to make this one 
 	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs -tr rm
