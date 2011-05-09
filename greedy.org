@@ -1,15 +1,39 @@
+* Greedy
+  
+  The optimal policy is the greedy policy with respect to the optimal value function.
 
+** C implementation
+*** Externals
+    Some aspects are controlled by [[file:RL_Globals][global variables]].
+
+    Two functions are provided :
+    - Return the action $a$ for which $Q(state,a)$ is maximum
+#+begin_src c :tangle greedy.h :main no
+gsl_matrix* greedy_policy( gsl_matrix* state );
+#+end_src
+    - Return V(s) found by maximizing Q(s,a) over a
+#+begin_src c :tangle greedy.h :main no
+double greedy_value_function( gsl_matrix* state );
+#+end_src
+*** Internals
+We use the GSL.
+#+begin_src c :tangle greedy.c :main no
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
 #include "RL_Globals.h"
+#+end_src 
 
+The code should be easy to grasp. We iterate over every possible action, compute the Q value and store
+the infomation corresponding the best one.
+
+#+begin_src c :tangle greedy.c :main no
 gsl_matrix* greedy_policy( gsl_matrix* state ){
   gsl_matrix* sa = gsl_matrix_alloc( 1, g_iS + g_iA );
   gsl_matrix_view s_dst = gsl_matrix_submatrix( sa, 0, 0, 
-                                                1, g_iS );
+						1, g_iS );
   gsl_matrix_memcpy( &s_dst.matrix, state );
   gsl_matrix_view a_dst = gsl_matrix_submatrix( sa, 0, g_iS,
-                                                1, g_iA );
+						1, g_iA );
   gsl_matrix_view a_src = 
     gsl_matrix_submatrix( g_mActions, 0, 0, 1, g_iA );
   gsl_matrix* best_action = gsl_matrix_alloc( 1, g_iA );
@@ -18,8 +42,8 @@ gsl_matrix* greedy_policy( gsl_matrix* state ){
   gsl_matrix* phi_sa = g_fPhi( sa );
   gsl_matrix* mQ = gsl_matrix_alloc( 1, 1 );
   gsl_blas_dgemm( CblasTrans, CblasNoTrans, 
-                  1.0, g_mOmega, phi_sa, 
-                  0.0, mQ );
+		  1.0, g_mOmega, phi_sa, 
+		  0.0, mQ );
   gsl_matrix_free( phi_sa );
   double Q_max = gsl_matrix_get( mQ, 0, 0 );
   for( unsigned int i = 0 ; i < g_mActions->size1 ; i++ ){
@@ -27,8 +51,8 @@ gsl_matrix* greedy_policy( gsl_matrix* state ){
     gsl_matrix_memcpy( &a_dst.matrix, &a_src.matrix );
     gsl_matrix* phi_sa = g_fPhi( sa );
     gsl_blas_dgemm( CblasTrans, CblasNoTrans, 
-                    1.0, g_mOmega, phi_sa, 
-                    0.0, mQ );
+		    1.0, g_mOmega, phi_sa, 
+		    0.0, mQ );
     double Q_current = gsl_matrix_get( mQ, 0, 0 );
     if( Q_current > Q_max ){
       Q_max = Q_current;
@@ -44,10 +68,10 @@ gsl_matrix* greedy_policy( gsl_matrix* state ){
 double greedy_value_function( gsl_matrix* state ){
   gsl_matrix* sa = gsl_matrix_alloc( 1, g_iS + g_iA );
   gsl_matrix_view s_dst = gsl_matrix_submatrix( sa, 0, 0, 
-                                                1, g_iS );
+						1, g_iS );
   gsl_matrix_memcpy( &s_dst.matrix, state );
   gsl_matrix_view a_dst = gsl_matrix_submatrix( sa, 0, g_iS,
-                                                1, g_iA );
+						1, g_iA );
   gsl_matrix_view a_src = 
     gsl_matrix_submatrix( g_mActions, 0, 0, 1, g_iA );
   gsl_matrix* best_action = gsl_matrix_alloc( 1, g_iA );
@@ -56,8 +80,8 @@ double greedy_value_function( gsl_matrix* state ){
   gsl_matrix* phi_sa = g_fPhi( sa );
   gsl_matrix* mQ = gsl_matrix_alloc( 1, 1 );
   gsl_blas_dgemm( CblasTrans, CblasNoTrans, 
-                  1.0, g_mOmega, phi_sa, 
-                  0.0, mQ );
+		  1.0, g_mOmega, phi_sa, 
+		  0.0, mQ );
   gsl_matrix_free( phi_sa );
   double Q_max = gsl_matrix_get( mQ, 0, 0 );
   for( unsigned int i = 0 ; i < g_mActions->size1 ; i++ ){
@@ -65,8 +89,8 @@ double greedy_value_function( gsl_matrix* state ){
     gsl_matrix_memcpy( &a_dst.matrix, &a_src.matrix );
     gsl_matrix* phi_sa = g_fPhi( sa );
     gsl_blas_dgemm( CblasTrans, CblasNoTrans, 
-                    1.0, g_mOmega, phi_sa, 
-                    0.0, mQ );
+		    1.0, g_mOmega, phi_sa, 
+		    0.0, mQ );
     double Q_current = gsl_matrix_get( mQ, 0, 0 );
     if( Q_current > Q_max ){
       Q_max = Q_current;
@@ -78,3 +102,4 @@ double greedy_value_function( gsl_matrix* state ){
   gsl_matrix_free( best_action );
   return Q_max;
 }
+#+end_src

@@ -1,5 +1,39 @@
+#org files containing the code
+ORG_C_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org
+
+#Extracting documentation from the org files
+HTML_FILES=$(ORG_C_FILES:.org=.html)
+doc: $(HTML_FILES)
+	mv *.html doc/
+%.html:%.org
+	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
+
+#Extracting code from the org files
+code:$(ORG_C_FILES)
+	for file in $(ORG_C_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
+
+#Creating object files from the code
 CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
-LFLAGS=`pkg-config --libs gsl` -lm -O3
+OBJECT_FILES=LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o criteria.o
+obj:$(OBJECT_FILES)
+LSPI.o: LSPI.h LSPI.c utils.h LSTDQ.h greedy.h code 
+	gcc -c $(CFLAGS) LSPI.c
+
+LSTDQ.o: LSTDQ.h LSTDQ.c code
+	gcc -c $(CFLAGS) LSTDQ.c
+
+utils.o: utils.h utils.c
+	gcc -c $(CFLAGS) utils.c
+
+greedy.o: greedy.h greedy.c code
+	gcc -c $(CFLAGS) greedy.c
+
+abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h criteria.h
+	gcc -c $(CFLAGS) abbeel2004apprenticeship.c
+
+criteria.o: criteria.h criteria.c RL_Globals.h
+	gcc -c $(CFLAGS) criteria.c
+
 
 all: lagoudakis2003least_figure10.pdf both_error_discrete_EB.pdf criteria_discrete_lstd_EB.pdf criteria_discrete_mc.pdf 
 
@@ -29,17 +63,6 @@ criteria_discrete_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprent
 
 
 #Common to all
-LSPI.o: LSPI.h LSPI.c utils.h LSTDQ.h greedy.h 
-	gcc -c $(CFLAGS) LSPI.c
-
-LSTDQ.o: LSTDQ.h LSTDQ.c
-	gcc -c $(CFLAGS) LSTDQ.c
-
-utils.o: utils.h utils.c
-	gcc -c $(CFLAGS) utils.c
-
-greedy.o: greedy.h greedy.c
-	gcc -c $(CFLAGS) greedy.c
 
 #Common for LSTDMu
 InvertedPendulum.o: InvertedPendulum.c InvertedPendulum.h utils.h
@@ -54,11 +77,6 @@ InvertedPendulum_generator.exe: InvertedPendulum_generator.o utils.o InvertedPen
 InvertedPendulum_generator.o: InvertedPendulum_generator.c InvertedPendulum.h utils.h 
 	gcc -c $(CFLAGS) InvertedPendulum_generator.c
 
-abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h criteria.h
-	gcc -c $(CFLAGS) abbeel2004apprenticeship.c
-
-criteria.o: criteria.h criteria.c RL_Globals.h
-	gcc -c $(CFLAGS) criteria.c
 
 courbe_lstdmu_continuous.samples: InvertedPendulum_generator.exe 
 	./InvertedPendulum_generator.exe > SamplesC.dat && touch courbe_lstdmu_countinuous.samples

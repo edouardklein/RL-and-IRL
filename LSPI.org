@@ -1,0 +1,69 @@
+* LSPI
+  LSPI is a reinforcement learning algorithm introduced in \cite{lagoudakis2003least}.
+  
+  It uses [[file:LSTDQ.org][LSTDQ]] and a [[file:greedy.org][greedy]] mechanism.
+** C implementation
+*** Externals
+    The C implementation follows quite closely the pseudo code given in \cite{lagoudakis2003least}.
+    
+    Most of LSPI input is taken via [[file:RL_Globals.org][global variables]].
+    
+    It takes the form of a C function :
+#+begin_src c :tangle LSPI.h :main no
+gsl_matrix* lspi( gsl_matrix* D, gsl_matrix* omega_0 );
+#+end_src
+    The $D$ matrix is passed to [[file:LSTDQ.org][LSTDQ]].
+
+    The $\omega_0$ matrix defines the initial policy.
+*** Internals
+    We use the GSL, our [[file:LSTDQ.org][LSTDQ]] implementation and a [[file:greedy.org][greedy]] mechanism.
+    
+#+begin_src c :tangle LSPI.c :main no
+#include <gsl/gsl_matrix.h>
+#include "LSTDQ.h"
+#include "utils.h"
+#include "greedy.h"
+#include "LSPI.h"
+#include "RL_Globals.h"
+#+end_src
+
+    We then follow quite cloesly the pseudo code of \cite{lagoudakis2003least}.
+    - 
+#+begin_src c :tangle LSPI.c :main no
+gsl_matrix* lspi( gsl_matrix* D, gsl_matrix* omega_0 ){
+  unsigned int nb_iterations = 0;
+  gsl_matrix* omega = gsl_matrix_alloc( g_iK, 1 );
+  g_mOmega = omega;
+#+end_src
+    - $\omega'\leftarrow \omega_0$
+#+begin_src c :tangle LSPI.c :main no
+  gsl_matrix* omega_dash = gsl_matrix_alloc( g_iK, 1 );
+  gsl_matrix_memcpy( omega_dash, omega_0 );
+  double norm;
+#+end_src
+    - Repeat : 
+#+begin_src c :tangle LSPI.c :main no
+  do{
+#+end_src
+     - $\omega \leftarrow \omega'$
+ #+begin_src c :tangle LSPI.c :main no
+     gsl_matrix_memcpy( omega, omega_dash );
+ #+end_src
+     - $\omega' \leftarrow lstdQ(D,\pi_\omega)$
+ #+begin_src c :tangle LSPI.c :main no
+     gsl_matrix_free( omega_dash );
+     omega_dash = lstd_q( D, &greedy_policy );
+ #+end_src
+     - until $||\omega'-\omega|| < \epsilon_{LSPI}$ or the number of iteration is too high
+ #+begin_src c :tangle LSPI.c :main no
+     norm = diff_norm( omega_dash, omega );
+     nb_iterations++;
+   }while( norm >= g_dEpsilon_lspi && 
+	   nb_iterations < g_iIt_max_lspi);
+   gsl_matrix_free( omega );
+ #+end_src
+    - return $\omega'$
+#+begin_src c :tangle LSPI.c :main no
+  return omega_dash;
+}
+#+end_src
