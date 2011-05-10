@@ -1,0 +1,69 @@
+* The Chainwalk
+  The chainwalk is a classical toy problem, used and described for example in \cite{lagoudakis2003least}.
+
+* ChainWalk trajectory generator
+  This directory contains the code for a chainwalk trajectory generator.
+
+  It can be build by invoking
+
+     #+begin_src sh
+ make ChainWalk_generator.exe
+   #+end_src
+
+   which triggers the following rules :
+    #+begin_src make :tangle Makefile
+ChainWalk_generator.exe: ChainWalk_generator.o ../utils.o
+	gcc -o ChainWalk_generator.exe  $(LFLAGS) ChainWalk_generator.o ../utils.o
+
+ChainWalk_generator.o: ChainWalk_generator.c ../utils.h
+	gcc -c $(CFLAGS) ChainWalk_generator.c
+    #+end_src
+
+   It can then be used, for example to output 50 transitions on the standard output like this :
+
+     #+begin_src sh
+ ./ChainWalk_generator.exe 50
+   #+end_src
+   
+* Reproducing Lagoudakis and Parr's figure 10
+
+  Figure 10 of the paper \cite{lagoudakis2003least} can be reproduced by invoking 
+     #+begin_src sh
+lagoudakis2003least_figure10.pdf
+   #+end_src
+
+   which triggers the following rules :
+    #+begin_src make :tangle Makefile
+lagoudakis2003least_figure10.pdf: lagoudakis2003least_figure10.ps
+	ps2pdf lagoudakis2003least_figure10.ps
+
+lagoudakis2003least_figure10.ps: lagoudakis2003least_figure10.dat lagoudakis2003least_figure10.gp
+	gnuplot lagoudakis2003least_figure10.gp
+
+lagoudakis2003least_figure10.dat: lagoudakis2003least_figure10.samples lagoudakis2003least_figure10.exe
+	./lagoudakis2003least_figure10.exe > lagoudakis2003least_figure10.dat
+
+lagoudakis2003least_figure10.samples: ChainWalk_generator.exe 
+	for i in `seq -w 1000`; do ./ChainWalk_generator.exe 50 > Samples$$i; done && touch lagoudakis2003least_figure10.samples
+
+lagoudakis2003least_figure10.exe: lagoudakis2003least_figure10.o ../LSPI.o ../LSTDQ.o ../utils.o ../greedy.o 
+	gcc -o lagoudakis2003least_figure10.exe lagoudakis2003least_figure10.o ../LSPI.o ../LSTDQ.o ../utils.o ../greedy.o  $(LFLAGS)
+
+lagoudakis2003least_figure10.o: lagoudakis2003least_figure10.c ../LSPI.h ../utils.h
+	gcc -c $(CFLAGS) lagoudakis2003least_figure10.c
+    #+end_src
+
+* Cleaning
+Cleaning is done by :
+    #+begin_src make :tangle Makefile
+clean: 
+	find . -maxdepth 1 -iname "*.o"       | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.pdf"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.ps"      | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.exe"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "Samples*"  | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
+
+    #+end_src

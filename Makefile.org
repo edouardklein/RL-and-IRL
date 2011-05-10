@@ -1,33 +1,56 @@
 * Introduction
   In this directory lies the code I use when I work on my PhD.
   
-  This file describes the technical use of each file of this directory.
+  This file describes the technical use of each file of this directory. It is tangled as the Makefile by running :
+ #+begin_src sh
+emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
+#+end_src
 
-  The [[End results]] have their own dedicated section.
+  The [[End results]] produced by this Makfile have their own dedicated section.
+
 * Miscellaneous
-** C flags
+** Compilation flags
   C code is compiled with
   
     #+begin_src make :tangle Makefile
-CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
+CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl` -I..
+LFLAGS=`pkg-config --libs gsl` -lm -g
     #+end_src
 ** Cleaning
-    #+begin_src make :tangle Makefile
+    #+begin_src makefile :tangle Makefile
 clean:
 	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*~"    | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.html"    | xargs -tr rm &&\
-	make -C ChainWalk clean		
+	make -C ChainWalk clean         
 	make -C GridWorld clean
 	make -C InvertedPendulum clean
+	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "LSPI.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "LSPI.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "greedy.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "greedy.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "criteria.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "criteria.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "IRL_Globals.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "LSTDmu.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "LSTDmu.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "utils.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "utils.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "code"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "doc"   | xargs -tr rm -rf
     #+end_src
 * Org files
   I use [[http://orgmode.org/][org-mode]] to write my code.
 
   The .org files containing both some code and its documentation are :
   #+begin_src make :tangle Makefile
-ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org
+ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org
   #+end_src
 
 ** Documentation
@@ -41,14 +64,14 @@ ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org
     #+begin_src make :tangle Makefile
 HTML_FILES=$(ORG_CODE_FILES:.org=.html)
 doc: $(HTML_FILES)
-	mv *.html doc/
+	rm -r doc && mkdir doc && mkdir doc/ChainWalk && mkdir doc/GridWorld && mkdir doc/InvertedPendulum && mv *.html doc/ && mv ChainWalk/*.html doc/ChainWalk/ && mv GridWorld/*.html doc/GridWorld/ && mv InvertedPendulum/*.html doc/InvertedPendulum/
 %.html:%.org
 	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
     #+end_src
    
 ** Code extraction
 
-   The code embedded in the .org can be extracted.
+   The code embedded in the .org can be tangled.
     #+begin_src make :tangle Makefile
 code:$(ORG_CODE_FILES)
 	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
@@ -86,18 +109,19 @@ LSTDmu.o: LSTDmu.h LSTDmu.c greedy.h utils.h criteria.h LSPI.h
 
 ** Previously published results
 *** Lest Square Policy Iteration from Lagoudakis and Parr   
-   Figure 10 of \cite{lagoudakis2003least} can be made 
+   Figure 10 of \cite{lagoudakis2003least} can be made by executing :
 
 #+begin_src sh
  make lagoudakis2003_least_figure10.pdf
 #+end_src
    
+   This triggers the following :
     #+begin_src make :tangle Makefile
 lagoudakis2003least_figure10.pdf: LSPI.o LSTDQ.o utils.o greedy.o
 	make -C ChainWalk lagoudakis2003least_figure10.pdf && cp ChainWalk/lagoudakis2003least_figure10.pdf ./
     #+end_src
    
-   The figure should be the same as in the forementionned paper, but with error bars.
+   The figure should be the same as in the forementionned paper, but with error bars. See the relevant [[file:ChainWalk/Makefile.org][Makefile]] to learn more about it.
 
 ** Original research
 *** LSTD-$\mu$

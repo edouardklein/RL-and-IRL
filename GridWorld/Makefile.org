@@ -1,0 +1,200 @@
+* Gridworld
+  The GridWorld is a classical toy problem, used and described for example in \cite{ng2000algorithms}.
+
+* Implementation
+  We have coded both a simulator and a generator.
+
+** Gridworld generator
+   The generator can output transitions on the standard output.
+
+   It can be built by invoking
+
+     #+begin_src sh
+ make generator.exe
+     #+end_src
+
+   which triggers the following rules :
+    #+begin_src make :tangle Makefile
+generator.exe: generator.o ../utils.o
+	gcc -o generator.exe $(LFLAGS) generator.o ../utils.o
+
+generator.o: generator.c GridWorld.h ../utils.h
+	gcc -c $(CFLAGS) generator.c
+    #+end_src
+
+   It can then be used like this :
+
+     #+begin_src sh
+ ./generator.exe
+     #+end_src
+
+** Gridworld simulator
+   The simulator allows the direct interaction of a policy with the Gidworld.
+
+   The object file is built according to the following rule :
+    #+begin_src make :tangle Makefile
+simulator.o: simulator.c GridWorld.h ../utils.h
+	gcc -c $(CFLAGS) simulator.c
+    #+end_src
+* Original research
+** LSTD-$\mu$
+   The Gridworld has been used as a benchmark in a paper about LSTD-$\mu$.
+
+   This directory contains the code to generate some of the plots used in the forementionned paper. One single executable generates all the data, which is then selected and plotted.
+
+*** Data generation
+    The data is made as follow :
+    #+begin_src make :tangle Makefile
+plot.dat: plot.samples plot.exe
+	./plot.exe > plot.dat
+
+clean_plot.dat:
+	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
+
+plot.samples: generator.exe 
+	./generator.exe > Samples.dat && touch plot.samples
+
+plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o
+	gcc -o plot.exe $(LFLAGS) plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o
+
+plot.o: plot.c GridWorld.h ../utils.h ../LSPI.h ../greedy.h simulator.h ../abbeel2004apprenticeship.h ../LSTDmu.h
+	gcc -c $(CFLAGS) plot.c
+    #+end_src
+
+*** Different criteria for the MC method
+    Figure 4 of the paper can be made as follow :
+
+     #+begin_src sh
+ make criteria_mc.tex
+     #+end_src
+
+   which triggers the following rules :
+    #+begin_src make :tangle Makefile
+criteria_mc.tex: criteria_mc.pdf
+	cat criteria_mc.tex | sed "s|criteria_mc|../Code/GridWorld/criteria_mc|g" > tmp.tex && mv tmp.tex criteria_mc.tex
+
+criteria_mc.pdf: criteria_mc.eps
+	epstopdf criteria_mc.eps
+
+criteria_mc.eps: criteria_mc.dat criteria_mc.gp
+	gnuplot criteria_mc.gp
+
+criteria_mc.dat: plot.dat
+	cat plot.dat | grep "^500" | sed 's/500 //'> criteria_mc.dat
+
+clean_criteria_mc.dat: clean_plot.dat
+	rm criteria_mc.dat
+    #+end_src
+*** Different criteria for the LSTD method
+    Figure 5 of the paper can be made as follow :
+     #+begin_src sh
+ make criteria_lstd_EB.tex
+     #+end_src
+
+   which triggers the following rules :
+    #+begin_src make :tangle Makefile
+criteria_lstd_EB.tex: criteria_lstd_EB.pdf
+	cat criteria_lstd_EB.tex | sed "s|criteria_lstd_EB|../Code/GridWorld/criteria_lstd_EB|g" > tmp.tex && mv tmp.tex criteria_lstd_EB.tex
+
+criteria_lstd_EB.pdf: criteria_lstd_EB.eps
+	epstopdf criteria_lstd_EB.eps
+
+criteria_lstd_EB.eps: criteria_lstd.dat-0 criteria_lstd.dat-1 criteria_lstd.dat-2 criteria_lstd.dat-3 criteria_lstd_EB.gp
+	gnuplot criteria_lstd_EB.gp
+
+criteria_lstd.dat-0: ErrorBars
+
+criteria_lstd.dat-1: ErrorBars
+
+criteria_lstd.dat-2: ErrorBars
+
+criteria_lstd.dat-3: ErrorBars
+
+criteria_lstd.pdf: criteria_lstd.eps
+	epstopdf criteria_lstd.eps
+
+criteria_lstd.eps: criteria_lstd.dat criteria_lstd.gp
+	gnuplot criteria_lstd.gp
+
+criteria_lstd.dat: plot.dat
+	cat plot.dat | grep -E "^B " | sed "s/B //"> criteria_lstd.dat
+
+clean_criteria_lstd.dat: clean_plot.dat
+    #+end_src
+
+*** Error with respect to the number of samples from the expert, for both methods
+    Figure 1 of the paper can be made as follow :
+     #+begin_src sh
+ make both_error_EB.tex
+     #+end_src
+
+   which triggers the following rules :
+    #+begin_src make :tangle Makefile
+both_error_EB.tex: both_error_EB.pdf
+	cat both_error_EB.tex | sed "s|both_error_EB|../Code/GridWorld/both_error_EB|g" > tmp.tex && mv tmp.tex both_error_EB.tex
+
+both_error_EB.pdf: both_error_EB.eps
+	epstopdf both_error_EB.eps
+
+both_error_EB.eps: both_error.dat-0 both_error.dat-1 both_error_EB.gp
+	gnuplot both_error_EB.gp
+
+both_error.dat-0: ErrorBars
+
+both_errot.dat-1: ErrorBars
+
+both_error.pdf: both_error.eps
+	epstopdf both_error.eps
+
+both_error.eps: both_error.dat both_error.gp
+	gnuplot both_error.gp
+
+both_error.dat: criteria_mc_samples.dat criteria_lstd.dat
+	cat criteria_lstd.dat | cut -d" " -f'1 4' > tmp &&\
+	cat criteria_mc_samples.dat | cut -d" " -f'1 4' > tmp2 &&\
+	paste -d' ' tmp tmp2 > both_error.dat
+
+criteria_mc_samples.dat: plot.dat
+	cat plot.dat | grep -E "^C " | sed "s/C //"> criteria_mc_samples.dat
+
+clean_criteria_mc_samples.dat: clean_plot.dat
+
+clean_both_error.dat: clean_criteria_mc_samples.dat clean_criteria_lstd.dat
+    #+end_src
+
+*** Error bars
+    All plots with error bars are generated by using the ErrorBars.py script :
+    #+begin_src make :tangle Makefile
+.PHONY: ErrorBars
+
+ErrorBars: 
+	../../Utils/ErrorBars.py
+    #+end_src
+    
+* Cleaning
+  Two different target exists for cleaning.
+
+  clean does regular cleaning : 
+
+    #+begin_src make :tangle Makefile
+clean:
+	find . -maxdepth 1 -iname "*.o"       | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.pdf"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.eps"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.ps"      | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.tex"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.exe"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.dat-*"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.pyc"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
+    #+end_src
+
+  nuke removes the data generated by the ErrorBars.py script, which may take a very long time to generate. Hence a separated target to avoid accidents.
+
+    #+begin_src make :tangle Makefile
+nuke: #You probably don't want to make this one
+	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs -tr rm
+    #+end_src
