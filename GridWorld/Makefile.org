@@ -44,6 +44,7 @@ simulator.o: simulator.c GridWorld.h ../utils.h
 
 *** Data generation
     The data is made as follow :
+
     #+begin_src make :tangle Makefile
 plot.dat: plot.samples plot.exe
 	./plot.exe > plot.dat
@@ -175,7 +176,7 @@ ErrorBars:
 ** Org files
   The .org files containing both some code and its documentation are :
   #+begin_src make :tangle Makefile
-ORG_CODE_FILES=generator.org Makefile.org GridWorld.h simulator.org
+ORG_CODE_FILES=generator.org Makefile.org GridWorld.org simulator.org plot.org
   #+end_src
 ** Documentation
    Documentation can be extracted from the .org files by executing
@@ -221,6 +222,7 @@ clean:
 	find . -maxdepth 1 -iname "GridWorld.h"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "simulator.h"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "simulator.c"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "plot.c"    | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "code"      | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm

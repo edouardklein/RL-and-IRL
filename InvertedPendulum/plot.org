@@ -1,3 +1,9 @@
+#+TITLE: Plots for the paper about LSTD-\mu
+
+This programs outputs the data needed to plot the figure 2 and 3 of the paper about LSTD-$\mu$. More precisely, it outputs the data for only one plot (Figure 2) but is then ran a lot of times by the ErrorBars.py script (figure 3).
+
+We use the GSL, the LSPI algorithm, Abbeel and Ng's IRL algorithm and our LSPI variant.
+#+begin_src c :tangle plot.c :main no
 #define _POSIX_C_SOURCE 1
 #include <gsl/gsl_matrix.h>
 #include <math.h>
@@ -8,13 +14,20 @@
 #include "abbeel2004apprenticeship.h"
 #include "LSTDmu.h"
 #include "criteria.h"
+#include "greedy.h"
+#+end_src
+
+We set some constants
+#+begin_src c :tangle plot.c :main no
 #include "RL_Globals.h"
 #include "IRL_Globals.h"
-#include "greedy.h"
 #define D_FILE_NAME "Samples.dat"
 #define TRANS_WIDTH 7
 #define ACTION_FILE "actions.mat"
+#+end_src
 
+We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
+#+begin_src c :tangle plot.c :main no
 unsigned int g_iK = (30); /* dim(\phi) */
 unsigned int g_iP = (10); /* dim(\psi) */
 
@@ -58,7 +71,10 @@ gsl_matrix* psi( gsl_matrix* s ){
   }
   return answer;
 }
+#+end_src
 
+We use the shared code to reinitialize at the beginning of each episode. 
+#+begin_src c :tangle plot.c :main no
 gsl_matrix* initial_state( void ){
   gsl_matrix* answer = gsl_matrix_alloc( 1, 2 );
   double pos;
@@ -70,8 +86,10 @@ gsl_matrix* initial_state( void ){
   }
   return answer;
 }
+#+end_src
 
-
+We set the global variables needed by LSPI and the IRL algorithms.
+#+begin_src c :tangle plot.c :main no
 unsigned int g_iS = 2;
 unsigned int g_iA = 1;
 unsigned int g_iIt_max_lspi = 50;
@@ -90,7 +108,10 @@ gsl_matrix* (*g_fSimulator)(int) = &inverted_pendulum_simulator;
 gsl_matrix* (*g_fS_0)(void) = &initial_state;
 unsigned int g_iMax_episode_len = 30; //Shorter episodes are 
 //better for MC, as s_0 is seen more often
+#+end_src
 
+We use the answer from LSPI as an expert. LSPI is fed with quite a large number of samples and thus is successful at solving the MDP.
+#+begin_src c :tangle plot.c :main no
 int main( void ){
   fprintf(stderr,"Training the expert...");
   fflush( NULL );
@@ -101,8 +122,10 @@ int main( void ){
   g_mOmega_E = omega_expert;
   expert_just_set();
   fprintf(stderr,"done\n");
+#+end_src
   
-
+We the analyze the behavior of both variants of the IRL algorithm, with respect of the number of samples fed to LSPI.
+#+begin_src c :tangle plot.c :main no
   gsl_matrix* D_expert;
   int D_len[] = {1,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,3000};
   //Cette courbe illustre l'influence de
@@ -150,3 +173,4 @@ int main( void ){
   gsl_matrix_free( omega_0 );
   return 0;
 }
+#+end_src

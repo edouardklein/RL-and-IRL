@@ -1,3 +1,9 @@
+#+TITLE: Preliminary results about LSTD-$\mu$
+
+I used this program to gain preliminary insight on the behavior of both variants. I keep it here for historical purposes.
+
+We use the GSL, the LSPI algorithm, Abbeel and Ng's IRL algorithm and our LSPI variant.
+#+begin_src c :tangle first.c :main no
 #define _POSIX_C_SOURCE 1
 #include <gsl/gsl_matrix.h>
 #include <math.h>
@@ -8,13 +14,20 @@
 #include "abbeel2004apprenticeship.h"
 #include "LSTDmu.h"
 #include "criteria.h"
+#include "greedy.h"
+#+end_src
+
+We set some constants
+#+begin_src c :tangle first.c :main no
 #include "RL_Globals.h"
 #include "IRL_Globals.h"
-#include "greedy.h"
 #define D_FILE_NAME "Samples.dat"
 #define TRANS_WIDTH 7
 #define ACTION_FILE "actions.mat"
+#+end_src
 
+We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
+#+begin_src c :tangle first.c :main no
 unsigned int g_iK = (30); /* dim(\phi) */
 unsigned int g_iP = (10); /* dim(\psi) */
 
@@ -58,7 +71,10 @@ gsl_matrix* psi( gsl_matrix* s ){
   }
   return answer;
 }
+#+end_src
 
+This will reset the initial state at the beginning of each episode.
+#+begin_src c :tangle first.c :main no
 gsl_matrix* initial_state( void ){
   gsl_matrix* answer = gsl_matrix_alloc( 1, 2 );
   double pos;
@@ -70,8 +86,10 @@ gsl_matrix* initial_state( void ){
   }
   return answer;
 }
+#+end_src
 
-
+We declare and set the global variables of our RL and IRL implementations.
+#+begin_src c :tangle first.c :main no
 unsigned int g_iS = 2;
 unsigned int g_iA = 1;
 unsigned int g_iIt_max_lspi = 50;
@@ -90,7 +108,10 @@ gsl_matrix* (*g_fSimulator)(int) = &inverted_pendulum_simulator;
 gsl_matrix* (*g_fS_0)(void) = &initial_state;
 unsigned int g_iMax_episode_len = 30; //Shorter episodes are 
 //better for MC, as s_0 is seen more often
+#+end_src
 
+We begin by training the expert, using LSPI fed with a large number of transitions.
+#+begin_src c :tangle first.c :main no
 int main( void ){
   fprintf(stderr,"Training the expert...");
   fflush( NULL );
@@ -100,17 +121,19 @@ int main( void ){
   gsl_matrix* omega_expert = lspi( D, omega_0 );
   g_mOmega_E = omega_expert;
   expert_just_set();
-  fprintf(stderr,"done\n");
-  
+  fprintf(stderr,"done\n");  
+#+end_src
 
+We will work with different number of samples from the expert or from an suboptimal policy.
+#+begin_src c :tangle first.c :main no
   gsl_matrix* D_expert;
   gsl_matrix* omega_imitation;
   int m_exp[] = {1,10,100};
   int D_len[] = {1000,1100,1200,1250,1300,1350,1400,1500,1600};
-  //Premières observations :  sans matrice D,
-  //quelque soit la taille de la matrice D_E,
-  //la variante LSTD ne fonctionne pas tandis que
-  //la variante MC fonctionne
+#+end_src
+
+Whatever the number of samples from the expert is (matrix $D_E$), the LSTD variant does not work whereas the Monte-Carlo variant does. This is because (as will be illustrated thereafter) the Monte-Carlo variant has access to samples from a suboptimal policy (the $D$ matrix) in order for LSPI to solve the MDP.
+#+begin_src c :tangle first.c :main no
   for( int i=0; i<3 ; i++ ){
     g_iNb_samples = 0;
     g_mOmega =  omega_expert;
@@ -145,11 +168,10 @@ int main( void ){
   	   g_dBest_t, g_dBest_error,
   	   g_dBest_true_error, g_dBest_diff, mean_control_steps);
   }
+#+end_src
 
-
-  //Avec une matrice D,
-  //quelque soit la taille de la matrice D_E,
-  //les deux variantes fonctionnent
+Given some samples from a suboptimal policy, both variant work.
+#+begin_src c :tangle first.c :main no
   for( int i=0; i<3 ; i++ ){
     g_iNb_samples = 0;
     g_mOmega =  omega_expert;
@@ -191,3 +213,5 @@ int main( void ){
   gsl_matrix_free( omega_0 );
   return 0;
 }
+#+end_src
+

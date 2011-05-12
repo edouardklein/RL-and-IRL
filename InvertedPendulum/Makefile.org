@@ -120,11 +120,42 @@ threshold_mc.dat-0: ErrorBars
 ErrorBars:
 	../../Utils/ErrorBars.py
     #+end_src
-* Cleaning
+* Miscellaneaous
+
+** Org files
+  The .org files containing both some code and its documentation are :
+  #+begin_src make :tangle Makefile
+ORG_CODE_FILES=Makefile.org first.org generator.org InvertedPendulum.org plot.org simulator.org
+  #+end_src
+** Documentation
+   Documentation can be extracted from the .org files by executing
+   #+begin_src sh
+ make doc
+   #+end_src
+
+   which triggers the following rules :
+
+   #+begin_src make :tangle Makefile
+HTML_FILES=$(ORG_CODE_FILES:.org=.html)
+
+doc: $(HTML_FILES)
+
+%.html:%.org
+	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
+   #+end_src
+** Code extraction
+
+   The code embedded in the .org can be tangled.
+    #+begin_src make :tangle Makefile
+code:$(ORG_CODE_FILES)
+	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
+    #+end_src
+    
+** Cleaning
   Two different target exists for cleaning.
 
   clean does regular cleaning : 
-
+  
     #+begin_src make :tangle Makefile
 clean:
 	find . -maxdepth 1 -iname "*.o"       | xargs -tr rm &&\
@@ -136,6 +167,14 @@ clean:
 	find . -maxdepth 1 -iname "*.pyc"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.eps"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.tex"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "first.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "plot.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "generator.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "InvertedPendulum.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "InvertedPendulum.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "simulator.h"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "simulator.c"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "code"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*-0"       | xargs -tr rm
     #+end_src
 

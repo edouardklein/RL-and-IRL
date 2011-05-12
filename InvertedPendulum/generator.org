@@ -1,3 +1,9 @@
+#+TITLE: Trajectory generator for the inverted pendulum
+
+This program shares code with the simulator. 
+
+We use the GSL.
+#+begin_src c :tangle generator.c :main no
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -5,9 +11,16 @@
 #include "InvertedPendulum.h"
 #include <gsl/gsl_matrix.h>
 #include "utils.h"
+#+end_src
+
+We set how many trajectories we want and how long we want them to be at most.
+#+begin_src c :tangle generator.c :main no
 #define NUMBER_OF_WALKS (500)
 #define MAX_WALK_LENGTH (3000)
+#+end_src
 
+The rest is straightforward, initialize, steps till the end, rinse, repeat.
+#+begin_src c :tangle generator.c :main no
 int main( void ){
   srand(time(NULL)+getpid()); rand(); rand();rand();
   for( unsigned int i = 0 ; i < NUMBER_OF_WALKS ; i++ ){
@@ -35,3 +48,4 @@ int main( void ){
   }
   return 0;
 }
+#+end_src

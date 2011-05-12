@@ -1,3 +1,18 @@
+#+TITLE: Simulator for the inverted pendulum
+
+The following functon lets the greedy policy interact with the gridworld. The argument is the number of episodes to simulate, the return value is the matrix containing all the transitions, one per line.
+#+begin_src c :tangle simulator.h :main no
+/* Simulate nbEpisodes episodes using greedy_policy()*/
+gsl_matrix* inverted_pendulum_simulator( int nbEpisodes );
+#+end_src
+
+This variable controls how long trajectories should be.
+#+begin_src c :tangle simulator.h :main no
+extern unsigned int g_iMax_episode_len;
+#+end_src
+
+We use the GSL, the code shared with the generator and the code for greedy.
+#+begin_src c :tangle simulator.c :main no
 #include <time.h>
 #include <unistd.h>
 #include <gsl/gsl_matrix.h> 
@@ -6,16 +21,23 @@
 #include "simulator.h"
 #include "greedy.h"
 #include "InvertedPendulum.h"
+  #+end_src
+
+We set some constants.
+#+begin_src c :tangle simulator.c :main no
 #define TRANS_WIDTH 7 /* s,a,s',r,e = 7*/
+  #+end_src
 
+This variables allow one to know how many samples teh simulation has generated (generally, the lesser the better).
+#+begin_src c :tangle simulator.c :main no
 unsigned int g_iNb_samples = 0;
+#+end_src
 
-/* Simulate nbEpisodes episodes using greedy_policy()*/
+The code for the simulation is quite straightforward. We allocat a bigger than necessary matrix and only retrurn the useful protion of it.
+#+begin_src c :tangle simulator.c :main no
 gsl_matrix* inverted_pendulum_simulator( int nbEpisodes ){
   srand(time(NULL)+getpid()); rand(); rand();rand();
   gsl_matrix* transitions = gsl_matrix_alloc( nbEpisodes*g_iMax_episode_len, TRANS_WIDTH );
-  // set the value of the pendulum in a state near the 
-  // equilibrium
   double state_p; //position
   double state_v; //vitesse
   iv_init( &state_p, &state_v );
@@ -65,3 +87,4 @@ gsl_matrix* inverted_pendulum_simulator( int nbEpisodes ){
   gsl_matrix_free( transitions );
   return answer;
 }
+  #+end_src

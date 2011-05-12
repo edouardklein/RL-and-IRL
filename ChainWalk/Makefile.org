@@ -71,6 +71,7 @@ clean:
 	find . -maxdepth 1 -iname "Samples*"  | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "ChainWalk_generator.c"  | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.c"  | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "code"      | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
 
     #+end_src

@@ -1,9 +1,32 @@
+#+TITLE: Inverted pendulum equations
+
+This file hosts the code shared by both the simulator and the generator.
+
+We have namely two functions, one that initialize the state, the other that compute the effects of one time step.
+#+begin_src c :tangle InvertedPendulum.h :main no
+#define LEFT 0
+#define NONE 1
+#define RIGHT 2
+#define PI (3.1415926536)
+void iv_init( double* pos, double* speed );
+void iv_step( double state_p, double state_v, 
+	      unsigned int action,
+	      double* next_state_p, double* next_state_v, 
+	      double* reward, int* eoe );
+#+end_src
+
+
+
+#+begin_src c :tangle InvertedPendulum.c :main no
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_matrix.h>
 #include "InvertedPendulum.h"
 #include "utils.h"
+#+end_src
 
+The initialization function put the speed and the position a little random bit away from the equelibrium.
+#+begin_src c :tangle InvertedPendulum.c :main no
 void iv_init( double* pos, double* speed ){
   *pos = 
     (double)rand()/(double)RAND_MAX*0.1;
@@ -18,7 +41,10 @@ void iv_init( double* pos, double* speed ){
     *speed=-*speed;
   }
 }
+#+end_src
 
+The step function uses the equation given in \cite{lagoudakis2003least}.
+#+begin_src c :tangle InvertedPendulum.c :main no
 void iv_step( double state_p, double state_v, 
 	      unsigned int action,
 	      double* next_state_p, double* next_state_v, 
@@ -61,3 +87,4 @@ void iv_step( double state_p, double state_v,
     *eoe = 1;
   }
 }
+#+end_src
