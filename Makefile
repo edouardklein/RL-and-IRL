@@ -2,25 +2,25 @@
 SUB_DIRS=ChainWalk GridWorld InvertedPendulum
 
 lagoudakis2003least_figure10.pdf: LSPI.o LSTDQ.o utils.o greedy.o
-	make -C ChainWalk lagoudakis2003least_figure10.pdf && cp ChainWalk/lagoudakis2003least_figure10.pdf ./
+	$(MAKE) -C ChainWalk lagoudakis2003least_figure10.pdf && cp ChainWalk/lagoudakis2003least_figure10.pdf ./
 
 both_error_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C GridWorld both_error_EB.tex && cp GridWorld/both_error_EB.pdf ./both_error_EB.pdf
+	$(MAKE) -C GridWorld both_error_EB.tex && cp GridWorld/both_error_EB.pdf ./both_error_EB.pdf
 
 threshold.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C InvertedPendulum threshold.tex && cp InvertedPendulum/threshold.pdf ./threshold.pdf
+	$(MAKE) -C InvertedPendulum threshold.tex && cp InvertedPendulum/threshold.pdf ./threshold.pdf
 
 threshold_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C InvertedPendulum threshold_EB.tex && cp InvertedPendulum/threshold_EB.pdf ./threshold.pdf
+	$(MAKE) -C InvertedPendulum threshold_EB.tex && cp InvertedPendulum/threshold_EB.pdf ./threshold.pdf
 
 criteria_mc.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C GridWorld criteria_mc.tex && cp GridWorld/criteria_mc.pdf ./criteria_mc.pdf
+	$(MAKE) -C GridWorld criteria_mc.tex && cp GridWorld/criteria_mc.pdf ./criteria_mc.pdf
 
 criteria_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C GridWorld criteria_lstd_EB.tex && cp GridWorld/criteria_lstd_EB.pdf ./criteria_lstd_EB.pdf
+	$(MAKE) -C GridWorld criteria_lstd_EB.tex && cp GridWorld/criteria_lstd_EB.pdf ./criteria_lstd_EB.pdf
 
-CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl` -I..
-LFLAGS=`pkg-config --libs gsl` -lm -g
+export CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
+export LFLAGS=`pkg-config --libs gsl` -lm -g
 
 ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org
 
@@ -28,7 +28,7 @@ HTML_FILES=$(ORG_CODE_FILES:.org=.html)
 
 doc: $(HTML_FILES)
 	mkdir -p doc &&\
-	for dir in $(SUB_DIRS); do make -C $$dir doc && mkdir -p doc/$$dir && mv $$dir/*.html doc/$$dir/; done &&\
+	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir doc && mkdir -p doc/$$dir && mv $$dir/*.html doc/$$dir/; done &&\
 	mv *.html doc/
 
 %.html:%.org
@@ -36,13 +36,13 @@ doc: $(HTML_FILES)
 
 code:$(ORG_CODE_FILES)
 	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done &&\
-	for dir in $(SUB_DIRS); do make -C $$dir code ; done &&\
+	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir code ; done &&\
 	touch code
 
 OBJECT_FILES=LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o criteria.o LSTDmu.o
 obj:$(OBJECT_FILES)
 
-LSPI.o: LSPI.h LSPI.c utils.h LSTDQ.h greedy.h code 
+LSPI.o: code LSPI.h LSPI.c utils.h LSTDQ.h greedy.h
 	gcc -c $(CFLAGS) LSPI.c
 
 LSTDQ.o: LSTDQ.h LSTDQ.c code
@@ -68,9 +68,9 @@ clean:
 	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*~"    | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.html"    | xargs -tr rm &&\
-	make -C ChainWalk clean         
-	make -C GridWorld clean
-	make -C InvertedPendulum clean
+	$(MAKE) -C ChainWalk clean         
+	$(MAKE) -C GridWorld clean
+	$(MAKE) -C InvertedPendulum clean
 	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs -tr rm &&\

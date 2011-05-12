@@ -142,7 +142,7 @@ code:$(ORG_CODE_FILES)
 OBJECT_FILES=LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o criteria.o LSTDmu.o
 obj:$(OBJECT_FILES)
 
-LSPI.o: LSPI.h LSPI.c utils.h LSTDQ.h greedy.h code 
+LSPI.o: code LSPI.h LSPI.c utils.h LSTDQ.h greedy.h
 	gcc -c $(CFLAGS) LSPI.c
 
 LSTDQ.o: LSTDQ.h LSTDQ.c code

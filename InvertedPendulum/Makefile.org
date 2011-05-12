@@ -1,5 +1,8 @@
 * Inverted Pendulum
   The Inverted Pendulum is a classical toy problem, used and described for example in \cite{lagoudakis2003least}.
+  #+begin_src make :tangle Makefile
+  CFLAGS+=-I..
+   #+end_src
 
 * Implementation
   We have coded both a simulator and a generator.
