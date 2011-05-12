@@ -17,6 +17,8 @@ ChainWalk_generator.exe: ChainWalk_generator.o ../utils.o
 
 ChainWalk_generator.o: ChainWalk_generator.c ../utils.h
 	gcc -c $(CFLAGS) ChainWalk_generator.c
+
+ChainWalk_generator.c: code
     #+end_src
 
    It can then be used, for example to output 50 transitions on the standard output like this :
@@ -29,7 +31,7 @@ ChainWalk_generator.o: ChainWalk_generator.c ../utils.h
 
   Figure 10 of the paper \cite{lagoudakis2003least} can be reproduced by invoking 
      #+begin_src sh
-lagoudakis2003least_figure10.pdf
+make lagoudakis2003least_figure10.pdf
    #+end_src
 
    which triggers the following rules :
@@ -51,9 +53,12 @@ lagoudakis2003least_figure10.exe: lagoudakis2003least_figure10.o ../LSPI.o ../LS
 
 lagoudakis2003least_figure10.o: lagoudakis2003least_figure10.c ../LSPI.h ../utils.h
 	gcc -c $(CFLAGS) lagoudakis2003least_figure10.c
+
+lagoudakis2003least_figure10.c: code
     #+end_src
 
-* Cleaning
+* Miscellaneous
+** Cleaning
 Cleaning is done by :
     #+begin_src make :tangle Makefile
 clean: 
@@ -64,6 +69,39 @@ clean:
 	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "Samples*"  | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "ChainWalk_generator.c"  | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.c"  | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
 
+    #+end_src
+
+** Org files
+  The .org files containing both some code and its documentation are :
+  #+begin_src make :tangle Makefile
+ORG_CODE_FILES=ChainWalk_generator.org Makefile.org lagoudakis2003least_figure10.org
+  #+end_src
+
+** Documentation
+
+   Documentation can be extracted from the .org files by executing
+   #+begin_src sh
+ make doc
+   #+end_src
+
+   which triggers the following rules :
+
+   #+begin_src make :tangle Makefile
+HTML_FILES=$(ORG_CODE_FILES:.org=.html)
+
+doc: $(HTML_FILES)
+
+%.html:%.org
+	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
+   #+end_src
+** Code extraction
+
+   The code embedded in the .org can be tangled.
+    #+begin_src make :tangle Makefile
+code:$(ORG_CODE_FILES)
+	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
     #+end_src

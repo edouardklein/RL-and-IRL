@@ -29,3 +29,4 @@
     Il a probablement moyen de faire en sorte que la vérification des données existantes s'écrive en quelques règles simples
     
 *** TODO Ecrire le README
+*** TODO Dans ChainWalk, dessiner la variance à l'aide de ErrorBars.py

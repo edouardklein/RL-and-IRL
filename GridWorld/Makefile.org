@@ -171,8 +171,37 @@ clean_both_error.dat: clean_criteria_mc_samples.dat clean_criteria_lstd.dat
 ErrorBars: 
 	../../Utils/ErrorBars.py
     #+end_src
+* Miscellaneous
+** Org files
+  The .org files containing both some code and its documentation are :
+  #+begin_src make :tangle Makefile
+ORG_CODE_FILES=generator.org Makefile.org GridWorld.h simulator.org
+  #+end_src
+** Documentation
+   Documentation can be extracted from the .org files by executing
+   #+begin_src sh
+ make doc
+   #+end_src
+
+   which triggers the following rules :
+
+   #+begin_src make :tangle Makefile
+HTML_FILES=$(ORG_CODE_FILES:.org=.html)
+
+doc: $(HTML_FILES)
+
+%.html:%.org
+	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
+   #+end_src
+** Code extraction
+
+   The code embedded in the .org can be tangled.
+    #+begin_src make :tangle Makefile
+code:$(ORG_CODE_FILES)
+	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
+    #+end_src
     
-* Cleaning
+** Cleaning
   Two different target exists for cleaning.
 
   clean does regular cleaning : 
@@ -188,6 +217,11 @@ clean:
 	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.dat-*"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.pyc"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "generator.c"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "GridWorld.h"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "simulator.h"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "simulator.c"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "code"      | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
     #+end_src

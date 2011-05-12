@@ -6,7 +6,61 @@
 emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
 #+end_src
 
+
   The [[End results]] produced by this Makfile have their own dedicated section.
+  
+* End results
+  This code produces graphs. These graphs either are reproduction of previously published results, or part of original research.
+
+  The graphs are based on the application of different algorithms on toy problems. Each toy problem lives in its sub directory. The sub-directories are :
+
+  #+begin_src make :tangle Makefile
+SUB_DIRS=ChainWalk GridWorld InvertedPendulum
+  #+end_src
+
+** Previously published results
+*** Lest Square Policy Iteration from Lagoudakis and Parr   
+   Figure 10 of \cite{lagoudakis2003least} can be made by executing :
+
+#+begin_src sh
+ make lagoudakis2003_least_figure10.pdf
+#+end_src
+   
+   This triggers the following :
+    #+begin_src make :tangle Makefile
+lagoudakis2003least_figure10.pdf: LSPI.o LSTDQ.o utils.o greedy.o
+	make -C ChainWalk lagoudakis2003least_figure10.pdf && cp ChainWalk/lagoudakis2003least_figure10.pdf ./
+    #+end_src
+   
+   The figure should be the same as in the forementionned paper, but with error bars. See the relevant [[file:ChainWalk/Makefile.org][Makefile]] to learn more about it.
+
+** Original research
+*** LSTD-$\mu$
+    Figures used in the paper about LSTD-$\mu$ can be made.
+
+#+begin_src sh
+ make both_error_EB.pdf threshold.pdf threshold_EB.pdf criteria_mc.pdf criteria_lstd_EB.pdf
+#+end_src
+    
+    The PDF files do not include any text. To view the whole figure, you have to compile the .tex files.
+   
+    #+begin_src make :tangle Makefile
+both_error_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C GridWorld both_error_EB.tex && cp GridWorld/both_error_EB.pdf ./both_error_EB.pdf
+
+threshold.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C InvertedPendulum threshold.tex && cp InvertedPendulum/threshold.pdf ./threshold.pdf
+
+threshold_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C InvertedPendulum threshold_EB.tex && cp InvertedPendulum/threshold_EB.pdf ./threshold.pdf
+
+criteria_mc.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C GridWorld criteria_mc.tex && cp GridWorld/criteria_mc.pdf ./criteria_mc.pdf
+
+criteria_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
+	make -C GridWorld criteria_lstd_EB.tex && cp GridWorld/criteria_lstd_EB.pdf ./criteria_lstd_EB.pdf
+
+    #+end_src
 
 * Miscellaneous
 ** Compilation flags
@@ -63,8 +117,12 @@ ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWa
    which triggers the following rules :
     #+begin_src make :tangle Makefile
 HTML_FILES=$(ORG_CODE_FILES:.org=.html)
+
 doc: $(HTML_FILES)
-	rm -r doc && mkdir doc && mkdir doc/ChainWalk && mkdir doc/GridWorld && mkdir doc/InvertedPendulum && mv *.html doc/ && mv ChainWalk/*.html doc/ChainWalk/ && mv GridWorld/*.html doc/GridWorld/ && mv InvertedPendulum/*.html doc/InvertedPendulum/
+	mkdir -p doc &&\
+	for dir in $(SUB_DIRS); do make -C $$dir doc && mkdir -p doc/$$dir && mv $$dir/*.html doc/$$dir/; done &&\
+	mv *.html doc/
+
 %.html:%.org
 	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
     #+end_src
@@ -74,7 +132,9 @@ doc: $(HTML_FILES)
    The code embedded in the .org can be tangled.
     #+begin_src make :tangle Makefile
 code:$(ORG_CODE_FILES)
-	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
+	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done &&\
+	for dir in $(SUB_DIRS); do make -C $$dir code ; done &&\
+	touch code
     #+end_src
 * Common object files
   Some code is shared amongst some of the executables.
@@ -102,51 +162,4 @@ criteria.o: criteria.h criteria.c RL_Globals.h
 
 LSTDmu.o: LSTDmu.h LSTDmu.c greedy.h utils.h criteria.h LSPI.h
 	gcc -c $(CFLAGS) LSTDmu.c
-    #+end_src
-  
-* End results
-  This code produces graphs. These graphs either are reproduction of previously published results, or part of original research.
-
-** Previously published results
-*** Lest Square Policy Iteration from Lagoudakis and Parr   
-   Figure 10 of \cite{lagoudakis2003least} can be made by executing :
-
-#+begin_src sh
- make lagoudakis2003_least_figure10.pdf
-#+end_src
-   
-   This triggers the following :
-    #+begin_src make :tangle Makefile
-lagoudakis2003least_figure10.pdf: LSPI.o LSTDQ.o utils.o greedy.o
-	make -C ChainWalk lagoudakis2003least_figure10.pdf && cp ChainWalk/lagoudakis2003least_figure10.pdf ./
-    #+end_src
-   
-   The figure should be the same as in the forementionned paper, but with error bars. See the relevant [[file:ChainWalk/Makefile.org][Makefile]] to learn more about it.
-
-** Original research
-*** LSTD-$\mu$
-    Figures used in the paper about LSTD-$\mu$ can be made.
-
-#+begin_src sh
- make both_error_EB.pdf threshold.pdf threshold_EB.pdf criteria_mc.pdf criteria_lstd_EB.pdf
-#+end_src
-    
-    The PDF files do not include any text. To view the whole figure, you have to compile the .tex files.
-   
-    #+begin_src make :tangle Makefile
-both_error_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C GridWorld both_error_EB.tex && cp GridWorld/both_error_EB.pdf ./both_error_EB.pdf
-
-threshold.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C InvertedPendulum threshold.tex && cp InvertedPendulum/threshold.pdf ./threshold.pdf
-
-threshold_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C InvertedPendulum threshold_EB.tex && cp InvertedPendulum/threshold_EB.pdf ./threshold.pdf
-
-criteria_mc.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C GridWorld criteria_mc.tex && cp GridWorld/criteria_mc.pdf ./criteria_mc.pdf
-
-criteria_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	make -C GridWorld criteria_lstd_EB.tex && cp GridWorld/criteria_lstd_EB.pdf ./criteria_lstd_EB.pdf
-
     #+end_src
