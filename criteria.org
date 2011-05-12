@@ -44,6 +44,7 @@ double true_V_diff( gsl_matrix* omega );
 #include "IRL_Globals.h"
 #include "abbeel2004apprenticeship.h"
 #include "utils.h"
+#include "criteria.h"
    #+end_src
 
   This parameter is a trade-off between computation time and closeness to the truth

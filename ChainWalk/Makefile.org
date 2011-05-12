@@ -1,6 +1,10 @@
 * The Chainwalk
   The chainwalk is a classical toy problem, used and described for example in \cite{lagoudakis2003least}.
-
+  
+  #+begin_src make :tangle Makefile
+  CFLAGS+=-I..
+   #+end_src
+  
 * ChainWalk trajectory generator
   This directory contains the code for a chainwalk trajectory generator.
 

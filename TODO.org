@@ -30,3 +30,4 @@
     
 *** TODO Ecrire le README
 *** TODO Dans ChainWalk, dessiner la variance à l'aide de ErrorBars.py
+*** TODO Revoir les règles du Makefile, il y a de gros soucis, notamment avec code
