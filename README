@@ -1,4 +1,4 @@
-The code in this directory and its subdirectory is notably used to produce the figures of [1]. 
+The code in this directory and its subdirectories is notably used to produce the figures of [1]. 
 
 The code is written in a literate programming form, using babel and org-mode [2]. It has been "literated" after been written normally, thus it is organized with respect to technical reasons, not as a mental flow. This kind of defeats the point of literate programming and should be corrected "soon".
 
@@ -9,4 +9,11 @@ The source code in this directory is managed by git [3]. It i also uploaded on G
 I used the GSL [5] throughout the whole thing. Hence, the license under which this work is distributed is the GPL [6].
 
 Contact and copyright owner : edouard.klein at supelec.fr
+
+[1] E. KLEIN, M. GEIST, O. PIETQUIN, "Batch, Off-policy and Model-Free Apprenticeship Learning". In Proceedings of the IJCAI Workshop on Agents Learning Interactively from Human Teachers (ALIHT 2011), Barcelona (Spain), 6 pages, 2011.
+[2] http://orgmode.org/worg/org-contrib/babel/
+[3] http://git-scm.com/
+[4] https://github.com/edouardklein/RL-and-IRL
+[5] http://www.gnu.org/software/gsl/
+[6] http://www.gnu.org/licenses/gpl-3.0.html
 
