@@ -19,10 +19,10 @@ criteria_mc.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTD
 criteria_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
 	$(MAKE) -C GridWorld criteria_lstd_EB.tex && cp GridWorld/criteria_lstd_EB.pdf ./criteria_lstd_EB.pdf
 
-export CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
-export LFLAGS=`pkg-config --libs gsl` -lm -g
+export CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
+export LFLAGS=`pkg-config --libs gsl` -lm -O3
 
-ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org
+ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org TaskTransfer.org
 
 HTML_FILES=$(ORG_CODE_FILES:.org=.html)
 
@@ -62,6 +62,15 @@ criteria.o: criteria.h criteria.c RL_Globals.h
 
 LSTDmu.o: LSTDmu.h LSTDmu.c greedy.h utils.h criteria.h LSPI.h
 	gcc -c $(CFLAGS) LSTDmu.c
+
+TT_polytope.o: TT_polytope.c TT_polytope.h TT_Globals.h
+	gcc -c $(CFLAGS) TT_polytope.c
+
+TaskTransfer.o: TaskTransfer.c TT_polytope.h TT_Globals.h
+	gcc -c $(CFLAGS) TaskTransfer.c
+
+TaskTransfer.exe: TaskTransfer.o TT_polytope.o
+	$(MAKE) -C GridWorld TaskTransfer.exe
 
 clean:
 	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\

@@ -175,6 +175,184 @@ clean_both_error.dat: clean_criteria_mc_samples.dat clean_criteria_lstd.dat
 ErrorBars: 
 	../../Utils/ErrorBars.py
     #+end_src
+
+** Task Transfer
+*** Description
+    #+begin_src c :tangle TaskTransfer.c :main no
+#include <gsl/gsl_matrix.h>
+#include "TT_polytope.h"
+#include "TaskTransfer.h"
+    #+end_src
+    
+    We are trying to infer the reward from two different optimal behaviors.
+    
+    The World is a 2x2 grid world. Both agents can chose among the same set of actions.
+    #+begin_src c :tangle TaskTransfer.c :main no
+unsigned int g_iNb_actions = 4; //0 is up, 1 is right, 2 is down and 3 is left
+unsigned int g_iN = 4; //There are 4 cells, numbered from 0 to 4 in the reading order
+    #+end_src
+
+    We chose a $\gamma$ of 0.9, it does not really matter.
+    #+begin_src c :tangle TaskTransfer.c :main no
+double g_dGamma_tt = 0.9;
+    #+end_src
+
+    The transition probabilties matrices are painful but straightforward to write
+    #+begin_src c :tangle TaskTransfer.c :main no
+gsl_matrix* g_mP_pi;
+
+void init_Pi_1(){
+  g_mP_pi = gsl_matrix_alloc( 4, 4 ); //Probabilties for an agent whose policy is
+  //0 <->RIGHT, 1<->RIGHT, 2 <-> UP, 3 <->UP 
+  gsl_matrix_set( g_mP_pi, 0, 0, 0 ); 
+  gsl_matrix_set( g_mP_pi, 0, 1, 1 );
+  gsl_matrix_set( g_mP_pi, 0, 2, 0 );
+  gsl_matrix_set( g_mP_pi, 0, 3, 0 );
+  gsl_matrix_set( g_mP_pi, 1, 0, 0 ); 
+  gsl_matrix_set( g_mP_pi, 1, 1, 1 );
+  gsl_matrix_set( g_mP_pi, 1, 2, 0 );
+  gsl_matrix_set( g_mP_pi, 1, 3, 0 );
+  gsl_matrix_set( g_mP_pi, 2, 0, 1 ); 
+  gsl_matrix_set( g_mP_pi, 2, 1, 0 );
+  gsl_matrix_set( g_mP_pi, 2, 2, 0 );
+  gsl_matrix_set( g_mP_pi, 2, 3, 0 );
+  gsl_matrix_set( g_mP_pi, 3, 0, 0 ); 
+  gsl_matrix_set( g_mP_pi, 3, 1, 1 );
+  gsl_matrix_set( g_mP_pi, 3, 2, 0 );
+  gsl_matrix_set( g_mP_pi, 3, 3, 0 );
+  
+}
+
+void init_Pi_2(){
+  g_mP_pi = gsl_matrix_alloc( 4, 4 ); //Probabilties for an agent whose policy is
+  //0 <->RIGHT, 1<->RIGHT, 2 <-> RIGHT, 3 <->UP 
+  gsl_matrix_set( g_mP_pi, 0, 0, 0 ); 
+  gsl_matrix_set( g_mP_pi, 0, 1, 1 );
+  gsl_matrix_set( g_mP_pi, 0, 2, 0 );
+  gsl_matrix_set( g_mP_pi, 0, 3, 0 );
+  gsl_matrix_set( g_mP_pi, 1, 0, 0 ); 
+  gsl_matrix_set( g_mP_pi, 1, 1, 1 );
+  gsl_matrix_set( g_mP_pi, 1, 2, 0 );
+  gsl_matrix_set( g_mP_pi, 1, 3, 0 );
+  gsl_matrix_set( g_mP_pi, 2, 0, 0 ); 
+  gsl_matrix_set( g_mP_pi, 2, 1, 0 );
+  gsl_matrix_set( g_mP_pi, 2, 2, 0 );
+  gsl_matrix_set( g_mP_pi, 2, 3, 1 );
+  gsl_matrix_set( g_mP_pi, 3, 0, 0 ); 
+  gsl_matrix_set( g_mP_pi, 3, 1, 1 );
+  gsl_matrix_set( g_mP_pi, 3, 2, 0 );
+  gsl_matrix_set( g_mP_pi, 3, 3, 0 );
+  
+}
+
+gsl_matrix** g_aP;
+
+void init_Pa(){
+  g_aP = malloc( 4*sizeof( *g_aP ) );
+
+  g_aP[0] = gsl_matrix_alloc( 4, 4 ); //Probabilties for action UP
+  gsl_matrix_set( g_aP[0], 0, 0, 1 ); 
+  gsl_matrix_set( g_aP[0], 0, 1, 0 );
+  gsl_matrix_set( g_aP[0], 0, 2, 0 );
+  gsl_matrix_set( g_aP[0], 0, 3, 0 );
+  gsl_matrix_set( g_aP[0], 1, 0, 0 ); 
+  gsl_matrix_set( g_aP[0], 1, 1, 1 );
+  gsl_matrix_set( g_aP[0], 1, 2, 0 );
+  gsl_matrix_set( g_aP[0], 1, 3, 0 );
+  gsl_matrix_set( g_aP[0], 2, 0, 1 ); 
+  gsl_matrix_set( g_aP[0], 2, 1, 0 );
+  gsl_matrix_set( g_aP[0], 2, 2, 0 );
+  gsl_matrix_set( g_aP[0], 2, 3, 0 );
+  gsl_matrix_set( g_aP[0], 3, 0, 0 ); 
+  gsl_matrix_set( g_aP[0], 3, 1, 1 );
+  gsl_matrix_set( g_aP[0], 3, 2, 0 );
+  gsl_matrix_set( g_aP[0], 3, 3, 0 );
+
+  g_aP[1] = gsl_matrix_alloc( 4, 4 ); //Probabilties for action RIGHT
+  gsl_matrix_set( g_aP[1], 0, 0, 0 ); 
+  gsl_matrix_set( g_aP[1], 0, 1, 1 );
+  gsl_matrix_set( g_aP[1], 0, 2, 0 );
+  gsl_matrix_set( g_aP[1], 0, 3, 0 );
+  gsl_matrix_set( g_aP[1], 1, 0, 0 ); 
+  gsl_matrix_set( g_aP[1], 1, 1, 1 );
+  gsl_matrix_set( g_aP[1], 1, 2, 0 );
+  gsl_matrix_set( g_aP[1], 1, 3, 0 );
+  gsl_matrix_set( g_aP[1], 2, 0, 0 ); 
+  gsl_matrix_set( g_aP[1], 2, 1, 0 );
+  gsl_matrix_set( g_aP[1], 2, 2, 0 );
+  gsl_matrix_set( g_aP[1], 2, 3, 1 );
+  gsl_matrix_set( g_aP[1], 3, 0, 0 ); 
+  gsl_matrix_set( g_aP[1], 3, 1, 0 );
+  gsl_matrix_set( g_aP[1], 3, 2, 0 );
+  gsl_matrix_set( g_aP[1], 3, 3, 1 );
+
+  g_aP[2] = gsl_matrix_alloc( 4, 4 ); //Probabilties for action DOWN
+  gsl_matrix_set( g_aP[2], 0, 0, 0 ); 
+  gsl_matrix_set( g_aP[2], 0, 1, 0 );
+  gsl_matrix_set( g_aP[2], 0, 2, 1 );
+  gsl_matrix_set( g_aP[2], 0, 3, 0 );
+  gsl_matrix_set( g_aP[2], 1, 0, 0 ); 
+  gsl_matrix_set( g_aP[2], 1, 1, 0 );
+  gsl_matrix_set( g_aP[2], 1, 2, 0 );
+  gsl_matrix_set( g_aP[2], 1, 3, 1 );
+  gsl_matrix_set( g_aP[2], 2, 0, 0 ); 
+  gsl_matrix_set( g_aP[2], 2, 1, 0 );
+  gsl_matrix_set( g_aP[2], 2, 2, 1 );
+  gsl_matrix_set( g_aP[2], 2, 3, 0 );
+  gsl_matrix_set( g_aP[2], 3, 0, 0 ); 
+  gsl_matrix_set( g_aP[2], 3, 1, 0 );
+  gsl_matrix_set( g_aP[2], 3, 2, 0 );
+  gsl_matrix_set( g_aP[2], 3, 3, 1 );
+
+  g_aP[3] = gsl_matrix_alloc( 4, 4 ); //Probabilties for action LEFT
+  gsl_matrix_set( g_aP[3], 0, 0, 1 ); 
+  gsl_matrix_set( g_aP[3], 0, 1, 0 );
+  gsl_matrix_set( g_aP[3], 0, 2, 0 );
+  gsl_matrix_set( g_aP[3], 0, 3, 0 );
+  gsl_matrix_set( g_aP[3], 1, 0, 1 ); 
+  gsl_matrix_set( g_aP[3], 1, 1, 0 );
+  gsl_matrix_set( g_aP[3], 1, 2, 0 );
+  gsl_matrix_set( g_aP[3], 1, 3, 0 );
+  gsl_matrix_set( g_aP[3], 2, 0, 0 ); 
+  gsl_matrix_set( g_aP[3], 2, 1, 0 );
+  gsl_matrix_set( g_aP[3], 2, 2, 1 );
+  gsl_matrix_set( g_aP[3], 2, 3, 0 );
+  gsl_matrix_set( g_aP[3], 3, 0, 0 ); 
+  gsl_matrix_set( g_aP[3], 3, 1, 0 );
+  gsl_matrix_set( g_aP[3], 3, 2, 1 );
+  gsl_matrix_set( g_aP[3], 3, 3, 0 );
+}
+    #+end_src
+   
+    We can now initialize the polytope and run the algorithm with the constraints of the first agent :
+    #+begin_src c :tangle TaskTransfer.c :main no
+int main( void){
+  init_Pa();
+  init_Pi_1();
+  tt_polytope* p = reward_shaping_simplex( g_iN );
+  reward_mapping( p );
+    #+end_src
+
+    And then with the constraints of the second agent
+    #+begin_src c :tangle TaskTransfer.c :main no
+init_Pi_2();
+reward_mapping( p );
+return 0;
+}
+    #+end_src
+*** Technical stuff
+**** Compilation
+    #+begin_src makefile :tangle Makefile
+TaskTransfer.o: TaskTransfer.c
+	gcc -c $(CFLAGS) TaskTransfer.c
+
+TaskTransfer.exe: TaskTransfer.o ../TaskTransfer.o ../TT_polytope.o
+	gcc -o TaskTransfer.exe $(LFLAGS) TaskTransfer.o ../TaskTransfer.o ../TT_polytope.o
+
+    #+end_src
+
+
+   
 * Miscellaneous
 ** Org files
   The .org files containing both some code and its documentation are :

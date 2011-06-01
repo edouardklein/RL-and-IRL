@@ -14,7 +14,7 @@ emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
 
   The graphs are based on the application of different algorithms on toy problems. Each toy problem lives in its sub directory. The sub-directories are :
 
-  #+begin_src make :tangle Makefile
+  #+begin_src makefile :tangle Makefile
 SUB_DIRS=ChainWalk GridWorld InvertedPendulum
   #+end_src
 
@@ -27,7 +27,7 @@ SUB_DIRS=ChainWalk GridWorld InvertedPendulum
 #+end_src
    
    This triggers the following :
-    #+begin_src make :tangle Makefile
+    #+begin_src makefile :tangle Makefile
 lagoudakis2003least_figure10.pdf: LSPI.o LSTDQ.o utils.o greedy.o
 	$(MAKE) -C ChainWalk lagoudakis2003least_figure10.pdf && cp ChainWalk/lagoudakis2003least_figure10.pdf ./
     #+end_src
@@ -44,7 +44,7 @@ lagoudakis2003least_figure10.pdf: LSPI.o LSTDQ.o utils.o greedy.o
     
     The PDF files do not include any text. To view the whole figure, you have to compile the .tex files.
    
-    #+begin_src make :tangle Makefile
+    #+begin_src makefile :tangle Makefile
 both_error_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
 	$(MAKE) -C GridWorld both_error_EB.tex && cp GridWorld/both_error_EB.pdf ./both_error_EB.pdf
 
@@ -66,12 +66,12 @@ criteria_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o
 ** Compilation flags
   C code is compiled with
   
-    #+begin_src make :tangle Makefile
-export CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
-export LFLAGS=`pkg-config --libs gsl` -lm -g
+    #+begin_src makefile :tangle Makefile
+export CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
+export LFLAGS=`pkg-config --libs gsl` -lm -O3
     #+end_src
 ** Cleaning
-    #+begin_src makefile :tangle Makefile
+    #+begin_src makefilefile :tangle Makefile
 clean:
 	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
@@ -103,8 +103,8 @@ clean:
   I use [[http://orgmode.org/][org-mode]] to write my code.
 
   The .org files containing both some code and its documentation are :
-  #+begin_src make :tangle Makefile
-ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org
+  #+begin_src makefile :tangle Makefile
+ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org TaskTransfer.org
   #+end_src
 
 ** Documentation
@@ -115,7 +115,7 @@ ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWa
    #+end_src
 
    which triggers the following rules :
-    #+begin_src make :tangle Makefile
+    #+begin_src makefile :tangle Makefile
 HTML_FILES=$(ORG_CODE_FILES:.org=.html)
 
 doc: $(HTML_FILES)
@@ -130,7 +130,7 @@ doc: $(HTML_FILES)
 ** Code extraction
 
    The code embedded in the .org can be tangled.
-    #+begin_src make :tangle Makefile
+    #+begin_src makefile :tangle Makefile
 code:$(ORG_CODE_FILES)
 	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir code ; done &&\
@@ -138,7 +138,7 @@ code:$(ORG_CODE_FILES)
     #+end_src
 * Common object files
   Some code is shared amongst some of the executables.
-    #+begin_src make :tangle Makefile
+    #+begin_src makefile :tangle Makefile
 OBJECT_FILES=LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o criteria.o LSTDmu.o
 obj:$(OBJECT_FILES)
 
@@ -162,4 +162,15 @@ criteria.o: criteria.h criteria.c RL_Globals.h
 
 LSTDmu.o: LSTDmu.h LSTDmu.c greedy.h utils.h criteria.h LSPI.h
 	gcc -c $(CFLAGS) LSTDmu.c
+
+TT_polytope.o: TT_polytope.c TT_polytope.h TT_Globals.h
+	gcc -c $(CFLAGS) TT_polytope.c
+
+TaskTransfer.o: TaskTransfer.c TT_polytope.h TT_Globals.h
+	gcc -c $(CFLAGS) TaskTransfer.c
+    #+end_src
+* TODO Clean this
+    #+begin_src makefile :tangle Makefile
+TaskTransfer.exe: TaskTransfer.o TT_polytope.o
+	$(MAKE) -C GridWorld TaskTransfer.exe
     #+end_src

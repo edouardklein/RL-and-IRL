@@ -1,0 +1,788 @@
+#+TITLE: Task Transfer on the GridWorld
+* Mapping behaviors and rewards
+  
+  Let $S$ be the state space, let $A$ be the action space, let $\mathbf{R}:s\rightarrow \mathbb{R}$ be a reward and let $\pi:S\rightarrow A' \in A$ be a policy or a behavior.
+
+  In the GridWorld : 
+  - $S=\{1,2,3,4\}$ a number for each cell, in the reading order.
+  - $A=\{1,2,3,4,5,6,7,8\}$, the first four are the 4 compass directions, starting from 1 is north and going clockwise. The last four are the diagonal direction, starting from 5 is northeast and going clockwise.
+  - The Rook is an agent implementing a policy from $S$ to $\{1,2,3,4\}$
+  - The Queen is an agant implementing a policy from $S$ to $A$
+  - The reward to be optimized is $[0,1,0,0]$
+  - The optimal poliy picked by the first Rook is : $1\rightarrow 2, 2 \rightarrow whatever, 3 \rightarrow 1, 4 \rightarrow 1$.
+  - The optimal poliy picked by the second Rook is : $1\rightarrow 2, 2 \rightarrow whatever, 3 \rightarrow 2, 4 \rightarrow 1$.
+  - The goal is to deduce the reward from these to behavior and deduce that the optimal policy for the Queen is $1\rightarrow 2, 2 \rightarrow whatever, 3 \rightarrow 5, 4 \rightarrow 1$.
+
+** Reward shaping
+
+   A reward an be scaled without changing its corresponding optimal policies. 
+
+   Therefore, the space of all rewards $R$ can be reduced to a hypersurface englobing the origin. For example, one can use the unit sphere or the unit cube.
+
+   Adding the same value to all the component of a reward does not change the set of corresponding optimal policies. This is a translation of vector $\lambda [1,1,1,\dots,1]$.
+
+   Therefore, the forementioned hypersurface can be reduced by half, cutting in the middle with the hyperplane perpendicular to the vector $[1,1,\dots,1]$.
+
+   The null reward is not interesting as it admits every policy as an optimal one.
+
+   Having exhausted all the obvious reward shaping methods, we begin the analysis with a reward space reduced to a hypersurface that can be ununiformly scaled to the unit hemisphere whose the vector [1,1,\dots,1]$ is the center pillar, with the $\lambda [1,1,\dots,1]$ point removed.
+
+   One such hypersurface is for example the simplex defined by $[1,1,\dots,1]$, $[-(n-1),1,\dots,1]$,$[1,-(n-1),\dots,1]$,$\dots$,$[1,1,\dots,-(n-1)]$, where $n$ is the dimension of the reward space, i.e. the cardinal of $S$.
+
+** Reward mapping
+
+   In \cite{ng2000algorithms}, we are given a superb necessary and sufficient condition for a reward to be /compatible/ with a given policy, that is to say, for this given policy to be optimal with respect for the reward.
+
+   For every action $a$ the agent had the possibility to take, the following matrix inequality must be met : 
+   \begin{equation}
+   \label{ng2000algorithms.eqn}
+   (P_{a}-P_\pi)(I-\gamma P_{a})^{-1}R\geq 0
+   \end{equation}
+
+   Each line of the $(P_{a}-P_\pi)(I-\gamma P_{a})^{-1}$ matrix defines a vector $v$, which in turn defines a hyperplane. For a policy to be compatible with the behavior, it has to be on the same side of the hyperplane as the vector $v$. As the top of the simplex, the point $[1,1,\dots,1]$ is compatible with every behavior, it can not be excluded by such an hyperplane.
+
+   The ridgepole of the tent is the $\lamba$ point. The pegs of the tent are the base points. The edges from the base points to the $\lambda$ point are the poles of the tent. We are interested in the shape of the sheets of the tent.
+
+   The simplex we begin with will be eaten by the successive hyperplanes, and we must keep track of what remains. As every hyperplane contains the origin, to keep track of the shape of the sheets, we must keep track of the length of the poles, and the path between every pair of base points.
+
+   The following iterative algorithm should be able to output the polytope on the surface of which (the base is excluded) the reward the agent optimizes lies.
+
+   - Initialize with the simplex from the [[Reward Shaping]]
+   - For every action the agent is able to take, compute the constraints matrix : $(P_{a}-P_\pi)(I-\gamma P_{a})^{-1}$ 
+     - For every hyperplane defined by a line of the constraints matrix
+       - For every basepoint
+	 - If the basepoint lies in the "bad" side of the hyperplane
+	   - Redefine this basepoint so that is is on the hyperplane
+       - For every couple of basepoints $(b_1,b_2)$
+	 - If both $b_1$ and $b_2$ have been redefined during this iteration
+	   - redefine the path between $b_1$ and $b_2$ as $[b_1,b_2]$
+	 - If $b_1$ xor $b_2$ has been redefined during this iteration
+	   - Find the segment that has one point on the good side and one point on the bad side
+	   - Compute the common point between this segment and the hyperplane
+	   - Replace this segment by the segment [point on the good side, common point]
+	   - Replace every segment that was on the bad side by the segment from the common point to the new value of the base point
+	 - If neither $b_1$ nor $b_2$ was redefined during this iteration
+	   - find the two segments that have one point in the bad side and one point in the good side
+	   - If they exist
+	     - Compute the common points between both segments and the hyperplane
+	     - Replace both segments by the segments that go from the points that were on the good side to their respective common points
+	     - Replace all the segments on the bad side of the hyperplane by the segment between the two common points
+
+		 
+   We then end up with a polytope whose "sheets" contains all the rewards that could possibly explain the observed behavior.
+
+** Reward selecting
+
+   The task of selecting a reward is tricky. Previous methods (see in particular \cite{neu2009training}) will probably end up at different places in the simplex.
+
+   It could be a good idea to explore the summits of the bottom of the tent (i.e. the bas points and the paths in between).
+
+   Is it possible to analyse the edges at low cost (recall that only one parameter is moving at a time) ?
+
+* GridWorld example
+* C code
+   #+begin_src c :tangle TaskTransfer.c :main no
+#include <string.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_linalg.h>
+#include "TT_polytope.h"
+#include "TT_Globals.h"
+   #+end_src
+
+** Data structure
+   We define a data structure to store the polytope
+   #+begin_src c :tangle TT_polytope.h :main no
+struct tt_polytope {
+   #+end_src
+   - It contains a $(n+1) \times n$ matrix containing the base points in its $n$ first lines and the $\lambda$ point in its last line 
+     #+begin_src c :tangle TT_polytope.h :main no
+    gsl_matrix* points; 
+     #+end_src
+   - an array of length $n$ to store wether a base point has been recently redefined.
+     #+begin_src c :tangle TT_polytope.h :main no
+  char* redefined;
+     #+end_src
+   - a $n \times n$ array of matrix whose element $i \times j$ is the path from base point $i$ to base point $j$ if $i$<$j$, NULL otherwise. The element $i,j$ of the array is a matrix containing all the points of the path from $b_i$ to $b_j$, in this order, including $b_i$ and $b_j$. One point per row.
+     #+begin_src c :tangle TT_polytope.h :main no
+gsl_matrix*** path;
+     #+end_src
+   - a $n \times n$ array of integers, whose element $i \times j$ is the index of the last point in the element $i \times j$ of the paths array.
+     #+begin_src c :tangle TT_polytope.h :main no
+unsigned int** path_length;
+     #+end_src
+   - a $n \times n$ array of integers, whose element $i \times j$ is the size of the  element $i \times j$ of the paths array.
+      #+begin_src c :tangle TT_polytope.h :main no
+unsigned int** path_size;
+};
+
+typedef struct tt_polytope tt_polytope;
+tt_polytope* reward_shaping_simplex( unsigned int n );
+void tt_polytope_add_point_to_path( tt_polytope* ttp, unsigned int i, unsigned int j,
+				    gsl_matrix* point );
+     #+end_src
+     
+
+   This data structure can be initialized for a space of dimension $n$ via 
+   #+begin_src c :tangle TT_polytope.c :main no
+#include <gsl/gsl_matrix.h>
+#include "TT_polytope.h"
+#include "TT_Globals.h"
+
+tt_polytope* reward_shaping_simplex( unsigned int n ){
+  tt_polytope* answer = malloc( sizeof(*answer) );
+  answer->points = gsl_matrix_calloc( n+1, n );
+  for(unsigned int j = 0 ; j<n ;j++){
+    gsl_matrix_set( answer->points, n, j, 1 );
+  }
+  for( unsigned int i = 0 ; i < n ; i++ ){
+    for( unsigned int j=0; j<n ; j++ ){
+      if( j==i ){
+	gsl_matrix_set(answer->points, i, j, -((double)(n-1)) );
+      }else{
+	gsl_matrix_set( answer->points, i, j, 1 );
+      }
+    }
+  }
+  gsl_matrix** mem = calloc( n*n, sizeof( *(answer->path) ) );
+  answer->path = malloc( n*sizeof(*(answer->path)));
+  for( unsigned int i = 0 ; i<n ; i++ ){
+    answer->path[i] = &(mem[i*n]);
+  } 
+  unsigned int* mem2 = calloc( n*n, sizeof( *(answer->path_length) ) );
+  answer->path_length = malloc( n*sizeof(*(answer->path_length)));
+  for( unsigned int i = 0 ; i<n ; i++ ){
+    answer->path_length[i] = &(mem2[i*n]);
+  } 
+  mem2 = calloc( n*n, sizeof( *(answer->path_size) ) );
+  answer->path_size = malloc( n*sizeof(*(answer->path_size)));
+  for( unsigned int i = 0 ; i<n ; i++ ){
+    answer->path_size[i] = &(mem2[i*n]);
+  } 
+  for( unsigned int i = 0; i<n ; i++ ){
+    for( unsigned int j = i+1; j<n; j++ ){
+      answer->path[i][j] = gsl_matrix_alloc( 2, n );
+      answer->path_length[i][j] = 1;
+      answer->path_size[i][j] = 2;
+      gsl_matrix_view b1_src = gsl_matrix_submatrix( answer->points, i, 0, 1, n );
+      gsl_matrix_view b2_src = gsl_matrix_submatrix( answer->points, j, 0, 1, n );
+      gsl_matrix_view b1_dst = gsl_matrix_submatrix( answer->path[i][j], 0, 0, 1, n );
+      gsl_matrix_view b2_dst = gsl_matrix_submatrix( answer->path[i][j], 1, 0, 1, n );
+      gsl_matrix_memcpy( &b1_dst.matrix, &b1_src.matrix );
+      gsl_matrix_memcpy( &b2_dst.matrix, &b2_src.matrix );
+    }
+  }
+  answer->redefined = calloc( n, sizeof( *answer->redefined) );
+  return answer;
+}
+
+   #+end_src
+
+   A point can be added (it will be copied) to the path between to baspoints $i$ and $j$ ($i$<$j$) by 
+   #+begin_src c :tangle TT_polytope.c :main no
+void tt_polytope_add_point_to_path( tt_polytope* ttp, unsigned int i, unsigned int j,
+				    gsl_matrix* point ){
+  ttp->path_length[i][j]++;
+  if( ttp->path_length[i][j] == ttp->path_size[i][j] ){
+    gsl_matrix* new_path = gsl_matrix_alloc( ttp->path[i][j]->size1+1, 
+					     ttp->path[i][j]->size2 );
+    gsl_matrix_view v_path = gsl_matrix_submatrix( new_path, 0, 0, 
+						   ttp->path[i][j]->size1,  
+						   ttp->path[i][j]->size2 );
+    gsl_matrix_memcpy( &v_path.matrix, ttp->path[i][j] );
+    gsl_matrix_free(ttp->path[i][j] );
+    ttp->path[i][j] = new_path;
+    ttp->path_size[i][j]++;
+  }
+  gsl_matrix_view point_dst = 
+    gsl_matrix_submatrix( ttp->path[i][j], ttp->path_length[i][j], 0, 1, g_iN );
+  gsl_matrix_memcpy( &point_dst.matrix, point );
+}
+   #+end_src
+
+
+** Global variables
+   Before calling the reward mapping algorithm, some global variables need a value :
+   - Actions are indexed by integers, from 0 upwards. This is the number of actions.
+     #+begin_src c :tangle TT_Globals.h :main no
+extern unsigned int g_iNb_actions;
+     #+end_src
+   - $n$, the dimension of the reward space, or the cardinal of $S$ :
+      #+begin_src c :tangle TT_Globals.h :main no
+ extern unsigned int g_iN;
+      #+end_src
+   - $P_\pi$ matrix : transition probabilities when following policy $\pi$
+     #+begin_src c :tangle TT_Globals.h :main no
+extern gsl_matrix* g_mP_pi;
+     #+end_src
+   - An array of matrix, matrix at index $i$ is $P_i$ transition probabilities when choosing action $i$
+     #+begin_src c :tangle TT_Globals.h :main no
+extern gsl_matrix** g_aP;
+     #+end_src
+   - The discount factor, $gamma$
+     #+begin_src c :tangle TT_Globals.h :main no
+extern double g_dGamma_tt;
+     #+end_src
+
+** Reward mapping
+     #+begin_src c :tangle TaskTransfer.h :main no
+void reward_mapping(tt_polytope* answer);
+     #+end_src
+
+     #+begin_src c :tangle TaskTransfer.c :main no
+#define LOG( toto ) printf(toto);
+#define LOG_D( toto, titi ) printf(toto,titi);
+#define LOG_MATRIX( tab, M ) for( unsigned int i=0;i<M->size1;i++){for( unsigned int k=0;k<tab;k++){printf("\t");}for(unsigned int j=0;j<M->size2;j++){printf("%lf\t",gsl_matrix_get(M,i,j));}printf("\n");}
+     #+end_src
+
+
+   First, we need some helper functions :
+   - a function that check wether a point is on the side of an hyperplane the hyperplane's normal is pointing to
+     #+begin_src c :tangle TaskTransfer.c :main no
+//We check the relative position between the basepoint and the hyperplane thanks to
+//a dot product between the basepoints coordinates and the hyperplane normal vector
+double side_of_hyperplane( gsl_matrix* point, gsl_matrix* hyperplane ){
+  gsl_matrix* dot_product = gsl_matrix_alloc( 1, 1 );
+  gsl_blas_dgemm( CblasNoTrans, CblasTrans, 1., point, hyperplane, 0., dot_product);
+  double answer = gsl_matrix_get( dot_product, 0, 0 );
+  gsl_matrix_free( dot_product );
+  return answer;
+}
+     #+end_src
+   - a function that given two points and a hyperplane, returns the common point between the segment defined by the two points and the hyperplane
+     #+begin_src c :tangle TaskTransfer.c :main no
+//Finding the common point between a segment [p1,p2] and an hyperplane h:
+//Find the bearing vector of [p1,p2] : v = p2 - p1
+//the point p we are looking for is so that
+//h.p = 0 (it lies on the hyperplane)
+//there exists a t such as p = b1+t*v (it lies on the segment)
+//So we solve
+//h.(p1+t*v)=0
+//h.p1 + h.t*v = 0
+//t*h.v = - h.p1
+//t=-h.p1/h.v
+//and so, p = p1 -(h.p1/h.v)*v
+gsl_matrix* segment_hyperplane_common_point( gsl_matrix* p1, gsl_matrix* p2, 
+					     gsl_matrix* h ){
+//LOG("***p1 is \n");
+//LOG_MATRIX(0,p1);
+//LOG("***p2 is \n");
+//LOG_MATRIX(0,p2);
+//LOG("***h is \n");
+//LOG_MATRIX(0,h);
+
+  gsl_matrix* v = gsl_matrix_alloc( 1, g_iN );
+  gsl_matrix_memcpy( v, p2 );
+  gsl_matrix_sub( v, p1 );
+//LOG("***v is \n");
+//LOG_MATRIX(0,v);
+  gsl_matrix* dot_product = gsl_matrix_alloc( 1, 1 );
+  gsl_blas_dgemm( CblasNoTrans, CblasTrans, 1., p1, h, 0., dot_product);
+  double scale = gsl_matrix_get( dot_product, 0, 0 );
+  gsl_blas_dgemm( CblasNoTrans, CblasTrans, 1., v, h, 0., dot_product);
+  scale /= gsl_matrix_get( dot_product, 0, 0 );
+  gsl_matrix_scale( v, scale );
+//LOG("***v is \n");
+//LOG_MATRIX(0,v);
+  gsl_matrix* answer = gsl_matrix_alloc( 1, g_iN );
+  gsl_matrix_memcpy( answer, p1 );
+  gsl_matrix_sub( answer, v );
+  gsl_matrix_free( v );
+  gsl_matrix_free( dot_product );
+//LOG("***answer is \n");
+//LOG_MATRIX(0,answer);
+  return answer;
+}
+     #+end_src
+
+
+
+#+begin_src c :tangle TaskTransfer.c :main no
+void reward_mapping(tt_polytope* answer){
+ #+end_src
+   - For every action the agent is able to take, compute the constraints matrix : $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$ 
+     #+begin_src c :tangle TaskTransfer.c :main no
+for( unsigned int i = 0; i<g_iNb_actions; i++ ){
+  LOG_D("Action %d\n",i);
+  gsl_matrix* m_Pa = g_aP[i];
+  gsl_matrix* m_tmp = gsl_matrix_alloc( g_iN, g_iN );
+  gsl_matrix_memcpy( m_tmp, g_mP_pi );
+  gsl_matrix_sub( m_tmp, m_Pa ); //tmp = P_pi - P_a
+  LOG("P_pi is\n");
+  LOG_MATRIX(0, g_mP_pi);
+  LOG("P_a is\n");
+  LOG_MATRIX(0, m_Pa);
+  LOG("P_pi - P_a is\n");
+  LOG_MATRIX(0, m_tmp);
+  gsl_matrix* m_Constraints = gsl_matrix_alloc( g_iN, g_iN );
+  gsl_matrix_memcpy( m_Constraints, g_mP_pi );
+  gsl_matrix_scale( m_Constraints, -g_dGamma_tt );
+  gsl_matrix* m_Id = gsl_matrix_alloc( g_iN, g_iN );
+  gsl_matrix_set_identity( m_Id );
+  gsl_matrix_add( m_Constraints, m_Id);
+  gsl_matrix* m_tmp2 = gsl_matrix_alloc( g_iN, g_iN );
+  gsl_permutation* perm = gsl_permutation_alloc( g_iN );
+  int signum;
+  gsl_linalg_LU_decomp( m_Constraints, perm, &signum );
+  gsl_linalg_LU_invert( m_Constraints, perm, m_tmp2 ); //tmp2 = (I-\gamma P_pi)^{-1}
+  gsl_blas_dgemm( CblasNoTrans, CblasNoTrans, 1., m_tmp2, m_tmp, 0., m_Constraints );
+  gsl_matrix_free( m_Id );
+  gsl_matrix_free( m_tmp);
+  gsl_matrix_free( m_tmp2);
+  gsl_permutation_free( perm );
+  LOG("Constraint matrix is \n");
+  LOG_MATRIX( 0,m_Constraints );
+
+     #+end_src
+     - For every hyperplane defined by a line of the constraints matrix
+       #+begin_src c :tangle TaskTransfer.c :main no
+for( unsigned int j = 0; j < m_Constraints->size1; j++){
+  LOG_D("\tHyperplane %d is\n",j);
+  gsl_matrix_view mv_hyperplane = 
+    gsl_matrix_submatrix( m_Constraints, j, 0, 1, m_Constraints->size2 );
+  gsl_matrix* m_Hyperplane = &mv_hyperplane.matrix;
+  LOG_MATRIX( 1,m_Hyperplane );
+gsl_vector_view vvv = gsl_matrix_row( m_Hyperplane, 0 );
+if( gsl_blas_dnrm2( &vvv.vector ) != 0 ){
+       #+end_src
+       - For every basepoint
+	 #+begin_src c :tangle TaskTransfer.c :main no
+for( unsigned int k = 0; k<g_iN; k++ ){
+  LOG_D("\t\tBasepoint %d is\n",k);
+  gsl_matrix_view mv_basepoint = gsl_matrix_submatrix( answer->points, k, 0, 1, g_iN );
+  gsl_matrix* m_Basepoint = &mv_basepoint.matrix;
+  LOG_MATRIX( 2,m_Basepoint );
+
+	 #+end_src
+	 - If the basepoint lies in the "bad" side of the hyperplane
+	   #+begin_src c :tangle TaskTransfer.c :main no 
+if( side_of_hyperplane( m_Basepoint, m_Hyperplane) < 0){
+LOG("\t\tIt lies on the bad side of the Hyperplane\n");
+	   #+end_src
+	   - Redefine this basepoint so that is is on the hyperplane
+	     #+begin_src c :tangle TaskTransfer.c :main no
+//We redefine the basepoint to the intersection between the hyperplane and the segment
+//[basepoint, lambda point[
+LOG("\t\t\tRedefining it to\n");
+gsl_matrix_view lambda_point = gsl_matrix_submatrix( answer->points, g_iN, 0, 1, g_iN );
+gsl_matrix* new_basepoint = 
+  segment_hyperplane_common_point( m_Basepoint, &lambda_point.matrix, m_Hyperplane );
+gsl_matrix_memcpy( m_Basepoint, new_basepoint );
+gsl_matrix_free( new_basepoint );
+answer->redefined[k] = 1;
+LOG_MATRIX( 3, m_Basepoint );
+}
+}
+
+	     #+end_src
+       - For every unordered couple of basepoints $(b_1,b_2)$
+	 #+begin_src c :tangle TaskTransfer.c :main no
+for( unsigned int l = 0; l < g_iN; l++){
+  for( unsigned int m = l+1; m < g_iN; m++){
+    LOG_D("\t\tFrom basepoint %d",l);
+    LOG_D(" to basepoint %d\n",m);
+    gsl_matrix_view b1 = gsl_matrix_submatrix( answer->points, l, 0, 1, g_iN );
+    gsl_matrix_view b2 = gsl_matrix_submatrix( answer->points, m, 0, 1, g_iN );
+    LOG_MATRIX( 2, (&b1.matrix));
+    LOG_MATRIX( 2, (&b2.matrix));
+	 #+end_src
+	 - If both $b_1$ and $b_2$ have been redefined during this iteration
+	   #+begin_src c :tangle TaskTransfer.c :main no
+if( answer->redefined[l] == 1 && answer->redefined[m] == 1 ){
+  LOG("\t\tBoth have been redefined\n");
+	   #+end_src
+	   - redefine the path between $b_1$ and $b_2$ as $[b_1,b_2]$
+	     #+begin_src c :tangle TaskTransfer.c :main no
+answer->path_length[i][j] = 1;
+gsl_matrix_view b1_dst = gsl_matrix_submatrix( answer->path[l][m], 0, 0, 1, g_iN );
+gsl_matrix_view b2_dst = gsl_matrix_submatrix( answer->path[l][m], 1, 0, 1, g_iN );
+gsl_matrix_memcpy( &b1_dst.matrix, &b1.matrix );
+gsl_matrix_memcpy( &b2_dst.matrix, &b2.matrix );
+	     #+end_src
+	 - If $b_1$ xor $b_2$ has been redefined during this iteration
+	   #+begin_src c :tangle TaskTransfer.c :main no
+}else if( answer->redefined[l] == 1 || answer->redefined[m] == 1 ){
+   LOG("\t\tOnly one of which have been redefined\n");
+
+	   #+end_src
+	   - Find the segment that has one point on the good side and one point on the bad side
+	     #+begin_src c :tangle TaskTransfer.c :main no
+LOG("\t\t\tFinding the segment that crosses the hyperplane\n");
+unsigned int begin_i;
+unsigned int end_i;
+gsl_matrix_view begin_v;
+gsl_matrix_view end_v;
+double begin_side;
+double end_side;
+for( begin_i=0,end_i=1; end_i <= answer->path_length[l][m] ; begin_i++,end_i++){
+  LOG_D("\t\t\tBeginning : %d",begin_i);
+  LOG_D(" end : %d\n",end_i);
+  begin_v = gsl_matrix_submatrix( answer->path[l][m], begin_i, 0, 1, g_iN);
+  end_v = gsl_matrix_submatrix( answer->path[l][m], end_i, 0, 1, g_iN);
+  LOG_MATRIX( 3, (&begin_v.matrix) );
+  LOG_MATRIX( 3, (&end_v.matrix) );
+  begin_side = side_of_hyperplane( &begin_v.matrix, m_Hyperplane );
+  end_side = side_of_hyperplane( &end_v.matrix, m_Hyperplane );
+  if( (begin_side >= 0 && end_side < 0) || (begin_side < 0 && end_side >= 0)){
+    break;
+  }
+ }
+
+	     #+end_src
+	   - Compute the common point between this segment and the hyperplane
+	     #+begin_src c :tangle TaskTransfer.c :main no
+gsl_matrix* common = 
+  segment_hyperplane_common_point( &begin_v.matrix, &end_v.matrix, m_Hyperplane);
+LOG("\t\t\tCommon point is\n");
+LOG_MATRIX(3,common);
+             #+end_src	     
+	   - Replace this segment by the segment [point on the good side, common point]
+	     #+begin_src c :tangle TaskTransfer.c :main no
+gsl_matrix_view common_dst;
+if( begin_side < 0 ){
+  common_dst = gsl_matrix_submatrix( answer->path[l][m], begin_i, 0, 1, g_iN );
+ } else {
+  common_dst = gsl_matrix_submatrix( answer->path[l][m], end_i, 0, 1, g_iN );
+ }
+gsl_matrix_memcpy( &common_dst.matrix, common );
+gsl_matrix_free( common );
+             #+end_src	     
+	   - Replace every segment that is on the bad side by the segment from the common point to the new value of the base point that has been redefined
+     	     #+begin_src c :tangle TaskTransfer.c :main no
+if( end_side < 0 ){ //Easy case, the points on the bad side are at the end of the matrix
+LOG( "\t\t\t(Easy case)\n");
+ if( end_i+1>answer->path_length[l][m] ){
+   tt_polytope_add_point_to_path( answer, l, m, &b2.matrix );
+ }else{
+   gsl_matrix_view basepoint_dst = 
+     gsl_matrix_submatrix( answer->path[l][m], end_i+1, 0, 1, g_iN );
+   gsl_matrix_memcpy( &basepoint_dst.matrix, &b2.matrix );
+   answer->path_length[l][m] = end_i+1;
+ }
+ }else{ //Tricky case, the points on the bad side are at the beginning of the matrix
+LOG( "\t\t\t(Tricky case)\n");
+  gsl_matrix_view basepoint_dst = 
+    gsl_matrix_submatrix( answer->path[l][m], 0, 0, 1, g_iN );
+  gsl_matrix_memcpy( &basepoint_dst.matrix, &b1.matrix );
+  for( unsigned int i = 0; begin_i + i <= answer->path_length[l][m] && begin_i != 0; i++ ){
+    gsl_matrix_view src = 
+      gsl_matrix_submatrix( answer->path[l][m], begin_i+i, 0, 1, g_iN );
+    gsl_matrix_view dst = 
+      gsl_matrix_submatrix( answer->path[l][m], 1+i, 0, 1, g_iN );
+    gsl_matrix_memcpy( &src.matrix, &dst.matrix );
+  }
+  answer->path_length[l][m] -= begin_i;
+ }
+LOG("\t\t\tPoint on the bad side has been replaced by the common point\n");
+LOG_MATRIX(3,(answer->path[l][m]));
+
+             #+end_src	     
+	 - If neither $b_1$ nor $b_2$ was redefined during this iteration
+	   #+begin_src c :tangle TaskTransfer.c :main no
+}else{
+LOG("\t\tNeither of which have been redefined\n");
+           #+end_src
+	   - find the two segments that have one point in the bad side and one point in the good side
+	     #+begin_src c :tangle TaskTransfer.c :main no
+unsigned int begin_i1;
+unsigned int end_i1;
+gsl_matrix_view begin_v1;
+gsl_matrix_view end_v1;
+unsigned int begin_i2;
+unsigned int end_i2;
+gsl_matrix_view begin_v2;
+gsl_matrix_view end_v2;
+char found1 = 0;
+double begin_side;
+double end_side;
+unsigned int begin_lv;
+unsigned int end_lv;
+for( begin_lv=0,end_lv=1; end_lv <= answer->path_length[l][m] ; begin_lv++,end_lv++){
+  if( !found1 ){
+    begin_v1 = gsl_matrix_submatrix( answer->path[l][m], begin_lv, 0, 1, g_iN);
+    end_v1 = gsl_matrix_submatrix( answer->path[l][m], end_lv, 0, 1, g_iN);
+    begin_i1 = begin_lv;
+    end_i1 = end_lv;
+    begin_side = side_of_hyperplane( &begin_v1.matrix, m_Hyperplane );
+    end_side = side_of_hyperplane( &end_v1.matrix, m_Hyperplane );
+  }else{
+    begin_v2 = gsl_matrix_submatrix( answer->path[l][m], begin_lv, 0, 1, g_iN);
+    end_v2 = gsl_matrix_submatrix( answer->path[l][m], end_lv, 0, 1, g_iN);
+    begin_i2 = begin_lv;
+    end_i2 = end_lv;
+    begin_side = side_of_hyperplane( &begin_v2.matrix, m_Hyperplane );
+    end_side = side_of_hyperplane( &end_v2.matrix, m_Hyperplane );
+  }
+  if( begin_side >= 0 && end_side < 0 ){
+    found1 = 1;
+  }
+  if( begin_side < 0 && end_side >= 0 ){
+    break;
+  }
+ }
+
+	     #+end_src
+	   - If they exist
+	     #+begin_src c :tangle TaskTransfer.c :main no
+if( found1 ){
+	     #+end_src
+	     - Compute the common points between both segments and the hyperplane
+	       #+begin_src c :tangle TaskTransfer.c :main no
+gsl_matrix* common1 = 
+  segment_hyperplane_common_point( &begin_v1.matrix, &end_v1.matrix, m_Hyperplane );
+gsl_matrix* common2 = 
+  segment_hyperplane_common_point( &begin_v2.matrix, &end_v2.matrix, m_Hyperplane );
+	       #+end_src
+	     - Replace both segments by the segments that go from the points that were on the good side to their respective common points
+     	       #+begin_src c :tangle TaskTransfer.c :main no
+unsigned int common2_i = begin_i2;
+if( end_i1 == begin_i2 ){//Things get tricky when there is only one point on the bad side
+  //We call the add function only because we want to let it handle all the dirty job
+  //of memory allocation if necessary, we don't really want to add a meaningful point at 
+  //the end
+  tt_polytope_add_point_to_path( answer, l, m, common1 );
+  for( unsigned int i = answer->path_length[l][m] ; i > begin_i2 ; i-- ){
+    gsl_matrix_view dst = 
+      gsl_matrix_submatrix( answer->path[l][m], i, 0, 1, g_iN );
+    gsl_matrix_view src = 
+      gsl_matrix_submatrix( answer->path[l][m], i-1, 0, 1, g_iN );
+    gsl_matrix_memcpy( &dst.matrix, &src.matrix );
+  }
+  common2_i  = begin_i2+1;
+}
+gsl_matrix_view common1_dst = 
+  gsl_matrix_submatrix( answer->path[l][m], end_i1, 0, 1, g_iN );
+gsl_matrix_view common2_dst = 
+  gsl_matrix_submatrix( answer->path[l][m], common2_i, 0, 1, g_iN );
+gsl_matrix_memcpy( &common1_dst.matrix, common1 );
+gsl_matrix_memcpy( &common2_dst.matrix, common2 );
+gsl_matrix_free( common1 );
+gsl_matrix_free( common2 );
+
+	       #+end_src
+	     - Replace all the segments on the bad side of the hyperplane by the segment between the two common points
+               #+begin_src c :tangle TaskTransfer.c :main no
+//We now just have to drop the points that were on the bad side
+if( end_i1 != begin_i2 ){
+  for( unsigned int i = 0 ; begin_i2 + i <= answer->path_length[l][m] ; i++ ){
+    gsl_matrix_view dst = 
+      gsl_matrix_submatrix( answer->path[l][m], end_i1+1+i, 0, 1, g_iN );
+    gsl_matrix_view src = 
+      gsl_matrix_submatrix( answer->path[l][m], begin_i2+i, 0, 1, g_iN );
+    gsl_matrix_memcpy( &dst.matrix, &src.matrix );
+  }
+  answer->path_length -= begin_i2 - end_i1 - 1;
+ }
+}//If they exist
+}//if neither...
+}//for every couple
+}//for every couple (two loops for one couple)
+}else{//Hyperplane is the null vector
+LOG("\t\tSkipping the null hyperplane\n");
+}
+memset( answer->redefined, 0, g_iN );
+}//for every hyperplane
+}//for every action
+LOG("Basepoints now are : \n");
+LOG_MATRIX(0, answer->points);
+LOG("Paths now are : \n");
+for( unsigned int l = 0; l < g_iN; l++){
+  for( unsigned int m = l+1; m < g_iN; m++){
+    LOG_D("\tFrom basepoint %d",l);
+    LOG_D(" to basepoint %d\n",m);
+    LOG_MATRIX( 2, (answer->path[l][m]));
+  }
+ }
+}
+
+	       #+end_src 
+
+
+* Trash
+   In the GridWorld, the matrix of points constituting the simplex is :
+
+   A strong feature of this simplex over other hypersurfaces is that its edges can be followed by changing only one parameter.
+  
+
+
+
+some trash code that I don't want to destroy
+	     #+begin_src c 
+//We redefine the basepoint to the intersection between the hyperplane and the segment
+//[basepoint, lambda point[
+//This is done by solving the equation of the hyperplane for the only parameter that
+//can change when going along the line between the lambda point and this particular
+//basepoint
+//Let $H=[h_1,\dots,h_n]$ be the vector of parameters that define the hyperplane
+//Let $k$ be the index of the coordinate that can change along the line between the lambda
+//point and the basepoint, and let $B=[b_1,\dots,b_n]$ be the coordinates of the basepoint
+//The new base point should be located so that :
+//$h_1\cdot b_1+\dots+h_n\cdot b_n = 0$
+//Which is solved by 
+//$b_k = {-h_1,\dots,-h_n \over h_k}$
+//as $\forall i\neq k, b_i = 1$.
+double new_b_k = 0;
+for( unsigned int ii = 0; ii<g_iN; ii++ ){
+  if( ii != k ){
+    new_b_k += gsl_matrix_get( m_Hyperplane, 0, ii );
+  }
+}
+new_b_k /= gsl_matrix_get( m_Hyperplane, 0, k );
+gsl_matrix_set( m_Basepoint, 0, k, new_b_k );
+answer->redefined[k] = 1;
+}
+}
+	     #+end_src
+   One can remove a point from the path between two basepoints using 
+   #+begin_src c 
+void tt_polytope_drop_point_from_path( tt_polytope* ttp, unsigned int i, unsigned int j,
+				       unsigned int point ){
+  for( unsigned int ii = point; ii < ttp->path_length[i][j]; ii++ ){
+    gsl_matrix_view dest = gsl_matrix_submatrix( ttp->path[i][j], ii, 0, 1, g_iN );
+    gsl_matrix_view src = gsl_matrix_submatrix( ttp->path[i][j], ii+1, 0, 1, g_iN );
+    gsl_matrix_memcpy( &dest.matrix, &src.matrix );
+  }
+  ttp->path_length[i][j]--;
+}
+   #+end_src
+
+
+	   - Set $p$ to the old value of the basepoint that has been redefined
+             #+begin_src c 
+	     #+end_src
+	   - For every point of the path between $b_1$ and $b_2$ excluded, starting from the one on the "bad" side of the hyperplane
+	     #+begin_src c 
+unsigned int start_i;
+unsigned int end_i;
+int inc;
+if( answer->redifined[m] ){ //Starting from b1
+  start_i = 0;
+  end_i = answer->answer->path_length+1;
+  inc = 1;
+ }else{ //Starting from b2
+  start_i = answer->answer->path_length;
+  end_i = -1;
+  inc = -1;
+ }
+char first = 1;
+gsl_matrix_view begin; //ing of the segment
+gsl_matrix_view end; //of the segment
+for( unsigned int ii = start_i; ii != end_i; ii+=inc ){
+  gsl_matrix_view p = gsl_matrix_subamtrix( answer->path[l][m], ii, 0, 1, g_iN );
+  if( first ){
+    end = p;
+    first = 0;
+  }else{
+    begin = end;
+    end = p;
+             #+end_src
+	     - If it is in the bad side
+	       #+begin_src c
+if( side_of_hyperplane( &end.matrix, m_Hyperplane) < 0){
+               #+end_src
+	       - set $p$ to it 
+	       - drop it from the path
+	     - If it is in the good side
+	       - compute the common point between the segment [this point, $p$] and the hyperplane
+		 #+begin_src c
+gsl_matrix* p = segment_hyperplane_common_point( &begin.matrix, &end.matrix, m_Hyperplane );
+		 #+end_src
+	       - add the segment [this point, common point]
+		 #+begin_src c
+tt_polytope_add_point_to_path( answer, l, m, p );
+		 #+end_src
+	       - add the segment [common point, basepoint that has been redefined]
+		 #+begin_src c
+tt_polytope_add_point_to_path( answer, l, m, &b2.matrix );
+		 #+end_src
+	       - break out of the for loop
+		 #+begin_src c
+gsl_matrix_free( p );
+break;
+}//If
+}//else
+}//For loop
+		 #+end_src
+
+
+
+	   - For every segment of the path between $b_1$ and $b_2$
+	     #+begin_src c
+char first = 1;
+gsl_matrix* p = NULL;
+gsl_matrix_view begin; //ing of the segment
+gsl_matrix_view end; //of the segment
+//We need two copies of the path, as we cannot both modify and loop over only one
+gsl_matrix* path_cpy = gsl_matrix_alloc( answer->path[l][m]->size1, 
+					 answer->path[l][m]->size2);
+gsl_matrix_memcpy( patch_cpy, answer->path[l][m] );
+unsigned int length = answer->path_length[l][m];
+//We will loop over path_cpy, adding points back as necessary in the original matrix
+//We thus wipe the original matrix out, except for the starting point
+answer->path_length[l][m] = 0;
+for( unsigned int ii = 0; ii <= length; ii++ ){
+  gsl_matrix_view p = gsl_matrix_submatrix( path_cpy, ii, 0, 1, g_iN );
+  if( first ){
+    end = p;
+    first = 0;
+  }else{
+    begin = end;
+    end = p;
+             #+end_src
+	     - If both ends are on the bad side of the hyperplane
+	       #+begin_src c 
+double begin_side = side_of_hyperplane( &begin.matrix, m_Hyperplane );
+double end_side = side_of_hyperplane( &end.matrix, m_Hyperplane );
+               #+end_src
+	       - drop the segment
+		 #+begin_src c
+//Nothing, we just don't copy it
+                 #+end_src
+	     - If only one end is on the bad side of the hyperplane
+	       #+begin_src c
+}else if( begin_side<0 || end_side <0){
+   gsl_matrix* good_side_point = gsl_matrix_alloc( 1, g_iN );
+   if( begin_side >= 0 ){
+     gsl_matrix_memcpy( good_side_point, &begin.matrix );
+   }else{
+     gsl_matrix_memcpy( good_side_point, &end.matrix );
+   }
+               #+end_src
+	       - drop the segment
+		 #+begin_src c
+//Nothing, we just don't copy it
+                 #+end_src
+	       - If $p$ is null
+		 #+begin_src c 
+if( P == NULL ){
+                 #+end_src
+		 - set $p$ to the common point between the segment and the hyperplane
+		   #+begin_src c
+P = segment_hyperplane_common_point( &begin.matrix, &end.matrix, m_Hyperplane );
+                   #+end_src
+		 - add the segment [point that was on the good side, $p$]
+		   #+begin_src c
+tt_polytope_add_point_to_path( answer, l, m, good_side_point );
+tt_polytope_add_point_to_path( answer, l, m, P );
+                   #+end_src
+	       - If $p$ is not null
+		 #+begin_src c
+}else{
+                 #+end_src
+		 - add the segment [$p$, common point between the segment and the hyperplane]
+		   #+begin_src c
+//P has already been added
+gsl_matrix* common_point = 
+  segment_hyperplane_common_point( &begin.matrix, &end.matrix, m_Hyperplane );
+tt_polytope_add_point_to_path( answer, l, m, common_point );
+gsl_matrix_free( common_point );
+                   #+end_src
+		 - add the segment [common point between the segment and the hyperplane, point that is on the good side]
+	           #+begin_src c
+tt_polytope_add_point_to_path( answer, l, m, good_side_point );
+                   #+end_src
+		 - set $p$ to null
+		   #+begin_src c
+gsl_matrix_free( P );
+P = NULL;
+                   #+end_src
