@@ -47,7 +47,7 @@
 
 \maketitle
 \begin{abstract}
- Ce papier traite le problème de l'apprentissage par imitation, c'est à dire la résolution du problème du contrôle optimal à partir de données tirées de démonstrations d'un expert. L'apprentissage par renforcement inverse (IRL) propose un cadre efficace pour résoudre ce problème. En se basant sur l'hypothèse que l'expert maximise une fonction de valeur,  l'IRL essaie d'apprendre la récompense qui définit cette dernière à partir de trajectoires d'exemple. Beaucoup d'algorithmes d'IRL font l'hypothèse de l'existence d'unn approximateur linéaire pour la fonction de récompense et calculent l'attribut moyen (le cumul moyen pondéré des fonctions de base, relatives à la paramétrisation linéaire supposée de la récompense, évaluées en les états d'une trajectoire associée à une certaine politique)  via une estimation de Monte-Carlo. Cela implique d'avoir accès à des trajectoires complètes de l'expert ainsi qu'à au moins un modèle génératif pour tester les politiques intermédiaires. Dans ce papier nous introduisons une méthode de différences temporelles, LSTD-$\mu$, pour calculer cet attribut moyen. Cela permet d'étendre l'apprentissage par imitation aux cas \emph{batch} et \emph{off-policy}.
+ Ce papier traite le problème de l'apprentissage par imitation, c'est à dire la résolution du problème du contrôle optimal à partir de données tirées de démonstrations d'un expert. L'apprentissage par renforcement inverse (IRL) propose un cadre efficace pour résoudre ce problème. En se basant sur l'hypothèse que l'expert maximise une fonction de valeur,  l'IRL essaie d'apprendre la récompense qui définit cette dernière à partir de trajectoires d'exemple. Beaucoup d'algorithmes d'IRL font l'hypothèse de l'existence d'un approximateur linéaire pour la fonction de récompense et calculent l'attribut moyen (le cumul moyen pondéré des fonctions de base, relatives à la paramétrisation linéaire supposée de la récompense, évaluées en les états d'une trajectoire associée à une certaine politique)  via une estimation de Monte-Carlo. Cela implique d'avoir accès à des trajectoires complètes de l'expert ainsi qu'à au moins un modèle génératif pour tester les politiques intermédiaires. Dans ce papier nous introduisons une méthode de différences temporelles, LSTD-$\mu$, pour calculer cet attribut moyen. Cela permet d'étendre l'apprentissage par imitation aux cas \emph{batch} et \emph{off-policy}.
 \end{abstract}
 \section{Introduction}
 
@@ -85,9 +85,7 @@ and approaches based on the parameterization of the policy by the
 reward function~\citep{ramachandran2007bayesian,neu2007apprenticeship}. The first family
 assumes a linearly parameterized reward function. This naturally
 leads to a linearly parameterized value function, the associated
-feature vector being the so-called feature expectation (defined as
-the cumulative discounted reward's feature vector under a given
-policy, see Section~\ref{sec:back} for a formal definition).
+feature vector being the so-called feature expectation (see Section~\ref{sec:back} for a formal definition).
 These approaches learn a reward function such that the feature
 expectation of the optimal policy (according to the learnt reward
 function) is close to the feature expectation of the expert policy.
@@ -100,7 +98,7 @@ last family parameterizes policies with a reward function. Assuming
 that the expert acts according to a Gibbs policy (respectively to
 the optimal value function related to the reward function which is
 optimized), it is possible to estimate the likelihood of a set of
-state-action pairs provided by the expert. The algorithms differs in
+state-action pairs provided by the expert. The algorithms differ in
 the way this likelihood is maximized.
 
 This paper focuses on the first family of algorithms, and more
@@ -117,9 +115,9 @@ expectations. It relaxes the preceding assumptions: transitions
 of the expert are sufficient (rather than full trajectories) and nor
 the model neither a simulator are necessary to compute intermediate
 feature expectations. This paper focuses on the algorithm introduced
-in~\citep{abbeel2004apprenticeship}, but we are confident that the proposed
-approach can be extended to other algorithms based on feature
-expectation computation~\citep{syed2008apprenticeship,syed2008game,ziebart2008maximum}, or even \citep{ratliff2006maximum,ratliff2007imitation,ratliff2007boosting}.
+in~\citep{abbeel2004apprenticeship}, but the proposed
+approach can be used in other algorithms based on feature
+expectation computation.
 
 The rest of this paper is organized as follows.
 Section~\ref{sec:back} provides the necessary background,
@@ -133,12 +131,12 @@ Section~\ref{sec:conclusion} opens perspectives.
 \section{Background}
 \label{sec:back}
 A sequential decision problem is often framed as a Markov Decision
-Process (MDP)~\citep{puterman1994markov}. An MDP is a tuple
+Process (MDP)~\citep{puterman1994markov}, a tuple
 $\{S,A,P,R,\gamma\}$ with $S$ being the state space, $A$ the action
 space, $P\in\mathcal{P}(S)^{S\times A}$ the set of Markovian
 transition probabilities, $R\in\mathbb{R}^S$ the reward function
 (assumed to be absolutely bounded by 1) and $\gamma\in[0,1[$ a
-discounting factor. A policy $\pi\in A^S$ maps states to action. The
+discounting factor. A policy $\pi\in A^S$ maps states to actions. The
 quality of a policy is quantified by the associated value function
 $V^\pi$, which associates to each state the expected and discounted
 cumulative reward:
@@ -146,28 +144,27 @@ cumulative reward:
   V^\pi(s) = E[\sum_{t=0}^\infty \gamma^t R(s_t)|s_0=s, \pi]
 \end{equation}
 Dynamic programming aims at finding the optimal policy $\pi^*$, that
-is one of the policies associated to the optimal value function,
+is one of the policies associated with the optimal value function,
 $V^* = \argmax_\pi V^\pi$, which maximizes the value for each state.
 If the model (that is transition probabilities and the reward
 function) is unknown, learning the optimal control through
-interactions is addressed by reinforcement learning.
+interactions is addressed by RL.
 
-For inverse reinforcement learning, the problem is reversed. It is
+For IRL, the problem is reversed. It is
 assumed that an expert acts according to an optimal policy $\pi_E$,
 this policy being optimal according to some unknown reward function
-$R^*$. The goal of inverse reinforcement learning is to learn this
+$R^*$. The goal is to learn this
 reward function from sampled trajectories of the expert. This is a
 difficult and ill-posed problem~\citep{ng2000algorithms}. Apprenticeship
 learning through IRL, which is the problem at hand in this paper,
 has a somewhat weaker objective: it aims at learning a policy
 $\tilde{\pi}$ which is (approximately) as good as the expert policy
 $\pi_E$ under the unknown reward function $R^*$, for a known initial
-state $s_0$ (this condition can be weakened by assuming a
-distribution over initial states ; this is not done here for clarity
-of exposition). Now, the approach proposed in~\citep{abbeel2004apprenticeship} is
+state $s_0$ (this condition can be easily weakened by assuming a
+distribution over initial states). Now, the approach proposed in~\citep{abbeel2004apprenticeship} is
 presented.
 
-We assume that the true reward funnotiction belongs to some hypothesis
+We assume that the true reward function belongs to some hypothesis
 space $\mathcal{H}_\phi = \{\theta^T \phi(s),
 \theta\in\mathbb{R}^p\}$, of which we assume the basis functions to
 be bounded by 1: $|\phi_i(s)|\leq 1, \forall s\in S, 1\leq i \leq
@@ -206,12 +203,11 @@ of $\mathcal{H}_\phi$:
   \\
   &\leq \|\mu^{\pi_E}(s_0)-\mu^{\tilde{\pi}}(s_0)\|_2
 \end{align}
-This last equation uses the Cauchy-Schwartz inequality and the
+This equation uses the Cauchy-Schwarz inequality and the
 assumption that $\|\theta\|_2\leq 1$. Therefore, the approach
 described here does not ensure to retrieve the true reward function
 $R^*$, but to act as well as the expert under this reward function
-(and actually under any reward function, notably the unknown optimal
-one).
+(and actually under any reward function).
 
 Let us now describe the algorithm proposed in~\citep{abbeel2004apprenticeship} to
 achieve this goal:
@@ -233,10 +229,8 @@ achieve this goal:
   set of policies $\{\pi^{(0)}, \dots, \pi^{(j-1)}\}$ among which
   the user chooses manually or automatically the closest to the
   expert (see~\citep{abbeel2004apprenticeship} for details on how to choose this
-  policy\footnote{A simple solution, not mentioned in~\citep{abbeel2004apprenticeship},
-  is to choose the policy of which the feature expectation is the
-  closest to the one of the expert.}).
-  Notice that the last policy is not necessary the best (as illustrated in Section \ref{sec:exp});
+  policy).
+  Notice that the last policy is not necessarily the best (as illustrated in Section~\ref{sec:exp});
   %
   \item solve the MDP with the reward function $R^{(j)}(s) =
   (\theta^{(j)})^T\phi(s)$ and denote $\pi^{(j)}$ the associated
@@ -244,7 +238,7 @@ achieve this goal:
   %
   \item set $j\leftarrow j+1$ and go back to step 2.
 \end{enumerate}
-There remains three problems: computing the feature expectation of
+There remain three problems: computing the feature expectation of
 the expert, solving the MDP and computing feature expectations of
 intermediate policies.
 
@@ -278,7 +272,7 @@ feature expectation $\mu^\pi(s)$ for some policy $\pi$:
 \end{equation}
 This is exactly the definition of the value function of the policy
 $\pi$ for the MDP considered with the $i^\text{th}$ basis function
-$\phi_i(s)$ as the reward function. There exists many algorithms to
+$\phi_i(s)$ as the reward function. There exist many algorithms to
 estimate a value function, any of them can be used to estimate
 $\mu_i^\pi$. Based on this remark, we propose to use specifically
 the least-squares temporal difference (LSTD)
@@ -338,29 +332,16 @@ related hypothesis space, each component of this feature expectation
 can still be estimated using the LSTD algorithm (namely using the
 LSTD-Q algorithm~\citep{lagoudakis2003least}). The clear advantage of
 introducing the state-action feature expectation is that this
-additional degree of freedom allows off-policy learning. Assuming
-that $\mathcal{H}_\psi$ defines state-action feature vectors and
-that a set of transitions $\{(s_t,a_t,r_t,s_{t+1})_{1\leq t \leq
-n}\}$ sampled according to some behaviorial policy $\pi_0$ is
-available, the parameter vector $\xi_i^*$ related to the
-$i^\text{th}$ component of the state-action feature expectation
-$\mu^\pi(s)$ (policy $\pi$ being different from policy $\pi_0$) is
-given by:
-\begin{equation}
-  \xi_i^* = \left(\sum_{t=1}^n
-  \psi(s_t,a_t)(\psi(s_t,a_t)-\gamma\psi(s'_{t},\pi(s'_t)))^T\right)^{-1}
-  \sum_{t=1}^n \psi(s_t,a_t) \phi_i(s_t)
-\end{equation}
+additional degree of freedom allows off-policy learning.
 Extending LSTD-$\mu$ to state-action LSTD-$\mu$ is done in the same
 manner as LSTD is extended to LSTD-Q~\citep{lagoudakis2003least},
 technical details are not provided here for the clarity of
 exposition.
 
 Given the (state-action) LSTD-$\mu$ algorithm, the apprenticeship
-learning algorithm of~\citep{abbeel2004apprenticeship} (see
-Section~\ref{sec:back}) can be easily extended to a batch and
+learning algorithm presented in Section~\ref{sec:back} can be easily extended to a batch and
 off-policy setting. The solely available data is a set of
-transitions sampled according to the expert policy  (and possibly a set of sub-optimal but good trajectories). The
+transitions sampled according to the expert policy  (and possibly a set of sub-optimal trajectories). The
 corresponding feature expectation for the starting state $s_0$ is
 estimated with the LSTD-$\mu$ algorithm. At step~4 of this
 algorithm, the MDP is (approximately) solved using
@@ -376,18 +357,24 @@ difference algorithm to estimate the feature expectation is new, as
 far as we know. A clear advantage of the proposed approach is that
 any theoretical result holding for LSTD also holds for LSTD-$\mu$,
 such as convergence~\citep{nedic2003least} or
-finite-sample~\citep{lazaric2010finiteLSTD} analysis for example, also, the algorithm learns from transitions and not trajectories.
-
+finite-sample~\citep{lazaric2010finiteLSTD} analysis for example.
 \section{Experimental benchmark}
 \label{sec:exp}
-This section provides some preliminary experimental results on a simple maze benchmark. Subsection \ref{ssec:exp} details the protocol and the results while subsection \ref{ssec:quality} inspects the meaning of the different quality criteria. 
+This section provides experimental results on two complementary problems. Subsection~\ref{ssec:exp} details the protocol and the results while subsection~\ref{ssec:quality} inspects the meaning of the different quality criteria. 
 \subsection{Experiment description and results}
 \label{ssec:exp}
-The experimental benchmark chosen here is one of those proposed in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the cell of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn (and thus have probability 0.25 to match the original direction). The reward optimized by the expert is 0 everywhere except in the upper-right cell, where it is 1. For every policy, an episode ends when the upper right cell is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is).\\
+\subsubsection{GridWorld}
+\begin{figure}
+\centering
+\resizebox{\columnwidth}{!}{\input{../Code/GridWorld/both_error_EB}}
+\caption{$||\mu^{\pi}(s_0) - \mu^{\pi_E}(s_0)||_2$ with respect to the number of samples available from the expert. The error bars represent the standard deviation over 100 runs.}
+\label{fig:E}
+\end{figure}
+The first experimental benchmark chosen here is one of those proposed in \citep{ng2000algorithms}, a 5x5 grid world. The agent is in one of the cells of the grid (whose coordinates is the state) and can choose at each step one of the four compass directions (the action). With probability 0.9, the agent moves in the intended direction. With probability 0.1, the direction is randomly drawn. The reward optimized by the expert is 0 everywhere except in the upper-right cell, where it is 1. For every policy, an episode ends when the upper right cell is attained, or after 20 steps. At the start of each episode, the agent is in the lower-left corner of the grid (the opposite of where the reward is). Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ are the typical features of a tabular representation: 0 everywhere except for the component corresponding to the current state (-action pair).\\
 
-Both the state and action spaces are finite and of small cardinality. Hence, the chosen feature functions $\phi$ and $\psi$ (see equations (\ref{eqn:phi}) and (\ref{eqn:psi}) for a remainder of their meaning) are the typical features of a tabular representation :0 everywhere except the component corresponding to the current state (-action pair).\\
+Both \citet{abbeel2004apprenticeship}'s algorithm (from now on referred to as the MC variant) and our adaptation (referred to as the LSTD variant) are tested side by side. The MDP solver of the MC variant is LSPI with a sample source that covers the whole grid (each state has a mean visitation count of more than 150) and draws its action randomly. Both $\mu^{\pi^{(j)}}(s_0)$ and $\mu^{\pi_E}(s_0)$ are computed thanks to a Monte-Carlo estimation with enough samples to make the variance negligible. We consider both these computations as perfect theoretical solvers for all intended purpose on this toy problem. We thus are in the case intended by \citet{abbeel2004apprenticeship}. On the other hand the LSTD variant is used without accessing a simulator. It uses LSPI and LSTD-$\mu$, fed only with the expert's transitions (although we could also use non expert transitions  to compute intermediate policies, if available). This corresponds to a real-life setting where data generation is expensive and the system cannot be controlled by an untrained machine.\\
 
-We want to compare the efficiency of both versions of the algorithm with repect to the number of samples available from the expert, as these samples usually are the bottleneck. Indeed as they are quite costly (in both means and human time) to generate they are often not in abundance hence the critical need for an algorithm to be expert-sample efficient. Having a simulator at one's disposal can also be difficult. For the simple problem we use this is however not an issue. The discussion about the choice of the performance metric has its own dedicated subsection (subsection~\ref{ssec:quality}). We use here the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term. Fig.~\ref{fig:E} shows, for some numbers of samples from the expert, the value of $||\mu^{\pi^{(j)}}(s_0)-\mu^{\pi_E}(s_0)||_2$ after the algorithm converged or attained the maximum number of iterations (we used 40). The best policy is found by LSTD variant after one iteration only\footnote{Precise reasons for why it happens are not clear now, but certainly have something to do with the fact that all the estimations are made along the same distribution of samples.} whereas in the MC variant, convergence happens after at least ten iterations. The best policy is not always the last, and although it experimentally always have been with the LSTD variant, there is absolutely no way to tell whether this is a feature. The score of the best policy (not the last) according to the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term is plotted here. We can see that although the LSTD variant is not as good as the MC variant when very few samples are available, both algorithm quickly converge to almost the same value ; our version converges to a slightly lower error value. The fact that our variant can work in a batch, off-policy and model-free setting should make it suitable to a range of task inaccessible to the MC variant, the requirement of a simulator being often constraining.
+We want to compare the efficiency of both versions of the algorithm with respect to the number of samples available from the expert, as these samples usually are the bottleneck. Indeed as they are quite costly (in both means and human time) to generate they are often not in abundance hence the critical need for an algorithm to be expert-sample efficient. Having a simulator at one's disposal can also be difficult. For the simple problem we use this is however not an issue. The discussion about the choice of the performance metric has its own dedicated subsection (subsection~\ref{ssec:quality}). We use here the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term. Fig.~\ref{fig:E} shows, for some numbers of samples from the expert, the value of $||\mu^{\pi^{(j)}}(s_0)-\mu^{\pi_E}(s_0)||_2$ after the algorithm converged or attained the maximum number of iterations (we used 40). The best policy is found by LSTD variant after one iteration only\footnote{Precise reasons why it happens are not clear now, but certainly have something to do with the fact that all the estimations are made along the same distribution of samples.} whereas in the MC variant, convergence happens after at least ten iterations. The best policy is not always the last, and although it has always been observed so far with the LSTD variant, there is absolutely no way to tell whether this is a feature. The score of the best policy (not the last) according to the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term is plotted here. We can see that although the LSTD variant is not as good as the MC variant when very few samples are available, both algorithms quickly converge to almost the same value ; our version converges to a slightly lower error value. The fact that our variant can work in a batch, off-policy and model-free setting should make it suitable to a range of tasks inaccessible to the MC variant, the requirement of a simulator being often constraining.
 \subsubsection{Inverted Pendulum}
 \begin{figure}
 \centering
@@ -401,25 +388,17 @@ We want to compare the efficiency of both versions of the algorithm with repect 
 \caption{Same plot as Fig.~\ref{fig:threshold}, with mean and standard deviation over 100 runs. The big standard deviation stems from the absence of middle ground in the quality of the policies. The increasing mean w.r.t. the abscissa means that the proportion of good policies increases with the number of samples from a sub-optimal policy given to LSPI.}
 \label{fig:threshold_EB}
 \end{figure}
-Another classic toy problem is the \emph{inverted pendulum}, used for example in \citep{lagoudakis2003least} from where we drew the exact configuration (mass of the pendulum, length of the arm, definition of the feature space, etc.). In this setting, the machine must imitate an expert who maintains the unstable equilibrium of an inverted pendulum allowed to move along only one axis. A balancing step is considered successful (reward $0$) when the angle is less than $\pi\over 2$. It is considered a failure (reward $-1$) when the pendulum has fallen (i.e. the angle is more than $\pi \over 2$). A run is stopped after a failure or after 3000 successful balancing steps.\\
+Another classic toy problem is the \emph{inverted pendulum}, used for example in \citep{lagoudakis2003least} from where we drew the exact configuration (mass of the pendulum, length of the arm, definition of the feature space, etc.). In this setting, the machine must imitate an expert who maintains the unstable equilibrium of an inverted pendulum allowed to move along only one axis. A balancing step is considered successful (reward $0$) when the angle is less than $\pi\over 2$. It is considered a failure (reward $-1$) when the pendulum has fallen (i.e. the angle exceeds $\pi \over 2$). A run is stopped after a failure or after 3000 successful balancing steps.\\
 
+This problem bears two fundamuntal differences with the previous one and thus comes as complementary to it. First, it presents a continuous state space whereas in the GridWorld a tabular representation was possible. Then, the initial state is randomly drawn from a non singleton subspace of the state space. This last point is addressed differently by the LSTD variant and the MC variant. the MC variant will naturally sample the initial state distribution at each new trajectory from the expert. The LSTD variant, on the other hand, still does not need complete trajectories from the expert but mere samples. As it approximates the whole $\mu^{\pi}$ function and not just $\mu^\pi(s_0)$, it is possible to compute the mean of the approximation $\hat\mu^\pi$ over a few states drawn with the same distribution as the initial states.\\
+
+A striking finding on this toy problem is that the parameter controlling the success or the failure of the experiment is not the number of samples from the expert, but the quality of the samples available to LSPI to solve the MDP. \emph{A contrario} to what happened in the previous toy problem, there are fewer samples from the expert than what LSPI needs to solve the MDP as they do not cover the whole state space. When given only these samples, the LSTD variant fails. The MC variant, however, is not bound by such restrictions and can use as many samples as it needs from a simulator. Thus, with only one trajectory from the expert (100 samples) the MC variant is able to successfully balance the pendulum for more than 3000 steps. The problem here stems from the fact that we don't learn the reward, but a policy that maximizes the reward. If the optimal control problem was solved separately, learning the reward only from the samples of the expert would be possible.\\
+
+The sensitivity of both algorithms to the number of samples available to LSPI is extreme, as is shown in Fig.~\ref{fig:threshold}. It may seem nonsensical to restrict the number of samples available to LSPI for the MC variant as it can access a simulator, but this has been done to show that both variants exhibit the same behavior, hence allowing us to locate the source of this behavior in what both algorithms have in common (the use of LSPI inside the structure of \citep{abbeel2004apprenticeship}) excluding the point where they differ (LSTD-$\mu$ and Monte-Carlo).\\
+
+Fig.~\ref{fig:threshold_EB} shows that when given samples from a sub-optimal policy, the LSTD variant can sort the problem out, statistically almost always with 3000 sub-optimal samples, and sometimes with as low as 200 sub-optimal samples. Such a setting is still batch, off-policy and model-free. When given enough sub-optimal samples, both variants are successful with only one trajectory from the expert (i.e. 100 samples, this is what is plotted here). Giving more trajectories from the expert does not improve the success rate.
 \subsection{Discussion about the quality criterion}
 \label{ssec:quality}
-Figure \ref{fig:A} and \ref{fig:B} illustrate the difficulty of choosing the quality criterion ; Figure \ref{fig:A} shows four different quality ciretria during a run of the MC variant. Figure \ref{fig:B} shows the same criteria for several runs of the LSTD variant, as the abscissa can not be the number of iterations (as in Figure \ref{fig:A}) because it always converges in one iteration. The $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ term is widely discussed in \citep{abbeel2004apprenticeship}'s additional material. It bears an interesting relation with the difference between the expert's value function and the current value function in the initial state with respect \emph{to the current reward} (equation \ref{eqn:vs0}).\\
-
-The fact that  the curves of the true error term $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ and  its estimate $||\hat\mu^{\pi^{(j)}}(s_0) - \hat\mu^{\pi_E}(s_0)||_2$ are indistinguishable in Figure \ref{fig:A} means that, for it has access to a cheap simulator, the MC variant works as if it had access to the exact values. This however can not be said of the LSTD variant, for which the two curves are indeed different (Figure \ref{fig:B}). Not knowing the true value of $\mu^{\pi_E}(s_0)$ may be a problem for our variant, as it can introduce an error in the stopping criterion of the algorithm\footnote{This equation differs from what has been given as the second step of the algorithm in section \ref{sec:back}. This is because we implemented the version of the algorithm that uses a projection (see \citet{abbeel2004apprenticeship}'s supplementary material for an in-depth discussion of both versions). Although the mathematical expressions are different, both convey the same meaning and are exchangeable.}, $t = ||\bar\mu^{(j)}-\hat\mu^{\pi_E}(s_0)||$ where $\bar\mu^{(j)}$ is the projection of $\mu^{\pi_E}$ on $(\mu^{\pi^{(j-1)}},\mu^{\pi^{(j)}})$. After the algorithm has converged there is no way to know whether the policy is actually good or not other than actually testing it.\\
-
-It shall be noted that although it plays its role, the halt criterion is not a good measure of the quality of the current policy in the MC variant either, as it can be low (and thus halt the algorithm) when the policy is bad. The best policy, however, can be easily chosen among all those created during the execution of the algorithm thanks to the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ term, which the MC variant can compute. When this term is low, the objective performance (that is, $V^{\pi_E}(s_0)-V^{\pi^{(j)}}(s_0)$ with respect to the unknow true reward function) is low too. 
-\section{Conclusion}
-\label{sec:conclusion}
-Given some transitions generated by an expert controlling a system and maximizing in the long run an unknown reward, we ported \citet{abbeel2004apprenticeship}'s approach to apprenticeship learning vie inverse reinforcement learning to a batch, model-free, off-policy setting. Experimentally, there is a need for a bigger number of samples from the expert. We believe this cost is not prohibitive as our approach only requires isolated samples which are often less difficult to get than whole trajectories as needed by the original approach.
-The simple idea of using LSTD to estimate the feature expectation could be applied to other algorithms as well, for example \citep{abbeel2004apprenticeship,syed2008apprenticeship,syed2008game,ziebart2008maximum}.\\
-\begin{figure}
-\centering
-\input{../Code/GridWorld/both_error_EB}
-\caption{$||\mu^{\pi}(s_0) - \mu^{\pi_E}(s_0)||_2$ where $\pi$ is the policy for which this term is the lowest for the whole run, with respect to the number of samples available from the expert. Our algorithm is not as good as \citet{abbeel2004apprenticeship} with very few samples, but make up for it very soon and converges to a lower value. The error bars represent the standard deviation over 100 runs.}
-\label{fig:E}
-\end{figure}
 \begin{figure}
 \centering
 \input{../Code/GridWorld/criteria_mc}
@@ -440,10 +419,10 @@ The fact that  the curves of the true error term $||\mu^{\pi^{(j)}}(s_0) - \mu^{
 It shall be noted that although it plays its role, the halt criterion is not a good measure of the quality of the current policy in the MC variant either, as it can be low (and thus halt the algorithm) when the policy is bad. The best policy, however, can be easily chosen among all those created during the execution of the algorithm thanks to the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ term, which the MC variant can compute. When this term is low, the objective performance (that is, $V^{\pi_E}(s_0)-V^{\pi^{(j)}}(s_0)$ with respect to the unknown true reward function) is low too. 
 \section{Conclusion}
 \label{sec:conclusion}
-Given some transitions generated by an expert controlling a system and maximizing in the long run an unknown reward, we ported \citet{abbeel2004apprenticeship}'s approach to apprenticeship learning via inverse reinforcement learning to a batch, model-free, off-policy setting. Experimentally, there is a need for either a slightly bigger number of samples from the expert or some samples from a sub-optimal policy. We believe this cost is not prohibitive as our approach only requires isolated samples which are often less difficult to get than whole trajectories as needed by the original approach. Furthermore, tranferring the reward and not he policy may overcome this difficulty. We intend to do this in a real life setting.
+Given some transitions generated by an expert controlling a system and maximizing in the long run an unknown reward, we ported \citet{abbeel2004apprenticeship}'s approach to apprenticeship learning via inverse reinforcement learning to a batch, model-free, off-policy setting. Experimentally, there is a need for either a slightly bigger number of samples from the expert or some samples from a sub-optimal policy. We believe this cost is not prohibitive as our approach only requires isolated samples which are often less difficult to get than whole trajectories as needed by the original approach. Furthermore, tranferring the reward and not the policy may overcome this difficulty. We intend to do this in a real life setting.
 The simple idea of using LSTD to estimate the feature expectation could be applied to other algorithms as well, for example \citep{abbeel2004apprenticeship,syed2008apprenticeship,syed2008game,ziebart2008maximum}.\\
 
-\bibliographystyle{named}
+%\bibliographystyle{named}
 %\bibliographystyle{named}
 \bibliography{../Biblio/Biblio}
 \end{document} 
