@@ -1,0 +1,395 @@
+#+LaTeX_CLASS: beamer
+#+LaTeX_HEADER: \usetheme[secheader]{Boadilla}
+#+LaTeX_HEADER: \setbeamercolor{title}{fg=black,bg=black!10!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{block body}{fg=black,bg=black!10!brown!30}
+#+LaTeX_HEADER: \setbeamercolor{block title}{fg=black,bg=black!30!brown!40}
+
+#+LaTeX_HEADER: \setbeamercolor{frametitle}{fg=black,bg=black!30!brown!50}
+#+LaTeX_HEADER: \beamersetaveragebackground{brown!50!black!20}
+
+#+LaTeX_HEADER: \setbeamercolor{author in head/foot}{fg=black,bg=black!30!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{title in head/foot}{fg=black,bg=black!20!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{date in head/foot}{fg=black,bg=black!10!brown!50}
+
+#+LaTeX_HEADER: \setbeamercolor{section in head/foot}{fg=black,bg=black!30!brown!30}
+#+LaTeX_HEADER: \setbeamercolor{subsection in head/foot}{fg=black,bg=black!20!brown!30}
+
+#+LaTeX_HEADER: \usepackage{animate} %need the animate.sty file 
+
+#+LaTeX_HEADER: \include{headertikz}
+#+LaTeX_HEADER:\usetikzlibrary{decorations.pathmorphing,shapes.misc}
+
+
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+OPTIONS: toc:nil
+#+BEAMER_FRAME_LEVEL: 3
+#+TITLE: Batch, Off-policy and Model-free Apprenticeship Learning
+#+AUTHOR: Edouard Klein and Matthieu Geist and Olivier Pietquin
+
+#+Begin_LaTeX
+\tikzstyle{state}=[circle,
+thick,
+minimum size=1.0cm,
+draw=blue!80,
+fill=blue!20]
+\tikzstyle{action}=[rectangle,thick,
+minimum size=1.0cm,
+draw=orange!80,
+fill=orange!20]
+\tikzstyle{element}=[rectangle,
+thick,
+minimum size=1.0cm,
+draw=blue!80,
+fill=blue!20]
+\tikzstyle{action}=[rectangle,thick,
+minimum size=1.0cm,
+draw=orange!80,
+fill=orange!20]
+#+end_LaTeX
+
+* Introduction
+** Authors and Institutes
+*** Authors and Institutes
+**** Authors (\texttt{prenom.nom@supelec.fr})			    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+      - Matthieu Geist
+      - Olivier Pietquin
+      - Edouard Klein
+**** Institutes							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+      - Supélec-Metz Campus, IMS Research group, France
+      - UMI 2958 CNRS - GeorgiaTech, France
+      - Equipe ABC, LORIA-CNRS, France
+* Non-technical Abstract
+** Context
+*** Machine learning
+**** Toto					      :BMCOL:B_ignoreheading:
+     :PROPERTIES:
+     :BEAMER_col: 0.4
+     :BEAMER_env: ignoreheading
+     :END:
+     [[file:ML.png]]
+**** Notions						      :BMCOL:B_block:
+     :PROPERTIES:
+     :BEAMER_col: 0.4
+     :BEAMER_env: block
+     :END:
+     - Agent
+     - Task
+     - Environment
+*** Imitation : Expert
+     #+BEGIN_LaTeX
+     \animategraphics[autoplay,loop,height=5cm]{1}{Expert00}{2}{6} 
+     #+END_LaTeX
+*** Imitation : Generalization
+     #+BEGIN_LaTeX
+     \animategraphics[autoplay,loop,height=5cm]{1}{Agent}{001}{014} 
+     #+END_LaTeX
+** Contribution
+*** Contribution
+**** Abbeel and Ng's IRL					    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :ORDERED:  t
+     :END:
+     #+BEGIN_LaTeX
+     \begin{tikzpicture}
+     \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Trajectories} ;
+     \node[action] (mech) at (3,-0.7) {\includegraphics[height=0.5cm]{Moulinette.png}} ;
+     \node[element] (policy) at (5,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Pi.png}}}$Policy} ;
+     \node[action] (sim) at (8,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{ML.png}}}$Simulator} ;
+     \node[element] (trajA) at (0,-1.4) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Agent.png}}}$Trajectories} ;
+     \draw [->,thick] (trajE.east) .. controls (2,0) and (2,-0.7) .. (mech.west);
+     \draw [->,thick] (trajA.east) .. controls (2,-1.4) and (2,-0.7) .. (mech.west);  
+     \draw [->,thick] (mech.east) -- (policy.west);
+     \draw [->,thick] (policy.east) -- (sim.west);
+     \draw [->,thick] (sim.east) -- (10,-0.7) -- (10,-2.1) -- (0,-2.1) -- (trajA.south);
+     \end{tikzpicture}
+     #+END_LaTeX
+**** LSTD-$\mu$ 						    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     #+BEGIN_LaTeX
+     \begin{tikzpicture}
+     \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Transitions} ;
+     \node[action] (mech) at (3,-0.7) {\includegraphics[height=0.5cm]{Moulinette.png}} ;
+     \node[element] (policy) at (5,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Pi.png}}}$Policy} ;
+     \node[element] (trajA) at (0,-1.4) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Agent.png}}}$Transitions} ;
+     \draw [->,thick] (trajE.east) .. controls (2,0) and (2,-0.7) .. (mech.west);
+     \draw [->,thick] (trajA.east) .. controls (2,-1.4) and (2,-0.7) .. (mech.west);  
+     \draw [->,thick] (mech.east) -- (policy.west);
+     \draw [->,thick] (policy.east) -- (10,-0.7) -- (10,-1.4) -- (3,-1.4) -- (mech.south);
+     \end{tikzpicture}
+     #+END_LaTeX
+* IRL
+** RL
+*** Quick definitions
+     #+BEGIN_LaTeX
+       \begin{columns}
+    \begin{column}{4cm}
+      \begin{block}{}
+        \begin{overlayarea}{\textwidth}{4.4cm}
+          \only<1>{\input{img/MDP1.tex}}
+          \only<2>{\input{img/MDP2.tex}}
+          \only<3>{\input{img/MDP3.tex}}
+          \only<4->{\input{img/MDP4.tex}}
+        \end{overlayarea}
+      \end{block}
+    \end{column}
+    \begin{column}{4cm}
+      \begin{block}{Notions}
+        \begin{itemize}
+          \item<1-> State $s_t\in S$
+          \item<2-> Action $a_t \in A$
+          \item<3-> Reward $r_t \in \mathbb{R}$
+          \item<4-> Transition $(s_t,a_t,s_{t+1},r_t)\in S\times A\times S\times\mathbb{R}$
+        \end{itemize}
+      \end{block}
+      \begin{block}<1->{Markovian criterion}
+        Past states are irrelevant
+      \end{block}
+    \end{column}
+  \end{columns}
+  \begin{alertblock}<5>{Politique}
+    $\pi : S\rightarrow A$
+  \end{alertblock}
+     #+END_LaTeX
+
+*** RL problem and solution
+**** Value function						    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     \begin{equation}
+     \label{eqn:V}
+     V^\pi(s_t) = E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]
+     \end{equation}
+**** Goal							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     Optimal policy $\pi^* = \arg\max\limits_\pi V^\pi$
+**** Value function approximation				    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     $\hat V^\pi(s_t) = \omega^T\phi (s_t)$
+** IRL
+*** IRL problem and solution
+**** Goal							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     Finding the reward $R$ so that the observed behavior is optimal
+**** Ill-posed 						       :B_alertblock:
+     :PROPERTIES:
+     :BEAMER_env: alertblock
+     :END:
+     The null reward $\forall s, R(s) = 0$ is a solution
+**** Solutions based on $\mu$					    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     \begin{equation}
+     \label{eqn:mu}
+     \mu^\pi(s_t) = E\left[\left.\sum\limits_i\gamma^i\phi(s_{t+i})\right|\pi\right]
+     \end{equation}
+*** Computing $\mu$
+**** Monte carlo					      :B_block:BMCOL:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :BEAMER_col: .4
+     :END:
+     $\hat\mu^\pi(s_0) = \sum\limits_j\sum\limits_i\gamma^i\phi(s^j_i)$
+**** Drawbacks							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     - Needs whole trajectories
+     - Implies using a simulator
+       - Need for a model
+       - On-policy evaluation
+**** LSTD-$\mu$						      :BMCOL:B_block:
+     :PROPERTIES:
+     :BEAMER_col: .4
+     :BEAMER_env: block
+     :END:
+     Based on already known /Least-square temporal differences/ method
+**** Advantages							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     - Can be fed with transitions
+     - No simulator needed
+       - No need for a model
+       - Off or on policy evaluation
+* LSTD-mu
+** LSTD & LSTDQ
+*** LSTD algorithms
+**** LSTD							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     Batch, on-policy, model-free /value function approximation/ algorithm
+**** LSTD-$Q$							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     Batch, off-policy, model-free /state-action value function approximation/ algorithm
+**** Principle							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     #+begin_latex
+     Estimator  : $\hat V^\pi(s) = \theta^T\phi(s)$ \hfill Transition : $s_t,a_t,s_{t+1},r_t$
+     \begin{equation}
+     \label{eqn:lstd}
+     \theta = \left(\sum_{t=1}^n
+     \phi(s_t)(\phi(s_t)-\gamma\phi(s_{t+1}))^T\right)^{-1}
+     \sum_{t=1}^n \phi(s_t) r_t
+     \end{equation}
+     #+end_latex
+*** LSTD-$\mu$ algorithm
+**** Idea							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     #+begin_latex
+     $V \equiv \mu$ (Eq. \ref{eqn:V} and \ref{eqn:mu}) \\
+     Reward $\equiv$ a feature component (Eq. \ref{eqn:lstd} and \ref{eqn:lstdmu})
+     #+end_latex
+**** Algorithm							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     #+begin_latex
+     Estimator  : $\hat \mu^\pi(s) = \xi^{*T}\psi(s)$ \hfill Transition : $s_t,a_t,s_{t+1},r_t$
+     \begin{equation}
+     \label{eqn:lstdmu}
+     \xi_i^* = \left(\sum_{t=1}^n
+     \psi(s_t)(\psi(s_t)-\gamma\psi(s'_{t}))^T\right)^{-1}
+     \sum_{t=1}^n \psi(s_t) \phi_i(s_t)
+     \end{equation}
+     #+end_latex
+
+* Experimental benchmark
+** Algorithms
+*** Algorithms : Abbeel & Ng's IRL algorithm
+**** Principle							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     #+BEGIN_LaTeX
+     \begin{tikzpicture}
+     \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Trajectories} ;
+     \node[action] (mech) at (3,-0.7) {\includegraphics[height=0.5cm]{Moulinette.png}} ;
+     \node[element] (policy) at (5,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Pi.png}}}$Policy} ;
+     \node[action] (sim) at (8,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{ML.png}}}$Simulator} ;
+     \node[element] (trajA) at (0,-1.4) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Agent.png}}}$Trajectories} ;
+     \draw [->,thick] (trajE.east) .. controls (2,0) and (2,-0.7) .. (mech.west);
+     \draw [->,thick] (trajA.east) .. controls (2,-1.4) and (2,-0.7) .. (mech.west);  
+     \draw [->,thick] (mech.east) -- (policy.west);
+     \draw [->,thick] (policy.east) -- (sim.west);
+     \draw [->,thick] (sim.east) -- (10,-0.7) -- (10,-2.1) -- (0,-2.1) -- (trajA.south);
+     \end{tikzpicture}
+     #+END_LaTeX
+**** Variants							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     - Monte-Carlo estimation
+     - Projection method
+     - LSPI as the MDP solver
+*** Algorithms : Our modified version
+**** Principle 							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     #+BEGIN_LaTeX
+     \begin{tikzpicture}
+     \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Transitions} ;
+     \node[action] (mech) at (3,-0.7) {\includegraphics[height=0.5cm]{Moulinette.png}} ;
+     \node[element] (policy) at (5,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Pi.png}}}$Policy} ;
+     \node[element] (trajA) at (0,-1.4) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Agent.png}}}$Transitions} ;
+     \draw [->,thick] (trajE.east) .. controls (2,0) and (2,-0.7) .. (mech.west);
+     \draw [->,thick] (trajA.east) .. controls (2,-1.4) and (2,-0.7) .. (mech.west);  
+     \draw [->,thick] (mech.east) -- (policy.west);
+     \draw [->,thick] (policy.east) -- (10,-0.7) -- (10,-1.4) -- (3,-1.4) -- (mech.south);
+     \end{tikzpicture}
+     #+END_LaTeX
+**** Variants							    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     - /LSTD estimation/
+     - Projection method
+     - LSPI as the MDP solver
+** Quality criterion
+*** Quality criterion
+#+begin_latex
+\center
+\resizebox{.9\columnwidth}{!}{\input{../Code/GridWorld/criteria_mc}}
+#+end_latex
+** GirdWorld
+*** Settings
+**** Toto					      :BMCOL:B_ignoreheading:
+     :PROPERTIES:
+     :BEAMER_col: 0.4
+     :BEAMER_env: ignoreheading
+     :END:
+     [[file:ML.png]]
+**** Mathematically 					      :BMCOL:B_block:
+     :PROPERTIES:
+     :BEAMER_col: 0.4
+     :BEAMER_env: block
+     :END:
+     
+     - $A = \{$ Up, Down, Right, Left $\}$
+     - $S = {cells}$
+     - $\phi$ : discrete features
+     - Reward in the upper right corner
+*** Results
+#+begin_latex
+\center
+\resizebox{.9\columnwidth}{!}{\input{../Code/GridWorld/both_error_EB}}
+#+end_latex    
+** Inverted pendulum
+*** Settings
+**** Toto					      :BMCOL:B_ignoreheading:
+     :PROPERTIES:
+     :BEAMER_col: 0.4
+     :BEAMER_env: ignoreheading
+     :END:
+     [[file:InvertedPendulum.png]]
+**** Mathematically 					      :BMCOL:B_block:
+     :PROPERTIES:
+     :BEAMER_col: 0.55
+     :BEAMER_env: block
+     :END:
+     - $A = \{$ Left, Nothing, Right $\}$
+     - $S = {speed,angle}$
+     - $\phi$ : Gaussian network and a constant
+     - Negative reward for letting it fall
+*** Results (one run)
+#+begin_latex
+\center
+\resizebox{.9\columnwidth}{!}{\input{../Code/InvertedPendulum/threshold}}
+#+end_latex    
+*** Results (average)
+#+begin_latex
+\center
+\resizebox{.9\columnwidth}{!}{\input{../Code/InvertedPendulum/threshold_EB}}
+#+end_latex    
+* Opening and future work
+** Future work
+*** Possible future work
+**** Other $\mu$ based algorithms
+**** New tests on harder problems
+**** Transferring the reward, and not the policy
+*** Thank you...
+    ... for your attention
