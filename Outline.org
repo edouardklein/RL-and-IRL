@@ -19,6 +19,8 @@
 #+LaTeX_HEADER: \include{headertikz}
 #+LaTeX_HEADER:\usetikzlibrary{decorations.pathmorphing,shapes.misc}
 
+#+BEAMER_HEADER_EXTRA: \title[LSTD-$\mu$]{Batch, Off-policy and Model-free Apprenticeship Learning}
+#+BEAMER_HEADER_EXTRA: \author[Edouard Klein]{Edouard Klein, Matthieu Geist and Olivier Pietquin}\institute{Supélec Metz}
 
 #+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
 #+OPTIONS: toc:nil
@@ -46,27 +48,9 @@ minimum size=1.0cm,
 draw=orange!80,
 fill=orange!20]
 #+end_LaTeX
-
-* Introduction
-** Authors and Institutes
-*** Authors and Institutes
-**** Authors (\texttt{prenom.nom@supelec.fr})			    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
-      - Matthieu Geist
-      - Olivier Pietquin
-      - Edouard Klein
-**** Institutes							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
-      - Supélec-Metz Campus, IMS Research group, France
-      - UMI 2958 CNRS - GeorgiaTech, France
-      - Equipe ABC, LORIA-CNRS, France
 * Non-technical Abstract
 ** Context
-*** Machine learning
+*** Reinforcement Learning
 **** Toto					      :BMCOL:B_ignoreheading:
      :PROPERTIES:
      :BEAMER_col: 0.4
@@ -83,48 +67,52 @@ fill=orange!20]
      - Environment
 *** Imitation : Expert
      #+BEGIN_LaTeX
-     \animategraphics[autoplay,loop,height=5cm]{1}{Expert00}{2}{6} 
+     \animategraphics[autoplay,loop,height=5cm]{1}{Expert00}{1}{9} 
      #+END_LaTeX
 *** Imitation : Generalization
      #+BEGIN_LaTeX
      \animategraphics[autoplay,loop,height=5cm]{1}{Agent}{001}{014} 
      #+END_LaTeX
 ** Contribution
-*** Contribution
+*** Contribution 
 **** Abbeel and Ng's IRL					    :B_block:
      :PROPERTIES:
      :BEAMER_env: block
      :ORDERED:  t
      :END:
      #+BEGIN_LaTeX
-     \begin{tikzpicture}
-     \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Trajectories} ;
-     \node[action] (mech) at (3,-0.7) {\includegraphics[height=0.5cm]{Moulinette.png}} ;
-     \node[element] (policy) at (5,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Pi.png}}}$Policy} ;
-     \node[action] (sim) at (8,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{ML.png}}}$Simulator} ;
-     \node[element] (trajA) at (0,-1.4) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Agent.png}}}$Trajectories} ;
-     \draw [->,thick] (trajE.east) .. controls (2,0) and (2,-0.7) .. (mech.west);
-     \draw [->,thick] (trajA.east) .. controls (2,-1.4) and (2,-0.7) .. (mech.west);  
-     \draw [->,thick] (mech.east) -- (policy.west);
-     \draw [->,thick] (policy.east) -- (sim.west);
-     \draw [->,thick] (sim.east) -- (10,-0.7) -- (10,-2.1) -- (0,-2.1) -- (trajA.south);
-     \end{tikzpicture}
+\uncover<1->{
+  \begin{tikzpicture}
+    \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Trajectories} ;
+    \node[action] (mech) at (3,-0.7) {\includegraphics[height=0.5cm]{Moulinette.png}} ;
+    \node[element] (policy) at (5,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Pi.png}}}$Policy} ;
+    \node[action] (sim) at (8,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{ML.png}}}$Simulator} ;
+    \node[element] (trajA) at (0,-1.4) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Agent.png}}}$Trajectories} ;
+    \draw [->,thick] (trajE.east) .. controls (2,0) and (2,-0.7) .. (mech.west);
+    \draw [->,thick] (trajA.east) .. controls (2,-1.4) and (2,-0.7) .. (mech.west);  
+    \draw [->,thick] (mech.east) -- (policy.west);
+    \draw [->,thick] (policy.east) -- (sim.west);
+    \draw [->,thick] (sim.east) -- (10,-0.7) -- (10,-2.1) -- (0,-2.1) -- (trajA.south);
+  \end{tikzpicture}
+}
      #+END_LaTeX
 **** LSTD-$\mu$ 						    :B_block:
      :PROPERTIES:
      :BEAMER_env: block
      :END:
      #+BEGIN_LaTeX
-     \begin{tikzpicture}
-     \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Transitions} ;
-     \node[action] (mech) at (3,-0.7) {\includegraphics[height=0.5cm]{Moulinette.png}} ;
-     \node[element] (policy) at (5,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Pi.png}}}$Policy} ;
-     \node[element] (trajA) at (0,-1.4) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Agent.png}}}$Transitions} ;
-     \draw [->,thick] (trajE.east) .. controls (2,0) and (2,-0.7) .. (mech.west);
-     \draw [->,thick] (trajA.east) .. controls (2,-1.4) and (2,-0.7) .. (mech.west);  
-     \draw [->,thick] (mech.east) -- (policy.west);
-     \draw [->,thick] (policy.east) -- (10,-0.7) -- (10,-1.4) -- (3,-1.4) -- (mech.south);
-     \end{tikzpicture}
+ \uncover<2->{
+  \begin{tikzpicture}
+    \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Transitions} ;
+    \node[action] (mech) at (3,-0.7) {\includegraphics[height=0.5cm]{Moulinette.png}} ;
+    \node[element] (policy) at (5,-0.7) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Pi.png}}}$Policy} ;
+    \node[element] (trajA) at (0,-1.4) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Agent.png}}}$Transitions} ;
+    \draw [->,thick] (trajE.east) .. controls (2,0) and (2,-0.7) .. (mech.west);
+    \draw [->,thick] (trajA.east) .. controls (2,-1.4) and (2,-0.7) .. (mech.west);  
+    \draw [->,thick] (mech.east) -- (policy.west);
+    \draw [->,thick] (policy.east) -- (10,-0.7) -- (10,-1.4) -- (3,-1.4) -- (mech.south);
+  \end{tikzpicture}
+}
      #+END_LaTeX
 * IRL
 ** RL
@@ -180,7 +168,7 @@ fill=orange!20]
      :END:
      $\hat V^\pi(s_t) = \omega^T\phi (s_t)$
 ** IRL
-*** IRL problem and solution
+*** IRL problem and solutions
 **** Goal							    :B_block:
      :PROPERTIES:
      :BEAMER_env: block
@@ -191,14 +179,35 @@ fill=orange!20]
      :BEAMER_env: alertblock
      :END:
      The null reward $\forall s, R(s) = 0$ is a solution
-**** Solutions based on $\mu$					    :B_block:
+**** Approximation of the reward 				    :B_block:
      :PROPERTIES:
      :BEAMER_env: block
      :END:
-     \begin{equation}
-     \label{eqn:mu}
-     \mu^\pi(s_t) = E\left[\left.\sum\limits_i\gamma^i\phi(s_{t+i})\right|\pi\right]
-     \end{equation}
+     $R = \theta^T\phi(s)$
+*** IRL solutions
+**** Introduction of $\mu$					    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     \scriptsize
+     \begin{eqnarray*}
+     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]\\
+     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\phi(s_{t+i})\right|\pi\right]\\
+     V^\pi(s_t) &=& \theta^TE\left[\left.\sum\limits_{i}\gamma^i \phi(s_{t+i})\right|\pi\right]\\
+     \mu^\pi(s_t) &=& E\left[\left.\sum\limits_i\gamma^i\phi(s_{t+i})\right|\pi\right]\\
+     V^\pi(s_t) &=& \theta^T\mu(s_t)
+     \end{eqnarray*}
+*** IRL solutions
+**** Importance of $\Delta\mu$ 					    :B_block:
+     :PROPERTIES:
+     :BEAMER_env: block
+     :END:
+     \begin{eqnarray*}
+     \Delta\mu &=& ||\mu_E(s_0) - \mu^\pi(s_0)||_2\\
+     \Delta V &=& ||V^E(s_0) - V^\pi(s_0)||_2\\
+     \Delta V &=& ||\theta^T\left(\mu_E(s_0) - \mu^\pi(s_0)\right)||_2\\
+     \Delta V &\leq& \Delta\mu\\
+     \end{eqnarray*}
 *** Computing $\mu$
 **** Monte carlo					      :B_block:BMCOL:
      :PROPERTIES:
@@ -246,22 +255,22 @@ fill=orange!20]
      :BEAMER_env: block
      :END:
      #+begin_latex
-     Estimator  : $\hat V^\pi(s) = \theta^T\phi(s)$ \hfill Transition : $s_t,a_t,s_{t+1},r_t$
-     \begin{equation}
-     \label{eqn:lstd}
-     \theta = \left(\sum_{t=1}^n
+     Estimator  : $\hat V^\pi(s) = \omega^T\phi(s)$ \hfill Transition : $s_t,a_t,s_{t+1},r_t$
+     \begin{equation*}
+     \omega = \left(\sum_{t=1}^n
      \phi(s_t)(\phi(s_t)-\gamma\phi(s_{t+1}))^T\right)^{-1}
      \sum_{t=1}^n \phi(s_t) r_t
-     \end{equation}
+     \end{equation*}
      #+end_latex
+** LSTD-$\mu$
 *** LSTD-$\mu$ algorithm
 **** Idea							    :B_block:
      :PROPERTIES:
      :BEAMER_env: block
      :END:
      #+begin_latex
-     $V \equiv \mu$ (Eq. \ref{eqn:V} and \ref{eqn:mu}) \\
-     Reward $\equiv$ a feature component (Eq. \ref{eqn:lstd} and \ref{eqn:lstdmu})
+     $V = V^\pi(s_t) = E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]$
+     \hfill $\mu^\pi(s_t) = E\left[\left.\sum\limits_i\gamma^i\phi(s_{t+i})\right|\pi\right]$ 
      #+end_latex
 **** Algorithm							    :B_block:
      :PROPERTIES:
@@ -269,12 +278,11 @@ fill=orange!20]
      :END:
      #+begin_latex
      Estimator  : $\hat \mu^\pi(s) = \xi^{*T}\psi(s)$ \hfill Transition : $s_t,a_t,s_{t+1},r_t$
-     \begin{equation}
-     \label{eqn:lstdmu}
+     \begin{equation*}
      \xi_i^* = \left(\sum_{t=1}^n
      \psi(s_t)(\psi(s_t)-\gamma\psi(s'_{t}))^T\right)^{-1}
      \sum_{t=1}^n \psi(s_t) \phi_i(s_t)
-     \end{equation}
+     \end{equation*}
      #+end_latex
 
 * Experimental benchmark
@@ -298,13 +306,20 @@ fill=orange!20]
      \draw [->,thick] (sim.east) -- (10,-0.7) -- (10,-2.1) -- (0,-2.1) -- (trajA.south);
      \end{tikzpicture}
      #+END_LaTeX
-**** Variants							    :B_block:
+**** Variants						      :B_block:BMCOL:
      :PROPERTIES:
      :BEAMER_env: block
+     :BEAMER_col: .45
      :END:
      - Monte-Carlo estimation
      - Projection method
      - LSPI as the MDP solver
+**** Update step					      :BMCOL:B_block:
+     :PROPERTIES:
+     :BEAMER_col: .45
+     :BEAMER_env: block
+     :END:
+     $t = \max\limits_{\theta}\min\limits_{\pi}\theta^T(\mu^{E}(s_0)-\mu^{\pi}(s_0))$
 *** Algorithms : Our modified version
 **** Principle 							    :B_block:
      :PROPERTIES:
@@ -322,13 +337,20 @@ fill=orange!20]
      \draw [->,thick] (policy.east) -- (10,-0.7) -- (10,-1.4) -- (3,-1.4) -- (mech.south);
      \end{tikzpicture}
      #+END_LaTeX
-**** Variants							    :B_block:
+**** Variants						      :B_block:BMCOL:
      :PROPERTIES:
      :BEAMER_env: block
+     :BEAMER_col: .45
      :END:
-     - /LSTD estimation/
+     - /LSTD-$\mu$ estimation/
      - Projection method
      - LSPI as the MDP solver
+**** Update step 					      :BMCOL:B_block:
+     :PROPERTIES:
+     :BEAMER_col: .45
+     :BEAMER_env: block
+     :END:
+     $t = \max\limits_{\theta}\min\limits_{\pi}\theta^T(\mu^{E}(s_0)-\mu^{\pi}(s_0))$
 ** Quality criterion
 *** Quality criterion
 #+begin_latex
@@ -393,3 +415,10 @@ fill=orange!20]
 **** Transferring the reward, and not the policy
 *** Thank you...
     ... for your attention
+
+#* Corrections
+#** TODO Petits textes en bas
+#** TODO Expliquer d'où vient mu
+#** TODO Mettre des uncover dans le .tex
+#** TODO Commiter le tout
+
