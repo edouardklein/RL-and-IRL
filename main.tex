@@ -4,6 +4,7 @@
 
 \usepackage{amssymb}
 \usepackage{natbib}
+\usepackage{graphicx}
 
 % Typographie française ==================================================================
 \usepackage[english]{babel} % typographie francaise
@@ -29,7 +30,7 @@
 \usepackage{algorithmic}
 \newcommand{\argmax}{\operatorname*{argmax}} %\operatorname* pour les op. pouvant admettre des limites...
 
-\title{Apprentissage par imitation dans un cadre \emph{batch}, \emph{off-policy} et sans modèle}
+\title{Batch, Off-policy and Model-free Apprenticeship Learning}
 %\author{Robert}
 %   1. Supelec-Metz Campus, IMS Reasearch group, France. \texttt{prenom.nom@supelec.fr}}
 \author{Edouard Klein\inst{1}\inst{3} \and Matthieu Geist\inst{1} \and Olivier Pietquin\inst{1}\inst{2}}
@@ -142,7 +143,7 @@ Section~\ref{sec:conclusion} opens perspectives.
 \section{Background}
 \label{sec:back}
 A sequential decision problem is often framed as a Markov Decision
-Process (MDP)~\citep{puterman1994markov}, a tuple
+Process (MDP)~\citep{sutton1998reinforcement}, a tuple
 $\{S,A,P,R,\gamma\}$ with $S$ being the state space, $A$ the action
 space, $P\in\mathcal{P}(S)^{S\times A}$ the set of Markovian
 transition probabilities, $R\in\mathbb{R}^S$ the reward function
@@ -150,10 +151,7 @@ transition probabilities, $R\in\mathbb{R}^S$ the reward function
 discounting factor. A policy $\pi\in A^S$ maps states to actions. The
 quality of a policy is quantified by the associated value function
 $V^\pi$, which associates to each state the expected and discounted
-cumulative reward:
-\begin{equation}
-  V^\pi(s) = E[\sum_{t=0}^\infty \gamma^t R(s_t)|s_0=s, \pi]
-\end{equation}
+cumulative reward: $V^\pi(s) = E[\sum\limits_{t=0}^\infty \gamma^t R(s_t)|s_0=s, \pi]$.
 Dynamic programming aims at finding the optimal policy $\pi^*$, that
 is one of the policies associated with the optimal value function,
 $V^* = \argmax_\pi V^\pi$, which maximizes the value for each state.
@@ -180,18 +178,15 @@ space $\mathcal{H}_\phi = \{\theta^T \phi(s),
 \theta\in\mathbb{R}^p\}$, of which we assume the basis functions to
 be bounded by 1: $|\phi_i(s)|\leq 1, \forall s\in S, 1\leq i \leq
 p$. Therefore, there exists a parameter vector $\theta^*$ such that:
-\begin{equation}
-  R^*(s) = (\theta^*)^T \phi(s)
-\end{equation}
+ $R^*(s) = (\theta^*)^T \phi(s)$
 In order to ensure that rewards are bounded, we impose that
 $\|\theta\|_2\leq 1$. For any reward function belonging to
 $\mathcal{H}_\phi$ and for any policy $\pi$, the related value
 function $V^\pi(s)$ can be expressed as follows:
-\begin{align}
-  V^\pi(s) &= E[\sum_{t=0}^\infty \gamma^t \theta^T \phi(s_t)|s_0=s, \pi]
-  \\
-  &= \theta^T  E[\sum_{t=0}^\infty \gamma^t \phi(s_t)|s_0=s, \pi]
-\end{align}
+\begin{equation}
+\scriptstyle
+V^\pi(s) = E[\sum\limits_{t=0}^\infty \gamma^t \theta^T \phi(s_t)|s_0=s, \pi] = \theta^T  E[\sum\limits_{t=0}^\infty \gamma^t \phi(s_t)|s_0=s, \pi]
+\end{equation}
 Therefore, the value function is also linearly parameterized, with
 the same weights and with basis functions being grouped into the
 so-called \emph{feature expectation} $\mu^\pi$:
@@ -207,13 +202,13 @@ for some (small) $\epsilon>0$. Actually, this ensures that the value
 of the expert's policy and the value of the estimated policy (for
 the starting state $s_0$) are close for \emph{any} reward function
 of $\mathcal{H}_\phi$:
-\begin{align}
-  |V^{\pi_E}(s_0) - V^{\tilde{\pi}}(s_0)| &=
+\begin{equation}
+\scriptstyle
+  |V^{\pi_E}(s_0) - V^{\tilde{\pi}}(s_0)| =
   |\theta^T(\mu^{\pi_E}(s_0)-\mu^{\tilde{\pi}}(s_0))|
-  \label{eqn:vs0}
-  \\
-  &\leq \|\mu^{\pi_E}(s_0)-\mu^{\tilde{\pi}}(s_0)\|_2
-\end{align}
+  \leq \|\mu^{\pi_E}(s_0)-\mu^{\tilde{\pi}}(s_0)\|_2
+\label{eqn:vs0}
+\end{equation}
 This equation uses the Cauchy-Schwarz inequality and the
 assumption that $\|\theta\|_2\leq 1$. Therefore, the approach
 described here does not ensure to retrieve the true reward function
@@ -259,10 +254,8 @@ algorithm. In this paper, we use the Least-Squares Policy Iteration
 (LSPI) algorithm~\citep{lagoudakis2003least}. There remains to estimate
 feature expectations. In~\citep{abbeel2004apprenticeship}, $\mu^{\pi_E}(s_0)$ is
 estimated using a Monte Carlo approach over $m$ trajectories:
-\begin{equation}
-  \hat{\mu}_E(s_0) = \frac{1}{m} \sum_{h=1}^m \sum_{t=0}^\infty
-  \gamma^t \phi(s_t^{(h)})
-\end{equation}
+$  \hat{\mu}_E(s_0) = \frac{1}{m} \sum\limits_{h=1}^m \sum\limits_{t=0}^\infty
+  \gamma^t \phi(s_t^{(h)})$
 This approach does not hold if only transitions of the expert are
 available, or if trajectories are too long (in this case, it is
 still possible to truncate them). For intermediate policies, it is
@@ -277,10 +270,7 @@ estimate these feature expectations.
 \label{sec:lstdmu}
 Let us write the definition of the $i^\text{th}$ component of a
 feature expectation $\mu^\pi(s)$ for some policy $\pi$:
-\begin{equation}
-  \mu_i^\pi(s) = E[\sum_{t=0}^\infty \gamma^t \phi_i(s_t)|s_0=s,\pi]
-  \label{eqn:phi}
-\end{equation}
+$  \mu_i^\pi(s) = E[\sum\limits_{t=0}^\infty \gamma^t \phi_i(s_t)|s_0=s,\pi]$
 This is exactly the definition of the value function of the policy
 $\pi$ for the MDP considered with the $i^\text{th}$ basis function
 $\phi_i(s)$ as the reward function. There exist many algorithms to
@@ -302,10 +292,7 @@ considered for value function estimation. But if $\mathcal{H}_\phi$
 is rich enough, one can still consider
 $\mathcal{H}_\psi=\mathcal{H}_\phi$. Therefore, we are looking for
 an approximation of the following form:
-\begin{equation}
-  \hat{\mu}_i^\pi(s) = (\xi_i^*)^T \psi(s)
-  \label{eqn:psi}
-\end{equation}
+$  \hat{\mu}_i^\pi(s) = (\xi_i^*)^T \psi(s)$
 The parameter vector $\xi_i^*$ is here the LSTD estimate:
 \begin{equation}
   \xi_i^* = \left(\sum_{t=1}^n
@@ -332,10 +319,8 @@ interest). To do so, still interpreting each component of the
 feature expectation as a value function, we introduce a state-action
 feature expectation defined as follows (much as the classic
 $Q$-function extends the value function):
-\begin{equation}
-  \mu^\pi(s,a) = E[\sum_{t=0}^\infty \gamma^t
-  \phi(s_t)|s_0=s,a_0=a,\pi]
-\end{equation}
+$\mu^\pi(s,a) = E[\sum\limits_{t=0}^\infty \gamma^t
+  \phi(s_t)|s_0=s,a_0=a,\pi]$
 Compared to the classic feature expectation, this definition adds a
 degree of freedom on the first action to be chosen before following
 the policy $\pi$. With a slightly different definition of the
@@ -388,17 +373,32 @@ Both \citet{abbeel2004apprenticeship}'s algorithm (from now on referred to as th
 We want to compare the efficiency of both versions of the algorithm with respect to the number of samples available from the expert, as these samples usually are the bottleneck. Indeed as they are quite costly (in both means and human time) to generate they are often not in abundance hence the critical need for an algorithm to be expert-sample efficient. Having a simulator at one's disposal can also be difficult. For the simple problem we use this is however not an issue. The discussion about the choice of the performance metric has its own dedicated subsection (subsection~\ref{ssec:quality}). We use here the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term. Fig.~\ref{fig:E} shows, for some numbers of samples from the expert, the value of $||\mu^{\pi^{(j)}}(s_0)-\mu^{\pi_E}(s_0)||_2$ after the algorithm converged or attained the maximum number of iterations (we used 40). The best policy is found by LSTD variant after one iteration only\footnote{Precise reasons why it happens are not clear now, but certainly have something to do with the fact that all the estimations are made along the same distribution of samples.} whereas in the MC variant, convergence happens after at least ten iterations. The best policy is not always the last, and although it has always been observed so far with the LSTD variant, there is absolutely no way to tell whether this is a feature. The score of the best policy (not the last) according to the $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ error term is plotted here. We can see that although the LSTD variant is not as good as the MC variant when very few samples are available, both algorithms quickly converge to almost the same value ; our version converges to a slightly lower error value. The fact that our variant can work in a batch, off-policy and model-free setting should make it suitable to a range of tasks inaccessible to the MC variant, the requirement of a simulator being often constraining.
 \subsubsection{Inverted Pendulum}
 \begin{figure}
-\centering
-\resizebox{\columnwidth}{!}{\input{../Code/InvertedPendulum/threshold}}
-\caption{Number of balancing steps for the policies found by both variants with respect to the number of samples from a sub-optimal policy given to LSPI. Note the absence of middle ground in the quality.}
-\label{fig:threshold}
+\begin{minipage}[t]{.4\linewidth}
+    \begin{center}
+      \resizebox{\columnwidth}{!}{\input{../Code/InvertedPendulum/threshold}}
+      \caption{Number of balancing steps for the policies found by both variants with respect to the number of samples from a sub-optimal policy given to LSPI. Note the absence of middle ground in the quality.}
+      \label{fig:threshold}
+    \end{center}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{.4\linewidth}
+    \begin{center}
+      \resizebox{\columnwidth}{!}{\input{../Code/InvertedPendulum/threshold_EB}}
+      \caption{Same plot as Fig.~\ref{fig:threshold}, with mean and standard deviation over 100 runs. The big standard deviation stems from the absence of middle ground in the quality of the policies. The increasing mean w.r.t. the abscissa means that the proportion of good policies increases with the number of samples from a sub-optimal policy given to LSPI.}
+      \label{fig:threshold_EB}
+    \end{center}
+\end{minipage}
 \end{figure}
-\begin{figure}
-\centering
-\resizebox{\columnwidth}{!}{\input{../Code/InvertedPendulum/threshold_EB}}
-\caption{Same plot as Fig.~\ref{fig:threshold}, with mean and standard deviation over 100 runs. The big standard deviation stems from the absence of middle ground in the quality of the policies. The increasing mean w.r.t. the abscissa means that the proportion of good policies increases with the number of samples from a sub-optimal policy given to LSPI.}
-\label{fig:threshold_EB}
-\end{figure}
+
+
+%% \begin{multicols}{2}
+%% \begin{figure}
+%% \centering
+%% \end{figure}
+%% \begin{figure}
+%% \centering
+%% \end{figure}
+%% \end{multicols}
 Another classic toy problem is the \emph{inverted pendulum}, used for example in \citep{lagoudakis2003least} from where we drew the exact configuration (mass of the pendulum, length of the arm, definition of the feature space, etc.). In this setting, the machine must imitate an expert who maintains the unstable equilibrium of an inverted pendulum allowed to move along only one axis. A balancing step is considered successful (reward $0$) when the angle is less than $\pi\over 2$. It is considered a failure (reward $-1$) when the pendulum has fallen (i.e. the angle exceeds $\pi \over 2$). A run is stopped after a failure or after 3000 successful balancing steps.\\
 
 This problem bears two fundamuntal differences with the previous one and thus comes as complementary to it. First, it presents a continuous state space whereas in the GridWorld a tabular representation was possible. Then, the initial state is randomly drawn from a non singleton subspace of the state space. This last point is addressed differently by the LSTD variant and the MC variant. the MC variant will naturally sample the initial state distribution at each new trajectory from the expert. The LSTD variant, on the other hand, still does not need complete trajectories from the expert but mere samples. As it approximates the whole $\mu^{\pi}$ function and not just $\mu^\pi(s_0)$, it is possible to compute the mean of the approximation $\hat\mu^\pi$ over a few states drawn with the same distribution as the initial states.\\
@@ -411,16 +411,21 @@ Fig.~\ref{fig:threshold_EB} shows that when given samples from a sub-optimal pol
 \subsection{Discussion about the quality criterion}
 \label{ssec:quality}
 \begin{figure}
-\centering
-\input{../Code/GridWorld/criteria_mc}
-\caption{Different criteria with respect to the number of iterations for a run of the MC variant.}
-\label{fig:A}
-\end{figure}
-\begin{figure}
-\centering
-\input{../Code/GridWorld/criteria_lstd_EB}
+\begin{minipage}[t]{.4\linewidth}
+    \begin{center}
+      \resizebox{\columnwidth}{!}{\input{../Code/GridWorld/criteria_mc}}
+      \caption{Different criteria with respect to the number of iterations for a run of the MC variant.}
+      \label{fig:A}
+    \end{center}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{.4\linewidth}
+    \begin{center}
+\resizebox{\columnwidth}{!}{\input{../Code/GridWorld/criteria_lstd_EB}}
 \caption{Different criteria with respect to the number of samples from the expert, for several runs of the LSTD variant. We can see that the algorithm is blind, as all it has access to is always zero. The true error values, however, smoothly converge to something small. Knowing how many expert samples are actually needed in a real world problem is an open question. The error bars represent the standard deviation over 100 runs.}
 \label{fig:B}
+    \end{center}
+\end{minipage}
 \end{figure}
 
 Fig.~\ref{fig:A}~and~\ref{fig:B} illustrate (using the GridWorld problem) the difficulty of choosing the quality criterion ; Fig.~\ref{fig:A} shows four different quality criteria during a run of the MC variant. Fig.~\ref{fig:B} shows the same criteria for several runs of the LSTD variant with a varying number of samples from the expert. The $||\mu^{\pi^{(j)}}(s_0) - \mu^{\pi_E}(s_0)||_2$ term is widely discussed in \citep{abbeel2004apprenticeship}'s additional material. It bears an interesting relation with the difference between the expert's value function and the current value function in the initial state with respect \emph{to the current reward} (Eq.~\ref{eqn:vs0}).\\
