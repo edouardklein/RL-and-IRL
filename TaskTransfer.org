@@ -40,6 +40,8 @@
    (P_\pi-P_{a})(I-\gamma P_\pi)^{-1}R\succeq 0
    \end{equation}
 
+   Where $P_\pi$ or $P_a$ is the $N\times N$ matrix such as its $(i,j)$ element gives the probability of transitioning to state $j$ upon taking action $\pi(i)$, resp $a$ in state $i$.
+
    This is a Linear Programming problem. By adding to these constraints the linear constraints that define the forementionned starting hypersurface, we obtain a set of linear constraints that defines a closed, convex polytope, two remarkable vertices of which are the $\lambda$ point and the origin. The set of all facets that does not contain the origin describes the set of all compatible rewards (that is to say, every compatible reward is a scaling and a $\lambda Id$ translation away of a unique point of one of those facets).
 
 ** Reward selecting
@@ -151,7 +153,7 @@
    \begin{equation}
    S = \begin{pmatrix}s_1\\ \vdots\\ s_{m+n}\end{pmatrix} \succeq 0
    \end{equation}
-   This allows us to change the inequality into an equality, thus finally obtaining something in the standard form :
+   This allows us to change the inequality into an equality : if $a\leq b$, then $\exists s \geq 0, a+s = b$. We finally obtain something in the standard form :
    \begin{eqnarray}
    \begin{blockarray}{(cc)}
    \begin{block*}{c|c}
@@ -159,7 +161,7 @@
    \cline{1-1}
    \begin{block*}{c|c}
    e'_1 & \\
-   e'_2 & -Id_{m+n}\\
+   e'_2 & Id_{m+n}\\
    \vdots \\
    e'_n &\\
    \end{block*}
@@ -206,6 +208,7 @@ The number of columns not to take into account is the number of variables minus 
     \bibliography{../Biblio/Biblio.bib}
 * Code
 ** Main code
+*** Finding the BFS
    This code finds the coordinates of the vertices of the polytope, also known as the /basic feasible solutions/.\\
 
    We create the $A$ and $b$ matrices of the standard form
@@ -219,13 +222,17 @@ for i in range(0,g_iN):
     A[0:g_iM,2*i+1] = g_mC[:,i]
 #e'-i
 for i in range(0,g_iN):
-    A[g_iN+i,2*i] = 1
-    A[g_iN+i,2*i+1] = -1
+    A[g_iM+i,2*i] = 1
+    A[g_iM+i,2*i+1] = -1
 #Id_(n+m)
 A[:,2*g_iN:] = identity(g_iN+g_iM)
 
 b = zeros((g_iM+g_iN,1))
 b[g_iM:,:] = ones((g_iN,1))
+#print "A and b matrices"
+#print a2str(A)
+#print a2str(b)
+
 #+end_src
 
    For every $n+m$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
@@ -238,19 +245,37 @@ for lslice in itertools.combinations(range(0,3*g_iN+g_iM),g_iN+g_iM):
     #print "Combinaison No %d" % index
     index+=1
     #print lslice
-    if( linalg.det( A[:,lslice] ) != 0 ):
+    #print "Subsystem"
+    #print A[:,lslice]
+    if( abs(linalg.det( A[:,lslice] ) ) > 0.00001 ):#Ugly hack for floating point precision
         partialStandardSol = linalg.solve(A[:,lslice],b)
-        standardSol =  zeros((3*g_iN+g_iM,1))
-        standardSol[lslice,:] = partialStandardSol
+        if( all( partialStandardSol > -0.00000001 ) ): #Ugly hack for floating point precision
+            standardSol =  zeros((3*g_iN+g_iM,1))
+            standardSol[lslice,:] = partialStandardSol
         #print "Standard solution exists : "
         #print standardSol
-        R = zeros((g_iN,1))
-        for i in range(0,g_iN):
-            R[i] = standardSol[2*i] - standardSol[2*i+1]
+            R = zeros((g_iN,1))
+            for i in range(0,g_iN):
+                R[i] = standardSol[2*i] - standardSol[2*i+1]
         #print "Corresponding Reward : "
-        #print R.transpose()
-        BFS.add(tuple((R.transpose())[0]))
+                #print linalg.det( A[:,lslice])
+                #print R.transpose()
+                #if( any(dot( g_mC, R )<-0.00001) ):
+                    #print "Ne respecte pas les contraintes"
+                    #print g_mC
+                    #print R
+                    #print dot( g_mC, R )
+            BFS.add(tuple((R.transpose())[0]))
+        #else:
+            #print "Negative"
+            #print partialStandardSol
+    #else:
+        #print "No solutions"
+        #print linalg.det( A[:,lslice] )
+
 #+end_src
+
+   We glue it together
 
 #+begin_src python :noweb yes :tangle TaskTransfer.py
 #!/usr/bin/python
@@ -260,11 +285,22 @@ import scipy
 import itertools
 from sets import *
 
+def a2str(a):
+	"""Return the string representing array a"""
+	answer = ""
+	for l in a:
+		for x in l:
+			answer += "%+.1f "%x
+		answer +="\n"
+        return answer
+
 #import pdb
 
 g_mC = genfromtxt(sys.argv[1])
 g_iN = g_mC.shape[1]
 g_iM = g_mC.shape[0]
+
+print "C matrix : %d equations in %d variables"% (g_iM,g_iN)
 
 <<TT_linesCreation_py>>
 
@@ -279,7 +315,45 @@ for R in BFS:
 
 #+end_src
 
+*** Computing the $C$ constraints matrix
+    Given a $P_\pi$ matrix and several $P_a$ matrices, this code compute the $C$ constraint matrix consisting of the non null, non repeating lines of $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$.\\
 
+    We add the non null lines of every $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$ matrix to a set
+#+srcname:TT_PpiMinusPaEtc_py
+#+begin_src python
+g_sC = Set()
+for Pa in g_lActionMatrices:
+    A = dot((g_mPpi - Pa),linalg.inv( identity(g_iN)-(g_fGamma*g_mPpi) ))
+    for line in A:
+        if( any( line != zeros((1,g_iN)) ) ):
+               g_sC.add( tuple( line ))
+
+#+end_src
+    
+    We glue this.
+#+begin_src python :noweb yes :tangle Constraint.py
+#!/usr/bin/python
+import sys
+from numpy import *
+import scipy
+from sets import *
+
+#import pdb
+g_mPpi = genfromtxt( sys.argv[1] )
+g_lActionMatrices = []
+for i in range(2,len(sys.argv)):
+    g_lActionMatrices.append( genfromtxt(sys.argv[i]) )
+g_iN = g_mPpi.shape[0]
+g_fGamma = 0.9
+
+<<TT_PpiMinusPaEtc_py>>
+
+for line in g_sC:
+    for x in line:
+        sys.stdout.write("%f\t"%x)
+    sys.stdout.write("\n")
+#+end_src
+    
 ** Tests
 *** Unit cube test
 **** Principle
@@ -289,7 +363,7 @@ for R in BFS:
 
     The idea behind this test is to feed the program a $C$ constraints matrix so that, when coupled with the constraints defining the reduced reward space, the polytope we get is a simply defined polytope. It must be easy to check wether the output is good or not.\\
 
-    The hyperplanes parallel to those defined by $\forall i,&e_iX \preceq 1$ but englobing the origin (i.e. those defined by $\forall i, e_iX \succeq 0$) are good candidates. They define a region that is $1\over 2^{n}$ of the unit cube.\\
+    The hyperplanes parallel to those defined by $\forall i,e_iX \preceq 1$ but englobing the origin (i.e. those defined by $\forall i, e_iX \succeq 0$) are good candidates. They define a region that is $1\over 2^{n}$ of the unit cube.\\
     
     For example in dimension 2, they define the intersection of the unit square and the positive-positive quandrant. In dimension 3 they define the eighth of the unit cube where all the components are positive.\\
 
@@ -379,4 +453,59 @@ TT_cleanTest0:
 	rm test/TT_outD4.mat
 #+end_src
 
+
+** Experiments
+*** 2x2 Gridworld
+    In this simple setting we imagine a 2x2 gridworld and two experts. Both experts optimize the same reward, located in the north east corner. Both experts can choose between the same actions at each step : the four compass directions. The first expert's policy is NORTH, EAST, the second one is EAST, NORTH. We want to see in this experiment if the true reward is among the set of reward output by our algorithm.
+
+    The states are indexed fom 0 to 3, in the reading order.
+
+
+    We begin by defining the two matrices $P_{\pi_1}$ and $P_{\pi_2}$ relative to both expert's policies :
+    - $P_{\pi_1}$ is :
+      #+begin_src text :tangle TT_PPi1.mat
+0	1	0	0
+0	1	0	0
+1	0	0	0
+0	1	0	0
+      #+end_src
+    - $P_{\pi_1}$ is :    
+      #+begin_src text :tangle TT_PPi2.mat
+0	1	0	0
+0	1	0	0
+0	0	0	1
+0	1	0	0
+      #+end_src
+      
+    
+    We then define the four $P_a$ matrices relative to each action :
+    - $P_{NORTH}$ is :
+      #+begin_src text :tangle TT_PNorth.mat
+1	0	0	0
+0	1	0	0
+1	0	0	0
+0	1	0	0
+      #+end_src      
+    - $P_{EAST}$ is :
+      #+begin_src text :tangle TT_PEast.mat
+0	1	0	0
+0	1	0	0
+0	0	0	1
+0	0	0	1
+      #+end_src
+     - $P_{SOUTH}$ is :
+      #+begin_src text :tangle TT_PSouth.mat
+0	0	1	0
+0	0	0	1
+0	0	1	0
+0	0	0	1
+      #+end_src
+     - $P_{WEST}$ is :
+      #+begin_src text :tangle TT_PWest.mat
+1	0	0	0
+1	0	0	0
+0	0	1	0
+0	0	1	0
+      #+end_src
+      
 
