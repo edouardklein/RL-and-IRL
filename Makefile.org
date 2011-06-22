@@ -71,8 +71,10 @@ export CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
 export LFLAGS=`pkg-config --libs gsl` -lm -O3
     #+end_src
 ** Cleaning
-    #+begin_src makefilefile :tangle Makefile
-clean:
+    #+begin_src makefilefile :tangle Makefile :noweb yes
+<<TT_cleanTest0_make>>
+
+clean: TT_cleanTest0
 	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*~"    | xargs -tr rm &&\
@@ -169,8 +171,9 @@ TT_polytope.o: TT_polytope.c TT_polytope.h TT_Globals.h
 TaskTransfer.o: TaskTransfer.c TT_polytope.h TT_Globals.h
 	gcc -c $(CFLAGS) TaskTransfer.c
     #+end_src
-* TODO Clean this
-    #+begin_src makefile :tangle Makefile
-TaskTransfer.exe: TaskTransfer.o TT_polytope.o
-	$(MAKE) -C GridWorld TaskTransfer.exe
+* Tests
+  #+begin_src makefile :tangle Makefile :noweb yes
+test: TT_test0
+
+<<TT_test0_make>>
     #+end_src

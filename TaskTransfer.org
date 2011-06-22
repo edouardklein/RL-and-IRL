@@ -109,13 +109,13 @@
    \end{equation}
    Accordingly, the $C'$ matrix is defined as (using $c_i$ to denote the $i$-th column of C) :
    \begin{equation}
-   C'=\begin{pmatrix} c_1 | c_1 | c_2 | c_2 | \dots |c_n|c_n \end{pmatrix}
+   C'=\begin{pmatrix} c_1 | -c_1 | c_2 | -c_2 | \dots |c_n|-c_n \end{pmatrix}
    \end{equation}
    and the $e'_i$ matrices are defined as :
    \begin{equation}
-   e'_i=\begin{pmatrix} 0,0,\dots 1,1, \dots 0,0 \end{pmatrix}
+   e'_i=\begin{pmatrix} 0,0,\dots 1,-1, \dots 0,0 \end{pmatrix}
    \end{equation}
-   with the $1$ being at indexes $2i-1$ and $2i$.
+   with $1$ and $-1$ being respectively at indexes $2i-1$ and $2i$.
    \\
    
    We are now a bit closer to the standard form :
@@ -147,9 +147,9 @@
    X'\succeq 0
    \end{eqnarray}
    
-   The last thing to do is to introduce $n$ positive slack variables in the form of a matrix
+   The last thing to do is to introduce $m+n$ positive slack variables in the form of a matrix
    \begin{equation}
-   S = \begin{pmatrix}s_1\\ \vdots\\ s_n\end{pmatrix} \succeq 0
+   S = \begin{pmatrix}s_1\\ \vdots\\ s_{m+n}\end{pmatrix} \succeq 0
    \end{equation}
    This allows us to change the inequality into an equality, thus finally obtaining something in the standard form :
    \begin{eqnarray}
@@ -159,7 +159,7 @@
    \cline{1-1}
    \begin{block*}{c|c}
    e'_1 & \\
-   e'_2 & -Id\\
+   e'_2 & -Id_{m+n}\\
    \vdots \\
    e'_n &\\
    \end{block*}
@@ -191,20 +191,96 @@
    \end{eqnarray}
 
 *** Basic feasible solutions
-    In the linear programming framework, vertices of the polytope are often referred to as /basic feasible solutions/. To get these basic feasible solutions, one should set $3n-(2m+n)$ of the coordinates of the $\begin{blockarray}{(c)}\begin{block*}{c}X' \\\cline{1-1}\begin{block*}{c} S\\\end{block*}\end{block*}\end{blockarray}$ matrix to 0 and solve the system for the remaining variables. If the system admits a unique solution with all the variables being non negative, then such a solution is a basic feasible solution (see for example [[http://www2.isye.gatech.edu/~spyros/LP/node20.html]] to get an explanation).
+    In the linear programming framework, vertices of the polytope are often referred to as /basic feasible solutions/. To get these basic feasible solutions, one must cross out a certain number of columns of the $A$ matrix and solve the system for the remaining variables. If the system admits a unique solution, the components of which are all non negative, then such a solution is a basic feasible solution (see for example [[http://www2.isye.gatech.edu/~spyros/LP/node20.html]] to get an explanation).
 \\
 
+The number of columns not to take into account is the number of variables minus the number of equations. So the number of columns to take into account is in fact the number of equations. In our case, this is $m+n$.
 *** Back to the reward space
-    Given a basic feasible solution (/bfs/) of the linear problem $\begin{blockarray}{(c)}\begin{block*}{c}X'^{bfs} \\\cline{1-1}\begin{block*}{c} S^{bfs}\\\end{block*}\end{block*}\end{blockarray}$, we must go back to the corresponding reward $R^{bfs}$ by undoing the transformation that allowed us to get to the standard form. This is done by :
+    Given a basic feasible solution (/bfs/) of the linear problem $\begin{blockarray}{(c)}\begin{block*}{c}X'^{bfs} \\\cline{1-1}\begin{block*}{c} S^{bfs}\\\end{block*}\end{block*}\end{blockarray}$, we must go back to the corresponding reward $R^{bfs}$ by undoing the transformation that allowed us to get to the standard form. This is simply done by :
     \begin{equation}
-    R^{bfs}_i = X'^{bfs}_{2i-1} - X'^{bfs}_{2i} - S^{bfs}_i
+    R^{bfs}_i = X'^{bfs}_{2i-1} - X'^{bfs}_{2i}
     \end{equation}
 
 
     \bibliographystyle{plain}
     \bibliography{../Biblio/Biblio.bib}
 * Code
-** Tests and examples
+** Main code
+   This code finds the coordinates of the vertices of the polytope, also known as the /basic feasible solutions/.\\
+
+   We create the $A$ and $b$ matrices of the standard form
+
+#+srcname:TT_linesCreation_py
+#+begin_src python
+A = zeros((g_iM + g_iN, 3*g_iN + g_iM))
+#-C'
+for i in range(0,g_iN):
+    A[0:g_iM,2*i] = -g_mC[:,i]
+    A[0:g_iM,2*i+1] = g_mC[:,i]
+#e'-i
+for i in range(0,g_iN):
+    A[g_iN+i,2*i] = 1
+    A[g_iN+i,2*i+1] = -1
+#Id_(n+m)
+A[:,2*g_iN:] = identity(g_iN+g_iM)
+
+b = zeros((g_iM+g_iN,1))
+b[g_iM:,:] = ones((g_iN,1))
+#+end_src
+
+   For every $n+m$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
+#+srcname:TT_linearSystem_py
+#+begin_src python
+BFS = Set()
+index = 0
+standard_sols=[]
+for lslice in itertools.combinations(range(0,3*g_iN+g_iM),g_iN+g_iM):
+    #print "Combinaison No %d" % index
+    index+=1
+    #print lslice
+    if( linalg.det( A[:,lslice] ) != 0 ):
+        partialStandardSol = linalg.solve(A[:,lslice],b)
+        standardSol =  zeros((3*g_iN+g_iM,1))
+        standardSol[lslice,:] = partialStandardSol
+        #print "Standard solution exists : "
+        #print standardSol
+        R = zeros((g_iN,1))
+        for i in range(0,g_iN):
+            R[i] = standardSol[2*i] - standardSol[2*i+1]
+        #print "Corresponding Reward : "
+        #print R.transpose()
+        BFS.add(tuple((R.transpose())[0]))
+#+end_src
+
+#+begin_src python :noweb yes :tangle TaskTransfer.py
+#!/usr/bin/python
+import sys
+from numpy import *
+import scipy
+import itertools
+from sets import *
+
+#import pdb
+
+g_mC = genfromtxt(sys.argv[1])
+g_iN = g_mC.shape[1]
+g_iM = g_mC.shape[0]
+
+<<TT_linesCreation_py>>
+
+#print A
+<<TT_linearSystem_py>>
+
+#print "All solutions are : "
+for R in BFS:
+    for x in R:
+        sys.stdout.write("%f\t"%x)
+    sys.stdout.write("\n")
+
+#+end_src
+
+
+** Tests
 *** Unit cube test
 **** Principle
     Recall that the constraints that corresponds to the reduction of the reward space are of the form $\forall i, e_iX \preceq 1$. This is half the definition of the unit cube, the other half being the same equation with a minus sign in one of the sides.\\ 
@@ -224,18 +300,18 @@
 
      First let us define the constraints matrices :
      - in dimension 2 : 
-       #+begin_src text :tangle test/C_d2.mat
+       #+begin_src text :tangle test/TT_CD2.mat
 1	0
 0	1
        #+end_src
      - in dimension 3 : 
-       #+begin_src text :tangle test/C_d3.mat
+       #+begin_src text :tangle test/TT_CD3.mat
 1	0	0
 0	1	0
 0	0	1
        #+end_src
      - in dimension 4 : 
-       #+begin_src text :tangle test/C_d4.mat
+       #+begin_src text :tangle test/TT_CD4.mat
 1	0	0	0
 0	1	0	0
 0	0	1	0
@@ -244,14 +320,14 @@
 
 Then, let us write in some files the corresponding expected output, one vertex per line :
      - in dimension 2 : 
-       #+begin_src text :tangle test/EO_d2.mat
+       #+begin_src text :tangle test/TT_expectedOutD2.mat
 0	0
 0	1
 1	0
 1	1
        #+end_src
      - in dimension 3 : 
-       #+begin_src text :tangle test/EO_d3.mat
+       #+begin_src text :tangle test/TT_expectedOutD3.mat
 0	0	0
 0	0	1
 0	1	0
@@ -262,7 +338,7 @@ Then, let us write in some files the corresponding expected output, one vertex p
 1	1	1
        #+end_src
      - in dimension 4 : 
-       #+begin_src text :tangle test/EO_d4.mat
+       #+begin_src text :tangle test/TT_expectedOutD4.mat
 0	0	0	0
 0	0	0	1
 0	0	1	0
@@ -282,16 +358,25 @@ Then, let us write in some files the corresponding expected output, one vertex p
        #+end_src
 
 
-We now build Makefile targets that calls the program on the previously defined $C$ matrices and match the output with the expected output. Note the use of the \texttt{sort} command to make sure both output are in the same order.
+We now build Makefile targets that calls the program on the previously defined $C$ matrices and match the output with the expected output. Note the use of the \texttt{sort} command to make sure both output are in the same order and the diff command succeeds.
 
-#+src_name test_makefile1
+#+srcname: TT_test0_make
 #+begin_src makefile
-#Ceci est le test 1
+TT_test0: TaskTransfer.py
+	python TaskTransfer.py test/TT_CD2.mat | sort > test/TT_outD2.mat
+	python TaskTransfer.py test/TT_CD3.mat | sort > test/TT_outD3.mat
+	python TaskTransfer.py test/TT_CD4.mat | sort > test/TT_outD4.mat
+	../Utils/matrix_diff.py test/TT_expectedOutD2.mat test/TT_outD2.mat
+	../Utils/matrix_diff.py test/TT_expectedOutD3.mat test/TT_outD3.mat
+	../Utils/matrix_diff.py test/TT_expectedOutD4.mat test/TT_outD4.mat
 #+end_src
 
-#+src_name test_makefile0
+#+srcname: TT_cleanTest0_make
 #+begin_src makefile
-#Ceci doit être écrit avant
+TT_cleanTest0:
+	rm test/TT_outD2.mat
+	rm test/TT_outD3.mat
+	rm test/TT_outD4.mat
 #+end_src
-http://thread.gmane.org/gmane.emacs.orgmode/42636/focus=42960
+
 
