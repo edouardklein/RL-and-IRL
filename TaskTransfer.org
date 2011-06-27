@@ -237,6 +237,62 @@ def a2str(a):
   #+end_src
 
     We output values near 0 as 0. Instead we probably should understand why there are so much near-0 values in the normal output. I think it has to do with the linear system solver.
+*** Dynamic programming
+    We need a MDP solver. This quick and dity dynamic programming implementation will do the trick :
+    #+begin_src python :tangle TT_DP.py
+from numpy import *
+import scipy
+import pdb
+
+g_vReward = []
+g_vActions = []
+g_vV = []
+g_vPi = []
+g_fGamma = 0.9
+
+def TT_Q( s, a ):
+    return g_vReward[s] + 0.9 * dot( (g_vActions[ a ])[s], g_vV.transpose() )
+
+def TT_DP( Reward, Actions ):
+    "Returns the probability matrix corresponding to the optimal policy with respect to the given reward and the given actions. Actions are given in the form of a probability matrix. Probability matrices are so that the $(i,j)$ element gives the probability of transitioning to state $j$ upon taking action $a$ in state $i$"
+    #pdb.set_trace()
+    global g_vReward
+    global g_vActions
+    global g_vV
+    global g_vPi
+    n = len( Reward )
+    m = len( Actions )
+    g_vReward = Reward
+    g_vActions = Actions
+    g_vPi = map( int, floor( scipy.rand( n )*m ) )
+    g_vV = scipy.rand( n )
+    #While things change,
+    changed = True
+    while changed:
+        changed = 0
+        #For each state
+        for s in range(0,n):
+            old_pi = g_vPi[ s ]
+            old_V = g_vV[ s ]
+            chosen_a = 0
+            max_Q = TT_Q( s, chosen_a )
+            #Select the action that maximizes Q
+            for a in range(0,m):
+                Q = TT_Q( s, a )
+                if( Q > max_Q ):
+                    max_Q = Q
+                    chosen_a = a
+            g_vPi[ s ] = chosen_a
+            g_vV[ s ] = max_Q
+            if( g_vPi[ s ] != old_pi or g_vV[ s ] != old_V ):
+                changed = 1
+    #Construct the pobability matrix from the policy
+    Ppi = zeros((n,n))
+    for s in range(0,n):
+        Ppi[s] = (g_vActions[ g_vPi[s] ])[s]
+    return Ppi
+
+    #+end_src
 *** Finding the BFS
    This code finds the coordinates of the vertices of the polytope, also known as the /basic feasible solutions/.\\
 
@@ -473,7 +529,7 @@ TT_cleanTest0:
 	rm test/TT_outD3.mat
 	rm test/TT_outD4.mat
 #+end_src
-*** 2x2 Gridworld
+*** Task Transfer on a 2x2 Gridworld
     In this simple setting we imagine a 2x2 gridworld and two experts. Both experts optimize the same reward, located in the north east corner. Both experts can choose between the same actions at each step : the four compass directions. The first expert's policy is NORTH, EAST, the second one is EAST, NORTH. We want to see in this experiment if the true reward is among the set of reward output by our algorithm.
 
     The states are indexed fom 0 to 3, in the reading order.
@@ -544,7 +600,7 @@ TT_test1:
     The TaskTransfer program is run and its output is compared against what is expected :
     #+srcname: TT_test1_make
     #+begin_src makefile
-	python TaskTransfer.py test/TT_CBoth.mat >> test/TT_outT1.mat
+	python TaskTransfer.py test/TT_CBoth.mat > test/TT_outT1.mat
 	../Utils/matrix_diff.py test/TT_expectedOutT1.mat test/TT_outT1.mat
     #+end_src
 
@@ -564,6 +620,62 @@ TT_cleanTest1:
 	rm test/TT_PEast.mat
 	rm test/TT_outT1.mat
     #+end_src
+*** Dynamic pogamming on a 2x2 Gridworld
+    We want to test our dynamic programming functions. We use help from the files defined in the [[TaskTransfer on a 2x2 Gridworld]] test.
+
+    We first run the optimization with the action in a certain order,
+    #+begin_src python :tangle TT_test2.py
+from numpy import *
+import scipy
+from TT_DP import *
+from a2str import *
+
+Actions = []
+
+for file in ['test/TT_PNorth.mat','test/TT_PEast.mat','test/TT_PSouth.mat','test/TT_PWest.mat']:
+    P_pi = genfromtxt( file )
+    Actions.append( P_pi )
+
+Reward = [0,1,0,0]
+
+print a2str( TT_DP( Reward, Actions ) )
+    #+end_src
+    And then in another order,
+    #+begin_src python :tangle TT_test3.py
+from numpy import *
+import scipy
+from TT_DP import *
+from a2str import *
+
+Actions = []
+
+for file in ['test/TT_PEast.mat','test/TT_PNorth.mat','test/TT_PSouth.mat','test/TT_PWest.mat']:
+    P_pi = genfromtxt( file )
+    Actions.append( P_pi )
+
+Reward = [0,1,0,0]
+
+print a2str( TT_DP( Reward, Actions ) )
+    #+end_src
+    This should retrieve the policies of each of our experts, as changing the order of the actions change the default action when state-action values are the same.
+
+    We add the first test to the Makefile
+    #+srcname: TT_test2_make
+    #+begin_src makefile
+TT_test2:
+	python TT_test2.py > test/TT_outT2.mat
+	../Utils/matrix_diff.py test/TT_PPi1.mat test/TT_outT2.mat
+    #+end_src
+    
+    And the second also,
+    #+srcname: TT_test3_make
+    #+begin_src makefile
+TT_test3:
+	python TT_test3.py > test/TT_outT3.mat
+	../Utils/matrix_diff.py test/TT_PPi2.mat test/TT_outT3.mat
+    #+end_src
+    
+    
 * Experiments
 ** Open questions
    What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
@@ -595,5 +707,36 @@ TT_cleanTest1:
 	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
       - Plot the agent's true values along with the expert's and the Agent as Expert value
     - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
+*** Code
+    
+    
 
-      
+    We rewrite the protocol, adding the corresponding code at each line :
+    - Do :
+      #+srcname: TT_Exp1_py
+      #+begin_src python
+while True:
+      #+end_src
+      - Define a random reward $\mathbf{R}$ of size $n$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    R = rand( n )
+        #+end_src
+      - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    ExpertsActions = []
+    for i in range(0,m_E):
+        P_i = rand(n,n)
+        ExpertsActions.append(P_i)
+        #+end_src
+      - Compute the expert's policy by solving the MDP : $\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
+      - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
+      - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
+      - Compute the Agent as Expert policy by solving the MDP for the true reward function : $\pi \leftarrow DP( R, \{P_{a^A_i}\}_i)$
+      - Store the Agent as Expert value $V^{AaE}(s_0)$
+      - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
+	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
+	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
+      - Plot the agent's true values along with the expert's and the Agent as Expert value
+    - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained

@@ -173,11 +173,14 @@ TaskTransfer.o: TaskTransfer.c TT_polytope.h TT_Globals.h
     #+end_src
 * Tests
   #+begin_src makefile :tangle Makefile :noweb yes
-test: TT_test0 TT_test1
+test: TT_test0 TT_test1 TT_test2 TT_test3
 
 <<TT_test0_make>>
 
 <<TT_test1_make>>
 
-<<totolarifletee>>
+<<TT_test2_make>>
+
+<<TT_test3_make>>
+
     #+end_src
