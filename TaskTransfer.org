@@ -392,7 +392,7 @@ print toPrint
 #+end_src
 
 *** Computing the $C$ constraints matrix
-    Given a $P_\pi$ matrix and several $P_a$ matrices, this code compute the $C$ constraint matrix consisting of the non null, non repeating lines of $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$.\\
+    Given a $P_\pi$ matrix and several $P_a$ matrices, this code compute the $C$ constraint matrix consisting of the non null, non repeating lines of $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$, plus the $[1, \dots, 1]$ vector. FIXME : why ?\\
 
     We add the non null lines of every $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$ matrix to a set
 #+srcname:TT_PpiMinusPaEtc_py
@@ -432,6 +432,33 @@ toPrint+= l2str( ones( g_iN ) )
 print toPrint
 #+end_src
     
+*** Glue function
+    A python function that glue both the constraints computation and the TaskTransfer algorithm is provided :
+    #+begin_src python :tangle TT.py
+import os
+from numpy import *
+import scipy
+
+def TT( P_pi, Actions ):
+    index = 0
+    savetxt( "TT_tmp_%d"%index, P_pi, "%e", "\t" )
+    index +=1
+    for action in Actions:
+        savetxt( "TT_tmp_%d"%index, action, "%e", "\t" )
+        index +=1
+
+    cmd = "python Constraint.py "
+    for i in range(0,index):
+        cmd+="TT_tmp_%d "%i
+    cmd += " > TT_tmpC.mat"
+    os.system( cmd )
+
+    cmd = "python TaskTransfer.py TT_tmpC.mat > TT_tmpR.mat"
+    os.system( cmd )
+
+    answer = genfromtxt( "TT_tmpR.mat" )
+    return answer
+    #+end_src
 ** Tests
 *** Unit cube test
 **** Principle
@@ -675,8 +702,7 @@ TT_test3:
 	python TT_test3.py > test/TT_outT3.mat
 	../Utils/matrix_diff.py test/TT_PPi2.mat test/TT_outT3.mat
     #+end_src
-    
-    
+        
 * Experiments
 ** Open questions
    What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
@@ -709,35 +735,116 @@ TT_test3:
       - Plot the agent's true values along with the expert's and the Agent as Expert value
     - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
 *** Code
-    
-    
-
     We rewrite the protocol, adding the corresponding code at each line :
     - Do :
       #+srcname: TT_Exp1_py
       #+begin_src python
+iterations = 0
 while True:
+    iterations+=1
       #+end_src
       - Define a random reward $\mathbf{R}$ of size $n$
 	#+srcname: TT_Exp1_py
         #+begin_src python
-    R = rand( n )
+    R = scipy.rand( n )
         #+end_src
       - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
 	#+srcname: TT_Exp1_py
         #+begin_src python
     ExpertsActions = []
     for i in range(0,m_E):
-        P_i = rand(n,n)
+        P_i = scipy.rand(n,n)
+        for line in P_i:
+            line /= sum(line) #Sum of proba = 1, so we normalize the random line
         ExpertsActions.append(P_i)
         #+end_src
-      - Compute the expert's policy by solving the MDP : $\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
+      - Compute the expert's policy's transition probabilities by solving the MDP : $P_\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    P_pi = TT_DP( R, ExpertsActions )
+        #+end_src
       - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    ttRewards = TT( P_pi, ExpertsActions )
+        #+end_src
       - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
-      - Compute the Agent as Expert policy by solving the MDP for the true reward function : $\pi \leftarrow DP( R, \{P_{a^A_i}\}_i)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    AgentsActions = []
+    for i in range(0,m_A):
+        P_i = scipy.rand(n,n)
+        for line in P_i:
+            line /= sum(line) #Sum of proba = 1, so we normalize the random line
+        AgentsActions.append(P_i)
+
+        #+end_src
+      - Compute the Agent as Expert policy's transition probabilities by solving the MDP for the true reward function : $P_\pi^{AaE} \leftarrow DP( R, \{P_{a^A_i}\}_i)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    P_AaE = TT_DP( R, AgentsActions )
+        #+end_src
       - Store the Agent as Expert value $V^{AaE}(s_0)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    V_AaE = dot(P_AaE[0],R.transpose()) #0 is the initial state
+        #+end_src
       - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    AgentsValues = []
+    for reward in ttRewards:
+        #+end_src
 	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
+	  #+srcname: TT_Exp1_py
+          #+begin_src python
+        P_pi_l = TT_DP( reward, AgentsActions )
+          #+end_src
 	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
+	  #+srcname: TT_Exp1_py
+          #+begin_src python
+        AgentsValues.append( dot( P_pi_l[0], R.transpose() ))
+          #+end_src
       - Plot the agent's true values along with the expert's and the Agent as Expert value
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    print l2str( AgentsValues )
+    print "Expert : %f" % dot(P_pi[0], R.transpose())
+    print "Agent as Expert : %f" % V_AaE
+        #+end_src
     - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
+      #+srcname: TT_Exp1_py
+      #+begin_src python
+    if( max( AgentsValues ) < V_AaE or iterations >= 100 ):
+        print "Conditions de quittage"
+        print "iterations : %d" % iterations
+        print "Récompense : "
+        print l2str(R)
+        print "Actions de l'expert :"
+        for action in ExpertsActions:
+            print a2str(action)
+            print ""
+        print "Actions de l'agent"
+        for action in AgentsActions:
+            print a2str(action)
+            print ""
+        break
+      #+end_src
+
+
+    We glue it :
+    #+begin_src python :tangle Exp1.py :noweb yes
+# -*- coding: utf8 -*-
+from numpy import *
+import scipy
+from TT_DP import *
+from a2str import *
+from TT import *
+
+n = 6
+
+m_E = 3
+m_A = 2
+
+<<TT_Exp1_py>>
+    #+end_src
