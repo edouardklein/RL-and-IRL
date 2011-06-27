@@ -428,6 +428,7 @@ g_fGamma = 0.9
 toPrint = ""
 for line in g_sC:
     toPrint+=line
+toPrint+= l2str( ones( g_iN ) )
 print toPrint
 #+end_src
     
