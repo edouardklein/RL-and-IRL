@@ -564,34 +564,35 @@ TT_cleanTest1:
 	rm test/TT_PEast.mat
 	rm test/TT_outT1.mat
     #+end_src
-** Experiments
-*** Open questions
-    What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
-    
-    
-    Assuming an infinite supply of experts, will the true reward function be retrieved ?
-    
-    
-    Is the /Agent as expert/ value always attainable by maximizing one of the output reward ?
-    
-    
-    Is there such a thing as a lousy expert that hides information to the algorithm ?
-*** Random rewards and random experts
-**** Goal
-    The goal of this experiment is to empirically test the hypothesis according to which there always is a reward output by the algorithm so that if the agent maximizes this reward its value is equal to the value when it maximizes the true reward function. 
-    
-    This hypothesis can be reformulated by saying that /the Agent as Expert value is always attainable by maximizing one of the output rewards/. 
-**** Protocol
-     - Do :
-       - Define a random reward $\mathbf{R}$ of size $n$
-       - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
-       - Compute the expert's policy by solving the MDP : $\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
-       - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
-       - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
-       - Compute the Agent as Expert policy by solving the MDP for the true reward function : $\pi \leftarrow DP( R, \{P_{a^A_i}\}_i)$
-       - Store the Agent as Expert value $V^{AaE}(s_0)$
-       - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
-	 - Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
-	 - Store the value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
-     - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
- 
+* Experiments
+** Open questions
+   What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
+   
+   
+   Assuming an infinite supply of experts, will the true reward function be retrieved ?
+   
+   
+   Is the /Agent as expert/ value always attainable by maximizing one of the output reward ?
+   
+   
+   Is there such a thing as a lousy expert that hides information to the algorithm ?
+** Random rewards and random experts
+*** Goal
+   The goal of this experiment is to empirically test the hypothesis according to which there always is a reward output by the algorithm so that if the agent maximizes this reward its value is equal to the value when it maximizes the true reward function. 
+   
+   This hypothesis can be reformulated by saying that /the Agent as Expert value is always attainable by maximizing one of the output rewards/. 
+*** Protocol
+    - Do :
+      - Define a random reward $\mathbf{R}$ of size $n$
+      - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
+      - Compute the expert's policy by solving the MDP : $\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
+      - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
+      - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
+      - Compute the Agent as Expert policy by solving the MDP for the true reward function : $\pi \leftarrow DP( R, \{P_{a^A_i}\}_i)$
+      - Store the Agent as Expert value $V^{AaE}(s_0)$
+      - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
+	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
+	- Store the value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
+    - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
+
+      
