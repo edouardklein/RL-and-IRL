@@ -392,6 +392,14 @@ m_A = 2
 
   #+begin_src python :tangle a2str.py
 #Do not indent
+def l2str_fullprecision(l):
+	"""Return a string representing line l without los of precision"""
+	answer = ""
+	for x in l:
+		answer+="%e\t"%x
+	answer +="\n"
+	return answer
+
 def l2str(l):
 	"""Return the unique string representing line l"""
 	answer = ""
@@ -532,7 +540,7 @@ for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+2):
                 #print g_mC
                 #print R
                 #print dot( g_mC, R )
-            if any( R != 0 ):
+            if( any( abs(R) > 0.001 ) ):
                 BFS.add(l2str((R.transpose())[0]))
         #else:
             #print "Negative"
@@ -586,7 +594,7 @@ for Pa in g_lActionMatrices:
     A = dot((g_mPpi - Pa),linalg.inv( identity(g_iN)-(g_fGamma*g_mPpi) ))
     for line in A:
         if( any( line != zeros((1,g_iN)) ) ):
-               g_sC.add( l2str( line/linalg.norm(line) ))
+               g_sC.add( l2str_fullprecision(line/linalg.norm(line)) )
 
 #+end_src
     
@@ -611,9 +619,9 @@ g_fGamma = 0.9
 
 toPrint = ""
 for line in g_sC:
-    toPrint+=line
-toPrint+= l2str( ones( g_iN ) )
+    toPrint += line
 print toPrint
+
 #+end_src
     
 *** Glue function
@@ -645,17 +653,17 @@ def TT( P_pi, Actions ):
     #+end_src
 ** Tests
 *** Test in 3D
-    We test the program in a small setting o that the eward vector only has three component $x$, $y$ and $z$.
+    We test the program in a small setting so that the reward vector only has three component $x$, $y$ and $z$.
 
     
      First let us define the following constraints matrices :
      - This one means that we must have $x\geq y$ and $y \geq z$ 
-       #+begin_src text :tangle test/TT_CT11.mat
+       #+begin_src text :tangle test/TT_CT01.mat
 1	-1	0
 0	1	-1
        #+end_src
      - this one is the same, with an added last line that explicitely specify that $x \geq z$. The last line does not change the meaning of the contraints, but we add it to see if the program works even when fed with a useless constraint
-       #+begin_src text :tangle test/TT_CT12.mat
+       #+begin_src text :tangle test/TT_CT02.mat
 1	-1	0
 0	1	-1
 1	0	-1
@@ -669,7 +677,7 @@ def TT( P_pi, Actions ):
      
        
      As the $L_1$ norm of the anwers must be $1$, the expected output for both input is :
-     #+begin_src text :tangle test/TT_expectedOutT1.mat
+     #+begin_src text :tangle test/TT_expectedOutT0.mat
  2.50e-01	 2.50e-01	-5.00e-01	
  5.00e-01	 0.00e+00	-5.00e-01	
  5.00e-01	-2.50e-01	-2.50e-01	
@@ -680,17 +688,17 @@ We now build Makefile targets that calls the program on the previously defined $
 #+srcname: TT_test0_make
 #+begin_src makefile
 TT_test0: TaskTransfer.py
-	python TaskTransfer.py test/TT_CT11.mat | sort > test/TT_outT11.mat
-	python TaskTransfer.py test/TT_CT12.mat | sort > test/TT_outT12.mat
-	../Utils/matrix_diff.py test/TT_expectedOutT1.mat test/TT_outT11.mat
-	../Utils/matrix_diff.py test/TT_expectedOutT1.mat test/TT_outT12.mat
+	python TaskTransfer.py test/TT_CT01.mat | sort > test/TT_outT01.mat
+	python TaskTransfer.py test/TT_CT02.mat | sort > test/TT_outT02.mat
+	../Utils/matrix_diff.py test/TT_expectedOutT0.mat test/TT_outT01.mat
+	../Utils/matrix_diff.py test/TT_expectedOutT0.mat test/TT_outT02.mat
 #+end_src
 
 #+srcname: TT_cleanTest0_make
 #+begin_src makefile
 TT_cleanTest0:
-	rm test/TT_outT11.mat
-	rm test/TT_outT12.mat
+	rm test/TT_outT01.mat
+	rm test/TT_outT02.mat
 #+end_src
 *** Task Transfer on a 2x2 Gridworld
     In this simple setting we imagine a 2x2 gridworld and two experts. Both experts optimize the same reward, located in the north east corner. Both experts can choose between the same actions at each step : the four compass directions. The first expert's policy is NORTH, EAST, the second one is EAST, NORTH. We want to see in this experiment if the true reward is among the set of reward output by our algorithm.
@@ -763,8 +771,15 @@ TT_test1:
     The TaskTransfer program is run and its output is compared against what is expected :
     #+srcname: TT_test1_make
     #+begin_src makefile
-	python TaskTransfer.py test/TT_CBoth.mat > test/TT_outT1.mat
+	python TaskTransfer.py test/TT_CBoth.mat | sort > test/TT_outT1.mat
 	../Utils/matrix_diff.py test/TT_expectedOutT1.mat test/TT_outT1.mat
+    #+end_src
+
+    #+begin_src text :tangle test/TT_expectedOutT1.mat
+0.00e+00	 5.00e-01	-5.00e-01	 0.00e+00	
+1.67e-01	 1.67e-01	-5.00e-01	 1.67e-01	
+-2.50e-01	 2.76e-01	 2.24e-01	-2.50e-01	
+-2.50e-01	 5.00e-01	 0.00e+00	-2.50e-01
     #+end_src
 
     The expected output is drawn from a run of an early version of the program, it looked consistant and logical.
