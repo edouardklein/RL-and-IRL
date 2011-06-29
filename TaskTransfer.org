@@ -116,7 +116,6 @@ The following holds:  $R_1\equiv R_2$
    #+end_proof
 
 * Finding interesting rewards
-  
    In \cite{ng2000algorithms}, we are given a necessary and sufficient condition for a reward $R$ to admit a given policy as optimal : for every action $a$ the expert $\pi$ had the possibility to take, the following matrix inequality must be met : 
    \begin{equation}
    \label{ng2000algorithms.eqn}
@@ -140,7 +139,6 @@ The following holds:  $R_1\equiv R_2$
    &X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
    &||X||_1=1
    \end{eqnarray}
-
 ** Standard form
    
    These constraints will now be put in the /standard form/ $AX=b, X\succeq 0$, typically used in the simplex algorithm (which is not fully applicable here because we don't have a cost function).\\
@@ -176,7 +174,7 @@ The following holds:  $R_1\equiv R_2$
   \label{LPStandardForm.eqn}
   \begin{blockarray}{(cc)}
   \begin{block*}{c|c}
-  C'& Id_m  \\
+  C'& -Id_m  \\
   \cline{1-2}
   \begin{block*}{c|c}
   \mathbf{1}'^T&0 \\
@@ -227,15 +225,11 @@ The following holds:  $R_1\equiv R_2$
 
    This is an improvement over the state of the art, where sometimes those two opposite heuristics are combined together !
 
-
 ** Back to the reward space
    Given a basic feasible solution (/bfs/) of the linear problem, we must go back to the corresponding reward $R^{bfs}$ by undoing the transformation that allowed us to get to the standard form. This is simply done by :
    \begin{equation}
    R^{bfs}_i = X'^{bfs}_{2i-1} - X'^{bfs}_{2i}
    \end{equation}
-
-
-
 
 * Experiments
 
@@ -486,23 +480,25 @@ def TT_DP( Reward, Actions ):
 
 #+srcname:TT_linesCreation_py
 #+begin_src python
-A = zeros((g_iM + 1, 2*g_iN + g_iM))
-#-C'
+A = zeros((g_iM + 2, 2*g_iN + g_iM))
+#C'
 for i in range(0,g_iN):
-    A[0:g_iM,2*i] = -g_mC[:,i]
-    A[0:g_iM,2*i+1] = g_mC[:,i]
+    A[0:g_iM,2*i] = g_mC[:,i]
+    A[0:g_iM,2*i+1] = -g_mC[:,i]
 #\mathbf{1}'
 for i in range(0,g_iN):
     A[g_iM,2*i] = 1
     A[g_iM,2*i+1] = -1
-#Id_(m)
-A[:g_iM,2*g_iN:] = identity(g_iM)
+#\mathbf{1}\mathbf{1}
+A[g_iM+1,0:2*g_iN] = ones((1,2*g_iN))
+#-Id_(m)
+A[:g_iM,2*g_iN:] = -identity(g_iM)
 
-b = zeros((g_iM+1,1))
-print "A and b matrices"
-print a2str(A)
-print a2str(b)
-
+b = zeros((g_iM+2,1))
+b[g_iM+1] = 1
+#print "A and b matrices"
+#print a2str(A)
+#print a2str(b)
 #+end_src
 
    For every $m+2$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
@@ -511,38 +507,40 @@ print a2str(b)
 BFS = Set()
 index = 0
 standard_sols=[]
-for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+1):
+for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+2):
     #sys.stderr.write("Combinaison No %d\n" % index)
-    print "Combinaison No %d" % index
+    #print "Combinaison No %d" % index
     index+=1
-    print lslice
-    print "Subsystem"
-    print A[:,lslice]
+    #print lslice
+    #print "Subsystem"
+    #print A[:,lslice]
     if( abs(linalg.det( A[:,lslice] ) ) > 0.00001 ):#Ugly hack for floating point precision
         partialStandardSol = linalg.solve(A[:,lslice],b)
         if( all( partialStandardSol > -0.00000001 ) ): #Ugly hack for floating point precision
             standardSol =  zeros((2*g_iN+g_iM,1))
             standardSol[lslice,:] = partialStandardSol
-            print "Standard solution exists : "
-            print standardSol
+            #print "Standard solution exists : "
+            #print standardSol
             R = zeros((g_iN,1))
             for i in range(0,g_iN):
                 R[i] = standardSol[2*i] - standardSol[2*i+1]
-            print "Corresponding Reward : "
-            print linalg.det( A[:,lslice])
-            print R.transpose()
-            if( any(dot( g_mC, R )<-0.00001) ):
-                print "Ne respecte pas les contraintes"
-                print g_mC
-                print R
-                print dot( g_mC, R )
-            BFS.add(l2str((R.transpose()/linalg.norm(R))[0]))
-        else:
-            print "Negative"
-            print partialStandardSol
-    else:
-        print "No solutions"
-        print linalg.det( A[:,lslice] )
+            #print "Corresponding Reward : "
+            #print linalg.det( A[:,lslice])
+            #print R.transpose()
+            #if( any(dot( g_mC, R )<-0.00001) ):
+                #print "Ne respecte pas les contraintes"
+                #print g_mC
+                #print R
+                #print dot( g_mC, R )
+            if any( R != 0 ):
+                BFS.add(l2str((R.transpose())[0]))
+        #else:
+            #print "Negative"
+            #print partialStandardSol
+    #else:
+        #print "No solutions"
+        #print linalg.det( A[:,lslice] )
+#print "Nb Combinaisons %d" % index
 
 #+end_src
 
@@ -646,91 +644,53 @@ def TT( P_pi, Actions ):
     return answer
     #+end_src
 ** Tests
-*** Small diemnsionality tests
-**** Principle
-     We feed the pogram a small hand crafted constraint matrix, and see if the output is good.
-**** Implementation
-     
-     We are going to test in dimensions 2, 3 and 4.
+*** Test in 3D
+    We test the program in a small setting o that the eward vector only has three component $x$, $y$ and $z$.
 
-     First let us define the constraints matrices :
-     - in dimension 2 : 
-       #+begin_src text :tangle test/TT_CD2.mat
-1	0
-0	1
-       #+end_src
-     - in dimension 3 : 
-       #+begin_src text :tangle test/TT_CD3.mat
+    
+     First let us define the following constraints matrices :
+     - This one means that we must have $x\geq y$ and $y \geq z$ 
+       #+begin_src text :tangle test/TT_CT11.mat
 1	-1	0
 0	1	-1
        #+end_src
-     - in dimension 4 : 
-       #+begin_src text :tangle test/TT_CD4.mat
-1	0	0	0
-0	1	0	0
-0	0	1	0
-0	0	0	1
+     - this one is the same, with an added last line that explicitely specify that $x \geq z$. The last line does not change the meaning of the contraints, but we add it to see if the program works even when fed with a useless constraint
+       #+begin_src text :tangle test/TT_CT12.mat
+1	-1	0
+0	1	-1
+1	0	-1
        #+end_src
 
-Then, let us write in some files the corresponding expected output, one vertex per line :
-     - in dimension 2 : 
-       #+begin_src text :tangle test/TT_expectedOutD2.mat
-0	0
-0	1
-1	0
-1	1
-       #+end_src
-     - in dimension 3 : 
-       #+begin_src text :tangle test/TT_expectedOutD3.mat
-0	0	0
-0	0	1
-0	1	0
-0	1	1
-1	0	0
-1	0	1
-1	1	0
-1	1	1
-       #+end_src
-     - in dimension 4 : 
-       #+begin_src text :tangle test/TT_expectedOutD4.mat
-0	0	0	0
-0	0	0	1
-0	0	1	0
-0	0	1	1
-0	1	0	0
-0	1	0	1
-0	1	1	0
-0	1	1	1
-1	0	0	0
-1	0	0	1
-1	0	1	0
-1	0	1	1
-1	1	0	0
-1	1	0	1
-1	1	1	0
-1	1	1	1
-       #+end_src
-
+       
+     There are only three kind solutions satisfying these constraints (apart from the degenerative solution $x=y=z$) :
+     - $x>y>z$
+     - $x>y=z$
+     - $x=y>z$
+     
+       
+     As the $L_1$ norm of the anwers must be $1$, the expected output for both input is :
+     #+begin_src text :tangle test/TT_expectedOutT1.mat
+ 2.50e-01	 2.50e-01	-5.00e-01	
+ 5.00e-01	 0.00e+00	-5.00e-01	
+ 5.00e-01	-2.50e-01	-2.50e-01	
+     #+end_src
 
 We now build Makefile targets that calls the program on the previously defined $C$ matrices and match the output with the expected output. Note the use of the \texttt{sort} command to make sure both output are in the same order and the diff command succeeds.
 
 #+srcname: TT_test0_make
 #+begin_src makefile
 TT_test0: TaskTransfer.py
-	python TaskTransfer.py test/TT_CD2.mat | sort > test/TT_outD2.mat
-	python TaskTransfer.py test/TT_CD3.mat | sort > test/TT_outD3.mat
-	python TaskTransfer.py test/TT_CD4.mat | sort > test/TT_outD4.mat
-	../Utils/matrix_diff.py test/TT_expectedOutD2.mat test/TT_outD2.mat
-	../Utils/matrix_diff.py test/TT_expectedOutD3.mat test/TT_outD3.mat
-	../Utils/matrix_diff.py test/TT_expectedOutD4.mat test/TT_outD4.mat
+	python TaskTransfer.py test/TT_CT11.mat | sort > test/TT_outT11.mat
+	python TaskTransfer.py test/TT_CT12.mat | sort > test/TT_outT12.mat
+	../Utils/matrix_diff.py test/TT_expectedOutT1.mat test/TT_outT11.mat
+	../Utils/matrix_diff.py test/TT_expectedOutT1.mat test/TT_outT12.mat
 #+end_src
 
 #+srcname: TT_cleanTest0_make
 #+begin_src makefile
 TT_cleanTest0:
-	rm test/TT_outD2.mat
-	rm test/TT_outD3.mat
-	rm test/TT_outD4.mat
+	rm test/TT_outT11.mat
+	rm test/TT_outT12.mat
 #+end_src
 *** Task Transfer on a 2x2 Gridworld
     In this simple setting we imagine a 2x2 gridworld and two experts. Both experts optimize the same reward, located in the north east corner. Both experts can choose between the same actions at each step : the four compass directions. The first expert's policy is NORTH, EAST, the second one is EAST, NORTH. We want to see in this experiment if the true reward is among the set of reward output by our algorithm.
