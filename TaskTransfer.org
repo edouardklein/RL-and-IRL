@@ -234,7 +234,6 @@ The following holds:  $R_1\equiv R_2$
 
 
 
-        
 * Experiments
 
   /Agent as expert/ value : This is the value function of the agent evaluated at the starting state, given that the agent follows an optimal policy with respect to the /true reward function/. No behavior can induce a strictly greater true value than this one.
@@ -484,64 +483,64 @@ def TT_DP( Reward, Actions ):
 
 #+srcname:TT_linesCreation_py
 #+begin_src python
-A = zeros((g_iM + g_iN, 3*g_iN + g_iM))
+A = zeros((g_iM + 1, 2*g_iN + g_iM))
 #-C'
 for i in range(0,g_iN):
     A[0:g_iM,2*i] = -g_mC[:,i]
     A[0:g_iM,2*i+1] = g_mC[:,i]
-#e'-i
+#\mathbf{1}'
 for i in range(0,g_iN):
-    A[g_iM+i,2*i] = 1
-    A[g_iM+i,2*i+1] = -1
-#Id_(n+m)
-A[:,2*g_iN:] = identity(g_iN+g_iM)
+    A[g_iM,2*i] = 1
+    A[g_iM,2*i+1] = -1
+#Id_(m)
+A[:g_iM,2*g_iN:] = identity(g_iM)
 
-b = zeros((g_iM+g_iN,1))
-b[g_iM:,:] = ones((g_iN,1))
-#print "A and b matrices"
-#print a2str(A)
-#print a2str(b)
+b = zeros((g_iM+1,1))
+print "A and b matrices"
+print a2str(A)
+print a2str(b)
 
 #+end_src
 
-   For every $n+m$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
+   For every $m+1$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
 #+srcname:TT_linearSystem_py
 #+begin_src python
 BFS = Set()
 index = 0
 standard_sols=[]
-for lslice in itertools.combinations(range(0,3*g_iN+g_iM),g_iN+g_iM):
+for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+1):
     #sys.stderr.write("Combinaison No %d\n" % index)
-    #print "Combinaison No %d" % index
+    print "Combinaison No %d" % index
     index+=1
-    #print lslice
-    #print "Subsystem"
-    #print A[:,lslice]
+    print lslice
+    print "Subsystem"
+    print A[:,lslice]
     if( abs(linalg.det( A[:,lslice] ) ) > 0.00001 ):#Ugly hack for floating point precision
         partialStandardSol = linalg.solve(A[:,lslice],b)
         if( all( partialStandardSol > -0.00000001 ) ): #Ugly hack for floating point precision
-            standardSol =  zeros((3*g_iN+g_iM,1))
+            standardSol =  zeros((2*g_iN+g_iM,1))
             standardSol[lslice,:] = partialStandardSol
-        #print "Standard solution exists : "
-        #print standardSol
+            print "Standard solution exists : "
+            print standardSol
             R = zeros((g_iN,1))
             for i in range(0,g_iN):
                 R[i] = standardSol[2*i] - standardSol[2*i+1]
-        #print "Corresponding Reward : "
-                #print linalg.det( A[:,lslice])
-                #print R.transpose()
-                #if( any(dot( g_mC, R )<-0.00001) ):
-                    #print "Ne respecte pas les contraintes"
-                    #print g_mC
-                    #print R
-                    #print dot( g_mC, R )
-            BFS.add(l2str((R.transpose())[0]))
-        #else:
-            #print "Negative"
-            #print partialStandardSol
-    #else:
-        #print "No solutions"
-        #print linalg.det( A[:,lslice] )
+            print "Corresponding Reward : "
+            print linalg.det( A[:,lslice])
+            print R.transpose()
+            if( any(dot( g_mC, R )<-0.00001) ):
+                print "Ne respecte pas les contraintes"
+                print g_mC
+                print R
+                print dot( g_mC, R )
+            BFS.add(l2str((R.transpose()/linalg.norm(R))[0]))
+        else:
+            print "Negative"
+            print partialStandardSol
+    else:
+        print "No solutions"
+        print linalg.det( A[:,lslice] )
+
 #+end_src
 
    We glue it together
@@ -586,7 +585,7 @@ for Pa in g_lActionMatrices:
     A = dot((g_mPpi - Pa),linalg.inv( identity(g_iN)-(g_fGamma*g_mPpi) ))
     for line in A:
         if( any( line != zeros((1,g_iN)) ) ):
-               g_sC.add( l2str( line ))
+               g_sC.add( l2str( line/linalg.norm(line) ))
 
 #+end_src
     
@@ -644,19 +643,9 @@ def TT( P_pi, Actions ):
     return answer
     #+end_src
 ** Tests
-*** Unit cube test
+*** Small diemnsionality tests
 **** Principle
-    Recall that the constraints that corresponds to the reduction of the reward space are of the form $\forall i, e_iX \preceq 1$. This is half the definition of the unit cube, the other half being the same equation with a minus sign in one of the sides.\\ 
-
-    Also recall that the constraint matrix $C$ defines one hyperplane per line, each containing the origin.\\
-
-    The idea behind this test is to feed the program a $C$ constraints matrix so that, when coupled with the constraints defining the reduced reward space, the polytope we get is a simply defined polytope. It must be easy to check wether the output is good or not.\\
-
-    The hyperplanes parallel to those defined by $\forall i,e_iX \preceq 1$ but englobing the origin (i.e. those defined by $\forall i, e_iX \succeq 0$) are good candidates. They define a region that is $1\over 2^{n}$ of the unit cube.\\
-    
-    For example in dimension 2, they define the intersection of the unit square and the positive-positive quandrant. In dimension 3 they define the eighth of the unit cube where all the components are positive.\\
-
-    The coordinates of the vertices of these regions are easy to compute. We are going to match the output of the program fed with the $C$ matrix : $\forall i, e_iX \succeq 0$ with the manually computed vertices.
+     We feed the pogram a small hand crafted constraint matrix, and see if the output is good.
 **** Implementation
      
      We are going to test in dimensions 2, 3 and 4.
@@ -669,9 +658,8 @@ def TT( P_pi, Actions ):
        #+end_src
      - in dimension 3 : 
        #+begin_src text :tangle test/TT_CD3.mat
-1	0	0
-0	1	0
-0	0	1
+1	-1	0
+0	1	-1
        #+end_src
      - in dimension 4 : 
        #+begin_src text :tangle test/TT_CD4.mat
