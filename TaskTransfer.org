@@ -98,7 +98,7 @@ The following holds:  $R_1\equiv R_2$
    The following holds : $\forall R \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}, \exists R'\in M, R'\equiv R$.
    #+end_theorem
 
-   An exemple of such a manifold is the intersection of the $||.||_2$ unit sphere and the hyperplane perpendicular to $\mathbf{1}$.\\
+   An exemple of such a manifold is the intersection of the $||.||_1$ unit sphere and the hyperplane perpendicular to $\mathbf{1}$.\\
 
    #+begin_proof
    Let $R \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}$ be,\\
@@ -112,7 +112,7 @@ The following holds:  $R_1\equiv R_2$
    \mathbf{1}^T(R+\lambda\mathbf{1}) &=& 0
    \end{eqnarray}
    
-   Now, whatever the shape of the manifold on the hyperplane perpendicular to $\mathbf{1}$, as long as the origin is inside drawing a line from the origin to $R+\lambda\mathbf{1}$ will cross the manifold at some point, which means that there exists an $\alpha$ strictly positive so that $\alpha(R+\lambda\mathbf{1})$ is a point of the manifold (for example, if the manifold was, as suggested, the intersection of the $||.||_2$ unit sphere and the hyperplane perpendicular to $\mathbf{1}$, we would have $\alpha ={1\over ||R+\lambda\mathbf{1}||_2}$). According to lemma \ref{alpha.lemma}, we have $\alpha(R+\lambda\mathbf{1}) \equiv R+\lambda\mathbf{1}$ which by transitivity yelds : $\alpha(R+\lambda\mathbf{1}) \equiv R$.
+   Now, whatever the shape of the manifold on the hyperplane perpendicular to $\mathbf{1}$, as long as the origin is inside drawing a line from the origin to $R+\lambda\mathbf{1}$ will cross the manifold at some point, which means that there exists an $\alpha$ strictly positive so that $\alpha(R+\lambda\mathbf{1})$ is a point of the manifold (for example, if the manifold was, as suggested, the intersection of the $||.||_1$ unit sphere and the hyperplane perpendicular to $\mathbf{1}$, we would have $\alpha ={1\over ||R+\lambda\mathbf{1}||_1}$). According to lemma \ref{alpha.lemma}, we have $\alpha(R+\lambda\mathbf{1}) \equiv R+\lambda\mathbf{1}$ which by transitivity yelds : $\alpha(R+\lambda\mathbf{1}) \equiv R$.
    #+end_proof
 
 * Finding interesting rewards
@@ -123,7 +123,7 @@ The following holds:  $R_1\equiv R_2$
    (P_\pi-P_{a})(I-\gamma P_\pi)^{-1}R\succeq 0
    \end{equation}
 
-   This is a Linear Programming problem. By adding the supplemantary constraints that $\mathbf{1}^TR=0$ and $||R||_2=1$, we restrict the solutions to the previously defined $n-2$-dimensional manifold.\\
+   This is a Linear Programming problem. By adding the supplemantary constraints that $\mathbf{1}^TR=0$ and $||R||_1=1$, we restrict the solutions to the previously defined $n-2$-dimensional manifold.\\
 
    Drawing ideas from the simplex algorithm of the LP framework (http://www2.isye.gatech.edu/~spyros/LP/LP.html), we propose a compact and exhaustive description of the solutions of this augmented LP problem.\\
 
@@ -138,7 +138,7 @@ The following holds:  $R_1\equiv R_2$
    &CX \succeq 0\\
    &\mathbf{1}^TR=0\\
    &X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
-   &||X||_2=1
+   &||X||_1=1
    \end{eqnarray}
 
 ** Standard form
@@ -164,14 +164,14 @@ The following holds:  $R_1\equiv R_2$
   &\mathbf{1}'^TX'=0\\
   &X'\succeq 0\\
   &X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
-  &||X||_2=1
+  &||X||_1=1
   \end{eqnarray}
   
   The last thing to do is to introduce $m$ positive slack variables in the form of a matrix
   \begin{equation}
   S = \begin{pmatrix}s_1\\ \vdots\\ s_{m}\end{pmatrix} \succeq 0
   \end{equation}
-  This allows us to change the inequality into an equality : if $a\geq b$, then $\exists s \geq 0, a-s = b$. We finally obtain something in the standard form :
+  This allows us to change the inequality into an equality : if $a\geq b$, then $\exists s \geq 0, a-s = b$. We finally obtain something in the standard form, the last two lines of which respectively represents the constraints $\mathbf{1}'^TX'=0$ and $||X||_1=1$ :
   \begin{eqnarray}
   \label{LPStandardForm.eqn}
   \begin{blockarray}{(cc)}
@@ -180,6 +180,10 @@ The following holds:  $R_1\equiv R_2$
   \cline{1-2}
   \begin{block*}{c|c}
   \mathbf{1}'^T&0 \\
+  \end{block*}
+  \cline{1-2}
+  \begin{block*}{c|c}
+  \mathbf{1}^T\mathbf{1}^T&0 \\
   \end{block*}
   \end{block*}
   \end{blockarray} 
@@ -198,6 +202,7 @@ The following holds:  $R_1\equiv R_2$
   0 \\
   \vdots \\
   0 \\
+  1\\
   \end{block*}
   \end{block*}
   \end{blockarray}\\
@@ -207,14 +212,12 @@ The following holds:  $R_1\equiv R_2$
   S \succeq 0\\
   \label{C3.eqn}
   X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
-  \label{C4.eqn}
-  ||X||_2=1
   \end{eqnarray}
 
 ** Basic feasible solutions
-   We now have $m+1$ equations in $2n+m$ variables. By selecting $m+1$ columns in equation \ref{LPStandardForm.eqn} and setting the unselected wariables to 0, we obtain a system that may be solvable. Every solvable system that yelds a solution abiding by the additional constraints of equations \ref{C1.eqn}, \ref{C2.eqn}, \ref{C3.eqn} and \ref{C4.eqn} is a reward with respect to which the expert's policy is optimal.\\
+   We now have $m+2$ equations in $2n+m$ variables. By selecting $m+2$ columns in equation \ref{LPStandardForm.eqn} and setting the unselected variables to 0, we obtain a system that may be solvable. Every solvable system that yelds a solution abiding by the additional constraints of equations \ref{C1.eqn}, \ref{C2.eqn}, and \ref{C3.eqn} is a reward with respect to which the expert's policy is optimal.\\
 
-   A patient enumaration of all the $m+1 \times m+1$ systems will yeld a small set of interesting rewards (see section [[Experiments]]).\\
+   A patient enumaration of all the $m+2 \times m+2$ systems will yeld a small set of interesting rewards (see section [[Experiments]]).\\
 
    If the computational comlpexity of the exhaustive enumaration is too high, one can either try to reduce it by divers means (see section [[Perspective]]), or use heuristics as virtually everybody else does.\\
 
@@ -502,7 +505,7 @@ print a2str(b)
 
 #+end_src
 
-   For every $m+1$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
+   For every $m+2$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
 #+srcname:TT_linearSystem_py
 #+begin_src python
 BFS = Set()
