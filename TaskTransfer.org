@@ -1,210 +1,394 @@
 #+TITLE: Task Transfer on the GridWorld
 #+LATEX_HEADER: \usepackage{blkarray}
 #+LATEX_HEADER: \usepackage{amsmath}
+#+LATEX_HEADER: \usepackage{amsthm}
+#+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
+#+LaTeX_HEADER: \newtheorem{definition}{Definition}
+#+LaTeX_HEADER: \newtheorem{lemma}{Lemma}
 
 * Context
+
+  In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that maximizes a reward in the long run. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\
+
+  Often, the RL problem is solved in a /Markov Decision Process/ setting : the agent is said to be in a state $s_t\in S$ which respect the Markovian criterion (it contains all the information the agent needs) where it has to choose an action $a\in A$ which will make it transit to another state $s_{t+1}$, receiving a reward $R(s_t)$. The optimal policy $\pi^*$ is a mapping $S\rightarrow A$ which maximizes the sum of the expected discounted reward in every state $V(s) = E\left[\left.\sum\limits_t \gamma^tR(s_t)\right|s_0=s,\pi\right]$.  This last term is called the /Value function/.\\
+
+  The reward $R$ is here seen as a mapping from the state space $S$ to $\mathbb{R}$. Working in the discrete case, we use it as a vector $R\in \mathbb{R}^n$ indexed by the state space the cardinality of which is $n$.\\
+
+  The value function, when follwing policy $\pi$ under reward $R$ is also defined as a vector : $V^\pi_R\in \mathbb{R}^n$ indexed by the state space.\\
+
+  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $n\times n$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy $\pi, S\leftarrow A : s \mapsto \pi(s)$ can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose line $i$ is the line $i$ of the $(P_a, a=\pi(s))$ matrix.\\
+
+  To be considered optimal, a policy $\pi^*$ must then meet the criterion $\forall s, \pi^*(s) = \arg\max\limits_a\left(R(s) + \gamma P_{\pi^*}(s)V^{\pi^*}_R\right)$.\\
+
+  Sometimes, defining the reward associated with a task can be difficult. A proposed workaround is the /Inverse Reinforcement Learning/ (IRL) method, where one tries to learn the reward optimized by an expert. More formally, given an optimal policy $P_{\pi^*}$ and the set of actions $\{P_a\}_a$ from which the policy was drawn, on tries to guess the reward with respect to which this policy is optimal.\\
+
+  This knowledge is useful for example for /Task Transfer/, where an agent whose abilities may differ from the expert's optimizes the same reward as the expert, in its own way.\\
+
+  The IRL problem is an ill-posed one, as already noted in the litterature. [Insérer état de l'art]. This paper stems from a result published in \cite{ng2000algorithms}, where the set of rewards for which the expert's behavior is optimal was caracterized by a necessary and sufficient condition expressable as a Linear Programming (LP) problem. The contribution of this paper is to further restrict this set (in fact the space in which to look for rewards is now two dimension smaller than before) and to express the problem in a way that allow for on one hand a compact and exhaustive description of the set of all possible solutions and on the other hand for the formalization and rationalization of the heuristics introduced by others.
+
+* New notions
+
+  We denote the set of the policies optimal with respect to a certain reward $R$ as $\Pi^*(R)$.\\
+
+  Throughout this paper, we will use the transitive notion of equivalence between rewards : 
+  #+begin_definition
+  Two rewards $R_1$ and $R_2$ are said to be /equivalent/ if $\Pi^*(R_1)$ = $\Pi^*(R_2)$
+  #+end_definition
   
-  /Agent as expert/ value : This is the value function of the agent evaluated at the starting state, given that the agent follows an optimal policy with respect to the /true reward function/. No behavior can induce a strictly greater true value than this one.
+  A reward is said to be degenerative when it is equivalent to the null vector. Indeed the null vector admits any policy as an optimal policy.
+  
+* Reducing the reward space
+   In this subsection, we will show that there exists a manifold of dimension $n-2$ so that every non degenerative reward is equivalent to at least one element of the manifold.\\
 
-* Mapping behaviors and rewards
-** Reward space
-
-   A reward can be scaled without changing its corresponding optimal policies. 
-   Therefore, the space of all rewards $R$ can be reduced to a hypersurface englobing the origin. For example, one can use the unit sphere or the unit cube.
-   \\
-
-   Adding the same value to all the component of a reward does not change the set of corresponding optimal policies. This is a translation of vector $\lambda [1,1,1,\dots,1]$.
-   Therefore, the forementioned hypersurface can be reduced by half, cutting in the middle with the hyperplane perpendicular to the vector $[1,1,\dots,1]$.   
-   \\
-
-   The null reward is not interesting as it admits every policy as an optimal one.
-   \\
+#+begin_lemma
+\label{alpha.lemma}
+Let $R_1$ be a reward vector, \\
+Let $R_2$ be a reward vector so that $\exists \alpha > 0, R_2=\alpha R_1$ \\
+The following holds:  $R_1\equiv R_2$
+#+end_lemma
    
-   Having exhausted all the obvious reward shaping methods, we begin the analysis with a reward space reduced to an open and finite hypersurface that can be ununiformly scaled to the unit hemisphere whose wenter pilla is the vector $[1,1,\dots,1]$, with the $\lambda [1,1,\dots,1]$ point removed.
-   \\
+   #+begin_proof
+   Let $\pi \in \Pi^*(R_2)$ be.\\
+   We have : 
+   \begin{eqnarray*}
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(R_2(s) + \gamma P_{\pi^*}(s)V^{\pi^*}_{R_2}\right)\\
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(R_2(s) + \gamma E\left[\left.\sum\limits_t \gamma^tR_2(s_t)\right|s_0=s,\pi\right]\right)\\
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(\alpha R_1(s) + \gamma E\left[\left.\sum\limits_t \gamma^t\alpha R_1(s_t)\right|s_0=s,\pi\right]\right)\\
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\alpha\left(R_1(s) + \gamma E\left[\left.\sum\limits_t \gamma^tR_1(s_t)\right|s_0=s,\pi\right]\right)
+   \end{eqnarray*}
+   as $\alpha >0$, this is the same as :
+   \begin{equation*}
+   \forall s, \pi^*(s) = \arg\max\limits_a\left(R_1(s) + \gamma E\left[\left.\sum\limits_t \gamma^tR_1(s_t)\right|s_0=s,\pi\right]\right)\\
+   \end{equation*}
+   which means that $\pi \in \Pi^*(R_1)$.\\
+   The inverse path can be demonstrated by replacing $R_1$ by $R_2$ and using $1\over \alpha$, therefore $\pi \in \Pi^*(R_2) \Leftrightarrow \pi \in \Pi^*(R_1)$.
+   #+end_proof
    
-   One such hypersurface is for example the "top" of the simplex defined by le $\lambda$ point $[1,1,\dots,1]$ and the basepoints $[-(n-1),1,\dots,1]$, $[1,-(n-1),\dots,1]$, $\dots$, $[1,1,\dots,-(n-1)]$, where $n$ is the dimension of the reward space, i.e. the cardinal of $S$ (we estrict ourselves to the case where the reward is given only with respect to the state). Some distinguishing features of this particuliar example are :
-   - it can be expressed as a set of linear constraints over $R$, namely $e_iR\leq 1$ with $e_i$ being the vector whose coordinates are null except for the $i$-th which is 1
-   - every edge that contain the $\lambda$ point can be scanned by changing only one coordinate
-   - every other edge can be scanned by changing only two coordinates
+#+begin_lemma
+\label{lambda.lemma}
+Let $R_1$ be a reward vector, \\
+Let $\mathbf{1}$ be the column vector whose $n$ elements are all equal to $1$,\\
+Let $R_2$ be a reward vector so that $\exists \lambda \in \mathbb{R}, R_2= R_1 + \lambda\mathbf{1}$,\\
+The following holds:  $R_1\equiv R_2$
+#+end_lemma
+  
+   #+begin_proof
+   Let $\pi \in \Pi^*(R_2)$ be.\\
+   We have : 
+   \begin{eqnarray*}
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(R_2(s) + \gamma P_{\pi^*}(s)V^{\pi^*}_{R_2}\right)\\
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(R_2(s) + \gamma E\left[\left.\sum\limits_t \gamma^tR_2(s_t)\right|s_0=s,\pi\right]\right)\\
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(R_1(s) + \lambda + \gamma E\left[\left.\sum\limits_t \gamma^t\left(R_1(s_t)+\lambda\right)\right|s_0=s,\pi\right]\right)\\
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(R_1(s) + \lambda + \gamma E\left[\left.\sum\limits_t \gamma^tR_1(s_t)\right|s_0=s,\pi\right]+ \gamma E\left[\left.\sum\limits_t\gamma^t\lambda\right|s_0=s,\pi\right]\right)\\
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(R_1(s) + \lambda + \gamma E\left[\left.\sum\limits_t \gamma^tR_1(s_t)\right|s_0=s,\pi\right]+ \gamma\sum\limits_t\gamma^t\lambda\right)\\
+   \forall s, \pi^*(s) &=& \arg\max\limits_a\left(R_1(s) + \gamma E\left[\left.\sum\limits_t \gamma^tR_1(s_t)\right|s_0=s,\pi\right] + \lambda + \gamma\sum\limits_t\gamma^t\lambda\right)\\
+   \end{eqnarray*}
+   as $\lambda + \gamma\sum\limits_t\gamma^t\lambda$ does not depend on $a$, this is the same as :
+   \begin{equation*}
+   \forall s, \pi^*(s) = \arg\max\limits_a\left(R_1(s) + \gamma E\left[\left.\sum\limits_t \gamma^tR_1(s_t)\right|s_0=s,\pi\right]\right)\\
+   \end{equation*}
+   which means that $\pi \in \Pi^*(R_1)$.\\
+   The inverse path can be demonstrated by replacing $R_1$ by $R_2$ and using $-\lambda$, therefore $\pi \in \Pi^*(R_2) \Leftrightarrow \pi \in \Pi^*(R_1)$.
+   #+end_proof
+
+   #+begin_theorem
+   Let $M$ be a closed $n-2$-dimensional manifold so that :\\
+   $\forall R \in M, \mathbf{1}^TR\geq 0$,\\
+   The origin is inside the area delimited by the manifold,\\
+   The following holds : $\forall R \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}, \exists R'\in M, R'\equiv R$.
+   #+end_theorem
+
+   An exemple of such a manifold is the intersection of the $||.||_2$ unit sphere and the hyperplane perpendicular to $\mathbf{1}$.\\
+
+   #+begin_proof
+   Let $R \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}$ be,\\
+   Let $\lambda = -{\mathbf{1}^TR\over n}$ be,\\
+   According to lemma \ref{lambda.lemma}, we have $R + \lambda\mathbf{1} \equiv R$.\\
+   We also have :
+   \begin{eqnarray}
+   \mathbf{1}^T(R+\lambda\mathbf{1}) &=& \mathbf{1}^TR + \lambda\mathbf{1}^T\mathbf{1}\\
+   \mathbf{1}^T(R+\lambda\mathbf{1}) &=& \mathbf{1}^TR + \lambda n\\
+   \mathbf{1}^T(R+\lambda\mathbf{1}) &=& \mathbf{1}^TR + -{\mathbf{1}^TR\over n}n)\\
+   \mathbf{1}^T(R+\lambda\mathbf{1}) &=& 0
+   \end{eqnarray}
    
-** Reward mapping
+   Now, whatever the shape of the manifold on the hyperplane perpendicular to $\mathbf{1}$, as long as the origin is inside drawing a line from the origin to $R+\lambda\mathbf{1}$ will cross the manifold at some point, which means that there exists an $\alpha$ strictly positive so that $\alpha(R+\lambda\mathbf{1})$ is a point of the manifold (for example, if the manifold was, as suggested, the intersection of the $||.||_2$ unit sphere and the hyperplane perpendicular to $\mathbf{1}$, we would have $\alpha ={1\over ||R+\lambda\mathbf{1}||_2}$). According to lemma \ref{alpha.lemma}, we have $\alpha(R+\lambda\mathbf{1}) \equiv R+\lambda\mathbf{1}$ which by transitivity yelds : $\alpha(R+\lambda\mathbf{1}) \equiv R$.
+   #+end_proof
 
-   In \cite{ng2000algorithms}, we are given a superb necessary and sufficient condition for a reward to be /compatible/ with a given policy, that is to say, for this given policy to be optimal with respect to the reward.
-   \\
-
-   For every action $a$ the agent had the possibility to take, the following matrix inequality must be met : 
+* Finding interesting rewards
+  
+   In \cite{ng2000algorithms}, we are given a necessary and sufficient condition for a reward $R$ to admit a given policy as optimal : for every action $a$ the expert $\pi$ had the possibility to take, the following matrix inequality must be met : 
    \begin{equation}
    \label{ng2000algorithms.eqn}
    (P_\pi-P_{a})(I-\gamma P_\pi)^{-1}R\succeq 0
    \end{equation}
 
-   Where $P_\pi$ or $P_a$ is the $N\times N$ matrix such as its $(i,j)$ element gives the probability of transitioning to state $j$ upon taking action $\pi(i)$, resp $a$ in state $i$.
+   This is a Linear Programming problem. By adding the supplemantary constraints that $\mathbf{1}^TR=0$ and $||R||_2=1$, we restrict the solutions to the previously defined $n-2$-dimensional manifold.\\
 
-   This is a Linear Programming problem. By adding to these constraints the linear constraints that define the forementionned starting hypersurface, we obtain a set of linear constraints that defines a closed, convex polytope, two remarkable vertices of which are the $\lambda$ point and the origin. The set of all facets that does not contain the origin describes the set of all compatible rewards (that is to say, every compatible reward is a scaling and a $\lambda Id$ translation away of a unique point of one of those facets).
+   Drawing ideas from the simplex algorithm of the LP framework (http://www2.isye.gatech.edu/~spyros/LP/LP.html), we propose a compact and exhaustive description of the solutions of this augmented LP problem.\\
 
-** Reward selecting
+   Let $C$ b the matrix created by slecting the $m$ non null lines of the constraints matrices $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$, so that all lines are normalized (this does not change the constraints) and every line is unique. In order to improve the computational complexity of the algorithm, it may be possible to further restrict waht goes in the $C$ matrix, but this is a little off-topic and not necessary.\\
 
-   The set of all compatible rewards is defined. However, exploring it and searching in it is tricky. 
-   \\
+   Let $X$ be the unknown vector.\\
    
-   I have the intuition that vertices of this polytopic set are interesting rewards. 
-   \\
-  
-   To find the coordinates of the vertices, a simple solution is to use the tools of the Linear Programming framework (http://www2.isye.gatech.edu/~spyros/LP/LP.html).
-
-   - Let $C$ be the matrix created by selecting the $m$ non null lines of the constraint matrix $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$.
-   - Let $e_i$ be the $i$-th vector of the orthonormal base of the reward space, i.e. $e_i = [0,\dots,0,1,0,\dots,0]$, with the 1 at the $i$-th position.
-   - Let $X$ be the unknown vector
-
-     
+   The $i$-th line of the $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$ matrix is a constraint on $X$ that, if satisfied, will make it preferable to choose action $\pi(i)$ over $a$ in state $i$ (see \cite{ng2000algorithms}'s proof of Theorem 3 for why).
+   
    All the forementionned constraints can now be expressed as follow :
    \begin{eqnarray}
    &CX \succeq 0\\
-    \forall i, &e_iX \preceq 1\\
-   &X \in \mathbb{R}^n
+   &\mathbf{1}^TR=0\\
+   &X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
+   &||X||_2=1
    \end{eqnarray}
 
-*** Standard form
-
-   This is however not what is expected by the tools of the Linear Programmnig framework. The following operations aim at transforming this natural expression of the problem into the /standard form/ $AX=b, X\succeq 0$, typically used in the simplex algorithm (which is not fully applicable here because we don't have a cost function).
-   \\
-
-   First, we add a $-$ sign in front of the $C$ matrix so that both inequalities are the same way. The constraint can now be expressed as :
-   \begin{eqnarray}
-   &-CX \preceq 0\\
-   \forall i, &e_iX \preceq 1\\
-   &X \in \mathbb{R}^n
-   \end{eqnarray}
-   or more succintly as
-   \begin{eqnarray}
-   \begin{blockarray}{(c)}
-   \begin{block*}{c}
-   -C \\
-   \cline{1-1}
-   \begin{block*}{c}
-   e_1 \\
-   \vdots \\
-   e_n \\
-   \end{block*}
-   \end{block*}
-   \end{blockarray} 
-   X \preceq 
-   \begin{blockarray}{(c)}
-   \begin{block*}{c}
-   0 \\
-   \cline{1-1}
-   \begin{block*}{c}
-   1 \\
-   \vdots \\
-   1 \\
-   \end{block*}
-   \end{block*}
-   \end{blockarray}\\
-   X\in \mathbb{R}^n
-   \end{eqnarray}
+** Standard form
    
-   The $X\in \mathbb{R}^n$ part is not satisfactory because in the standard form all unknowns must be grater than or equal to 0. To get to this form, for every component $x_i$ of $X$, we define $x_i^+\geq0$ and $x_i^-\geq0$ so that $x_i = x_i^+ - x_i^-$. We now define the $X'$ matrix as 
+   These constraints will now be put in the /standard form/ $AX=b, X\succeq 0$, typically used in the simplex algorithm (which is not fully applicable here because we don't have a cost function).\\
+  
+  The $X\in \mathbb{R}^n$ part is not satisfactory because in the standard form all unknowns must be grater than or equal to 0. To get to this form, for every component $x_i$ of $X$, we define $x_i^+\geq0$ and $x_i^-\geq0$ so that $x_i = x_i^+ - x_i^-$. We now define the $X'$ matrix as 
+  \begin{equation}
+  X'=\begin{pmatrix} x_1^+\\x_1^-\\ \dots \\ x_n^+\\x_n^- \end{pmatrix}
+  \end{equation}
+  Accordingly, the $C'$ matrix is defined as (using $c_i$ to denote the $i$-th column of C) :
+  \begin{equation}
+  C'=\begin{pmatrix} c_1 | -c_1 | c_2 | -c_2 | \dots |c_n|-c_n \end{pmatrix}
+  \end{equation}
+  and the $\mathbf{1}' \in \mathbb{R}^{2n}$ vectoris defined as :
+  \begin{equation}
+  \mathbf{1}'=\begin{pmatrix} 1,-1, 1, -1\dots 1,-1\end{pmatrix}^T
+  \end{equation}
+
+  We are now a bit closer to the standard form :
+  \begin{eqnarray}
+  &C'X' \succeq 0 \\
+  &\mathbf{1}'^TX'=0\\
+  &X'\succeq 0\\
+  &X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
+  &||X||_2=1
+  \end{eqnarray}
+  
+  The last thing to do is to introduce $m$ positive slack variables in the form of a matrix
+  \begin{equation}
+  S = \begin{pmatrix}s_1\\ \vdots\\ s_{m}\end{pmatrix} \succeq 0
+  \end{equation}
+  This allows us to change the inequality into an equality : if $a\geq b$, then $\exists s \geq 0, a-s = b$. We finally obtain something in the standard form :
+  \begin{eqnarray}
+  \label{LPStandardForm.eqn}
+  \begin{blockarray}{(cc)}
+  \begin{block*}{c|c}
+  C'& Id_m  \\
+  \cline{1-2}
+  \begin{block*}{c|c}
+  \mathbf{1}'^T&0 \\
+  \end{block*}
+  \end{block*}
+  \end{blockarray} 
+  \begin{blockarray}{(c)}
+  \begin{block*}{c}
+  X' \\
+  \cline{1-1}
+  \begin{block*}{c}
+  S\\
+  \end{block*}
+  \end{block*}
+  \end{blockarray}
+  = 
+  \begin{blockarray}{(c)}
+  \begin{block*}{c}
+  0 \\
+  \vdots \\
+  0 \\
+  \end{block*}
+  \end{block*}
+  \end{blockarray}\\
+  \label{C1.eqn}
+  X'\succeq 0\\
+  \label{C2.eqn}
+  S \succeq 0\\
+  \label{C3.eqn}
+  X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
+  \label{C4.eqn}
+  ||X||_2=1
+  \end{eqnarray}
+
+** Basic feasible solutions
+   We now have $m+1$ equations in $2n+m$ variables. By selecting $m+1$ columns in equation \ref{LPStandardForm.eqn} and setting the unselected wariables to 0, we obtain a system that may be solvable. Every solvable system that yelds a solution abiding by the additional constraints of equations \ref{C1.eqn}, \ref{C2.eqn}, \ref{C3.eqn} and \ref{C4.eqn} is a reward with respect to which the expert's policy is optimal.\\
+
+   A patient enumaration of all the $m+1 \times m+1$ systems will yeld a small set of interesting rewards (see section [[Experiments]]).\\
+
+   If the computational comlpexity of the exhaustive enumaration is too high, one can either try to reduce it by divers means (see section [[Perspective]]), or use heuristics as virtually everybody else does.\\
+
+   For example the intuitive heuristics according to which as much as possible, every action of the expert should be preferable over the others by a non null margin (i.e. the number of other optimal policies is limited as much as possible) will be yeld by solving the systems where all the columns of the stack variables are selected. Indeed, these slack variables indicates the amount by which the expert's expected value is greater than the other.\\
+
+   This heuristics stems from the will to get as far away as possible from the degenerative rewards. This is not necessary here, and in fact the opposite heuristics, that is the one consisting in looking for the non degenerative reward that admits as many optimal policy as possible may prove interesting, as in a smooth MDP it may probably lead to scarce rewards.\\
+
+   This is an improvement over the state of the art, where sometimes those two opposite heuristics are combined together !
+
+
+** Back to the reward space
+   Given a basic feasible solution (/bfs/) of the linear problem, we must go back to the corresponding reward $R^{bfs}$ by undoing the transformation that allowed us to get to the standard form. This is simply done by :
    \begin{equation}
-   X'=\begin{pmatrix} x_1^+\\x_1^-\\ \dots \\ x_n^+\\x_n^- \end{pmatrix}
+   R^{bfs}_i = X'^{bfs}_{2i-1} - X'^{bfs}_{2i}
    \end{equation}
-   Accordingly, the $C'$ matrix is defined as (using $c_i$ to denote the $i$-th column of C) :
-   \begin{equation}
-   C'=\begin{pmatrix} c_1 | -c_1 | c_2 | -c_2 | \dots |c_n|-c_n \end{pmatrix}
-   \end{equation}
-   and the $e'_i$ matrices are defined as :
-   \begin{equation}
-   e'_i=\begin{pmatrix} 0,0,\dots 1,-1, \dots 0,0 \end{pmatrix}
-   \end{equation}
-   with $1$ and $-1$ being respectively at indexes $2i-1$ and $2i$.
-   \\
+
+
+
+
+        
+* Experiments
+
+  /Agent as expert/ value : This is the value function of the agent evaluated at the starting state, given that the agent follows an optimal policy with respect to the /true reward function/. No behavior can induce a strictly greater true value than this one.
+
+** Open questions
+   What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
    
-   We are now a bit closer to the standard form :
-   \begin{eqnarray}
-   \begin{blockarray}{(c)}
-   \begin{block*}{c}
-   -C' \\
-   \cline{1-1}
-   \begin{block*}{c}
-   e'_1 \\
-   e'_2\\
-   \vdots \\
-   e'_n \\
-   \end{block*}
-   \end{block*}
-   \end{blockarray} 
-   X' \preceq 
-   \begin{blockarray}{(c)}
-   \begin{block*}{c}
-   0 \\
-   \cline{1-1}
-   \begin{block*}{c}
-   1 \\
-   \vdots \\
-   1 \\
-   \end{block*}
-   \end{block*}
-   \end{blockarray}\\
-   X'\succeq 0
-   \end{eqnarray}
    
-   The last thing to do is to introduce $m+n$ positive slack variables in the form of a matrix
-   \begin{equation}
-   S = \begin{pmatrix}s_1\\ \vdots\\ s_{m+n}\end{pmatrix} \succeq 0
-   \end{equation}
-   This allows us to change the inequality into an equality : if $a\leq b$, then $\exists s \geq 0, a+s = b$. We finally obtain something in the standard form :
-   \begin{eqnarray}
-   \begin{blockarray}{(cc)}
-   \begin{block*}{c|c}
-   -C'&  \\
-   \cline{1-1}
-   \begin{block*}{c|c}
-   e'_1 & \\
-   e'_2 & Id_{m+n}\\
-   \vdots \\
-   e'_n &\\
-   \end{block*}
-   \end{block*}
-   \end{blockarray} 
-   \begin{blockarray}{(c)}
-   \begin{block*}{c}
-   X' \\
-   \cline{1-1}
-   \begin{block*}{c}
-   S\\
-   \end{block*}
-   \end{block*}
-   \end{blockarray}
-   &= 
-   \begin{blockarray}{(c)}
-   \begin{block*}{c}
-   0 \\
-   \cline{1-1}
-   \begin{block*}{c}
-   1 \\
-   \vdots \\
-   1 \\
-   \end{block*}
-   \end{block*}
-   \end{blockarray}\\
-   X'&\succeq 0\\
-   S &\succeq 0
-   \end{eqnarray}
-
-*** Basic feasible solutions
-    In the linear programming framework, vertices of the polytope are often referred to as /basic feasible solutions/. To get these basic feasible solutions, one must cross out a certain number of columns of the $A$ matrix and solve the system for the remaining variables. If the system admits a unique solution, the components of which are all non negative, then such a solution is a basic feasible solution (see for example [[http://www2.isye.gatech.edu/~spyros/LP/node20.html]] to get an explanation).
-\\
-
-The number of columns not to take into account is the number of variables minus the number of equations. So the number of columns to take into account is in fact the number of equations. In our case, this is $m+n$.
-*** Back to the reward space
-    Given a basic feasible solution (/bfs/) of the linear problem $\begin{blockarray}{(c)}\begin{block*}{c}X'^{bfs} \\\cline{1-1}\begin{block*}{c} S^{bfs}\\\end{block*}\end{block*}\end{blockarray}$, we must go back to the corresponding reward $R^{bfs}$ by undoing the transformation that allowed us to get to the standard form. This is simply done by :
-    \begin{equation}
-    R^{bfs}_i = X'^{bfs}_{2i-1} - X'^{bfs}_{2i}
-    \end{equation}
+   Assuming an infinite supply of experts, will the true reward function be retrieved ?
+   
+   
+   Is the /Agent as expert/ value always attainable by maximizing one of the output reward ?
+   
+   
+   Is there such a thing as a lousy expert that hides information to the algorithm ?
 
 
-    \bibliographystyle{plain}
-    \bibliography{../Biblio/Biblio.bib}
+   Is there a setting where a reward exists so that no reward output by our algorithm is equivalent to it ?
+
+   
+   Is the naive projection of the true reward to the manifold always present in the reward output by our algorithm ?
+** Random rewards and random experts
+*** Goal
+   The goal of this experiment is to empirically test the hypothesis according to which there always is a reward output by the algorithm so that if the agent maximizes this reward its true value is equal to the true value when it maximizes the true reward function. 
+   
+   This hypothesis can be reformulated by saying that /the Agent as Expert value is always attainable by maximizing one of the output rewards/. 
+*** Protocol
+    - Do :
+      - Define a random reward $\mathbf{R}$ of size $n$
+      - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
+      - Compute the expert's policy by solving the MDP : $\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
+      - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
+      - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
+      - Compute the Agent as Expert policy by solving the MDP for the true reward function : $\pi \leftarrow DP( R, \{P_{a^A_i}\}_i)$
+      - Store the Agent as Expert value $V^{AaE}(s_0)$
+      - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
+	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
+	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
+      - Plot the agent's true values along with the expert's and the Agent as Expert value
+    - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
+*** Code
+    We rewrite the protocol, adding the corresponding code at each line :
+    - Do :
+      #+srcname: TT_Exp1_py
+      #+begin_src python
+iterations = 0
+while True:
+    iterations+=1
+      #+end_src
+      - Define a random reward $\mathbf{R}$ of size $n$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    R = scipy.rand( n )
+        #+end_src
+      - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    ExpertsActions = []
+    for i in range(0,m_E):
+        P_i = scipy.rand(n,n)
+        for line in P_i:
+            line /= sum(line) #Sum of proba = 1, so we normalize the random line
+        ExpertsActions.append(P_i)
+        #+end_src
+      - Compute the expert's policy's transition probabilities by solving the MDP : $P_\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    P_pi = TT_DP( R, ExpertsActions )
+        #+end_src
+      - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    ttRewards = TT( P_pi, ExpertsActions )
+        #+end_src
+      - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    AgentsActions = []
+    for i in range(0,m_A):
+        P_i = scipy.rand(n,n)
+        for line in P_i:
+            line /= sum(line) #Sum of proba = 1, so we normalize the random line
+        AgentsActions.append(P_i)
+
+        #+end_src
+      - Compute the Agent as Expert policy's transition probabilities by solving the MDP for the true reward function : $P_\pi^{AaE} \leftarrow DP( R, \{P_{a^A_i}\}_i)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    P_AaE = TT_DP( R, AgentsActions )
+        #+end_src
+      - Store the Agent as Expert value $V^{AaE}(s_0)$
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    V_AaE = dot(P_AaE[0],R.transpose()) #0 is the initial state
+        #+end_src
+      - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    AgentsValues = []
+    for reward in ttRewards:
+        #+end_src
+	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
+	  #+srcname: TT_Exp1_py
+          #+begin_src python
+        P_pi_l = TT_DP( reward, AgentsActions )
+          #+end_src
+	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
+	  #+srcname: TT_Exp1_py
+          #+begin_src python
+        AgentsValues.append( dot( P_pi_l[0], R.transpose() ))
+          #+end_src
+      - Plot the agent's true values along with the expert's and the Agent as Expert value
+	#+srcname: TT_Exp1_py
+        #+begin_src python
+    print l2str( AgentsValues )
+    print "Expert : %f" % dot(P_pi[0], R.transpose())
+    print "Agent as Expert : %f" % V_AaE
+        #+end_src
+    - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
+      #+srcname: TT_Exp1_py
+      #+begin_src python
+    if( max( AgentsValues ) < V_AaE or iterations >= 1000 ):
+        print "Conditions de quittage"
+        print "iterations : %d" % iterations
+        print "Récompense : "
+        print l2str(R)
+        print "Actions de l'expert :"
+        for action in ExpertsActions:
+            print a2str(action)
+            print ""
+        print "Actions de l'agent"
+        for action in AgentsActions:
+            print a2str(action)
+            print ""
+        break
+      #+end_src
+
+
+    We glue it :
+    #+begin_src python :tangle Exp1.py :noweb yes
+# -*- coding: utf8 -*-
+from numpy import *
+import scipy
+from TT_DP import *
+from a2str import *
+from TT import *
+
+n = 4
+
+m_E = 3
+m_A = 2
+
+<<TT_Exp1_py>>
+    #+end_src
 * Code
 ** Main code
 *** Helper code
@@ -327,6 +511,7 @@ BFS = Set()
 index = 0
 standard_sols=[]
 for lslice in itertools.combinations(range(0,3*g_iN+g_iM),g_iN+g_iM):
+    #sys.stderr.write("Combinaison No %d\n" % index)
     #print "Combinaison No %d" % index
     index+=1
     #print lslice
@@ -357,7 +542,6 @@ for lslice in itertools.combinations(range(0,3*g_iN+g_iM),g_iN+g_iM):
     #else:
         #print "No solutions"
         #print linalg.det( A[:,lslice] )
-
 #+end_src
 
    We glue it together
@@ -702,149 +886,16 @@ TT_test3:
 	python TT_test3.py > test/TT_outT3.mat
 	../Utils/matrix_diff.py test/TT_PPi2.mat test/TT_outT3.mat
     #+end_src
-        
-* Experiments
-** Open questions
-   What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
-   
-   
-   Assuming an infinite supply of experts, will the true reward function be retrieved ?
-   
-   
-   Is the /Agent as expert/ value always attainable by maximizing one of the output reward ?
-   
-   
-   Is there such a thing as a lousy expert that hides information to the algorithm ?
-** Random rewards and random experts
-*** Goal
-   The goal of this experiment is to empirically test the hypothesis according to which there always is a reward output by the algorithm so that if the agent maximizes this reward its true value is equal to the true value when it maximizes the true reward function. 
-   
-   This hypothesis can be reformulated by saying that /the Agent as Expert value is always attainable by maximizing one of the output rewards/. 
-*** Protocol
-    - Do :
-      - Define a random reward $\mathbf{R}$ of size $n$
-      - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
-      - Compute the expert's policy by solving the MDP : $\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
-      - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
-      - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
-      - Compute the Agent as Expert policy by solving the MDP for the true reward function : $\pi \leftarrow DP( R, \{P_{a^A_i}\}_i)$
-      - Store the Agent as Expert value $V^{AaE}(s_0)$
-      - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
-	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
-	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
-      - Plot the agent's true values along with the expert's and the Agent as Expert value
-    - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
-*** Code
-    We rewrite the protocol, adding the corresponding code at each line :
-    - Do :
-      #+srcname: TT_Exp1_py
-      #+begin_src python
-iterations = 0
-while True:
-    iterations+=1
-      #+end_src
-      - Define a random reward $\mathbf{R}$ of size $n$
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    R = scipy.rand( n )
-        #+end_src
-      - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    ExpertsActions = []
-    for i in range(0,m_E):
-        P_i = scipy.rand(n,n)
-        for line in P_i:
-            line /= sum(line) #Sum of proba = 1, so we normalize the random line
-        ExpertsActions.append(P_i)
-        #+end_src
-      - Compute the expert's policy's transition probabilities by solving the MDP : $P_\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    P_pi = TT_DP( R, ExpertsActions )
-        #+end_src
-      - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    ttRewards = TT( P_pi, ExpertsActions )
-        #+end_src
-      - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    AgentsActions = []
-    for i in range(0,m_A):
-        P_i = scipy.rand(n,n)
-        for line in P_i:
-            line /= sum(line) #Sum of proba = 1, so we normalize the random line
-        AgentsActions.append(P_i)
+* Perspective
+  It should possible to reduce the computational complexity with easy tricks.\\
 
-        #+end_src
-      - Compute the Agent as Expert policy's transition probabilities by solving the MDP for the true reward function : $P_\pi^{AaE} \leftarrow DP( R, \{P_{a^A_i}\}_i)$
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    P_AaE = TT_DP( R, AgentsActions )
-        #+end_src
-      - Store the Agent as Expert value $V^{AaE}(s_0)$
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    V_AaE = dot(P_AaE[0],R.transpose()) #0 is the initial state
-        #+end_src
-      - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    AgentsValues = []
-    for reward in ttRewards:
-        #+end_src
-	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
-	  #+srcname: TT_Exp1_py
-          #+begin_src python
-        P_pi_l = TT_DP( reward, AgentsActions )
-          #+end_src
-	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
-	  #+srcname: TT_Exp1_py
-          #+begin_src python
-        AgentsValues.append( dot( P_pi_l[0], R.transpose() ))
-          #+end_src
-      - Plot the agent's true values along with the expert's and the Agent as Expert value
-	#+srcname: TT_Exp1_py
-        #+begin_src python
-    print l2str( AgentsValues )
-    print "Expert : %f" % dot(P_pi[0], R.transpose())
-    print "Agent as Expert : %f" % V_AaE
-        #+end_src
-    - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
-      #+srcname: TT_Exp1_py
-      #+begin_src python
-    if( max( AgentsValues ) < V_AaE or iterations >= 100 ):
-        print "Conditions de quittage"
-        print "iterations : %d" % iterations
-        print "Récompense : "
-        print l2str(R)
-        print "Actions de l'expert :"
-        for action in ExpertsActions:
-            print a2str(action)
-            print ""
-        print "Actions de l'agent"
-        for action in AgentsActions:
-            print a2str(action)
-            print ""
-        break
-      #+end_src
+  I want to study how this generalizes to continuous MDPs and MDPs where the probabilites are unknown.\\
+
+  Every other algorithm's heuristics should be expressable as a formal criterion on the systems to be solved. This couls lead to a generalization of the state of the art in IRL.\\
+
+  Reducing the dimensionality of the search space should speed up every existing algorithm.
 
 
-    We glue it :
-    #+begin_src python :tangle Exp1.py :noweb yes
-# -*- coding: utf8 -*-
-from numpy import *
-import scipy
-from TT_DP import *
-from a2str import *
-from TT import *
 
-n = 6
-
-m_E = 3
-m_A = 2
-
-<<TT_Exp1_py>>
-    #+end_src
+   \bibliographystyle{plain}
+   \bibliography{../Biblio/Biblio.bib}
