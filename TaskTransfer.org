@@ -112,27 +112,33 @@ The following holds:  $R_1\equiv R_2$
    #+end_proof
 
    #+begin_theorem
-   Let $M$ be a closed $n-2$-dimensional manifold so that :\\
-   $\forall R \in M, \mathbf{1}^TR\geq 0$,\\
-   The origin is inside the area delimited by the manifold,\\
+   Let $M = \{R|\mathbf{1}^TR =  0, ||R||_1 = 1\}$ be,\\
    The following holds : $\forall R \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}, \exists R'\in M, R'\equiv R$.
    #+end_theorem
-
-   An exemple of such a manifold is the intersection of the $||.||_1$ unit sphere and the hyperplane perpendicular to $\mathbf{1}$.\\
 
    #+begin_proof
    Let $R \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}$ be,\\
    Let $\lambda = -{\mathbf{1}^TR\over n}$ be,\\
-   According to lemma \ref{lambda.lemma}, we have $R + \lambda\mathbf{1} \equiv R$.\\
-   We also have :
+   Let $\alpha = {1\over ||R+\lambda\mathbf{1}||_1}$ be,\\
+   Let $R' = \alpha(R+\lambda\mathbf{1})$ be,\\
+   We have :
    \begin{eqnarray}
-   \mathbf{1}^T(R+\lambda\mathbf{1}) &=& \mathbf{1}^TR + \lambda\mathbf{1}^T\mathbf{1}\\
-   \mathbf{1}^T(R+\lambda\mathbf{1}) &=& \mathbf{1}^TR + \lambda n\\
-   \mathbf{1}^T(R+\lambda\mathbf{1}) &=& \mathbf{1}^TR + -{\mathbf{1}^TR\over n}n)\\
-   \mathbf{1}^T(R+\lambda\mathbf{1}) &=& 0
+   \mathbf{1}^TR' &=& \mathbf{1}^T\alpha(R+\lambda\mathbf{1})\\
+   \mathbf{1}^TR' &=& \alpha\mathbf{1}^TR + \alpha\lambda\mathbf{1}^T\mathbf{1}\\
+   \mathbf{1}^TR' &=& \alpha\mathbf{1}^TR + \alpha\lambda n\\
+   \mathbf{1}^TR' &=& \alpha\mathbf{1}^TR - \alpha{\mathbf{1}^TR\over n}n\\
+   \mathbf{1}^TR' &=& 0
    \end{eqnarray}
-   
-   Now, whatever the shape of the manifold on the hyperplane perpendicular to $\mathbf{1}$, as long as the origin is inside drawing a line from the origin to $R+\lambda\mathbf{1}$ will cross the manifold at some point, which means that there exists an $\alpha$ strictly positive so that $\alpha(R+\lambda\mathbf{1})$ is a point of the manifold (for example, if the manifold was, as suggested, the intersection of the $||.||_1$ unit sphere and the hyperplane perpendicular to $\mathbf{1}$, we would have $\alpha ={1\over ||R+\lambda\mathbf{1}||_1}$). According to lemma \ref{alpha.lemma}, we have $\alpha(R+\lambda\mathbf{1}) \equiv R+\lambda\mathbf{1}$ which by transitivity yelds : $\alpha(R+\lambda\mathbf{1}) \equiv R$.
+   and :
+   \begin{eqnarray}
+   ||R'||_1 &=& ||\alpha(R+\lambda\mathbf{1})||_1\\
+   ||R'||_1 &=& \alpha||R+\lambda\mathbf{1}||_1\\
+   ||R'||_1 &=& {1\over ||R+\lambda\mathbf{1}||_1}||R+\lambda\mathbf{1}||_1\\
+   ||R'||_1 &=& 1\\
+   \end{eqnarray}
+   So $R'\in M$.
+
+   Also, according to lemma \ref{lambda.lemma}, we have $R + \lambda\mathbf{1} \equiv R$, and according to lemma \ref{alpha.lemma}, we have $R' = \alpha(R+\lambda\mathbf{1}) \equiv R+\lambda\mathbf{1}$ which by transitivity yelds : $R' \equiv R$.
    #+end_proof
 
 * Finding interesting rewards
@@ -146,7 +152,7 @@ The following holds:  $R_1\equiv R_2$
 
    Drawing ideas from the simplex algorithm of the LP framework (http://www2.isye.gatech.edu/~spyros/LP/LP.html), we propose a compact and exhaustive description of the solutions of this augmented LP problem.\\
 
-   Let $C$ b the matrix created by slecting the $m$ non null lines of the constraints matrices $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$, so that all lines are normalized (this does not change the constraints) and every line is unique. In order to improve the computational complexity of the algorithm, it may be possible to further restrict waht goes in the $C$ matrix, but this is a little off-topic and not necessary.\\
+   Let $C$ be the matrix created by slecting the $m$ non null lines of the constraints matrices $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$, so that all lines are normalized (this does not change the constraints) and every line is unique. In order to improve the computational complexity of the algorithm, it may be possible to further restrict waht goes in the $C$ matrix, but this is a little off-topic and not necessary.\\
 
    Let $X$ be the unknown vector.\\
    
