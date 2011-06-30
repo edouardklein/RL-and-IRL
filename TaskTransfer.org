@@ -16,7 +16,7 @@
 
   The RL problem can be casted as finding the /optimal policy/ (often noted $\pi^*$), the value function of which is greater, for every state, as the value function of any other policy : $\forall \pi, V^{\pi^*} \succeq V^\pi$.\\
 
-  Any optimal policy is the fixed point of a greedy mechanism : by choosing, at each step, the action that maximizes the expected value function of the optimal policy for the next state one falls back to the optimal policy :$\pi^*(s_t) = \arg\max\limits_aE\left[\left.R(s) + \gamma V^{\pi^*}(s_{t+1})\right|s_t,a\right]$.\\
+  Any optimal policy is the fixed point of a greedy mechanism : by choosing, at each step, the action that maximizes the expected value function of the optimal policy for the next state one falls back to the optimal policy :$\pi^*(s_t) = \arg\max\limits_aE\left[\left.R(s) + \gamma V^{\pi^*}(s_{t+1})\right|s_t,a\right]$. This fixed point is unique, the previous equation can hence be used as a definition for the optimal policy.\\
   
   Luckily, this greedy mechanism is contractile. This means that by repeatedly computing the value function of any policy and then defining a new policy greedily with respect to the computed value function, one will utimately attain the optimal policy and the associated value function.\\
 
@@ -40,30 +40,22 @@
 
 * Notations
   
-  The reward $R$ is here seen as a mapping from the state space $S$ to $\mathbb{R}$. Working in the discrete case, we use it as a vector $R\in \mathbb{R}^n$ indexed by the state space the cardinality of which is $n$.\\
+  The reward $R$ is here seen as a mapping from the state space $S$ to $\mathbb{R}$. Working in the discrete case, we use it as a vector $R\in \mathbb{R}^n$ indexed by the state space, the cardinality of which is $n$.\\
 
-  The value function, when follwing policy $\pi$ under reward $R$ is also defined as a vector : $V^\pi_R\in \mathbb{R}^n$ indexed by the state space.\\
+  The value function when follwing policy $\pi$ under reward $R$ is also defined as a vector : $V^\pi_R\in \mathbb{R}^n$ indexed by the state space. We specify the reward in the notation because in IRL the reward is the unknown and it can thus be interesting to use the value function of a policy under two different rewards.\\
 
-  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $n\times n$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy $\pi, S\leftarrow A : s \mapsto \pi(s)$ can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose line $i$ is the line $i$ of the $(P_a, a=\pi(s))$ matrix.\\
+  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $n\times n$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy $\pi, S\rightarrow A : s \mapsto \pi(s)$ can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix.\\
 
-  To be considered optimal, a policy $\pi^*$ must then meet the criterion $\forall s, \pi^*(s) = \arg\max\limits_a\left(R(s) + \gamma P_{\pi^*}(s)V^{\pi^*}_R\right)$.\\
+  The fixed point definition of the optimal policy can be rewriten as : $\forall s, \pi^*(s) = \arg\max\limits_a\left(R(s) + \gamma P_{\pi^*}(s)V^{\pi^*}_R\right)$ using the notations we just have defined.\\
 
- More formally, given an optimal policy $P_{\pi^*}$ and the set of actions $\{P_a\}_a$ from which the policy was drawn, on tries to guess the reward with respect to which this policy is optimal.\\
-  
-  This knowledge is useful for example for /Task Transfer/, where an agent whose abilities may differ from the expert's optimizes the same reward as the expert, in its own way.\\
-
-  The IRL problem is an ill-posed one, as already noted in the litterature. [Insérer état de l'art]. This paper stems from a result published in \cite{ng2000algorithms}, where the set of rewards for which the expert's behavior is optimal was caracterized by a necessary and sufficient condition expressable as a Linear Programming (LP) problem. The contribution of this paper is to further restrict this set (in fact the space in which to look for rewards is now two dimension smaller than before) and to express the problem in a way that allow for on one hand a compact and exhaustive description of the set of all possible solutions and on the other hand for the formalization and rationalization of the heuristics introduced by others.
-
-* New notions
-
-  We denote the set of the policies optimal with respect to a certain reward $R$ as $\Pi^*(R)$.\\
+  We denote the set of the optimal policies with respect to a certain reward $R$ as $\Pi^*(R) = \left\{\pi^* | \forall \pi, V^{\pi^*}_R\succeq  V^{\pi}_R\right\}$.\\
 
   Throughout this paper, we will use the transitive notion of equivalence between rewards : 
   #+begin_definition
-  Two rewards $R_1$ and $R_2$ are said to be /equivalent/ if $\Pi^*(R_1)$ = $\Pi^*(R_2)$
+  Two rewards $R_1$ and $R_2$ are said to be /equivalent/ if $\Pi^*(R_1)$ = $\Pi^*(R_2)$. This is noted $R_1 \equiv R_2$.
   #+end_definition
   
-  A reward is said to be degenerative when it is equivalent to the null vector. Indeed the null vector admits any policy as an optimal policy.
+  A reward is said to be degenerative when it is equivalent to the null vector ($R\equiv\begin{pmatrix}0\\ \vdots\\ 0\end{pmatrix}$). Indeed the null vector admits any policy as an optimal policy.
   
 * Reducing the reward space
    In this subsection, we will show that there exists a manifold of dimension $n-2$ so that every non degenerative reward is equivalent to at least one element of the manifold.\\
