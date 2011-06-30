@@ -8,10 +8,38 @@
 
 * Context
 
-  In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that maximizes a reward in the long run. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\
+  In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that maximizes a cumulative reward in the long run. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\
 
-  Often, the RL problem is solved in a /Markov Decision Process/ setting : the agent is said to be in a state $s_t\in S$ which respect the Markovian criterion (it contains all the information the agent needs) where it has to choose an action $a\in A$ which will make it transit to another state $s_{t+1}$, receiving a reward $R(s_t)$. The optimal policy $\pi^*$ is a mapping $S\rightarrow A$ which maximizes the sum of the expected discounted reward in every state $V(s) = E\left[\left.\sum\limits_t \gamma^tR(s_t)\right|s_0=s,\pi\right]$.  This last term is called the /Value function/.\\
+  Often, the RL problem is solved in a /Markov Decision Process/ setting : the agent is said to be in a state $s_t\in S$ which respect the Markovian criterion (it contains all the information the agent needs) where it has to choose an action $a\in A$ which will make it transit to another state $s_{t+1}$, receiving a reward $R(s_t)$.\\
 
+  A policy (often noted $\pi$) is a mapping $S\rightarrow A$. Each policy can be associated with its /value function/, a mapping $S\rightarrow \mathbb{R}$ which associates each state with the expected sum of discounted rewards an agent will get by following policy $\pi$ from this state. Formally, given a policy $\pi$, the value function is defined by : $V^\pi(s) = E\left[\left.\sum\limits_t \gamma^tR(s_t)\right|s_0=s,\pi\right]$.\\
+
+  The RL problem can be casted as finding the /optimal policy/ (often noted $\pi^*$), the value function of which is greater, for every state, as the value function of any other policy : $\forall \pi, V^{\pi^*} \succeq V^\pi$.\\
+
+  Any optimal policy is the fixed point of a greedy mechanism : by choosing, at each step, the action that maximizes the expected value function of the optimal policy for the next state one falls back to the optimal policy :$\pi^*(s_t) = \arg\max\limits_aE\left[\left.R(s) + \gamma V^{\pi^*}(s_{t+1})\right|s_t,a\right]$.\\
+  
+  Luckily, this greedy mechanism is contractile. This means that by repeatedly computing the value function of any policy and then defining a new policy greedily with respect to the computed value function, one will utimately attain the optimal policy and the associated value function.\\
+
+  For a certain  tasks, defining the corresponding reward can be a daunting process. Surely, one has at least an /idea/ about what states are preferable to others. This is however not enough to precisely define the numerical reward that will yeld the desired behavior. An example of such task can be the task of driving a car. Surely, it is preferable not to be too close to the car in front of ours. Surely, it is preferable not to brake too hard in order to avoid being rear-ended. But exactly how much is it preferable not to break too hard over not being too close to the car in front of ours ? Variations between the relative weights of these twe criteria in the reward will certainly lead to very different driving behaviors.\\
+
+  A proposed workaround is the /Inverse Reinforcement Learning/ (IRL) method, where one tries to learn the reward optimized by an expert\footnote{The expert may be non human, in which one hope to use a slow or costly expert system to train a less costly agent.}. Then, the /idea/ about what states are preferable to others can be empirically used by a human expert driving the car. The reward function can be infered from the data of the demonstration.\\
+
+  More formally, given an optimal policy $\pi^*$ and the set of actions $A$ from which the policy was drawn, one tries to guess the reward with respect to which this policy is optimal.\\
+
+  Another step is to acknowledge that the agent may have different abilities than the expert, and use the reward as a piece of information defining a /task/. This will allow the transfer of a task from agent to agent, each fulfilling the task at the best of its abilities. For example in the driving problem, a computer will certainly have a better reflex time and a better stamina than a human, and thus could /hypothetically/ drive better than most human, increasing the overall safety of driving.\\
+
+* Introduction
+
+  The IRL problem was first defined in \cite{russell1998learning}, where its ill-posed nature was already noted : the set of reward with respect to which the expert's policy is optimal is far from being a singleton. Furthermore there exists some degenerative rewards that admit every policy as optimal and such bear no useful information.\\
+
+  The work of \cite{russell1998learning} was further pushed in \cite{ng2000algorithms}, where a theorem was given which defines a sufficient and necessary condition for rewards to be solution of the IRL problem. Consinuous state space were also worked on. The problem of degenerative solutions, however, was not solved but worked around by the use of intuitive heuristics.\\
+
+  The seminal work of (\cite{abbeel2004apprenticeship}) led to innovative algorithms (summed up in \cite{neu2009training}) allowing the portage of the IRL problem to settings where the dynamics of the system remains unknown (\cite{klein2011batch}). The problem of degenerative rewards was attacked with different heuristics.\\
+
+  This paper aims at adding restrictions to the results of \cite{ng2000algorithms} in order to solve the ill-posedness of the IRL problem at its root and propose a view on the problem that allow for a generalization of the intuitive heuristics of the litterature. By doing so we hope to pave the way for ameliorations in the existing algorithms as well as new methods for practical IRL that would enable task transfer in real life settings.\\
+
+* Notations
+  
   The reward $R$ is here seen as a mapping from the state space $S$ to $\mathbb{R}$. Working in the discrete case, we use it as a vector $R\in \mathbb{R}^n$ indexed by the state space the cardinality of which is $n$.\\
 
   The value function, when follwing policy $\pi$ under reward $R$ is also defined as a vector : $V^\pi_R\in \mathbb{R}^n$ indexed by the state space.\\
@@ -20,8 +48,8 @@
 
   To be considered optimal, a policy $\pi^*$ must then meet the criterion $\forall s, \pi^*(s) = \arg\max\limits_a\left(R(s) + \gamma P_{\pi^*}(s)V^{\pi^*}_R\right)$.\\
 
-  Sometimes, defining the reward associated with a task can be difficult. A proposed workaround is the /Inverse Reinforcement Learning/ (IRL) method, where one tries to learn the reward optimized by an expert. More formally, given an optimal policy $P_{\pi^*}$ and the set of actions $\{P_a\}_a$ from which the policy was drawn, on tries to guess the reward with respect to which this policy is optimal.\\
-
+ More formally, given an optimal policy $P_{\pi^*}$ and the set of actions $\{P_a\}_a$ from which the policy was drawn, on tries to guess the reward with respect to which this policy is optimal.\\
+  
   This knowledge is useful for example for /Task Transfer/, where an agent whose abilities may differ from the expert's optimizes the same reward as the expert, in its own way.\\
 
   The IRL problem is an ill-posed one, as already noted in the litterature. [Insérer état de l'art]. This paper stems from a result published in \cite{ng2000algorithms}, where the set of rewards for which the expert's behavior is optimal was caracterized by a necessary and sufficient condition expressable as a Linear Programming (LP) problem. The contribution of this paper is to further restrict this set (in fact the space in which to look for rewards is now two dimension smaller than before) and to express the problem in a way that allow for on one hand a compact and exhaustive description of the set of all possible solutions and on the other hand for the formalization and rationalization of the heuristics introduced by others.
