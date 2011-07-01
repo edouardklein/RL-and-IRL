@@ -254,6 +254,107 @@ The following holds:  $R_1\equiv R_2$
    Another criteria mentioned in \cite{ng2000algorithms} is the simplicity of the reward. In a MDP with a non completely erratic behavior, selecting as less slack variables as possible will lead to a scarce reward (after a wise translation of vector $\lambda \mathbf{1}$). Such a reward will probably admit as optimal more policies than only the expert's, and we argue that this kind of reward is more prone to represent the task at sake than the ones satisfying the other criteria, which tend to lead to an imitation of the expert. Another argument for this is that human defined reward on known problems tend to be scarce.\\
 
 * Experiments
+** Reproducing previous results
+   
+   The goal of this first experiment is to reproduce some of the results of \cite{ng2000algorithms}, and thus show that our view on heureistics is correct.
+
+   The setting is a noisy $5\times 5$ Gridworld. States are indexed from 0 to 24 in the reading order. The action matrices are created using the following :
+    #+begin_src python :tangle 5x5Pgen.py
+from numpy import *
+import scipy
+from a2str import*
+
+
+P_north = zeros((25,25))
+P_east = zeros((25,25))
+P_south = zeros((25,25))
+P_west = zeros((25,25))
+
+for a in range(0,4):
+    P_a = zeros((25,25))
+    for x in range(0,5):
+        for y in range(0,5):
+            index = x+5*y
+            x_north = x
+            y_north = 0
+            if( y != 0 ):
+                y_north = y-1
+            index_north = x_north + 5*y_north
+                
+            x_south = x
+            y_south = 4
+            if( y != 4 ):
+                y_south = y+1
+            index_south = x_south + 5*y_south
+
+            y_west = y
+            x_west = 0
+            if( x != 0 ):
+                x_west = x-1
+            index_west = x_west + 5*y_west
+
+            y_east = y
+            x_east = 4
+            if( x != 4 ):
+                x_east = x+1
+            index_east = x_east + 5*y_east
+
+            main_i = -1
+            others = [-1,-1,-1]
+            filename = "stderr"
+            if( a == 0 ):
+                main_i = index_north
+                others = [index_south,index_west,index_east]
+            elif( a == 1):
+                main_i = index_east
+                others = [index_south,index_west,index_north]
+            elif( a == 2):
+                main_i = index_south
+                others = [index_north,index_west,index_east]
+            elif( a == 3):
+                main_i = index_west
+                others = [index_south,index_north,index_east]
+            
+            P_a[index,main_i] +=0.7
+            for i in others:
+                P_a[index,i] +=0.1
+            
+            if( a == 0 ):
+                P_north = P_a.copy()
+            elif( a == 1):
+                P_east = P_a.copy()
+            elif( a == 2):
+                P_south = P_a.copy()
+            elif( a == 3):
+                P_west = P_a.copy()
+
+    if( a == 0 ):
+        filename = "TT_5x5_PNorth.mat"
+    elif( a == 1):
+        filename = "TT_5x5_PEast.mat"
+    elif( a == 2):
+        filename = "TT_5x5_PSouth.mat"
+    elif( a == 3):
+        filename = "TT_5x5_PWest.mat"
+    f = open( filename, "w" )
+    f.write( a2str(P_a) )
+    f.close()
+
+east_states = [0,1,2,3,4,6,7,17,21,22,23]
+north_states = [5,8,9,10,11,12,13,14,15,16,18,19,20,24]
+
+P_pi = zeros((25,25))
+for i in east_states:
+    P_pi[i,:] = P_east[i,:]
+for i in north_states:
+    P_pi[i,:] = P_north[i,:]
+
+f = open( "TT_5x5_Ppi.mat", "w" )
+f.write( a2str(P_pi) )
+f.close()
+        #+end_src
+
+** Other
 
   /Agent as expert/ value : This is the value function of the agent evaluated at the starting state, given that the agent follows an optimal policy with respect to the /true reward function/. No behavior can induce a strictly greater true value than this one.
 
@@ -531,14 +632,24 @@ b[g_iM+1] = 1
 #print a2str(b)
 #+end_src
 
+   The previously mentionned heuristics are defined here :
+   - the naive enumeration of all the combinations :
+   #+srcname: TT_naiveEnumeration_py
+   #+begin_src python
+for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+2):
+   #+end_src
+   - all slack variables to 0 (scarce rewards) :
+   #+srcname: TT_slacksZero_py
+   #+begin_src python
+for partialLslice in itertools.combinations(range(0,2*g_iN),2):
+    lslice = partialLslice + tuple(ones(g_iM))
+   #+end_src
+
    For every $m+2$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
 #+srcname:TT_linearSystem_py
 #+begin_src python
-BFS = Set()
-index = 0
-standard_sols=[]
-for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+2):
-    #sys.stderr.write("Combinaison No %d\n" % index)
+    if( index % 1000 == 0 ):
+        sys.stderr.write("Combinaison No %d\n" % index)
     #print "Combinaison No %d" % index
     index+=1
     #print lslice
@@ -555,6 +666,7 @@ for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+2):
             for i in range(0,g_iN):
                 R[i] = standardSol[2*i] - standardSol[2*i+1]
             #print "Corresponding Reward : "
+            sys.stderr.write("Found a reward on comb %d\n" % index)
             #print linalg.det( A[:,lslice])
             #print R.transpose()
             #if( any(dot( g_mC, R )<-0.00001) ):
@@ -592,10 +704,13 @@ g_iN = g_mC.shape[1]
 g_iM = g_mC.shape[0]
 
 #print "C matrix : %d equations in %d variables"% (g_iM,g_iN)
-
 <<TT_linesCreation_py>>
 
 #print A
+BFS = Set()
+index = 0
+standard_sols=[]
+<<TT_slacksZero_py>>
 <<TT_linearSystem_py>>
 
 #print "All solutions are : "
@@ -761,19 +876,19 @@ TT_cleanTest0:
 0	0	0	1
       #+end_src
      - $P_{SOUTH}$ is :
-      #+begin_src text :tangle test/TT_PSouth.mat
-0	0	1	0
-0	0	0	1
-0	0	1	0
-0	0	0	1
-      #+end_src
+       #+begin_src text :tangle test/TT_PSouth.mat
+ 0	0	1	0
+ 0	0	0	1
+ 0	0	1	0
+ 0	0	0	1
+       #+end_src
      - $P_{WEST}$ is :
-      #+begin_src text :tangle test/TT_PWest.mat
-1	0	0	0
-1	0	0	0
-0	0	1	0
-0	0	1	0
-      #+end_src
+       #+begin_src text :tangle test/TT_PWest.mat
+ 1	0	0	0
+ 1	0	0	0
+ 0	0	1	0
+ 0	0	1	0
+       #+end_src
        
 
     The constraint matrices relative each expert are computed :
