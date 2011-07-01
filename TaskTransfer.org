@@ -36,7 +36,7 @@
 
   The seminal work of (\cite{abbeel2004apprenticeship}) led to innovative algorithms (summed up in \cite{neu2009training}) allowing the portage of the IRL problem to settings where the dynamics of the system remains unknown (\cite{klein2011batch}). The problem of degenerative rewards was attacked with different heuristics.\\
 
-  This paper aims at adding restrictions to the results of \cite{ng2000algorithms} in order to solve the ill-posedness of the IRL problem at its root and propose a view on the problem that allow for a generalization of the intuitive heuristics of the litterature. By doing so we hope to pave the way for ameliorations in the existing algorithms as well as new methods for practical IRL that would enable task transfer in real life settings.\\
+  This paper aims at adding restrictions to the results of \cite{ng2000algorithms} in order to solve the ill-posedness of the IRL problem at its root and propose a view on the problem that allows for a generalization of the intuitive heuristics of the litterature. By doing so we hope to pave the way for ameliorations in the existing algorithms as well as new methods for practical IRL that would enable task transfer in real life settings.\\
 
 * Notations
   
@@ -44,7 +44,7 @@
 
   The value function when follwing policy $\pi$ under reward $R$ is also defined as a vector : $V^\pi_R\in \mathbb{R}^n$ indexed by the state space. We specify the reward in the notation because in IRL the reward is the unknown and it can thus be interesting to use the value function of a policy under two different rewards.\\
 
-  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $n\times n$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy $\pi, S\rightarrow A : s \mapsto \pi(s)$ can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix.\\
+  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $n\times n$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy $\pi, S\rightarrow A : s \mapsto \pi(s)$ can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix. We will from now on speak about action and policies using indiscriminately  the notation $a$ and $\pi$ or $P_a$ and $P_\pi$.\\
 
   The fixed point definition of the optimal policy can be rewriten as : $\forall s, \pi^*(s) = \arg\max\limits_a\left(R(s) + \gamma P_{\pi^*}(s)V^{\pi^*}_R\right)$ using the notations we just have defined.\\
 
@@ -142,27 +142,26 @@ The following holds:  $R_1\equiv R_2$
    #+end_proof
 
 * Finding interesting rewards
-   In \cite{ng2000algorithms}, we are given a necessary and sufficient condition for a reward $R$ to admit a given policy as optimal : for every action $a$ the expert $\pi$ had the possibility to take, the following matrix inequality must be met : 
+   In \cite{ng2000algorithms}, we are given a necessary and sufficient condition for a reward $R$ to admit a given policy as optimal : for every action $P_a$ the expert following $P_\pi$ had the possibility to take, the following matrix inequality must be met : 
    \begin{equation}
    \label{ng2000algorithms.eqn}
    (P_\pi-P_{a})(I-\gamma P_\pi)^{-1}R\succeq 0
    \end{equation}
 
-   This is a Linear Programming problem. By adding the supplemantary constraints that $\mathbf{1}^TR=0$ and $||R||_1=1$, we restrict the solutions to the previously defined $n-2$-dimensional manifold.\\
+   Although the proof can be found in the formentionned paper, we find useful to recall its main argument here : this inequalities stem from the fact that for every action $a$, the expected value of the next state must be less than or the same as the expected value of the next state for taking action $\pi(s)$. This is written as $P_\pi V^\pi \succeq P_a V^\pi$. Consequently, the $i$-th line of the $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$ matrix is a constraint on $X$ that, if satisfied, will make it preferable to choose action $\pi(i)$ over $a$ in state $i$.\\
+ 
+   Equation \ref{ng2000algorithms.eqn} yelds at most $Card(A)\cdot n - n = (Card(A)-1)n$ constraints. There is $Card(A)$ matrices $P_a$, each yelding $n$ constraints. $n$ of there, however, are null because once for each state we will have $a=\pi(s)$ and the resulting line will be filled with zeros.\\
+
+   This is a Linear Programming problem. By adding the supplemantary constraints stemming from the definition of $M$, i.e. that $\mathbf{1}^TR=0$ and $||R||_1=1$, we restrict the solutions to the previously defined $n-2$-dimensional manifold.\\
 
    Drawing ideas from the simplex algorithm of the LP framework (http://www2.isye.gatech.edu/~spyros/LP/LP.html), we propose a compact and exhaustive description of the solutions of this augmented LP problem.\\
 
-   Let $C$ be the matrix created by slecting the $m$ non null lines of the constraints matrices $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$, so that all lines are normalized (this does not change the constraints) and every line is unique. In order to improve the computational complexity of the algorithm, it may be possible to further restrict waht goes in the $C$ matrix, but this is a little off-topic and not necessary.\\
+   Let $C$ be the matrix created by slecting the $m$ non null lines of the constraints matrices $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$, so that all lines are normalized (this does not change the constraints) and every line is unique. In order to improve the computational complexity of the algorithm, it may be possible to further restrict what goes in the $C$ matrix, but this is a little off-topic and not necessary.\\
 
-   Let $X$ be the unknown vector.\\
-   
-   The $i$-th line of the $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$ matrix is a constraint on $X$ that, if satisfied, will make it preferable to choose action $\pi(i)$ over $a$ in state $i$ (see \cite{ng2000algorithms}'s proof of Theorem 3 for why).
-   
-   All the forementionned constraints can now be expressed as follow :
+   Let $X$ be the unknown vector. All the forementionned constraints can now be expressed as follow :
    \begin{eqnarray}
    &CX \succeq 0\\
    &\mathbf{1}^TR=0\\
-   &X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
    &||X||_1=1
    \end{eqnarray}
 ** Standard form
@@ -186,9 +185,8 @@ The following holds:  $R_1\equiv R_2$
   \begin{eqnarray}
   &C'X' \succeq 0 \\
   &\mathbf{1}'^TX'=0\\
+  &||X||_1=1\\
   &X'\succeq 0\\
-  &X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
-  &||X||_1=1
   \end{eqnarray}
   
   The last thing to do is to introduce $m$ positive slack variables in the form of a matrix
@@ -233,29 +231,27 @@ The following holds:  $R_1\equiv R_2$
   \label{C1.eqn}
   X'\succeq 0\\
   \label{C2.eqn}
-  S \succeq 0\\
-  \label{C3.eqn}
-  X \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}\\
+  S \succeq 0
   \end{eqnarray}
 
 ** Basic feasible solutions
-   We now have $m+2$ equations in $2n+m$ variables. By selecting $m+2$ columns in equation \ref{LPStandardForm.eqn} and setting the unselected variables to 0, we obtain a system that may be solvable. Every solvable system that yelds a solution abiding by the additional constraints of equations \ref{C1.eqn}, \ref{C2.eqn}, and \ref{C3.eqn} is a reward with respect to which the expert's policy is optimal.\\
+   We now have $m+2$ equations in $2n+m$ variables. This is not solvable by usual means. Let us not forget that appart for the last two lines added in order to make the solution unique and thus the whole system solvable, all the constraints are inequalities. As the solution to such a system of inequalities is not unique, we use the trick from the simplex algorithm that consist in choosing $m+2$ columns and solving the resulting linear system (if possible). The remaining variables are set to zero. This dictates which inequalities are binding are which are not : if a column concerning a slack variable (say, $s_i$) is not choosen, the corresponding inequality becomes an equality ($C^iX = 0$, with $C^i$ being the $i$-th line of C). If both column concerning a state (say, $x_j^+$ and $x_j^-$ are not choosen, the corresponding two lines of the $X'\succeq 0$ condition become binding and thus $x_j = 0$.\\
 
-   A patient enumaration of all the $m+2 \times m+2$ systems will yeld a small set of interesting rewards (see section [[Experiments]]).\\
-
-   If the computational comlpexity of the exhaustive enumaration is too high, one can either try to reduce it by divers means (see section [[Perspective]]), or use heuristics as virtually everybody else does.\\
-
-   For example the intuitive heuristics according to which as much as possible, every action of the expert should be preferable over the others by a non null margin (i.e. the number of other optimal policies is limited as much as possible) will be yeld by solving the systems where all the columns of the stack variables are selected. Indeed, these slack variables indicates the amount by which the expert's expected value is greater than the other.\\
-
-   This heuristics stems from the will to get as far away as possible from the degenerative rewards. This is not necessary here, and in fact the opposite heuristics, that is the one consisting in looking for the non degenerative reward that admits as many optimal policy as possible may prove interesting, as in a smooth MDP it may probably lead to scarce rewards.\\
-
-   This is an improvement over the state of the art, where sometimes those two opposite heuristics are combined together !
-
-** Back to the reward space
-   Given a basic feasible solution (/bfs/) of the linear problem, we must go back to the corresponding reward $R^{bfs}$ by undoing the transformation that allowed us to get to the standard form. This is simply done by :
+   Every solvable $(m+2) \times (m+2)$ system, that is to say every system resulting from a selection that does not make two incompatible inequalities binding will result in what is called a /basic feasible solution/ (bfs) in the LP literature. From every /bfs/ abiding by the additional constraints of inequalities \ref{C1.eqn} and \ref{C2.eqn}, it is easy to go back to the corresponding reward $R^{bfs}$ by undoing the transformation that allowed us to get to the standard form. This is simply done by :
    \begin{equation}
    R^{bfs}_i = X'^{bfs}_{2i-1} - X'^{bfs}_{2i}
    \end{equation}
+   
+   
+   A patient systematic enumaration of all the $(m+2) \times (m+2)$ systems will yeld a small set of interesting rewards (see section [[Experiments]]).\\
+
+   If the computational comlpexity of the exhaustive enumaration is too high, one can try to reduce it by diverse means, such as not even enumerating the obviously not solvable systems (for example one involving both $x_j^+$ and $x_j^-$ for a any given $j$) or removing useless constraints (such as constraints being implied by others) in order to decrease $m$.\\
+
+   Another course of action is to use heuristics. In \cite{ng2000algorithms}, the authors suggest adding a cost function to the linear program in order to find meaningful rewards. The search space they were dealing with was open, and thus a cost function was necessary to lead the search. They used natural criterion in this cost function that made the search successful. Limiting the search to a finite object as we propose makes this cost function no longer necessary, although we can still select the kind of reward we want by carefully selecting which column to include when building a $(m+2) \times (m+2)$ system.\\
+
+   One natural criteria introduced in \cite{ng2000algorithms}, and later ingrained at the core of \cite{abbeel2004apprenticeship} is to assume that in each state the expert did not had much of a choice and had to take the action it took, because the corresponding state action value was actually higher (and not just equal to) any other action. In our framework, a reward satisfying this criteria will be found by solving the systems were as much slack variables as possible are selected (it is always possible to select all the slack variables, are there are only $m$ of them, but nothing proves such a system will be solvable and one will have to resort to selecting all slack variables but one and so on).\\
+
+   Another criteria mentioned in \cite{ng2000algorithms} is the simplicity of the reward. In a MDP with a non completely erratic behavior, selecting as less slack variables as possible will lead to a scarce reward (after a wise translation of vector $\lambda \mathbf{1}$). Such a reward will probably admit as optimal more policies than only the expert's, and we argue that this kind of reward is more prone to represent the task at sake than the ones satisfying the other criteria, which tend to lead to an imitation of the expert. Another argument for this is that human defined reward on known problems tend to be scarce.\\
 
 * Experiments
 
