@@ -258,12 +258,12 @@ The following holds:  $R_1\equiv R_2$
    
    The goal of this first experiment is to reproduce some of the results of \cite{ng2000algorithms}, and thus show that our view on heureistics is correct.
 
-   The setting is a noisy $5\times 5$ Gridworld. States are indexed from 0 to 24 in the reading order. The action matrices are created using the following :
+   The setting is a noisy $5\times 5$ Gridworld. States are indexed from 0 to 24 in the reading order. The action matrices are created using the following piece of code, which describe the same setting as in \cite{ng2000algorithms} : the agent can choose from the $4$ compass directions, and there is a $30$\% chance of a noisy execution, sending it in one of the other $3$ directions. The optimal policy is computed by the /Dynamic programming/ algorithm and differs from the one in \cite{ng2000algorithms}. 
     #+begin_src python :tangle 5x5Pgen.py
 from numpy import *
 import scipy
 from a2str import*
-
+from TT_DP import*
 
 P_north = zeros((25,25))
 P_east = zeros((25,25))
@@ -340,20 +340,25 @@ for a in range(0,4):
     f.write( a2str(P_a) )
     f.close()
 
-east_states = [0,1,2,3,4,6,7,17,21,22,23]
-north_states = [5,8,9,10,11,12,13,14,15,16,18,19,20,24]
-
-P_pi = zeros((25,25))
-for i in east_states:
-    P_pi[i,:] = P_east[i,:]
-for i in north_states:
-    P_pi[i,:] = P_north[i,:]
-
+R = zeros((25,1))
+R[4,0] = 1
+P_pi = TT_DP( R, (P_north, P_south, P_west, P_east) )
 f = open( "TT_5x5_Ppi.mat", "w" )
 f.write( a2str(P_pi) )
 f.close()
         #+end_src
+   The constraint matrix is then computed from this information :
+   #+begin_src sh
+python 5x5Pgen.py 
+python Constraint.py TT_5x5_Ppi.mat TT_5x5_PNorth.mat TT_5x5_PWest.mat TT_5x5_PSouth.mat TT_5x5_PEast.mat > TT_5x5_C.mat
+   #+end_src
 
+   And fed to the TaskTransfer program using the /all-slacks/ heuristic :
+#+begin_src sh
+python Constraint.py TT_5x5_Ppi.mat TT_5x5_PNorth.mat TT_5x5_PWest.mat TT_5x5_PSouth.mat TT_5x5_PEast.mat > TT_5x5_C.mat
+   #+end_src
+   
+*** TODO Si l'expérience aléatoire est concluante, mettre les figures.
 ** Other
 
   /Agent as expert/ value : This is the value function of the agent evaluated at the starting state, given that the agent follows an optimal policy with respect to the /true reward function/. No behavior can induce a strictly greater true value than this one.
@@ -427,6 +432,8 @@ while True:
 	#+srcname: TT_Exp1_py
         #+begin_src python
     ttRewards = TT( P_pi, ExpertsActions )
+    if( len( ttRewards.shape) == 1 ): #If there is only one reward
+        ttRewards = asarray([ttRewards]) #Cast as a matrix anyway, the code below expects a matrix and not a vector
         #+end_src
       - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
 	#+srcname: TT_Exp1_py
@@ -634,17 +641,17 @@ b[g_iM+1] = 1
 
    The previously mentionned heuristics are defined here :
    - the naive enumeration of all the combinations :
-   #+srcname: TT_naiveEnumeration_py
-   #+begin_src python
+     #+srcname: TT_naiveEnumeration_py
+     #+begin_src python
 for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+2):
-   #+end_src
-   - all slack variables to 0 (scarce rewards) :
-   #+srcname: TT_slacksZero_py
-   #+begin_src python
+     #+end_src
+   - all slack variables and two states (the expert has the best policy) :
+     #+srcname: TT_expertsBest_py
+     #+begin_src python
 for partialLslice in itertools.combinations(range(0,2*g_iN),2):
-    lslice = partialLslice + tuple(ones(g_iM))
-   #+end_src
-
+    lslice = partialLslice + tuple(range(2*g_iN,2*g_iN+g_iM))
+     #+end_src
+     
    For every $m+2$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
 #+srcname:TT_linearSystem_py
 #+begin_src python
@@ -710,7 +717,7 @@ g_iM = g_mC.shape[0]
 BFS = Set()
 index = 0
 standard_sols=[]
-<<TT_slacksZero_py>>
+<<TT_expertsBest_py>>
 <<TT_linearSystem_py>>
 
 #print "All solutions are : "
@@ -776,13 +783,13 @@ def TT( P_pi, Actions ):
         savetxt( "TT_tmp_%d"%index, action, "%e", "\t" )
         index +=1
 
-    cmd = "python Constraint.py "
+    cmd = "python2.6 Constraint.py "
     for i in range(0,index):
         cmd+="TT_tmp_%d "%i
     cmd += " > TT_tmpC.mat"
     os.system( cmd )
 
-    cmd = "python TaskTransfer.py TT_tmpC.mat > TT_tmpR.mat"
+    cmd = "python2.6 TaskTransfer.py TT_tmpC.mat > TT_tmpR.mat"
     os.system( cmd )
 
     answer = genfromtxt( "TT_tmpR.mat" )
