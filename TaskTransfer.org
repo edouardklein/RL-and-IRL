@@ -2,6 +2,8 @@
 #+LATEX_HEADER: \usepackage{blkarray}
 #+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage{amsthm}
+#+LATEX_HEADER: \usepackage{subfigure}
+#+LATEX_HEADER: \usepackage{tabularx}
 #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
 #+LaTeX_HEADER: \newtheorem{definition}{Definition}
 #+LaTeX_HEADER: \newtheorem{lemma}{Lemma}
@@ -57,6 +59,17 @@
   
   A reward is said to be degenerative when it is equivalent to the null vector ($R\equiv\begin{pmatrix}0\\ \vdots\\ 0\end{pmatrix}$). Indeed the null vector admits any policy as an optimal policy.
   
+  #+begin_definition
+  \label{startingvalue.def}
+  The /starting value/ of a policy with respect to a certain reward is the value of the value function at a certain state $s_0$ where the agent or the expert usually start their trajectories.
+  #+end_definition
+  
+  When training an agent on a problem where the reward is infered from the policy of an expert, the criteria we wish to maximize is the /starting value/ of the agent, with resspect the the /unknown true reward/.
+  #+begin_definition
+  \label{agentasexpert.def}
+  The starting value of an agent with respect to the unknown true reward is refered to as the /agent as expert/ value.
+  #+end_definition
+  On a real life problem, one can not directly compute this value. It is however possible when benchmarking our algorithm on controlled experiments.
 * Reducing the reward space
    In this subsection, we will show that there exists a manifold of dimension $n-2$ so that every non degenerative reward is equivalent to at least one element of the manifold.\\
 
@@ -257,40 +270,53 @@ The following holds:  $R_1\equiv R_2$
 ** /Free slacks/ search on the GridWorld
    
 *** Goal
-   The goal of this  experiment is to reproduce some of the results of \cite{ng2000algorithms}, with the /Free slacks/ search method and to investigate task transfer on this setting.
+   The goal of this  experiment is to reproduce some of the results of \cite{ng2000algorithms} with the /free slacks/ search method and to investigate task transfer on this setting.
 
 *** Protocol
 
-   The setting is a noisy $5\times 5$ Gridworld : the expert can choose from the $4$ compass directions, and there is a $30$\% chance of a noisy execution, sending it in one of the other $3$ directions. The reward on which the expert is trained is a reward null everywhere, except for one corner, where it is 1. By convention, the corner opposite to where the reward is non null is viewed as the starting state, noted $s_0$. The optimal policy is computed by a /Dynamic programming/ algorithm and differs from the one in \cite{ng2000algorithms}.\\
+   The setting is a noisy $5\times 5$ Gridworld : the expert can choose from the $4$ compass directions, and there is a $30\%$ chance of a noisy execution, sending it in one of the other $3$ directions. The reward on which the expert is trained is a reward null everywhere, except for one corner, where it is 1. By convention, the corner opposite to where the reward is non null is viewed as the starting state, noted $s_0$. The optimal policy is computed by a /Dynamic programming/ algorithm and differs from the one in \cite{ng2000algorithms}.\\
 
-   The optimal policy, along with the description of the four possible actions is be fed to our algorithm in its /free slacks/ variant.\\
+   The optimal policy, along with the description of the four possible actions is fed to our algorithm in its /free slacks/ variant.\\
 
    The agent to be trained in order to test the task transfer is more powerful than the expert, in the sense that on top of moving in the $4$ compass directions it can also move in the $4$ diagonal directions. The agent has the same movements as a king in the game of chess. The action is still noisy : every movement has a 72% probability of sucess. If it fails the agent will move in any other direction.\\
 
-   This agent is first trained on the true reward (the same that has been used to train the expert) and the $agent as expert$ value (see Def. \ref{agentasexpert.def}) is kept in maind.\\
+   This agent is first trained on the true reward (the same that has been used to train the expert) and the /agent as expert/ value (see Def. \ref{agentasexpert.def}) is computed.\\
 
    The agent is then trained on all the rewards output by our algorithm, and the corresponding starting values (see Def. \ref{startingvalue.def}) are compared to the /agent as expert/ value.\\
 *** Results
 
-    The three rewards our algorithm has found are shown Fig. \ref{slacksfreeR.fig}. The comparison between the /agent as expert/ value and the starting values of the agent when trained on the found rewards can be found Table \ref{slacksfreeR.table}.
+    The three rewards our algorithm has found are shown Fig. \ref{slacksfreeR.fig}. Trained on any of these rewards, the expert would exhibit the same performance as if trained on the true reward.\\
+
+    The comparison between the /agent as expert/ value and the starting values of the agent when trained on the found rewards can be found Table \ref{slacksfreeR.table}. For every reward, the agent is better than the expert, which is to be expected when the agent is more potent than the expert. For two rewards out of three, the agent is as good as if it had been trained on the true reward. When observing the policies, one can notice the heavy use the agent make of its ability to move diagonally. This is a successful example of task transfer.
 
    #+begin_figure
 \centering
 
-\subfigure{
+\subfigure[Reward 1]{
+   \label{slacksfreeR1.fig}
    \includegraphics[width=0.4\textwidth] {TT_5x5_R1.pdf}
  }
-\subfigure{
+\subfigure[Reward 2]{
+   \label{slacksfreeR2.fig}
    \includegraphics[width=0.4\textwidth] {TT_5x5_R2.pdf}
  }
-\subfigure{
+\subfigure[Reward 3]{
+   \label{slacksfreeR3.fig}
    \includegraphics[width=0.4\textwidth] {TT_5x5_R3.pdf}
  }
 
-\label{slacksfreeR.fig}
 \caption{The three rewards output by the /slacks free/ search method on the $5\times 5$ Gridworld}
+\label{slacksfreeR.fig}
    #+end_figure
 
+    #+LABEL: slacksfreeR.table
+    #+CAPTION: /Agent as expert/ value and starting value for all rewards
+    #+ATTR_LaTeX: tabularx align=|X|X|X|X|X| width=\textwidth
+    |---------------+-------------------+----------------------------------------+----------------------------------------+----------------------------------------|
+    | Reward        | $R$ (true reward) | $R_1$ (see Fig.\ref{slacksfreeR1.fig}) | $R_2$ (see Fig.\ref{slacksfreeR2.fig}) | $R_3$ (see Fig.\ref{slacksfreeR3.fig}) |
+    |---------------+-------------------+----------------------------------------+----------------------------------------+----------------------------------------|
+    | Stating value |          4.814387 |                               4.374254 |                               4.814387 |                               4.814387 |
+    |---------------+-------------------+----------------------------------------+----------------------------------------+----------------------------------------|
 *** Code
     
     States are indexed from 0 to 24 in the reading order. The action and policy matrices for the expert are created using the following piece of code, which describes the same setting as in \cite{ng2000algorithms} : 
@@ -387,9 +413,9 @@ f.close()
 #+srcname: TT_exp1_make
 #+begin_src makefile
 TT_exp1:
-	python 5x5Pgen.py 
-	python Constraint.py TT_5x5_Ppi.mat TT_5x5_PNorth.mat TT_5x5_PWest.mat TT_5x5_PSouth.mat TT_5x5_PEast.mat > TT_5x5_C.mat
-   #+end_src
+	python TT_5x5_expertPGen.py 
+	python Constraint.py TT_5x5_Ppi.mat TT_5x5_PENorth.mat TT_5x5_PEWest.mat TT_5x5_PESouth.mat TT_5x5_PEEast.mat > TT_5x5_C.mat
+#+end_src
 
    And fed to the TaskTransfer program using the /slacks free/ method :
 #+begin_src python :noweb yes :tangle TaskTransfer_SF.py
@@ -455,9 +481,9 @@ for x in range(0,5):
    We use it for the three rewards :
 #+srcname: TT_exp1_make
 #+begin_src makefile
-	python TT_5x5_mat2gp.py TT_5x5_R.mat 0 > TT_5x5_R1.mat
-	python TT_5x5_mat2gp.py TT_5x5_R.mat 1 > TT_5x5_R2.mat
-	python TT_5x5_mat2gp.py TT_5x5_R.mat 2 > TT_5x5_R3.mat
+	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 0 > TT_5x5_R1.mat
+	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 1 > TT_5x5_R2.mat
+	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 2 > TT_5x5_R3.mat
    #+end_src
 
    The GNUplot instructions :
@@ -467,7 +493,7 @@ set term postscript enhanced color
 set output "TT_5x5_R1.ps"
 set view 64,236
 set pm3d
-splot "TT_5x5_R1.mat"
+splot "TT_5x5_R1.mat" notitle
    #+end_src
 
    #+begin_src text :tangle TT_5x5_R2.gp
@@ -475,7 +501,7 @@ set term postscript enhanced color
 set output "TT_5x5_R2.ps"
 set view 64,236
 set pm3d
-splot "TT_5x5_R2.mat"
+splot "TT_5x5_R2.mat" notitle
    #+end_src
 
    #+begin_src text :tangle TT_5x5_R3.gp
@@ -483,7 +509,7 @@ set term postscript enhanced color
 set output "TT_5x5_R3.ps"
 set view 64,236
 set pm3d
-splot "TT_5x5_R3.mat"
+splot "TT_5x5_R3.mat" notitle
    #+end_src
 
    PDF files are produced :
@@ -648,7 +674,7 @@ for a in range(0,8):
 R = zeros((25,1))
 R[4,0] = 1
 P_piAaE = TT_DP( R, (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
-foundR = genfromtxt( "TT_5x5_R.mat" )
+foundR = genfromtxt( "TT_5x5_Rewards.mat" )
 P_pi1 = TT_DP( foundR[0,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
 P_pi2 = TT_DP( foundR[1,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
 P_pi3 = TT_DP( foundR[2,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
@@ -666,12 +692,6 @@ print "R3 : %f"%V3[20]
 #+begin_src makefile
 	python TT_5x5_agentAsExpert.py
 #+end_src
-
-*** TODO Si l'expérience aléatoire est concluante, mettre les figures.
-** Other
-
-  /Agent as expert/ value : This is the value function of the agent evaluated at the starting state, given that the agent follows an optimal policy with respect to the /true reward function/. No behavior can induce a strictly greater true value than this one.
-
 ** Open questions
    What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
    
