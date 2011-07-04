@@ -62,6 +62,12 @@ criteria_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o
 
     #+end_src
 
+
+** TaskTransfer
+   Exp 1 :
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<TT_exp1_make>>
+    #+end_src
 * Miscellaneous
 ** Compilation flags
   C code is compiled with

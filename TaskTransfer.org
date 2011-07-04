@@ -254,12 +254,47 @@ The following holds:  $R_1\equiv R_2$
    Another criteria mentioned in \cite{ng2000algorithms} is the simplicity of the reward. In a MDP with a non completely erratic behavior, selecting as less slack variables as possible will lead to a scarce reward (after a wise translation of vector $\lambda \mathbf{1}$). Such a reward will probably admit as optimal more policies than only the expert's, and we argue that this kind of reward is more prone to represent the task at sake than the ones satisfying the other criteria, which tend to lead to an imitation of the expert. Another argument for this is that human defined reward on known problems tend to be scarce.\\
 
 * Experiments
-** Reproducing previous results
+** /Free slacks/ search on the GridWorld
    
-   The goal of this first experiment is to reproduce some of the results of \cite{ng2000algorithms}, and thus show that our view on heureistics is correct.
+*** Goal
+   The goal of this  experiment is to reproduce some of the results of \cite{ng2000algorithms}, with the /Free slacks/ search method and to investigate task transfer on this setting.
 
-   The setting is a noisy $5\times 5$ Gridworld. States are indexed from 0 to 24 in the reading order. The action matrices are created using the following piece of code, which describe the same setting as in \cite{ng2000algorithms} : the agent can choose from the $4$ compass directions, and there is a $30$\% chance of a noisy execution, sending it in one of the other $3$ directions. The optimal policy is computed by the /Dynamic programming/ algorithm and differs from the one in \cite{ng2000algorithms}. 
-    #+begin_src python :tangle 5x5Pgen.py
+*** Protocol
+
+   The setting is a noisy $5\times 5$ Gridworld : the expert can choose from the $4$ compass directions, and there is a $30$\% chance of a noisy execution, sending it in one of the other $3$ directions. The reward on which the expert is trained is a reward null everywhere, except for one corner, where it is 1. By convention, the corner opposite to where the reward is non null is viewed as the starting state, noted $s_0$. The optimal policy is computed by a /Dynamic programming/ algorithm and differs from the one in \cite{ng2000algorithms}.\\
+
+   The optimal policy, along with the description of the four possible actions is be fed to our algorithm in its /free slacks/ variant.\\
+
+   The agent to be trained in order to test the task transfer is more powerful than the expert, in the sense that on top of moving in the $4$ compass directions it can also move in the $4$ diagonal directions. The agent has the same movements as a king in the game of chess. The action is still noisy : every movement has a 72% probability of sucess. If it fails the agent will move in any other direction.\\
+
+   This agent is first trained on the true reward (the same that has been used to train the expert) and the $agent as expert$ value (see Def. \ref{agentasexpert.def}) is kept in maind.\\
+
+   The agent is then trained on all the rewards output by our algorithm, and the corresponding starting values (see Def. \ref{startingvalue.def}) are compared to the /agent as expert/ value.\\
+*** Results
+
+    The three rewards our algorithm has found are shown Fig. \ref{slacksfreeR.fig}. The comparison between the /agent as expert/ value and the starting values of the agent when trained on the found rewards can be found Table \ref{slacksfreeR.table}.
+
+   #+begin_figure
+\centering
+
+\subfigure{
+   \includegraphics[width=0.4\textwidth] {TT_5x5_R1.pdf}
+ }
+\subfigure{
+   \includegraphics[width=0.4\textwidth] {TT_5x5_R2.pdf}
+ }
+\subfigure{
+   \includegraphics[width=0.4\textwidth] {TT_5x5_R3.pdf}
+ }
+
+\label{slacksfreeR.fig}
+\caption{The three rewards output by the /slacks free/ search method on the $5\times 5$ Gridworld}
+   #+end_figure
+
+*** Code
+    
+    States are indexed from 0 to 24 in the reading order. The action and policy matrices for the expert are created using the following piece of code, which describes the same setting as in \cite{ng2000algorithms} : 
+    #+begin_src python :tangle TT_5x5_expertPGen.py
 from numpy import *
 import scipy
 from a2str import*
@@ -329,13 +364,13 @@ for a in range(0,4):
                 P_west = P_a.copy()
 
     if( a == 0 ):
-        filename = "TT_5x5_PNorth.mat"
+        filename = "TT_5x5_PENorth.mat"
     elif( a == 1):
-        filename = "TT_5x5_PEast.mat"
+        filename = "TT_5x5_PEEast.mat"
     elif( a == 2):
-        filename = "TT_5x5_PSouth.mat"
+        filename = "TT_5x5_PESouth.mat"
     elif( a == 3):
-        filename = "TT_5x5_PWest.mat"
+        filename = "TT_5x5_PEWest.mat"
     f = open( filename, "w" )
     f.write( a2str(P_a) )
     f.close()
@@ -347,17 +382,291 @@ f = open( "TT_5x5_Ppi.mat", "w" )
 f.write( a2str(P_pi) )
 f.close()
         #+end_src
+
    The constraint matrix is then computed from this information :
-   #+begin_src sh
-python 5x5Pgen.py 
-python Constraint.py TT_5x5_Ppi.mat TT_5x5_PNorth.mat TT_5x5_PWest.mat TT_5x5_PSouth.mat TT_5x5_PEast.mat > TT_5x5_C.mat
+#+srcname: TT_exp1_make
+#+begin_src makefile
+TT_exp1:
+	python 5x5Pgen.py 
+	python Constraint.py TT_5x5_Ppi.mat TT_5x5_PNorth.mat TT_5x5_PWest.mat TT_5x5_PSouth.mat TT_5x5_PEast.mat > TT_5x5_C.mat
    #+end_src
 
-   And fed to the TaskTransfer program using the /all-slacks/ heuristic :
-#+begin_src sh
-python Constraint.py TT_5x5_Ppi.mat TT_5x5_PNorth.mat TT_5x5_PWest.mat TT_5x5_PSouth.mat TT_5x5_PEast.mat > TT_5x5_C.mat
+   And fed to the TaskTransfer program using the /slacks free/ method :
+#+begin_src python :noweb yes :tangle TaskTransfer_SF.py
+#!/usr/bin/python
+import sys
+from numpy import *
+import scipy
+import itertools
+from sets import *
+from a2str import *
+
+#import pdb
+
+g_mC = genfromtxt(sys.argv[1])
+g_iN = g_mC.shape[1]
+g_iM = g_mC.shape[0]
+
+#print "C matrix : %d equations in %d variables"% (g_iM,g_iN)
+<<TT_linesCreation_py>>
+
+#print A
+BFS = Set()
+index = 0
+standard_sols=[]
+<<TT_slacksfree_py>>
+<<TT_linearSystem_py>>
+
+#print "All solutions are : "
+toPrint = ""
+for R in BFS:
+    toPrint+=R
+print toPrint
+#+end_src
+#+srcname: TT_exp1_make
+#+begin_src makefile
+	python TaskTransfer_SF.py TT_5x5_C.mat > TT_5x5_Rewards.mat
+#+end_src
+
+   We get 3 rewards we can plot.
+
+   First, a small utility to make the reward be displayed in a form GNUplot can understand
+   #+begin_src python :tangle TT_5x5_mat2gp.py
+#!/usr/bin/python
+import sys
+from numpy import *
+import scipy
+import itertools
+from sets import *
+from a2str import *
+
+#import pdb
+
+R = genfromtxt(sys.argv[1])
+index = int(sys.argv[2])
+
+R = R[index,:]
+
+for x in range(0,5):
+    for y in range(0,5):
+        print "%d %d %f"%(x,y,R[x+5*y])
+    print ""
    #+end_src
+   We use it for the three rewards :
+#+srcname: TT_exp1_make
+#+begin_src makefile
+	python TT_5x5_mat2gp.py TT_5x5_R.mat 0 > TT_5x5_R1.mat
+	python TT_5x5_mat2gp.py TT_5x5_R.mat 1 > TT_5x5_R2.mat
+	python TT_5x5_mat2gp.py TT_5x5_R.mat 2 > TT_5x5_R3.mat
+   #+end_src
+
+   The GNUplot instructions :
+
+   #+begin_src text :tangle TT_5x5_R1.gp
+set term postscript enhanced color
+set output "TT_5x5_R1.ps"
+set view 64,236
+set pm3d
+splot "TT_5x5_R1.mat"
+   #+end_src
+
+   #+begin_src text :tangle TT_5x5_R2.gp
+set term postscript enhanced color
+set output "TT_5x5_R2.ps"
+set view 64,236
+set pm3d
+splot "TT_5x5_R2.mat"
+   #+end_src
+
+   #+begin_src text :tangle TT_5x5_R3.gp
+set term postscript enhanced color
+set output "TT_5x5_R3.ps"
+set view 64,236
+set pm3d
+splot "TT_5x5_R3.mat"
+   #+end_src
+
+   PDF files are produced :
+#+srcname: TT_exp1_make
+#+begin_src makefile
+	gnuplot TT_5x5_R1.gp
+	ps2pdf TT_5x5_R1.ps
+	gnuplot TT_5x5_R2.gp
+	ps2pdf TT_5x5_R2.ps
+	gnuplot TT_5x5_R3.gp
+	ps2pdf TT_5x5_R3.ps
+#+end_src
    
+   The figures are now ready.
+
+   The action matrices for the expert are created using the following piece of code.
+    #+begin_src python :tangle TT_5x5_agentAsExpert.py
+from numpy import *
+import scipy
+from a2str import*
+from TT_DP import*
+
+P_N = zeros((25,25))
+P_E = zeros((25,25))
+P_S = zeros((25,25))
+P_W = zeros((25,25))
+P_NE = zeros((25,25))
+P_NW = zeros((25,25))
+P_SE = zeros((25,25))
+P_SW = zeros((25,25))
+
+for a in range(0,8):
+    P_a = zeros((25,25))
+    for x in range(0,5):
+        for y in range(0,5):
+            index = x+5*y
+            x_north = x
+            y_north = 0
+            if( y != 0 ):
+                y_north = y-1
+            index_north = x_north + 5*y_north
+                
+            x_south = x
+            y_south = 4
+            if( y != 4 ):
+                y_south = y+1
+            index_south = x_south + 5*y_south
+
+            y_west = y
+            x_west = 0
+            if( x != 0 ):
+                x_west = x-1
+            index_west = x_west + 5*y_west
+
+            y_east = y
+            x_east = 4
+            if( x != 4 ):
+                x_east = x+1
+            index_east = x_east + 5*y_east
+
+            x_NE = x
+            y_NE = y
+            if( y != 0 and x!=4 ):
+                y_NE = y-1
+                x_NE = x+1
+            index_NE = x_NE + 5*y_NE
+                
+            x_NW = x
+            y_NW = y
+            if( y != 0 and x!= 0 ):
+                y_NW = y-1
+                x_NW = x-1
+            index_NW = x_NW + 5*y_NW
+
+            y_SW = y
+            x_SW = x
+            if( x != 0 and y != 4 ):
+                x_SW = x-1
+                y_SW = y+1
+            index_SW = x_SW + 5*y_SW
+
+            y_SE = y
+            x_SE = x
+            if( x != 4 and y != 4 ):
+                x_SE = x+1
+                y_SE = y+1
+            index_SE = x_SE + 5*y_SE
+
+            main_i = -1
+            others = [-1,-1,-1,-1,-1,-1,-1]
+            filename = "stderr"
+            if( a == 0 ):
+                main_i = index_north
+                others = [index_south,index_west,index_east,index_SE,index_SW,index_NE,index_NW]
+            elif( a == 1):
+                main_i = index_east
+                others = [index_south,index_west,index_north,index_SE,index_SW,index_NE,index_NW]
+            elif( a == 2):
+                main_i = index_south
+                others = [index_north,index_west,index_east,index_SE,index_SW,index_NE,index_NW]
+            elif( a == 3):
+                main_i = index_west
+                others = [index_south,index_north,index_east,index_SE,index_SW,index_NE,index_NW]
+            elif( a == 4 ):
+                main_i = index_SE
+                others = [index_south,index_west,index_east,index_north,index_SW,index_NE,index_NW]
+            elif( a == 5):
+                main_i = index_SW
+                others = [index_south,index_west,index_north,index_SE,index_east,index_NE,index_NW]
+            elif( a == 6):
+                main_i = index_NW
+                others = [index_north,index_west,index_east,index_SE,index_SW,index_NE,index_south]
+            elif( a == 7):
+                main_i = index_NE
+                others = [index_south,index_north,index_east,index_SE,index_SW,index_east,index_NW]
+            
+            P_a[index,main_i] +=0.72
+            for i in others:
+                P_a[index,i] +=0.04
+            
+            if( a == 0 ):
+                P_N = P_a.copy()
+            elif( a == 1):
+                P_E = P_a.copy()
+            elif( a == 2):
+                P_S = P_a.copy()
+            elif( a == 3):
+                P_W = P_a.copy()
+            elif( a == 4 ):
+                P_SE = P_a.copy()
+            elif( a == 5):
+                P_SW = P_a.copy()
+            elif( a == 6):
+                P_NW = P_a.copy()
+            elif( a == 7):
+                P_NE = P_a.copy()
+
+    if( a == 0 ):
+        filename = "TT_5x5_PANorth.mat"
+    elif( a == 1):
+        filename = "TT_5x5_PAEast.mat"
+    elif( a == 2):
+        filename = "TT_5x5_PASouth.mat"
+    elif( a == 3):
+        filename = "TT_5x5_PAWest.mat"
+    elif( a == 4 ):
+        filename = "TT_5x5_PASE.mat"
+    elif( a == 5):
+        filename = "TT_5x5_PASW.mat"
+    elif( a == 6):
+        filename = "TT_5x5_PANW.mat"
+    elif( a == 7):
+        filename = "TT_5x5_PANE.mat"
+    f = open( filename, "w" )
+    f.write( a2str(P_a) )
+    f.close()
+
+    #+end_src
+
+   Then, the agent as expert value is computed, along with the starting value corresponding to the other three rewards :
+    #+begin_src python :tangle TT_5x5_agentAsExpert.py
+R = zeros((25,1))
+R[4,0] = 1
+P_piAaE = TT_DP( R, (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
+foundR = genfromtxt( "TT_5x5_R.mat" )
+P_pi1 = TT_DP( foundR[0,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
+P_pi2 = TT_DP( foundR[1,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
+P_pi3 = TT_DP( foundR[2,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
+VAaE = dot(linalg.inv(identity(25) - 0.9*P_piAaE),R)
+V1 = dot(linalg.inv(identity(25) - 0.9*P_pi1),R)
+V2 = dot(linalg.inv(identity(25) - 0.9*P_pi2),R)
+V3 = dot(linalg.inv(identity(25) - 0.9*P_pi3),R)
+print "Agent as expert : %f"%VAaE[20]
+print "R1 : %f"%V1[20]
+print "R2 : %f"%V2[20]
+print "R3 : %f"%V3[20]
+        #+end_src
+
+#+srcname: TT_exp1_make
+#+begin_src makefile
+	python TT_5x5_agentAsExpert.py
+#+end_src
+
 *** TODO Si l'expérience aléatoire est concluante, mettre les figures.
 ** Other
 
@@ -646,7 +955,7 @@ b[g_iM+1] = 1
 for lslice in itertools.combinations(range(0,2*g_iN+g_iM),g_iM+2):
      #+end_src
    - all slack variables and two states (the expert has the best policy) :
-     #+srcname: TT_expertsBest_py
+     #+srcname: TT_slacksfree_py
      #+begin_src python
 for partialLslice in itertools.combinations(range(0,2*g_iN),2):
     lslice = partialLslice + tuple(range(2*g_iN,2*g_iN+g_iM))
@@ -717,7 +1026,7 @@ g_iM = g_mC.shape[0]
 BFS = Set()
 index = 0
 standard_sols=[]
-<<TT_expertsBest_py>>
+<<TT_naiveEnumeration_py>>
 <<TT_linearSystem_py>>
 
 #print "All solutions are : "
