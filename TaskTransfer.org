@@ -1,4 +1,5 @@
 #+TITLE: Task Transfer on the GridWorld
+#+EXPORT_EXCLUDE_TAGS: code
 #+LATEX_HEADER: \usepackage{blkarray}
 #+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage{amsthm}
@@ -258,13 +259,19 @@ The following holds:  $R_1\equiv R_2$
    
    A patient systematic enumaration of all the $(m+2) \times (m+2)$ systems will yeld a small set of interesting rewards (see section [[Experiments]]).\\
 
-   If the computational comlpexity of the exhaustive enumaration is too high, one can try to reduce it by diverse means, such as not even enumerating the obviously not solvable systems (for example one involving both $x_j^+$ and $x_j^-$ for a any given $j$) or removing useless constraints (such as constraints being implied by others) in order to decrease $m$.\\
+   If the computational comlpexity of the exhaustive enumaration is too high, one can try to reduce it by diverse means, such as not even enumerating the obviously not solvable systems (for example one involving both $x_j^+$ and $x_j^-$ for a any given $j$) or removing useless constraints (such as constraints being implied by others) in order to decrease $m$. This is however not tractable and the even a relatively small problem like a $5 \times 5$ gridworld makes the combinatorial explosion of the number of possible systems difficult to avoid.\\
 
-   Another course of action is to use heuristics. In \cite{ng2000algorithms}, the authors suggest adding a cost function to the linear program in order to find meaningful rewards. The search space they were dealing with was open, and thus a cost function was necessary to lead the search. They used natural criterion in this cost function that made the search successful. Limiting the search to a finite object as we propose makes this cost function no longer necessary, although we can still select the kind of reward we want by carefully selecting which column to include when building a $(m+2) \times (m+2)$ system.\\
+   Another course of action is to use heuristics. In \cite{ng2000algorithms}, the authors suggest adding a cost function to the linear program in order to find meaningful rewards. They used natural criterion in this cost function that made the search successful. Limiting the search to a finite object as we propose sometimes make this cost function no longer necessary, as we can still select the kind of reward we want by carefully selecting which column to include when building a $(m+2) \times (m+2)$ system.\\
 
-   One natural criteria introduced in \cite{ng2000algorithms}, and later ingrained at the core of \cite{abbeel2004apprenticeship} is to assume that in each state the expert did not had much of a choice and had to take the action it took, because the corresponding state action value was actually higher (and not just equal to) any other action. In our framework, a reward satisfying this criteria will be found by solving the systems were as much slack variables as possible are selected (it is always possible to select all the slack variables, are there are only $m$ of them, but nothing proves such a system will be solvable and one will have to resort to selecting all slack variables but one and so on).\\
+   One natural criteria introduced in \cite{ng2000algorithms}, and later ingrained at the core of \cite{abbeel2004apprenticeship} is to assume that in each state the expert did not had much of a choice and had to take the action it took, because the corresponding state action value was actually higher (and not just equal to) any other action. In our framework, a reward satisfying this criteria will be found by solving the systems were as much slack variables as possible are selected (it is always possible to select all the slack variables, are there are only $m$ of them, but such a system will not always be solvable).\\
 
-   Another criteria mentioned in \cite{ng2000algorithms} is the simplicity of the reward. In a MDP with a non completely erratic behavior, selecting as less slack variables as possible will lead to a scarce reward (after a wise translation of vector $\lambda \mathbf{1}$). Such a reward will probably admit as optimal more policies than only the expert's, and we argue that this kind of reward is more prone to represent the task at sake than the ones satisfying the other criteria, which tend to lead to an imitation of the expert. Another argument for this is that human defined reward on known problems tend to be scarce.\\
+   Another criteria mentioned in \cite{ng2000algorithms} is the simplicity of the reward. In a MDP with a non completely erratic behavior, selecting as less slack variables as possible will lead to a scarce reward (after a wise translation of vector $\lambda \mathbf{1}$). Such a reward will probably admit as optimal more policies than only the expert's, and we argue that this kind of reward is more prone to represent the task at sake than the ones satisfying the other criteria, which tend to lead to an imitation of the expert. Another argument for this is that human defined reward on known problems tend to be scarce and allow for more than one optimal policy. Sadly, the number of system to try is also guided by a combinatoric mechanism and is almost as intractable as the naive enumeration.\\
+
+   The technique of letting all the slack variables be free (from now on refered to as the /all slacks/ variant) can prove useful (and indeed it worked on the gridworld, see section [[Experiments]]). As $m$ slack variables are selected, only $2$ columns corresponding to a component of the reward are also selected. This means that if such a system is solvable, we get a scarce reward (null everywhere but in two states) that justify the expert's behavior by a certan margin.\\
+
+   Sadly, other experiments proved that the /all slacks/ variant does not always yeld an answer. Furthermore, the patient enumeration does not always lead to rewards allowing for a perfect task transfer, but only for an almost perfect task transfer.\\
+
+   Further research is needed in the light of those experiment.
 
 * Experiments
 ** /Free slacks/ search on the GridWorld
@@ -287,8 +294,9 @@ The following holds:  $R_1\equiv R_2$
 
     The three rewards our algorithm has found are shown Fig. \ref{slacksfreeR.fig}. Trained on any of these rewards, the expert would exhibit the same performance as if trained on the true reward.\\
 
-    The comparison between the /agent as expert/ value and the starting values of the agent when trained on the found rewards can be found Table \ref{slacksfreeR.table}. For every reward, the agent is better than the expert, which is to be expected when the agent is more potent than the expert. For two rewards out of three, the agent is as good as if it had been trained on the true reward. When observing the policies, one can notice the heavy use the agent make of its ability to move diagonally. This is a successful example of task transfer.
+    The comparison between the /agent as expert/ value and the starting values of the agent when trained on the found rewards can be found Table \ref{slacksfreeR.table}. For every reward, the agent is better than the expert, which is to be expected when the agent is more potent than the expert. For two rewards out of three, the agent is as good as if it had been trained on the true reward. When observing the policies, one can notice the heavy use the agent make of its ability to move diagonally. This is a successful example of task transfer.\\
 
+    this technique has a low computational cost : we have to solve $\begin{pmatrix}2n\\2\end{pmatrix} = O(n^2)$ linear systems of $m+2$ equations, as $m$ is bounded by $(Card(A)-1)n$ and a linear system of $p$ equations, $p$ variables can be solved at a cost of $O(p^3)$, the total cost of the /all slacks/ method is $O(n^5)$. 
    #+begin_figure
 \centering
 
@@ -317,7 +325,7 @@ The following holds:  $R_1\equiv R_2$
     |---------------+-------------------+----------------------------------------+----------------------------------------+----------------------------------------|
     | Stating value |          4.814387 |                               4.374254 |                               4.814387 |                               4.814387 |
     |---------------+-------------------+----------------------------------------+----------------------------------------+----------------------------------------|
-*** Code
+*** Code :code:
     
     States are indexed from 0 to 24 in the reading order. The action and policy matrices for the expert are created using the following piece of code, which describes the same setting as in \cite{ng2000algorithms} : 
     #+begin_src python :tangle TT_5x5_expertPGen.py
@@ -445,9 +453,15 @@ standard_sols=[]
 
 #print "All solutions are : "
 toPrint = ""
+empty = True
 for R in BFS:
     toPrint+=R
+    empty = False
 print toPrint
+if empty:
+    exit(1)
+else:
+    exit(0)
 #+end_src
 #+srcname: TT_exp1_make
 #+begin_src makefile
@@ -692,29 +706,29 @@ print "R3 : %f"%V3[20]
 #+begin_src makefile
 	python TT_5x5_agentAsExpert.py
 #+end_src
-** Open questions
-   What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
-   
-   
-   Assuming an infinite supply of experts, will the true reward function be retrieved ?
-   
-   
-   Is the /Agent as expert/ value always attainable by maximizing one of the output reward ?
-   
-   
-   Is there such a thing as a lousy expert that hides information to the algorithm ?
-
-
-   Is there a setting where a reward exists so that no reward output by our algorithm is equivalent to it ?
-
-   
-   Is the naive projection of the true reward to the manifold always present in the reward output by our algorithm ?
 ** Random rewards and random experts
 *** Goal
-   The goal of this experiment is to empirically test the hypothesis according to which there always is a reward output by the algorithm so that if the agent maximizes this reward its true value is equal to the true value when it maximizes the true reward function. 
+    
+   The goal of these experiments is to empirically test some hypothesis about our method. An empirical experiment is no mathematical proof, except when the empirical evidence can be used as a counter example to demonstrate the falsehood of a hypothesis. What we try here is to gain some hindsight on the way our method work, and not use the empirical evidence to strictly affirm that it does.
    
-   This hypothesis can be reformulated by saying that /the Agent as Expert value is always attainable by maximizing one of the output rewards/. 
+   The two hypothesis we want to test here are :
+   - The /slacks free/ method always yeld at least one reward.
+   - The naive enumartion method always yeld at least one reward for which the agent as expert value is attained.
 *** Protocol
+    The two hypothesis will be tested separately. In both case, for a certain number $n$ of states, a reward vector $R\in \mathbb{R}^n$ will be randomly choosen. The action of the expert or the agent will also be randomly dranw, by randomly defining the associated probability matrices.\\
+
+    The protocol of the first experiment to test whether the /slacks free/ method always yeld at least one reward is the following :
+    - for a few different $n$ :
+      - do a certain number of times :
+	- $R\leftarrow rand(n)$
+	- do $m_E$ times :
+	  - $A_E \leftarrow A_E \cup {rand(n,n)}$, with the sum over the lines is always 1
+	- $P_\pi \leftarrow DP( R, A_E )$
+	- $Rewards \leftarrow TaskTransferSlacksFree( P_\pi, A_E )$
+	- print $card(Rewards)$
+	  
+
+    The second experiment, to test whether the naive enumartion method always yeld at least one reward for which the agent as expert value is attained, goes like this :
     - Do :
       - Define a random reward $\mathbf{R}$ of size $n$
       - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
@@ -728,22 +742,75 @@ print "R3 : %f"%V3[20]
 	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
       - Plot the agent's true values along with the expert's and the Agent as Expert value
     - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
-*** Code
-    We rewrite the protocol, adding the corresponding code at each line :
+*** Results
+    The two experiments disproved both hypothesis. The /slack free/ method yeld one or more reward in a surprisingly small number of case. Further investigation is needed to understand why, and how it could be changed.
+
+    The naive enumeration does not always yeld a reward for which the agent as expert value will be met. However, the best starting value attained by the agent is always very close to the agent as expert value, and the proportion of trials where the agent as expert value is not reached is quite small.
+
+    These experiments, by providing counter examples, formally rejects our hypothesis and pave the way for future research.
+
+*** Code :code:
+    The code of the first protocol is : 
+    #+begin_src python :tangle TT_Exp2.py
+from numpy import *
+import scipy
+from TT_DP import *
+from a2str import *
+from TT import *
+import sys
+
+m_E = 4
+m_A = 4
+for n in range(4,7):
+    meanNbRewards = 0
+    for j in range(0,10):
+        R = scipy.rand( n )
+        ExpertsActions = []
+        for i in range(0,m_E):
+            P_i = scipy.rand(n,n)
+            for line in P_i:
+                line /= sum(line) #Sum of proba = 1, so we normalize the random line
+            ExpertsActions.append(P_i)
+        P_pi = TT_DP( R, ExpertsActions )
+        #import pdb;pdb.set_trace()
+        ttRewards = TT_SF( P_pi, ExpertsActions )
+        nbRewards = 0
+        if( ttRewards == None ):
+            nbRewards = 0
+        elif( len( ttRewards.shape) == 1 ): #If there is only one reward
+            ttRewards = asarray([ttRewards]) #Cast as a matrix anyway, the code below expects a matrix and not a vector
+            nbRewards = 1
+        else:
+            nbRewards = ttRewards.shape[0]
+        sys.stderr.write("n = %d, j=%d, nbRewards = %d\n"%(n,j,nbRewards))
+        meanNbRewards+=nbRewards
+    meanNbRewards/=10.
+    print "%d %f" % (n,meanNbRewards)
+    #+end_src
+
+    It can be run with
+    #+srcname: TT_exp2_make
+    #+begin_src makefile
+TT_exp2:
+	python TT_Exp2.py
+    #+end_src
+
+    
+    We rewrite the secnd protocol, adding the corresponding code at each line :
     - Do :
-      #+srcname: TT_Exp1_py
+      #+srcname: TT_Exp3_py
       #+begin_src python
 iterations = 0
 while True:
     iterations+=1
       #+end_src
       - Define a random reward $\mathbf{R}$ of size $n$
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
     R = scipy.rand( n )
         #+end_src
       - Create $m_E$ random matrices $P_{a^E_i}$ corresponding to $m_E$ different actions the expert can choose among
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
     ExpertsActions = []
     for i in range(0,m_E):
@@ -753,19 +820,19 @@ while True:
         ExpertsActions.append(P_i)
         #+end_src
       - Compute the expert's policy's transition probabilities by solving the MDP : $P_\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
     P_pi = TT_DP( R, ExpertsActions )
         #+end_src
       - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
     ttRewards = TT( P_pi, ExpertsActions )
     if( len( ttRewards.shape) == 1 ): #If there is only one reward
         ttRewards = asarray([ttRewards]) #Cast as a matrix anyway, the code below expects a matrix and not a vector
         #+end_src
       - Create $m_A$ random matrices $P_{a_k^A}$ corresponding to $m_A$ different actions the agent can choose among
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
     AgentsActions = []
     for i in range(0,m_A):
@@ -776,45 +843,45 @@ while True:
 
         #+end_src
       - Compute the Agent as Expert policy's transition probabilities by solving the MDP for the true reward function : $P_\pi^{AaE} \leftarrow DP( R, \{P_{a^A_i}\}_i)$
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
     P_AaE = TT_DP( R, AgentsActions )
         #+end_src
       - Store the Agent as Expert value $V^{AaE}(s_0)$
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
-    V_AaE = dot(P_AaE[0],R.transpose()) #0 is the initial state
+    V_AaE = dot(linalg.inv(identity(n) - 0.9*P_AaE),R.transpose())[0] #0 is the initial state
         #+end_src
       - For every reward vector $R_j$ output by the TaskTransfer Algorithm,
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
     AgentsValues = []
     for reward in ttRewards:
         #+end_src
 	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
-	  #+srcname: TT_Exp1_py
+	  #+srcname: TT_Exp3_py
           #+begin_src python
         P_pi_l = TT_DP( reward, AgentsActions )
           #+end_src
 	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
-	  #+srcname: TT_Exp1_py
+	  #+srcname: TT_Exp3_py
           #+begin_src python
-        AgentsValues.append( dot( P_pi_l[0], R.transpose() ))
+        AgentsValues.append( dot( linalg.inv(identity(n) - 0.9*P_pi_l), R.transpose() )[0])
           #+end_src
       - Plot the agent's true values along with the expert's and the Agent as Expert value
-	#+srcname: TT_Exp1_py
+	#+srcname: TT_Exp3_py
         #+begin_src python
-    print l2str( AgentsValues )
-    print "Expert : %f" % dot(P_pi[0], R.transpose())
+    print "Expert : %f" % dot( linalg.inv(identity(n) - 0.9*P_pi), R.transpose())[0]
     print "Agent as Expert : %f" % V_AaE
+    print "Best of Agent : %f" % max( AgentsValues )
         #+end_src
     - While $\max\limits_lV^{\pi_l}(s_0) = V^{AaE}(s_0)$ or the maximum number of iteration is attained
-      #+srcname: TT_Exp1_py
+      #+srcname: TT_Exp3_py
       #+begin_src python
-    if( max( AgentsValues ) < V_AaE or iterations >= 1000 ):
+    if( max( AgentsValues ) < V_AaE or iterations >= 10 ):
         print "Conditions de quittage"
         print "iterations : %d" % iterations
-        print "Récompense : "
+        print "Recompense : "
         print l2str(R)
         print "Actions de l'expert :"
         for action in ExpertsActions:
@@ -825,12 +892,12 @@ while True:
             print a2str(action)
             print ""
         break
+
       #+end_src
 
 
     We glue it :
-    #+begin_src python :tangle Exp1.py :noweb yes
-# -*- coding: utf8 -*-
+    #+begin_src python :tangle TT_Exp3.py :noweb yes
 from numpy import *
 import scipy
 from TT_DP import *
@@ -842,9 +909,16 @@ n = 4
 m_E = 3
 m_A = 2
 
-<<TT_Exp1_py>>
+<<TT_Exp3_py>>
     #+end_src
-* Code
+    
+    It can be run with
+    #+srcname: TT_exp3_make
+    #+begin_src makefile
+TT_exp3:
+	python TT_Exp3.py
+    #+end_src
+* Code :code:
 ** Main code
 *** Helper code
     We need the matrices to be output so that two equal matrices are output the same way.
@@ -984,8 +1058,8 @@ for partialLslice in itertools.combinations(range(0,2*g_iN),2):
    For every $m+2$ combination of columns, we solve the resulting linear system, go back from that solution to the basic feasible solution and store it in a set 
 #+srcname:TT_linearSystem_py
 #+begin_src python
-    if( index % 1000 == 0 ):
-        sys.stderr.write("Combinaison No %d\n" % index)
+    #if( index % 1000 == 0 ):
+        #sys.stderr.write("Combinaison No %d\n" % index)
     #print "Combinaison No %d" % index
     index+=1
     #print lslice
@@ -1002,7 +1076,7 @@ for partialLslice in itertools.combinations(range(0,2*g_iN),2):
             for i in range(0,g_iN):
                 R[i] = standardSol[2*i] - standardSol[2*i+1]
             #print "Corresponding Reward : "
-            sys.stderr.write("Found a reward on comb %d\n" % index)
+            #sys.stderr.write("Found a reward on comb %d\n" % index)
             #print linalg.det( A[:,lslice])
             #print R.transpose()
             #if( any(dot( g_mC, R )<-0.00001) ):
@@ -1112,17 +1186,44 @@ def TT( P_pi, Actions ):
         savetxt( "TT_tmp_%d"%index, action, "%e", "\t" )
         index +=1
 
-    cmd = "python2.6 Constraint.py "
+    cmd = "python Constraint.py "
     for i in range(0,index):
         cmd+="TT_tmp_%d "%i
     cmd += " > TT_tmpC.mat"
     os.system( cmd )
 
-    cmd = "python2.6 TaskTransfer.py TT_tmpC.mat > TT_tmpR.mat"
+    cmd = "python TaskTransfer.py TT_tmpC.mat > TT_tmpR.mat"
+    ret = os.system( cmd )
+    
+    if( ret == 0):
+        answer = genfromtxt( "TT_tmpR.mat" )
+        return answer
+    else:
+        return None
+
+def TT_SF( P_pi, Actions ):
+    index = 0
+    savetxt( "TT_tmp_%d"%index, P_pi, "%e", "\t" )
+    index +=1
+    for action in Actions:
+        savetxt( "TT_tmp_%d"%index, action, "%e", "\t" )
+        index +=1
+
+    cmd = "python Constraint.py "
+    for i in range(0,index):
+        cmd+="TT_tmp_%d "%i
+    cmd += " > TT_tmpC.mat"
     os.system( cmd )
 
-    answer = genfromtxt( "TT_tmpR.mat" )
-    return answer
+    cmd = "python TaskTransfer_SF.py TT_tmpC.mat > TT_tmpR.mat"
+    ret = os.system( cmd )
+
+    if( ret == 0):
+        answer = genfromtxt( "TT_tmpR.mat" )
+        return answer
+    else:
+        return None
+
     #+end_src
 ** Tests
 *** Test in 3D
@@ -1326,15 +1427,35 @@ TT_test3:
 	../Utils/matrix_diff.py test/TT_PPi2.mat test/TT_outT3.mat
     #+end_src
 * Perspective
-  It should possible to reduce the computational complexity with easy tricks.\\
+** Open questions
 
-  I want to study how this generalizes to continuous MDPs and MDPs where the probabilites are unknown.\\
+   Closed questions are also kept here for history
 
-  Every other algorithm's heuristics should be expressable as a formal criterion on the systems to be solved. This couls lead to a generalization of the state of the art in IRL.\\
+   - About the agent's starting value :
+     - What easy-to-compute criteria corresponds to a reward that induce high-value behaviors ?
+     - Is the /Agent as expert/ value always attainable by maximizing one of the output reward ?\\
+       The answer is no.
+     - Under which conditions is the agent as expert value always attainable ?
+   
+   - About the true reward function :
+     - What are the consequences of adding more constraints (for example stemming from different expert demonstration) ?
+     - Is there such a thing as a lousy expert that hides information to the algorithm ?
+     - Knowing the transition probabilities, is there a way to tell if two rewards are equivalent ?
+     - Is there a setting where a reward exists so that no reward output by our algorithm is equivalent to it ?
+     - Is the naive projection of the true reward to the manifold always present in the reward output by our algorithm ?
+       The answer is no.
 
-  Reducing the dimensionality of the search space should speed up every existing algorithm.
+   - About the /all slacks/ method
+     - Does the sparseness of the transition proabilities play a role in the rate of success of the /all slacks/ method ?
+     - Under which conditions does the /all slacks/ method always yeld a result ?\\
+       J'ai déjà bossé un peu de dessus, j'ai une CNs pas super utile, mais qui sait ?
+     - Can automatic feature detection help in making the /all slacks/ method always succeed ?
 
+** Perspective for this work
 
+   The reduction of the space to be searched can be used virtually everywhere.\\
+
+   Work is needed on the /all slacks/ method.\\
 
    \bibliographystyle{plain}
    \bibliography{../Biblio/Biblio.bib}

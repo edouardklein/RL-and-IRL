@@ -67,6 +67,8 @@ criteria_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o
    Exp 1 :
     #+begin_src makefile :tangle Makefile :noweb yes
 <<TT_exp1_make>>
+<<TT_exp2_make>>
+<<TT_exp3_make>>
     #+end_src
 * Miscellaneous
 ** Compilation flags
