@@ -1,5 +1,7 @@
 #+LaTeX_CLASS: beamer
+
 #+LaTeX_HEADER: \usetheme[secheader]{Boadilla}
+#+LaTeX_HEADER: \usepackage[english]{babel}
 #+LaTeX_HEADER: \setbeamercolor{title}{fg=black,bg=black!10!brown!50}
 #+LaTeX_HEADER: \setbeamercolor{block body}{fg=black,bg=black!10!brown!30}
 #+LaTeX_HEADER: \setbeamercolor{block title}{fg=black,bg=black!30!brown!40}
@@ -20,7 +22,7 @@
 #+LaTeX_HEADER:\usetikzlibrary{decorations.pathmorphing,shapes.misc}
 
 #+BEAMER_HEADER_EXTRA: \title[LSTD-$\mu$]{Batch, Off-policy and Model-free Apprenticeship Learning}
-#+BEAMER_HEADER_EXTRA: \author[Edouard Klein]{Edouard Klein, Matthieu Geist and Olivier Pietquin}\institute{Supélec Metz}
+#+BEAMER_HEADER_EXTRA: \author[Edouard Klein]{\underline{Edouard Klein}$^{\dag\ddag}$, Matthieu Geist$^\dag$ and Olivier Pietquin$^\dag$\\\texttt{firstname.lastname@supelec.fr}\\Slides available at \url{http://rdklein.no-ip.org/ALIHT2011.pdf}}\institute[Supélec]{$\dag$Supélec UMI 2958 (GeorgiaTech - CNRS), France\\$\ddag$Equipe ABC UMR 7503 (LORIA-CNRS), France}
 
 #+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
 #+OPTIONS: toc:nil
@@ -28,6 +30,7 @@
 #+TITLE: Batch, Off-policy and Model-free Apprenticeship Learning
 #+AUTHOR: Edouard Klein and Matthieu Geist and Olivier Pietquin
 
+#* TODO Refaire les modifs que j'avais faites dans le latex
 #+Begin_LaTeX
 \tikzstyle{state}=[circle,
 thick,
@@ -51,35 +54,46 @@ fill=orange!20]
 * Non-technical Abstract
 ** Context
 *** Reinforcement Learning
-**** Toto					      :BMCOL:B_ignoreheading:
-     :PROPERTIES:
-     :BEAMER_col: 0.4
-     :BEAMER_env: ignoreheading
-     :END:
+**** Toto					     :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_col: 0.4
+    :BEAMER_env: ignoreheading
+    :END:
      [[file:ML.png]]
-**** Notions						      :BMCOL:B_block:
-     :PROPERTIES:
-     :BEAMER_col: 0.4
-     :BEAMER_env: block
-     :END:
+**** Notions						     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_col: 0.4
+    :BEAMER_env: block
+    :END:
      - Agent
      - Task
      - Environment
-*** Imitation : Expert
+*** Imitation: Expert
      #+BEGIN_LaTeX
      \animategraphics[autoplay,loop,height=5cm]{1}{Expert00}{1}{9} 
      #+END_LaTeX
-*** Imitation : Generalization
-     #+BEGIN_LaTeX
-     \animategraphics[autoplay,loop,height=5cm]{1}{Agent}{001}{014} 
-     #+END_LaTeX
+*** Imitation: Generalization
+**** Null					     :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_col: .4\textwidth
+    :BEAMER_env: ignoreheading
+    :END:
+      #+BEGIN_LaTeX
+      \animategraphics[autoplay,loop,height=5cm]{1}{Agent}{001}{014} 
+      #+END_LaTeX
+**** Apprenticeship learning				     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .4\textwidth
+    :END:
+     Reward inference
 ** Contribution
 *** Contribution 
-**** Abbeel and Ng's IRL					    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :ORDERED:  t
-     :END:
+**** Abbeel and Ng's IRL					   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :ORDERED:  t
+    :END:
      #+BEGIN_LaTeX
 \uncover<1->{
   \begin{tikzpicture}
@@ -96,10 +110,10 @@ fill=orange!20]
   \end{tikzpicture}
 }
      #+END_LaTeX
-**** LSTD-$\mu$ 						    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** LSTD-$\mu$ 						   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      #+BEGIN_LaTeX
  \uncover<2->{
   \begin{tikzpicture}
@@ -143,52 +157,52 @@ fill=orange!20]
       \end{block}
     \end{column}
   \end{columns}
-  \begin{alertblock}<5>{Politique}
-    $\pi : S\rightarrow A$
+  \begin{alertblock}<5>{Policy}
+    $\pi: S\rightarrow A$
   \end{alertblock}
      #+END_LaTeX
 
 *** RL problem and solution
-**** Value function						    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Value function						   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      \begin{equation}
      \label{eqn:V}
      V^\pi(s_t) = E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]
      \end{equation}
-**** Goal							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Goal							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      Optimal policy $\pi^* = \arg\max\limits_\pi V^\pi$
-**** Value function approximation				    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Value function approximation				   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      $\hat V^\pi(s_t) = \omega^T\phi (s_t)$
 ** IRL
 *** IRL problem and solutions
-**** Goal							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Goal							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      Finding the reward $R$ so that the observed behavior is optimal
-**** Ill-posed 						       :B_alertblock:
-     :PROPERTIES:
-     :BEAMER_env: alertblock
-     :END:
+**** Ill-posed 						      :B_alertblock:
+    :PROPERTIES:
+    :BEAMER_env: alertblock
+    :END:
      The null reward $\forall s, R(s) = 0$ is a solution
-**** Approximation of the reward 				    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Approximation of the reward 				   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      $R = \theta^T\phi(s)$
 *** IRL solutions
-**** Introduction of $\mu$					    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Introduction of the expected, cumulative, discounted feature values :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      \scriptsize
      \begin{eqnarray*}
      V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]\\
@@ -198,100 +212,114 @@ fill=orange!20]
      V^\pi(s_t) &=& \theta^T\mu(s_t)
      \end{eqnarray*}
 *** IRL solutions
-**** Importance of $\Delta\mu$ 					    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Importance of $\Delta\mu$ 					   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      \begin{eqnarray*}
      \Delta\mu &=& ||\mu_E(s_0) - \mu^\pi(s_0)||_2\\
-     \Delta V &=& ||V^E(s_0) - V^\pi(s_0)||_2\\
-     \Delta V &=& ||\theta^T\left(\mu_E(s_0) - \mu^\pi(s_0)\right)||_2\\
+     \Delta V &=& |V^E(s_0) - V^\pi(s_0)|\\
+     \Delta V &=& |\theta^T\left(\mu_E(s_0) - \mu^\pi(s_0)\right)|\\
+     \Delta V &\leq& ||\theta||_2||\left(\mu_E(s_0) - \mu^\pi(s_0)\right)||_2\\
      \Delta V &\leq& \Delta\mu\\
      \end{eqnarray*}
 *** Computing $\mu$
-**** Monte carlo					      :B_block:BMCOL:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :BEAMER_col: .4
-     :END:
+**** Monte carlo					     :B_block:BMCOL:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .4
+    :END:
      $\hat\mu^\pi(s_0) = \sum\limits_j\sum\limits_i\gamma^i\phi(s^j_i)$
-**** Drawbacks							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Drawbacks							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      - Needs whole trajectories
      - Implies using a simulator
        - Need for a model
        - On-policy evaluation
-**** LSTD-$\mu$						      :BMCOL:B_block:
-     :PROPERTIES:
-     :BEAMER_col: .4
-     :BEAMER_env: block
-     :END:
+**** LSTD-$\mu$						     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_col: .4
+    :BEAMER_env: block
+    :END:
      Based on already known /Least-square temporal differences/ method
-**** Advantages							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Advantages							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      - Can be fed with transitions
      - No simulator needed
        - No need for a model
        - Off or on policy evaluation
-* LSTD-mu
+* LSTD-$\mu$
 ** LSTD & LSTDQ
 *** LSTD algorithms
-**** LSTD							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
-     Batch, on-policy, model-free /value function approximation/ algorithm
-**** LSTD-$Q$							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
-     Batch, off-policy, model-free /state-action value function approximation/ algorithm
-**** Principle							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** LSTD and LSTD-$Q$ 						    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     Batch, off or on-policy, model-free /state/ or /state-action/ /value function approximation/ algorithm
+**** Principle							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      #+begin_latex
-     Estimator  : $\hat V^\pi(s) = \omega^T\phi(s)$ \hfill Transition : $s_t,a_t,s_{t+1},r_t$
+     Estimator : $\hat V^\pi(s) = \omega^T\phi(s)$ \hfill Transition: $s_t,a_t,s_{t+1},r_t$
      \begin{equation*}
      \omega = \left(\sum_{t=1}^n
      \phi(s_t)(\phi(s_t)-\gamma\phi(s_{t+1}))^T\right)^{-1}
      \sum_{t=1}^n \phi(s_t) r_t
      \end{equation*}
+     \begin{equation*}
+     \omega = LSTD_\phi( \{s_t,a_t,s_{t+1}\}_t,\{r_t\}_t)
+     \end{equation*}
+
      #+end_latex
 ** LSTD-$\mu$
 *** LSTD-$\mu$ algorithm
-**** Idea							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+**** Idea							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      #+begin_latex
      $V = V^\pi(s_t) = E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]$
-     \hfill $\mu^\pi(s_t) = E\left[\left.\sum\limits_i\gamma^i\phi(s_{t+i})\right|\pi\right]$ 
+     \hfill $\mu^\pi(s_t) = E\left[\left.\sum\limits_i\gamma^i\phi(s_{t+i})\right|\pi\right]$ \\
+     \begin{center}
+     Transition: $s_t,a_t,s_{t+1},r_t$
+     \end{center}
      #+end_latex
-**** Algorithm							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+
+**** LSTD 						      :B_block:BMCOL:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .45\textwidth
+    :END:
      #+begin_latex
-     Estimator  : $\hat \mu^\pi(s) = \xi^{*T}\psi(s)$ \hfill Transition : $s_t,a_t,s_{t+1},r_t$
+     Estimator : $\hat V^\pi(s) = \omega^T\phi(s)$
      \begin{equation*}
-     \xi_i^* = \left(\sum_{t=1}^n
-     \psi(s_t)(\psi(s_t)-\gamma\psi(s'_{t}))^T\right)^{-1}
-     \sum_{t=1}^n \psi(s_t) \phi_i(s_t)
+     \omega = LSTD_\phi( \{s_t,a_t,s_{t+1}\}_t,\{r_t\}_t)
+     \end{equation*}
+     #+end_latex
+**** LSTD-$\mu$ 					      :B_block:BMCOL:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .5\textwidth
+    :END:
+     #+begin_latex
+     Estimator : $\hat \mu^\pi(s) = \xi^{T}\psi(s)$
+     \begin{equation*}
+     \xi_i = LSTD_\psi( \{s_t,a_t,s_{t+1}\}_t, \{\phi_i(s_t)\}_t )
      \end{equation*}
      #+end_latex
 
 * Experimental benchmark
 ** Algorithms
-*** Algorithms : Abbeel & Ng's IRL algorithm
-**** Principle							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+*** Algorithms: Abbeel & Ng's IRL algorithm
+**** Principle							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      #+BEGIN_LaTeX
      \begin{tikzpicture}
      \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Trajectories} ;
@@ -306,25 +334,25 @@ fill=orange!20]
      \draw [->,thick] (sim.east) -- (10,-0.7) -- (10,-2.1) -- (0,-2.1) -- (trajA.south);
      \end{tikzpicture}
      #+END_LaTeX
-**** Variants						      :B_block:BMCOL:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :BEAMER_col: .45
-     :END:
+**** Variants						     :B_block:BMCOL:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .45
+    :END:
      - Monte-Carlo estimation
      - Projection method
      - LSPI as the MDP solver
-**** Update step					      :BMCOL:B_block:
-     :PROPERTIES:
-     :BEAMER_col: .45
-     :BEAMER_env: block
-     :END:
+**** Update step					     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_col: .45
+    :BEAMER_env: block
+    :END:
      $t = \max\limits_{\theta}\min\limits_{\pi}\theta^T(\mu^{E}(s_0)-\mu^{\pi}(s_0))$
-*** Algorithms : Our modified version
-**** Principle 							    :B_block:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :END:
+*** Algorithms: Our modified version
+**** Principle 							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
      #+BEGIN_LaTeX
      \begin{tikzpicture}
      \node[element] (trajE) at (0,0) {$\vcenter{\hbox{\includegraphics[height=0.5cm]{Expert.png}}}$Transitions} ;
@@ -337,75 +365,75 @@ fill=orange!20]
      \draw [->,thick] (policy.east) -- (10,-0.7) -- (10,-1.4) -- (3,-1.4) -- (mech.south);
      \end{tikzpicture}
      #+END_LaTeX
-**** Variants						      :B_block:BMCOL:
-     :PROPERTIES:
-     :BEAMER_env: block
-     :BEAMER_col: .45
-     :END:
+**** Variants						     :B_block:BMCOL:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .45
+    :END:
      - /LSTD-$\mu$ estimation/
      - Projection method
      - LSPI as the MDP solver
-**** Update step 					      :BMCOL:B_block:
-     :PROPERTIES:
-     :BEAMER_col: .45
-     :BEAMER_env: block
-     :END:
+**** Update step 					     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_col: .45
+    :BEAMER_env: block
+    :END:
      $t = \max\limits_{\theta}\min\limits_{\pi}\theta^T(\mu^{E}(s_0)-\mu^{\pi}(s_0))$
 ** Quality criterion
 *** Quality criterion
 #+begin_latex
 \center
-\resizebox{.9\columnwidth}{!}{\input{../Code/GridWorld/criteria_mc}}
+\resizebox{.9\columnwidth}{!}{\input{../CodeJFPDA/GridWorld/criteria_mc}}
 #+end_latex
 ** GirdWorld
 *** Settings
-**** Toto					      :BMCOL:B_ignoreheading:
-     :PROPERTIES:
-     :BEAMER_col: 0.4
-     :BEAMER_env: ignoreheading
-     :END:
+**** Toto					     :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_col: 0.4
+    :BEAMER_env: ignoreheading
+    :END:
      [[file:ML.png]]
-**** Mathematically 					      :BMCOL:B_block:
-     :PROPERTIES:
-     :BEAMER_col: 0.4
-     :BEAMER_env: block
-     :END:
+**** Mathematically 					     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_col: 0.4
+    :BEAMER_env: block
+    :END:
      
      - $A = \{$ Up, Down, Right, Left $\}$
      - $S = {cells}$
-     - $\phi$ : discrete features
+     - $\phi$: discrete features
      - Reward in the upper right corner
 *** Results
 #+begin_latex
 \center
-\resizebox{.9\columnwidth}{!}{\input{../Code/GridWorld/both_error_EB}}
+\resizebox{.9\columnwidth}{!}{\input{../CodeJFPDA/GridWorld/both_error_EB}}
 #+end_latex    
 ** Inverted pendulum
 *** Settings
-**** Toto					      :BMCOL:B_ignoreheading:
-     :PROPERTIES:
-     :BEAMER_col: 0.4
-     :BEAMER_env: ignoreheading
-     :END:
+**** Toto					     :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_col: 0.4
+    :BEAMER_env: ignoreheading
+    :END:
      [[file:InvertedPendulum.png]]
-**** Mathematically 					      :BMCOL:B_block:
-     :PROPERTIES:
-     :BEAMER_col: 0.55
-     :BEAMER_env: block
-     :END:
+**** Mathematically 					     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_col: 0.55
+    :BEAMER_env: block
+    :END:
      - $A = \{$ Left, Nothing, Right $\}$
      - $S = {speed,angle}$
-     - $\phi$ : Gaussian network and a constant
+     - $\phi$: Gaussian network and a constant
      - Negative reward for letting it fall
 *** Results (one run)
 #+begin_latex
 \center
-\resizebox{.9\columnwidth}{!}{\input{../Code/InvertedPendulum/threshold}}
+\resizebox{.9\columnwidth}{!}{\input{../CodeJFPDA/InvertedPendulum/threshold}}
 #+end_latex    
 *** Results (average)
 #+begin_latex
 \center
-\resizebox{.9\columnwidth}{!}{\input{../Code/InvertedPendulum/threshold_EB}}
+\resizebox{.9\columnwidth}{!}{\input{../CodeJFPDA/InvertedPendulum/threshold_EB}}
 #+end_latex    
 * Opening and future work
 ** Future work
