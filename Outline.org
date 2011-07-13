@@ -207,9 +207,8 @@ fill=orange!20]
      \begin{eqnarray*}
      V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]\\
      V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\phi(s_{t+i})\right|\pi\right]\\
-     V^\pi(s_t) &=& \theta^TE\left[\left.\sum\limits_{i}\gamma^i \phi(s_{t+i})\right|\pi\right]\\
-     \mu^\pi(s_t) &=& E\left[\left.\sum\limits_i\gamma^i\phi(s_{t+i})\right|\pi\right]\\
-     V^\pi(s_t) &=& \theta^T\mu(s_t)
+     V^\pi(s_t) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \phi(s_{t+i})\right|\pi\right]}_{\mu^\pi(s_t)}\\
+     V^\pi(s_t) &=& \theta^T\mu^\pi(s_t)
      \end{eqnarray*}
 *** IRL solutions
 **** Importance of $\Delta\mu$ 					   :B_block:
