@@ -18,6 +18,8 @@
 
 #+LaTeX_HEADER: \usepackage{animate} %need the animate.sty file 
 
+#+LaTeX_HEADER: \usepackage{color}
+
 #+LaTeX_HEADER: \include{headertikz}
 #+LaTeX_HEADER:\usetikzlibrary{decorations.pathmorphing,shapes.misc}
 
@@ -271,7 +273,7 @@ fill=orange!20]
      \sum_{t=1}^n \phi(s_t) r_t
      \end{equation*}
      \begin{equation*}
-     \omega = LSTD_\phi( \{s_t,a_t,s_{t+1}\}_t,\{r_t\}_t)
+     \omega = LSTD_\phi( \{s_t,a_t,s_{t+1}\}_t,\{{ r_t}\}_t)
      \end{equation*}
 
      #+end_latex
@@ -297,7 +299,7 @@ fill=orange!20]
      #+begin_latex
      Estimator : $\hat V^\pi(s) = \omega^T\phi(s)$
      \begin{equation*}
-     \omega = LSTD_\phi( \{s_t,a_t,s_{t+1}\}_t,\{r_t\}_t)
+     \omega = LSTD_{\color{red}\phi}( \{s_t,a_t,s_{t+1}\}_t,\{{\color{red}r_t}\}_t)
      \end{equation*}
      #+end_latex
 **** LSTD-$\mu$ 					      :B_block:BMCOL:
@@ -308,7 +310,7 @@ fill=orange!20]
      #+begin_latex
      Estimator : $\hat \mu^\pi(s) = \xi^{T}\psi(s)$
      \begin{equation*}
-     \xi_i = LSTD_\psi( \{s_t,a_t,s_{t+1}\}_t, \{\phi_i(s_t)\}_t )
+     \xi_i = LSTD_{\color{red}\psi}( \{s_t,a_t,s_{t+1}\}_t, \{{\color{red}\phi_i(s_t)}\}_t )
      \end{equation*}
      #+end_latex
 
