@@ -1,0 +1,106 @@
+\documentclass[xcolor=x11names,12pt]{beamer}
+%\usetheme[secheader]{Boadilla} 
+\mode<presentation>{\usetheme{I6pd2}}
+
+\usepackage{multicol} 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{grffile}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{pifont}
+\usepackage{slashbox}
+\include{headertikz}
+\usetikzlibrary{through,shapes,arrows,decorations.pathmorphing,backgrounds,positioning,fit} 
+
+\newcommand{\argmin}{\mathop{\mathrm{min}}}
+\usepackage[orientation=portrait,size=a0,scale=1.4]{beamerposter}
+
+
+\newcommand{\conf}[1]{\newcommand{\insertconf}{#1}}
+\newenvironment{WholeWidthBox}[1]{
+  \begin{columns}
+    \begin{column}{0.98\textwidth}
+      \begin{block}{#1}
+        \begin{hfill}
+}{
+        \end{hfill}
+      \end{block}
+    \end{column}
+  \end{columns}
+}
+
+\newcommand{\TwoBoxes}[7]{%Width1 Title1 Content1 Width2 Title2 Content2 MinHeight
+  \begin{columns}
+    \begin{column}{#1\textwidth}
+      \begin{block}{#2}
+        \begin{columns}
+          \begin{column}{0.001\textwidth}
+            \vspace{#7}
+          \end{column}
+          \begin{column}{\textwidth}
+            \centering
+            #3
+          \end{column}
+        \end{columns}       
+      \end{block}
+    \end{column}
+    
+    \begin{column}{#4\textwidth}
+      \begin{block}{#5}
+        \begin{columns}
+          \begin{column}{0.001\textwidth}
+            \vspace{#7}
+          \end{column}
+          \begin{column}{\textwidth}
+            \centering
+            #6
+          \end{column}
+        \end{columns}       
+      \end{block}
+    \end{column}
+  \end{columns}
+}
+
+
+%Start of document
+\conf{Pinky}
+\title{Blinky}
+\author{Inky}
+\date{\today}
+\institute[C.]{Clyde}
+\newlength{\columnheight}
+\setlength{\columnheight}{105cm}
+
+
+\begin{document}
+\begin{frame}
+
+%%%%%%%%%%%%% DEBUT PREMIERE LIGNE %%%%%%%%%%%%%%%%%
+\begin{WholeWidthBox}{Gntroduction}
+  Ceci est mon intro
+\end{WholeWidthBox}
+
+\vfill
+%%%%%%%%%%%% DEBUT DEUXIEME LIGNE %%%%%%%%%%%%%%%%%%
+
+\TwoBoxes{.48}{Titre1}{Blah}{.48}{Titre2}{Bluh}{15cm}
+\vfill
+
+\small{References}\\
+\vspace{-1cm}
+\centering
+\begin{multicols}{2}
+  \bibliographystyle{unsrt}
+  \begin{tiny}
+    \bibliography{biblio}
+  \end{tiny}
+\end{multicols}
+\vspace{-0.2cm}
+
+
+\end{frame}
+\end{document}
+
+
