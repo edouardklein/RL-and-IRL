@@ -145,30 +145,23 @@ fill=orange!20]
     \begin{itemize}
     \item apprenticeship of the expert's task
     \item Generalization of the policy over never-seen-before states
-    \item Useful when rewards are hard to tune (e.g. driving)
+    \item Useful when rewards are hard to tune ({\it e.g.}, driving)
     \end{itemize}
   \end{itemize}
 }
 {15cm}
 \vfill
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TROISIEME LIGNE
-\TwoBoxes{.48}{Feature Expectation}{
-  \begin{eqnarray*}
-    V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]\\
-    V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\phi(s_{t+i})\right|\pi\right]\\
-    V^\pi(s_t) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \phi(s_{t+i})\right|\pi\right]}_{\mu^\pi(s_t)}\\
-    V^\pi(s_t) &=& \theta^T\mu^\pi(s_t)
-  \end{eqnarray*}
-}{.48}{Importance of $\Delta \mu$}{
-  \begin{eqnarray*}
-    \Delta\mu &=& ||\mu_E(s_0) - \mu^\pi(s_0)||_2\\
-    \Delta V &=& |V^E(s_0) - V^\pi(s_0)|\\
-    \Delta V &=& |\theta^T\left(\mu_E(s_0) - \mu^\pi(s_0)\right)|\\
-    \Delta V &\leq& ||\theta||_2||\mu_E(s_0) - \mu^\pi(s_0)||_2\\
-    \Delta V &\leq& \Delta\mu\\
-  \end{eqnarray*}
+\TwoBoxes{.38}{Feature Expectation}{
+  \begin{equation*}
+    V^\pi(s_t) = E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right] = \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \phi(s_{t+i})\right|\pi\right]}_{\mu^\pi(s_t)}
+  \end{equation*}
+}{.58}{Importance of $\Delta \mu$}{
+  \begin{equation*}
+    \Delta V = |V^E(s_0) - V^\pi(s_0)| = |\theta^T\left(\mu_E(s_0) - \mu^\pi(s_0)\right)| \leq  ||\mu_E(s_0) - \mu^\pi(s_0)||_2 = \Delta\mu
+  \end{equation*}
 }
-{15cm}
+{6cm}
 \vfill
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% Quatrième ligne
   \begin{columns}
@@ -271,28 +264,34 @@ fill=orange!20]
 \vfill
 %%%%%%%%%%%%%%%%%%%%%%Cinquième ligne
   \begin{columns}
-    \begin{column}{.23\textwidth}
+    \begin{column}{.48\textwidth}
       \begin{block}{Quality Criterion}
+        \centering
         \fontsize{11pt}{11pt}\selectfont
-        \resizebox{.9\columnwidth}{!}{\input{../CodeJFPDA/GridWorld/criteria_mc}}
+        \resizebox{.55\columnwidth}{!}{\input{../CodeJFPDA/GridWorld/criteria_mc}}
       \end{block}
     \end{column}
-    \begin{column}{.23\textwidth}
+    \begin{column}{.48\textwidth}
       \begin{block}{Gridworld}
+        \centering
         \fontsize{11pt}{11pt}\selectfont
-        \resizebox{.9\columnwidth}{!}{\input{../CodeJFPDA/GridWorld/both_error_EB}}
+        \resizebox{.55\columnwidth}{!}{\input{../CodeJFPDA/GridWorld/both_error_EB}}
       \end{block}
     \end{column}
-    \begin{column}{.23\textwidth}
+  \end{columns}
+  \begin{columns}
+    \begin{column}{.48\textwidth}
       \begin{block}{Inverted Pendulum (one run)}
+        \centering
         \fontsize{11pt}{11pt}\selectfont
-        \resizebox{.9\columnwidth}{!}{\input{../CodeJFPDA/InvertedPendulum/threshold}}
+        \resizebox{.55\columnwidth}{!}{\input{../CodeJFPDA/InvertedPendulum/threshold}}
       \end{block}
     \end{column}
-    \begin{column}{.23\textwidth}
+    \begin{column}{.48\textwidth}
       \begin{block}{Inverted Pendulum}
+        \centering
         \fontsize{11pt}{11pt}\selectfont
-        \resizebox{.9\columnwidth}{!}{\input{../CodeJFPDA/InvertedPendulum/threshold_EB}}
+        \resizebox{.55\columnwidth}{!}{\input{../CodeJFPDA/InvertedPendulum/threshold_EB}}
       \end{block}
     \end{column}
   \end{columns}
