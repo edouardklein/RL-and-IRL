@@ -7,17 +7,25 @@
 ** List of used symbols
    FIXME: Définir les bidules qui ne sont pas définis
 
-   | $S$          | State space                      | \ref{S.def} |
-   | $n_S$        | Dimension of $S$                 | \ref{S.def} |
-   | $A$          | Action space                     | \ref{A.def} |
-   | $n_A$        | Dimension of $A$                 | \ref{A.def} |
-   | $R$          | A reward function                | \ref{R.def} |
-   | $\phi$       | State space features             |             |
-   | $n_\phi$     | Dimension of State feature space |             |
-   | $\mathbb{R}$ | the Reals                        |             |
-   | $M$          | A markov decision process        |             |
-   | $\gamma$     | discounting factor               |             |
-** MDP
+   | $S$                  | State space                      | \ref{S.def}   |
+   | $n_S$                | Dimension of $S$                 | \ref{S.def}   |
+   | $A$                  | Action space                     | \ref{A.def}   |
+   | $n_A$                | Dimension of $A$                 | \ref{A.def}   |
+   | $R$                  | A reward function                | \ref{R.def}   |
+   | $\pi$                | A deterministic policy           | \ref{pi.def}  |
+   | $T$                  | The transition space             | \ref{Ti.def}  |
+   | $T_i$                | A single transition              | \ref{Ti.def}  |
+   | $T_i^R$, $T_i^\theta$ | An augmented transition          | \ref{TiR.def} |
+   | $\xi_j$              | A trajectory                     | \ref{xi.def}  |
+   | $D$                  | A dataset                        | \ref{D.def}   |
+   | $D^R$                | An augmented dataset             | \ref{D.def}   |
+   | $\mathbf{D}$         | Space of all the datasets        | \ref{D.def}   |
+   | $\phi$               | State space features             |               |
+   | $n_\phi$             | Dimension of State feature space |               |
+   | $\mathbb{R}$         | the Reals                        |               |
+   | $M$                  | A markov decision process        |               |
+   | $\gamma$             | discounting factor               |               |
+** States, Actions, Reward
   #+begin_definition
   \label{S.def}
   $S$ is the state space, of cardinality $|S|$, of dimension $n_S$.
@@ -48,15 +56,16 @@
 
   For this reasons, I argue for the reward to be a mapping from the states only to the reals.
 
-  FIXME:Définition de la fonction de valeur V et Q
-  
+** Policy
+   #+begin_definition
+   \label{pi.def}
+   A deterministic policy $\pi$ is a mapping $S\rightarrow A$.
+   #+end_definition
 
+   For the time being, we only consider deterministic policies.
+** Transition, trajectory, dataset
   #+begin_definition
-  $M = \{S,A,\gamma,R\}$ is a Markov Decision Process (MDP).
-  #+end_definition
-
-** Transition, trajectoy, dataset
-  #+begin_definition
+  \label{Ti.def}
   $T_i = \{s_i,a_i,s_{i+1}\}\in T = S\times A\times S$ is a /transition/.
   #+end_definition
 
@@ -65,20 +74,36 @@
    The augmented transition can be defined as :
 
   #+begin_definition
+  \label{TiR.def}
   $T^R_i = \{s_i,a_i,s_{i+1},R(s_i)\}\in T^R = S\times A\times S \times \mathbb{R}$ is an /augmented transition/.
   #+end_definition
 
-  By abusing the notation, when using an approximation framework $\hat R = R_\theta$ of weight vector $\theta$, the augmented transition will be noted $T^\theta_i = T^{R_theta}_i$.
+  By abusing the notation, when using an approximation framework $\hat R = R_\theta$ of weight vector $\theta$, the augmented transition will be noted $T^\theta_i = T^{R_\theta}_i$.
   
  
   #+begin_definition
+  \label{xi.def}
   $\xi_j = \{T_i\}_i$ is a /trajectory/. $\xi_j^R = \{T_i^R\}$ is an augmented trajectory.
   #+end_definition
 
   #+begin_definition
+  \label{D.def}
   $D = \{\xi_j\}_j$ is a dataset. $D^R= \{\xi_j^R\}_j$ is the augmented dataset. \\ 
   $\mathbf{D}$ is the space of datasets.
   #+end_definition
+** Value function
+   The definition of the value function I use is the widespread one using the sum of the discounted rewards :
+   
+   #+begin_definition
+   $V^{\pi} : S\rightarrow \mathbb{R}$, $s \mapsto \sum_{t=0}^{\infty} R(s_t)$
+   #+end_definition
+  FIXME:Définition de la fonction de valeur V et Q
+  
+
+  #+begin_definition
+  $M = \{S,A,\gamma,R\}$ is a Markov Decision Process (MDP).
+  #+end_definition
+
 ** Features   
 * IRL
 ** Overview
