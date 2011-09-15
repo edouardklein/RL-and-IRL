@@ -1,0 +1,8 @@
+\begin{tikzpicture}
+  \node[state] (st) at (0,0) {$s_t$};
+  \node[action] (at) at (1.5,-2) {$a_{t}$};
+  \node[state] (stpu) at (3,0) {$s_{t+1}$};
+  \draw[->,thick] (at) --  (stpu);
+  \draw[->,thick] (st) -- node[below] {$p(s_{t+1}|s_t,a_t)$}(stpu);
+  \node at (0,1.5) {};
+\end{tikzpicture}
