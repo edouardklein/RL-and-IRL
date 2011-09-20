@@ -220,14 +220,54 @@
     or following the iRprop rule (\cite{igel2000improving}) I didn't read about (yet).
 
 *** MMP
-    The max-margin planning algorithm has been introduced in \cite{ratliff2006maximum}.
+    The max-margin planning algorithm has been introduced in \cite{ratliff2006maximum}. A few things should be noted about this algorithm : 
+    - The authors work with state-action visitation frequencies, which can be seen as state-action feature expectation with $\gamma = 1$.
+    - Because of this, estimating the feature expectation can not be done off-policy using the LSTD-$Q$ trick.
+    - This method maintains two policies, the first (noted $\pi$) is the same as in the other algorithms (i.e., the optimal policy with respect to the reward defined by $\theta$). The second (noted $\pi'$) is the optimal policy with respect to the reward defined by $\theta - c\cdot \mu_{D_E}$, with $c$ being a constant parameter of the algoithm.
+    - Feature expectations for both maintained policies $\pi$ and $\pi'$ ought to be computed, noted respectively $\hat\mu_\theta$ and $\hat\mu_{\theta l}$
 
-    I did not check (as I did for the previous methods) that \cite{neu2009training}'s formulation was correct, as \cite{ratliff2006maximum}'s writing is extremely confusing and imprecise.
-
+     
     The dissimilarity function is : 
     \begin{equation}
-    HERE
+    J(\theta, D_E) = (\theta - c\mu_{D_E})^T \mu_{\theta l} - \theta^T\mu_{D_E} + {\lambda \over 2} ||\theta||_2^2
     \end{equation}
+
+    
+    The update step uses $g : x\mapsto x$ and the update vector :
+    \begin{equation}
+    \Delta_k = \hat \mu_{D_E} - \hat \mu_{\theta l } - \lambda \theta_k
+    \end{equation}
+
+
+    I did not cross check this with the original paper as I did with the previous algorithms because the authors' writing is somewhat confusing.
+*** PM
+    The Policy Matching algorithm was described by the same authors as the survey. Therefore I assumed there were faithful and I did not cross check their work either.
+
+    This work deals with stochastic policies. I modified it for the deterministic case because I don't (yet) see the point of stochastic policies in my framework. This has some implications : in the original work $\pi(.|s)$ can be defined arbitrarily when unknown ; the dissimilarity function no longer contains a squared term that was probably useful for the proof.
+
+
+    The dissimilarity function (abusing the $D$ notation) is : 
+    \begin{equation}
+    J(\theta, D_E) = {1\over 2}\sum_{s \in D} \hat\mu_{D_E}(s) \mathbb{I}( \pi(s), \pi_E(s) )
+    \end{equation}
+    
+    
+    The update needs an agent that accept stochastic policies to be implemented.
+*** Maximum Entropy IRL
+    I did not fully understood the math behind this method, so I just transcript the useful information here.
+
+    
+    The $J$ function is : 
+    \begin{equation}
+    J(\theta, D_E) = - \theta^T\hat\mu_{D_E} + log(\sum_{\xi\in\Xi} e^{(\theta^T \hat\mu_\xi)})
+    \end{equation}
+    with $\Xi$ being the set of all possible trajectories. Computation involving this set may be tricky, so the survey discusses some tricks about doing this in real life. $\hat\mu_\xi$ is defined as $\sum\limits_{s\in \xi} \phi(s)$
+    
+    The update is presumably additive ($g : x\mapsto x$) and use the following step :
+    \begin{equation}
+    \Delta_k = \hat\mu_E - \sum_{\xi \in \Xi}\left(e^{(\theta^T \hat\mu_\xi)} \over\sum\limits_{\xi'\in\Xi} e^{(\theta^T \hat\mu_{\xi'})}\right)\hat\mu_\xi
+    \end{equation}
+    
 ** Other approaches
 
    \cite{ramachandran2007bayesian} is a bayesian approach. Although I didn't chek it exactly, it seems to share a lot with \cite{chajewska2001learning}. 
