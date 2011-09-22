@@ -287,6 +287,9 @@
     \end{eqnarray}
     or following the iRprop rule \citep{igel2000improving} I didn't read about (yet).
 
+
+    The follow-up paper \citep{syed2008apprenticeship} present a computationally more efficient method for the same optimization problem. Among the subtelties I hide here lies the problem of the suboptimal expert I am not interested in at the moment.
+
 *** MMP
     The max-margin planning algorithm has been introduced in \citep{ratliff2006maximum}. A few things should be noted about this algorithm : 
     - The authors work with state-action visitation frequencies, which can be seen as state-action feature expectation with $\gamma = 1$.
