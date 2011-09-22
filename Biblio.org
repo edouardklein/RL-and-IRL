@@ -4,27 +4,52 @@
 #+LaTeX_HEADER: \usepackage{natbib}
 
 * Notations
-** List of used symbols
-   FIXME: Définir les bidules qui ne sont pas définis
+** Conventions
+   Bold symbols represent the set or the space of the elements represented by a symbol in normal font. e.g., $\mathbf T$ is the space of all transitions, and a transition is noted $T$. The dimensionality of such a space (or any other space) is usually noted $n_X$, e.g. the dimension of the state space $S$ is noted $n_S$.
 
-   | $S$                  | State space                      | \ref{S.def}   |
-   | $n_S$                | Dimension of $S$                 | \ref{S.def}   |
-   | $A$                  | Action space                     | \ref{A.def}   |
-   | $n_A$                | Dimension of $A$                 | \ref{A.def}   |
-   | $R$                  | A reward function                | \ref{R.def}   |
-   | $\pi$                | A deterministic policy           | \ref{pi.def}  |
-   | $T$                  | The transition space             | \ref{Ti.def}  |
-   | $T_i$                | A single transition              | \ref{Ti.def}  |
-   | $T_i^R$, $T_i^\theta$ | An augmented transition          | \ref{TiR.def} |
-   | $\xi_j$              | A trajectory                     | \ref{xi.def}  |
-   | $D$                  | A dataset                        | \ref{D.def}   |
-   | $D^R$                | An augmented dataset             | \ref{D.def}   |
-   | $\mathbf{D}$         | Space of all the datasets        | \ref{D.def}   |
-   | $\phi$               | State space features             |               |
-   | $n_\phi$             | Dimension of State feature space |               |
-   | $\mathbb{R}$         | the Reals                        |               |
-   | $M$                  | A markov decision process        |               |
-   | $\gamma$             | discounting factor               |               |
+
+   A integer index often indicates a temporal order (or just an order) for example $s_i \in \{s_0, s_1, \dots\}$ for consecutive states in a trajectory.
+
+
+   Linear approximations are denoted thanks to the character $\hat\dot$. e.g., the linear approximation of $V$ will be noted $\hat V$.
+
+   
+   Notions relative to a policy $\pi$ are noted with $\pi$ in exponent : e.g., $V^\pi$ for the value function of the policy $\pi$. When the policy is not available but some samples $D$ are, the value for $V$ computed from these samples is noted $V^D$. Notions relative to the optimal policy with respect to a given reward $R$ can be noted with $R$ in exponent (e.g. $\mu^R$) or, if $\hat R$ is an approximation of vector of parameters $\theta$, with $\theta$ in exponent e.g., $\mu^\theta$.
+
+
+   The $i$-th component of a vectorial value $X$ is noted $X^i$.
+
+
+   $X'$ denotes an element that is timewise one step after $X$.
+** List of used symbols
+   | $S$                                 | State space                                  | \ref{S.def}      |
+   | $n_S$                               | Dimension of $S$                             | \ref{S.def}      |
+   | $A$                                 | Action space                                 | \ref{A.def}      |
+   | $n_A$                               | Dimension of $A$                             | \ref{A.def}      |
+   | $R$                                 | A reward function                            | \ref{R.def}      |
+   | $\pi$                               | A deterministic policy                       | \ref{pi.def}     |
+   | $T_i$                               | A single transition                          | \ref{Ti.def}     |
+   | $\mathbf{T}$                        | The transition space                         | \ref{Ti.def}     |
+   | $T_i^R$, $T_i^\theta$               | An augmented transition                      | \ref{TiR.def}    |
+   | $\mathbf{T}^R$, $\mathbf{T}^\theta$ | The augmented transition space               | \ref{TiR.def}    |
+   | $\xi_j$                             | A trajectory                                 | \ref{xi.def}     |
+   | $\Xi$                               | The trajectory space                         | \ref{xi.def}     |
+   | $\xi_j^R$, $\xi_j^\theta$           | An augmented trajectory                      | \ref{xi.def}     |
+   | $\Xi^R$, $\Xi^\theta$               | The augmented trajectory space               | \ref{xi.def}     |
+   | $D$                                 | A dataset                                    | \ref{D.def}      |
+   | $\mathbf{D}$                        | Space of all the datasets                    | \ref{D.def}      |
+   | $D^R$                               | An augmented dataset                         | \ref{D.def}      |
+   | $\mathbf{D}^R$                      | Space of all the augmented datasets          | \ref{D.def}      |
+   | $P$                                 | System dynamics                              | \ref{P.def}      |
+   | $V^\pi$                             | State value function for policy $\pi$        | \ref{V.def}      |
+   | $\gamma$                            | discounting factor                           | \ref{V.def}      |
+   | $Q^\pi$                             | State-action value function for policy $\pi$ | \ref{Q.def}      |
+   | $\hat V$, $\hat Q$, $\hat R$        | Linear approximations                        | \ref{approx.def} |
+   | $\phi$, $\psi$                      | State(-action) space features                | \ref{approx.def} |
+   | $n_\phi$, $n_\psi$                  | Dimension of State(-action) feature space    | \ref{approx.def} |
+   | $\omega$, $\theta$                  | Weight vectors                               | \ref{approx.def} |
+   | $\mu^\pi$                           | Feature expectation for policy $\pi$         | \ref{mu.def}     |
+   | $M$                                 | A markov decision process                    | \ref{MDP.def}    |
 ** States, Actions, Reward
   #+begin_definition
   \label{S.def}
@@ -44,7 +69,7 @@
   #+end_definition
 
   The way to define rewards is not normalized. Basically the choices are :
-  - Use a mapping $S\times S \rightarrow \mathbb{R}$. This is what is assumed in \cite{ng1999policy}.
+  - Use a mapping $S\times S \rightarrow \mathbb{R}$. This is what is assumed in \citep{ng1999policy}.
   - Use a mapping $S \rightarrow \mathbb{R}$, this is what I argue for.
   - Hide everything else as a mapping $S\times A \times S\rightarrow \mathbb{R}$. This is the most mathematically general solution, as it encapsulates every other. The problem is it also is the most difficult to work with.
 
@@ -62,11 +87,11 @@
    A deterministic policy $\pi$ is a mapping $S\rightarrow A$.
    #+end_definition
 
-   For the time being, we only consider deterministic policies.
+   For the time being, we only consider deterministic policies. If I recall correctly, there always is an optimal deterministic policy, so I don't want to bother with stochastic policies and the awful lot of engineering and mathematical problems they bring.
 ** Transition, trajectory, dataset
   #+begin_definition
   \label{Ti.def}
-  $T_i = \{s_i,a_i,s_{i+1}\}\in T = S\times A\times S$ is a /transition/.
+  $T_i = \{s_i,a_i,s_{i+1}\}\in \mathbf{T} = S\times A\times S$ is a /transition/.
   #+end_definition
 
   The reward is not included in the transition, as I believe there is a strong intrinsic difference between the tuple $T_i = \{s_i,a_i,s_{i+1}\}$ and the associated reward : the tuple is data stemming from the environment, which the operator do not control whereas the reward is usually defined by the operator.
@@ -75,15 +100,12 @@
 
   #+begin_definition
   \label{TiR.def}
-  $T^R_i = \{s_i,a_i,s_{i+1},R(s_i)\}\in T^R = S\times A\times S \times \mathbb{R}$ is an /augmented transition/.
-  #+end_definition
-
-  By abusing the notation, when using an approximation framework $\hat R = R_\theta$ of weight vector $\theta$, the augmented transition will be noted $T^\theta_i = T^{R_\theta}_i$.
-  
+  $T^R_i = \{s_i,a_i,s_{i+1},R(s_i)\}\in \mathbf{T}^R = S\times A\times S \times \mathbb{R}$ is an /augmented transition/.
+  #+end_definition  
  
   #+begin_definition
   \label{xi.def}
-  $\xi_j = \{T_i\}_i$ is a /trajectory/. $\xi_j^R = \{T_i^R\}$ is an augmented trajectory.
+  $\xi_j = \{T_i\}_i \in \Xi$ is a /trajectory/. $\xi_j^R = \{T_i^R\}_i \in \Xi^R$ is an augmented trajectory.
   #+end_definition
 
   #+begin_definition
@@ -91,62 +113,94 @@
   $D = \{\xi_j\}_j$ is a dataset. $D^R= \{\xi_j^R\}_j$ is the augmented dataset. \\ 
   $\mathbf{D}$ is the space of datasets.
   #+end_definition
+
+   By abusing the notation, when using an approximation framework $\hat R$ of vector of parameters $\theta$, the augmented item (for example a transition $T$) will be noted $T^\theta = T^{\hat R}$.
+
+** System Dynamics
+   #+begin_definition
+   \label{P.def}
+   The function $P : S\times A \times S \rightarrow [0;1],~ s,a,s' \mapsto P(s'|s,a)$ represents the system dynamics : is gives the probability of transitionning to state $s'$ when taking action $a$ in state $s$.
+   #+end_definition
 ** Value function
    The definition of the value function I use is the widespread one using the sum of the discounted rewards :
    
    #+begin_definition
-   $V^{\pi} : S\rightarrow \mathbb{R}$, $s \mapsto \sum_{t=0}^{\infty} R(s_t)$
+   \label{V.def}
+   $V^{\pi} : S\rightarrow \mathbb{R}$, $s \mapsto E\left(\left.\sum\limits_{t=0}^{\infty} \gamma^tR(s_t)\right|s_0=s,\pi\right)$
    #+end_definition
-  FIXME:Définition de la fonction de valeur V et Q
+   #+begin_definition
+   \label{Q.def}
+   $Q^{\pi} : S\times A\rightarrow \mathbb{R}$, $s,a \mapsto E\left(\left.R(s) + \gamma V^\pi(s')\right|s,a,\pi\right)$
+   #+end_definition
   
+** Features
+   Tabular representation often fall short (notably for $Q$ and $V$), so approximation frameworks have to be used. A widespread approximation framework is the following (explicited for $V$ but usable on any function) :
+   #+begin_definition
+   \label{approx.def}
+   A linear approximator for $V$ is $\hat V(s) = \omega^T \phi(s)$, with :\\
+   - $\phi : S \rightarrow \mathbb{R}^{n_\mathbf{\phi}}$ a vectorial feature function
+   - $\omega\in \mathbb{R}^{n_\mathbf{\phi}}$ a weight vector
+   #+end_definition
+** Feature expectation
+   When one uses an approach based on an approximation of the reward :
+   \begin{equation}
+   \hat R(s) = \theta^T \phi(s)
+   \end{equation}
+   The next logical step is to introduce the feature expectation $\mu$.
+   #+begin_definition
+   \label{mu.def}
+   $\mu^{\pi} : S\rightarrow \mathbb{R}^{n_\mathbf{\phi}}$, $s \mapsto E\left(\left.\sum\limits_{t=0}^{\infty} \gamma^t\phi(s_t)\right|s_0=s,\pi\right)$
+   #+end_definition
 
-  #+begin_definition
-  $M = \{S,A,\gamma,R\}$ is a Markov Decision Process (MDP).
-  #+end_definition
+** Markov Decision Process
+#+begin_definition
+\label{MDP.def}
+  $M = \{S,A,P,\gamma,R\}$ is a Markov Decision Process (MDP).
+#+end_definition
 
-** Features   
 * IRL
 ** Overview
-  The problem has been suggested in \cite{russell1998learning} and properly defined in \cite{ng2000algorithms}. An eminent seminal work is \cite{abbeel2004apprenticeship}, which introduce the feature expectation $\mu$ under its canonical name.\\
+  The problem has been suggested in \citep{russell1998learning} and properly defined in \citep{ng2000algorithms}. An eminent seminal work is \citep{abbeel2004apprenticeship}, which introduce the feature expectation $\mu$ under its canonical name.
 
-  The work of \cite{abbeel2004apprenticeship} inspired or shares similarities with at least these follow-up :
-  - The MWAL algorithm of \cite{syed2008game}, followed by LPAL&Co (\cite{syed2008game})
-  - The PM algorithm of \cite{neu2007apprenticeship}
-  - The MMP algorithm of \cite{ratliff2006maximum}
-  - The ME method of \cite{ziebart2008maximum}
+
+
+  The work of \citet{abbeel2004apprenticeship} inspired or shares similarities with at least these follow-up :
+  - The MWAL algorithm of \citet{syed2008game}, followed by LPAL&Co \citep{syed2008game}
+  - The PM algorithm of \citet{neu2007apprenticeship}
+  - The MMP algorithm of \citet{ratliff2006maximum}
+  - The ME method of \citet{ziebart2008maximum}
         
   Most of these approaches (namely \citep{abbeel2004apprenticeship}, MWAL, PM, MMP and ME) have been summed up in \citep{neu2009training}.
+  
+  
+  Other non $\mu$ based approaches exist. Namely \citep{ramachandran2007bayesian}.
+
+
+  Finally, parallel, non IRL work may be of interest, for example \citep{chajewska2001learning}.
 
 ** $\mu$ based approaches
    
+   The feature expectation $\mu$ took its name in \citet{abbeel2004apprenticeship}'s paper, but a similar notion under a different name is presented in section 5 of \citet{ng2000algorithms}'s work.
 
-   FIXME:Who introduced this approach ?
-   When one uses an approach based on an approximation of the reward :
+
+   There are more than one way to compute $\mu$, the original approach of \citet{abbeel2004apprenticeship} uses a monte carlo estimation :
    \begin{equation}
-   \hat R(s) = \theta^T \psi(s)
-   \end{equation}
-   The next logical step is to introduce $\mu$.
-   \begin{equation}
-   \mu(s) = FIXME:Copier la def depuis mes slides
-   \end{equation}
-   
-   There are more than one way to compute $\mu$, the original approach of citet{abbeel2004apprenticeship} uses a monte carlo estimation :
-   \begin{equation}
-   \hat \mu_\pi = \sum_{\xi_j\in D_\pi} \sum_{s_i\in T_i\in \xi_j} \gamma^i\phi(s_i)
+   \hat \mu^\pi = \sum_{\xi_j\in D_\pi} \sum_{s_i\in T_i\in \xi_j} \gamma^i\phi(s_i)
    \end{equation}
    
    A wonderful, amazing idea was to use a LSTD style estimation, as proposed in \citep{klein2011batch} :
    \begin{eqnarray}
-   \hat \mu_\pi(s) = E\left[\left.\omega^T \psi(s_0)\right|s_0 \in D_0\right]\\
-   \omega = LSTD_\psi( D^\phi_\pi )
+   \hat \mu^\pi(s) = E\left[\left.\omega^T \psi(s_0)\right|s_0 \in \delta_0\right]\\
+   \omega = LSTD_\psi( D^\phi )
    \end{eqnarray}
-   where $D_0$ is the distribution of the initial state.
+   where $\delta_0$ is the distribution of the initial state and $D^\phi$ a dataset where the reward is in fact the vectorial feature $\phi$, used in the linear approximation of the value function.
 
-   \cite{neu2009training} sums up most of the $\mu$ based approaches.
+
+   \citep{neu2009training} sums up most of the $\mu$ based approaches.
    
    They introduce an imitation metric, noted $J : \mathbb{R}^n\times \mathbf{D} \rightarrow \mathbb{R}, (\theta, D_E) \mapsto J(\theta, D_E)$, which grades the similarity between the trajectories of the expert (as demonstrated in the dataset $D_E$) and the trajectories of the agent that optimizes the reward defined by $\theta$.
 
-   The goal of all these algorithms is to find a weight vector $\theta^*$ so that for some $D_E$ :
+   The goal of all these algorithms is to find a weight vector $\theta^*$ so that for a given $D_E$ :
    \begin{equation}
    \theta^* = \arg\min_\theta J(\theta,D_E)
    \end{equation}
@@ -156,45 +210,50 @@
    \theta_{k+1} = g(g^{-1}(\theta_k) + \alpha_k\Delta_k)
    \end{equation}
 
+
+
+   Although the update procedure may not be the most important thing in a given paper, they are given here when possible. The discussion will take place over the choice of the dissimilarity function $J$.
+
+
 *** Abbeel & Ng's algorithm
     
     The dissimilarity function is :
     \begin{equation}
-    J(\theta, D_E) = ||\hat \mu_{D_E} - \hat \mu_\theta||_2
+    J(\theta, D_E) = ||\hat \mu^{D_E} - \hat \mu^\theta||_2
     \end{equation}
 
     This means that the algorithm seeks a policy that has the same history as the expert's.\\
 
     The update step uses $g : x\mapsto x$ and $\forall k, \alpha_k=1$, and the following update vector : 
     \begin{eqnarray}
-    \Delta_k = \beta_k(\hat\mu_E(s_0) - \hat\mu_{\theta_k}) - \beta_k\theta_k\\
-    \textrm{with: } \beta_k = {(\hat\mu_{\theta_k}-\bar\mu_{k-1})^T(\hat\mu_E-\bar\mu_{k-1})\over(\hat\mu_{\theta_k}-\bar\mu_{k-1})^T(\hat\mu_{\theta_k}-\bar\mu_{k-1})}\\
-    \textrm{and: } \bar\mu_k = \bar\mu_{k-1} + \beta_k(\hat\mu_{\theta_k}-\bar\mu_{k-1})
+    \Delta_k = \beta_k(\hat\mu^E(s_0) - \hat\mu^{\theta_k}) - \beta_k\theta_k\\
+    \textrm{with: } \beta_k = {(\hat\mu^{\theta_k}-\bar\mu_{k-1})^T(\hat\mu^E-\bar\mu_{k-1})\over(\hat\mu^{\theta_k}-\bar\mu_{k-1})^T(\hat\mu^{\theta_k}-\bar\mu_{k-1})}\\
+    \textrm{and: } \bar\mu_k = \bar\mu_{k-1} + \beta_k(\hat\mu^{\theta_k}-\bar\mu_{k-1})
     \end{eqnarray}
 
-    With the initialization : $\bar\mu_0 = \mu_0$ and $\theta_1 = \hat\mu_{D_E} - \mu_0$
+    With the initialization : $\bar\mu^0 = \mu^0$ and $\theta_1 = \hat\mu^{D_E} - \mu^0$
 
 *** MWAL
     
     The dissimilarity function is : 
     \begin{equation}
-    J(\theta, D_E ) = \theta^T(\hat \mu_\theta - \hat \mu_{D_E})
+    J(\theta, D_E ) = \theta^T(\hat \mu^\theta - \hat \mu^{D_E})
     \end{equation}
 
     The update step uses $g : x\mapsto e^x$ and the update vector :
     \begin{equation}
-    \Delta_k = \hat \mu_{D_E} - \hat \mu_\theta
+    \Delta_k = \hat \mu^{D_E} - \hat \mu^\theta
     \end{equation}
 
     In the original paper the update step is said to be, for every component $i \in \{1,\dots,n_\phi\}$ of $\theta_k$: 
     \begin{eqnarray}
-    \theta_{k+1}^i &=&  \theta_k^i exp\left(ln\left(\left(1+\sqrt{2ln(n_\phi)\over k}\right)^{-1}\right){((1-\gamma)(\hat \mu_\theta -  \hat \mu_{D_E})+2)\over 4}\right)\\
-    \theta_{k+1}^i &=&  \theta_k^i exp\left(-ln\left(1+\sqrt{2ln(n_\phi)\over k}\right){((1-\gamma)(\hat \mu_\theta -  \hat \mu_{D_E})+2)\over 4}\right)\\
-    \theta_{k+1}^i &=&  \theta_k^i exp\left(ln\left(1+\sqrt{2ln(n_\phi)\over k}\right){((1-\gamma)(\hat \mu_{D_E} - \hat \mu_\theta)+2)\over 4}\right)\\
-    \theta_{k+1}^i &=&  \theta_k^i exp\left(ln\left(1+\sqrt{2ln(n_\phi)\over k}\right){1-\gamma\over 4}(\hat \mu_{D_E} - \hat \mu_\theta)+{2\over 4}\right)\\
+    \theta_{k+1}^i &=&  \theta_k^i exp\left(ln\left(\left(1+\sqrt{2ln(n_\phi)\over k}\right)^{-1}\right){((1-\gamma)(\hat \mu^\theta -  \hat \mu^{D_E})+2)\over 4}\right)\\
+    \theta_{k+1}^i &=&  \theta_k^i exp\left(-ln\left(1+\sqrt{2ln(n_\phi)\over k}\right){((1-\gamma)(\hat \mu^\theta -  \hat \mu^{D_E})+2)\over 4}\right)\\
+    \theta_{k+1}^i &=&  \theta_k^i exp\left(ln\left(1+\sqrt{2ln(n_\phi)\over k}\right){((1-\gamma)(\hat \mu^{D_E} - \hat \mu^\theta)+2)\over 4}\right)\\
+    \theta_{k+1}^i &=&  \theta_k^i exp\left(ln\left(1+\sqrt{2ln(n_\phi)\over k}\right){1-\gamma\over 4}(\hat \mu^{D_E} - \hat \mu^\theta)+{2\over 4}\right)\\
     \end{eqnarray}
    
-    Small detail : the update step described in \cite{syed2008game} includes a computation  of the form :
+    Small detail : the update step described in \citep{syed2008game} includes a computation  of the form :
     \begin{equation}
     \theta_k^i = {W^i\over \sum\limits_i^{n_\phi}W^i}
     \end{equation}
@@ -203,52 +262,58 @@
     Whereas in the other paper, it is said to be :
     \begin{eqnarray}
     \theta_{k+1} &=& g(g^{-1}(\theta_k) + \alpha_k\Delta_k)\\
-    \theta_{k+1} &=& exp(ln(\theta_k) + \alpha_k(\hat \mu_{D_E} - \hat \mu_\theta))
+    \theta_{k+1} &=& exp(ln(\theta_k) + \alpha_k(\hat \mu^{D_E} - \hat \mu^\theta))
     \end{eqnarray}
 
     The step-size parameter $\alpha_k$ is therefore : 
     \begin{equation}
-    \alpha_k = ln\left(1+\sqrt{2ln(n_\phi)\over k}\right){1-\gamma\over 4} + {1\over 2(\hat \mu_{D_E} - \hat \mu_\theta)}
+    \alpha_k = ln\left(1+\sqrt{2ln(n_\phi)\over k}\right){1-\gamma\over 4} + {1\over 2(\hat \mu^{D_E} - \hat \mu^\theta)}
     \end{equation}
     
-    This strange expression, as outlined in \cite{neu2009training}, is useful to derive theoretical bounds, but is empirically not the wisest choice. Other proposed values include :
+    This strange expression, as outlined in \citep{neu2009training}, is useful to derive theoretical bounds, but is empirically not the wisest choice. Other proposed values include :
     \begin{eqnarray}
     \alpha_k &=& {1\over k}\\
     \alpha_k &=& \alpha \in \mathbb{R}\\
     \alpha_k &=& {1\over \sqrt{k}}\\
     \end{eqnarray}
-    or following the iRprop rule (\cite{igel2000improving}) I didn't read about (yet).
+    or following the iRprop rule \citep{igel2000improving} I didn't read about (yet).
 
 *** MMP
-    The max-margin planning algorithm has been introduced in \cite{ratliff2006maximum}. A few things should be noted about this algorithm : 
+    The max-margin planning algorithm has been introduced in \citep{ratliff2006maximum}. A few things should be noted about this algorithm : 
     - The authors work with state-action visitation frequencies, which can be seen as state-action feature expectation with $\gamma = 1$.
     - Because of this, estimating the feature expectation can not be done off-policy using the LSTD-$Q$ trick.
-    - This method maintains two policies, the first (noted $\pi$) is the same as in the other algorithms (i.e., the optimal policy with respect to the reward defined by $\theta$). The second (noted $\pi'$) is the optimal policy with respect to the reward defined by $\theta - c\cdot \mu_{D_E}$, with $c$ being a constant parameter of the algoithm.
-    - Feature expectations for both maintained policies $\pi$ and $\pi'$ ought to be computed, noted respectively $\hat\mu_\theta$ and $\hat\mu_{\theta l}$
+    - This method maintains two policies, the first (noted $\pi$) is the same as in the other algorithms (i.e., the optimal policy with respect to the reward defined by $\theta$). The second (noted $\pi'$) is the optimal policy with respect to the reward defined by $\theta - c\cdot \mu^{D_E}$, with $c$ being a constant parameter of the algorithm.
+    - Feature expectations for both maintained policies $\pi$ and $\pi'$ ought to be computed, noted respectively $\hat\mu^\theta$ and $\hat\mu^{\theta l}$
 
      
     The dissimilarity function is : 
     \begin{equation}
-    J(\theta, D_E) = (\theta - c\mu_{D_E})^T \mu_{\theta l} - \theta^T\mu_{D_E} + {\lambda \over 2} ||\theta||_2^2
+    J(\theta, D_E) = (\theta - c\hat \mu^{D_E})^T \mu^{\theta l} - \theta^T\mu^{D_E} + {\lambda \over 2} ||\theta||_2^2
     \end{equation}
 
     
     The update step uses $g : x\mapsto x$ and the update vector :
     \begin{equation}
-    \Delta_k = \hat \mu_{D_E} - \hat \mu_{\theta l } - \lambda \theta_k
+    \Delta_k = \hat \mu^{D_E} - \hat \mu^{\theta l } - \lambda \theta_k
     \end{equation}
 
 
-    I did not cross check this with the original paper as I did with the previous algorithms because the authors' writing is somewhat confusing.
+    I did not cross check this with the original paper as I did with the previous algorithms because the original authors' writing is somewhat confusing.
 *** PM
-    The Policy Matching algorithm was described by the same authors as the survey. Therefore I assumed there were faithful and I did not cross check their work either.
+    The Policy Matching algorithm was described by the same authors as the survey. Therefore I assumed there were faithful and I did not cross check their transcription either.
 
     This work deals with stochastic policies. I modified it for the deterministic case because I don't (yet) see the point of stochastic policies in my framework. This has some implications : in the original work $\pi(.|s)$ can be defined arbitrarily when unknown ; the dissimilarity function no longer contains a squared term that was probably useful for the proof.
 
 
-    The dissimilarity function (abusing the $D$ notation) is : 
+    They work with a discrete state space. What they denote by $\mu$ is the frequency of visitation of a state. Assuming discrete feature $\phi$, their definition of $\mu(s)$ maps to (using our notations and setting $\gamma$ to $1$) :
     \begin{equation}
-    J(\theta, D_E) = {1\over 2}\sum_{s \in D} \hat\mu_{D_E}(s) \mathbb{I}( \pi(s), \pi_E(s) )
+    E(\phi(s)^T\mu(s_0)|s_0\sim \delta_0)
+    \end{equation}
+    where $\delta_0$ is the distribution of the starting state. We will use this correspondance to generalize to continuous state spaces.
+
+    The dissimilarity function is (where $s\in D$ formally means $s\in\{s\in T | T\in \xi | \xi \in D\}$ ) : 
+    \begin{equation}
+    J(\theta, D_E) = {1\over 2}\sum_{s \in D} E(\phi(s)^T\hat\mu^{D_E}(s_0)|s_0\sim \delta_0) \mathbb{I}( \pi(s), \pi_E(s) )
     \end{equation}
     
     
@@ -259,23 +324,26 @@
     
     The $J$ function is : 
     \begin{equation}
-    J(\theta, D_E) = - \theta^T\hat\mu_{D_E} + log(\sum_{\xi\in\Xi} e^{(\theta^T \hat\mu_\xi)})
+    J(\theta, D_E) = - \theta^T\hat\mu^{D_E} + log(\sum_{\xi\in\Xi} e^{(\theta^T \hat\mu^\xi)})
     \end{equation}
-    with $\Xi$ being the set of all possible trajectories. Computation involving this set may be tricky, so the survey discusses some tricks about doing this in real life. $\hat\mu_\xi$ is defined as $\sum\limits_{s\in \xi} \phi(s)$
+    with $\Xi$ being the set of all possible trajectories. Computation involving this set may be tricky, so the survey discusses some tricks about doing this in real life. $\hat\mu^\xi$ is defined as $\sum\limits_{s\in \xi} \phi(s)$
     
     The update is presumably additive ($g : x\mapsto x$) and use the following step :
     \begin{equation}
-    \Delta_k = \hat\mu_E - \sum_{\xi \in \Xi}\left(e^{(\theta^T \hat\mu_\xi)} \over\sum\limits_{\xi'\in\Xi} e^{(\theta^T \hat\mu_{\xi'})}\right)\hat\mu_\xi
+    \Delta_k = \hat\mu^E - \sum_{\xi \in \Xi}\left(e^{(\theta^T \hat\mu^\xi)} \over\sum\limits_{\xi'\in\Xi} e^{(\theta^T \hat\mu^{\xi'})}\right)\hat\mu^\xi
     \end{equation}
     
 ** Other approaches
 
-   \cite{ramachandran2007bayesian} is a bayesian approach. Although I didn't chek it exactly, it seems to share a lot with \cite{chajewska2001learning}. 
+   \citep{ramachandran2007bayesian} is a bayesian approach. The dissimilarity they try to minimize is :
+   \begin{equation}
+   J(\theta,D_E) = E\left(\left.||R-R_\theta||_x\right|D_E\right)
+   \end{equation}
+   with $x=1$ or $x=2$ (they give solution fir both settings).
 * Non IRL approaches to Task Transfer, Apprenticeship Learning and Learning from Demonstration
 
 * Things to do :
-** TODO Reread ng2000algorithms and russel1998learning to know when the idea of $\mu$ was first introduced
-** TODO Make a dependency graph on the notions and explain them in the right order
+** TODO Reread \citep{chajewska2001learning} to see the difference with \citep{ramachandran2007bayesian}
 * Open questions
   - Can the LPAL, MWAL-PI, MWAL-VI and MWAL-Dual algorithms of \cite{syed2008apprenticeship} be expressed in the framework of \cite{neu2009training} ?
   - How does \cite{ratliff2007boosting} relates to \cite{neu2009training} ?
