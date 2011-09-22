@@ -121,6 +121,11 @@
    \label{P.def}
    The function $P : S\times A \times S \rightarrow [0;1],~ s,a,s' \mapsto P(s'|s,a)$ represents the system dynamics : is gives the probability of transitionning to state $s'$ when taking action $a$ in state $s$.
    #+end_definition
+   
+   #+begin_definition
+   \label{Pmat.def}
+   The system dynamics and the $P$ function can also be represented as a set of $|A|$ matrices (in the discrete, finite case) where element $i\times j$ of the matrix $\mathcal{P}_a$ is (assuming a numbering of the states) $P(s_j|s_i,a)$. A policy $\pi$ can be defined by a $\mathcal{P}_\pi$ matrix the $i$-th line of which is the $i$-th line of the $\mathcal{P}_{\pi(s_i)}$ matrix.
+   #+end_definition
 ** Value function
    The definition of the value function I use is the widespread one using the sum of the discounted rewards :
    
@@ -214,7 +219,11 @@
 
    Although the update procedure may not be the most important thing in a given paper, they are given here when possible. The discussion will take place over the choice of the dissimilarity function $J$.
 
-
+*** Ng & Russel's approach
+    The paper \citep{ng2000algorithms} defines two loss functions. The first works in the discrete case. A compact definition of this loss function can be obtained by working with two policies. The first is $\pi_E$, the policy of the expert. The second is $\pi$, the \emph{next-to-best} policy the definition of which is $\pi(s) = \arg\min\limits_{a\in A\setminus\pi_E(s)}Q(s,\pi_E(s))-Q(s,a)$. The loss function can now be expressed as :
+    \begin{equation}
+    J(\theta,\pi_E) = -||(\mathcal{P}_{\pi_E} - \mathcal{P}_\pi)(I-\gamma \mathcal{P}_{\pi_E})^{-1}\theta||_1 + \lambda ||\theta||_1
+    \end{equation}
 *** Abbeel & Ng's algorithm
     
     The dissimilarity function is :
