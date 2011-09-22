@@ -339,9 +339,10 @@
    \begin{equation}
    J(\theta,D_E) = E\left(\left.||R-R_\theta||_x\right|D_E\right)
    \end{equation}
-   with $x=1$ or $x=2$ (they give solution fir both settings).
-* Non IRL approaches to Task Transfer, Apprenticeship Learning and Learning from Demonstration
+   with $x=1$ or $x=2$ (they give solution for both settings).
 
+   \citet{chajewska2001learning}'s work acknowledge \citet{ng2000algorithms} work and uses it for comparison purpose. However, the approach they suggest leads (if I read correctly) to the same $J$ function and the same algorithm as in \citep{ramachandran2007bayesian}, only 6 years earlier. I don't know why this paper has not been acknowledged by the IRL community. Maybe the framing of the problem as a decision tree (and not an MDP) and the use of unusual keywords were enough for it to stay unnoticed.
+   
 * Things to do :
 ** TODO Reread \citep{chajewska2001learning} to see the difference with \citep{ramachandran2007bayesian}
 * Open questions
