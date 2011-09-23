@@ -311,6 +311,9 @@
 
 
     I did not cross check this with the original paper as I did with the previous algorithms because the original authors' writing is somewhat confusing.
+
+
+    The follow-up paper, \citep{ratliff2007boosting} does not change the $J$ function. The improvment made by this paper (boosting in new features) can however be ported to other settings.
 *** PM
     The Policy Matching algorithm was described by the same authors as the survey. Therefore I assumed there were faithful and I did not cross check their transcription either.
 
