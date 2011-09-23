@@ -348,6 +348,10 @@
     \Delta_k = \hat\mu^E - \sum_{\xi \in \Xi}\left(e^{(\theta^T \hat\mu^\xi)} \over\sum\limits_{\xi'\in\Xi} e^{(\theta^T \hat\mu^{\xi'})}\right)\hat\mu^\xi
     \end{equation}
     
+*** GPIRL
+    \citet{jin2010gaussian} propose an approach based on gaussian processes. This solves the IRL algorithm in continuous settings. An interesting feature of this algorithm is the fact that it keeps track of the uncertainty.
+
+    Philisophically, the authors claim to use a max margin between the expert and the best policy optimization, although practically their algorithm is a port of \citep{abbeel2004apprenticeship}. The $J$ function is the same.
 ** Other approaches
 
    \citep{ramachandran2007bayesian} is a bayesian approach. The dissimilarity they try to minimize is :
