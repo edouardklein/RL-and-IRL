@@ -163,6 +163,16 @@
   $M = \{S,A,P,\gamma,R\}$ is a Markov Decision Process (MDP).
 #+end_definition
 
+* RL
+  \citep{doshi2008reinforcement} traite du risque dans les POMDP et présente une méthode sûre se basant sur un expert auquel l'agent peut faire appel en cas d'incertitude.
+** /Model free/ RL
+*** LSTD/LSPI
+
+   LSPI est un algo de RL basé sur l'approximation de la fonction de valeur par LSTD. Tout cela est expliqué dans \citep{lagoudakis2003least}. Une analyse en échantillons finis de LSPI est fournie par \citep{lazaric2010finiteLSPI}, celle en échantillons finis de LSTD peut-être trouvée dans \citep{lazaric2010finiteLSTD}.
+*** LAPI
+    En changeant le cout quadratique de LSPI par un coût en valeur absolue, \citet{sugiyama2010least} dérive l'algorithme LAPI qui est plus robustes aux samples isolés, qui représentent des évènemnts de faible probabilité mais de grande récompense (robot qui casse, par exemple).
+** Applications
+   Le papier \citep{paek2006reinforcement} dresse la liste des avantages et inconvénients du RL appliqué aux systèmes de gestion de dialogues.
 * IRL
 ** Overview
   The problem has been suggested in \citep{russell1998learning} and properly defined in \citep{ng2000algorithms}. An eminent seminal work is \citep{abbeel2004apprenticeship}, which introduce the feature expectation $\mu$ under its canonical name.
@@ -224,6 +234,10 @@
     \begin{equation}
     J(\theta,\pi_E) = -||(\mathcal{P}_{\pi_E} - \mathcal{P}_\pi)(I-\gamma \mathcal{P}_{\pi_E})^{-1}\theta||_1 + \lambda ||\theta||_1
     \end{equation}
+
+    
+
+    Une thèse de master, \citep{shiraev2003inverse}, applique cet algorithme à la découverte d'algorithme de routage dans les réseaux.
 *** Abbeel & Ng's algorithm
     
     The dissimilarity function is :
@@ -316,6 +330,8 @@
     The follow-up paper, \citep{ratliff2007boosting} does not change the $J$ function. The improvment made by this paper (boosting in new features) can however be ported to other settings.
 
     An applicative paper, \citep{ratliff2007imitation} presents the same algorithm (cast as a multi class label problem) with some impressive real life robotics applications.
+
+    Un papier de \citet{boularias2011bootstrapping} donne une méthode de bootstraping de MWAL et LPAL, à utiliser quand l'espace d'état est grand et que la politique de l'expert n'en couvre qu'une partie.
 *** PM
     The Policy Matching algorithm was described by the same authors as the survey. Therefore I assumed there were faithful and I did not cross check their transcription either.
 
@@ -364,6 +380,12 @@
 
    \citet{chajewska2001learning}'s work acknowledge \citet{ng2000algorithms} work and uses it for comparison purpose. However, the approach they suggest leads (if I read correctly) to the same $J$ function and the same algorithm as in \citep{ramachandran2007bayesian}, only 6 years earlier. I don't know why this paper has not been acknowledged by the IRL community. Maybe the framing of the problem as a decision tree (and not an MDP) and the use of unusual keywords were enough for it to stay unnoticed.
    
+* Learning from Observation
+  Une tentative d'unification est présentée en \cite{montana2011towards}. Autant le survey est utile, autant je reste circonspect tant aux maths du papier, qui laissent un peu l'IRL à l'écart en ne tenant pas compte du fait que les états respectent le critère de Markov. A revérifier.
+* Feature Selection
+  \citep{saxe2010random} montre que lorsque l'on utilise des /convolutional pooling architectures/, le poids importe moins que l'architecture, et propose en conséquence de déterminer la meilleure architecture en se basant sur ses performances à poids aléatoires.
+
+  L'architecture à base de dictionnaire et d'encodeur a été analysée par \citet{coates2011importance}.
 * Things to do :
 ** TODO Reread \citep{chajewska2001learning} to see the difference with \citep{ramachandran2007bayesian}
 * Open questions
