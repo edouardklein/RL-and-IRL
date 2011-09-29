@@ -105,6 +105,11 @@
   #+end_definition
 
 ** Features   
+* RL
+** LSTD($\lambda$)
+   LSTD($\lambda$) est une méthode dérivée de LSTD, proposée dans \citep{boyan2002technical}, dont l'analyse a été fournie par \citep{nedic2003least}.
+** $\lambda$ LSPE
+   Un algo d'itération de la politique, présenté et analysé dans l'article \citep{nedic2003least}.
 * IRL
 ** Overview
   The problem has been suggested in \cite{russell1998learning} and properly defined in \cite{ng2000algorithms}. An eminent seminal work is \cite{abbeel2004apprenticeship}, which introduce the feature expectation $\mu$ under its canonical name.\\
