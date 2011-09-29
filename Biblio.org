@@ -390,6 +390,9 @@
   \citep{saxe2010random} montre que lorsque l'on utilise des /convolutional pooling architectures/, le poids importe moins que l'architecture, et propose en conséquence de déterminer la meilleure architecture en se basant sur ses performances à poids aléatoires.
 
   L'architecture à base de dictionnaire et d'encodeur a été analysée par \citet{coates2011importance}.
+* Transfer Learning
+** TL and RL
+   \citet{lazaric2008knowledge} a travaillé sur le /transfer learning/ appliqué au RL. \citep{fachantidis2011transfer} reprend ces travaux afin qu'ils utilisent plusieurs /mappings/ et non un seul, ce qui donne de meilleurs résultats, l'algorithme résultant est appelé COMBREL, il fonctionne aussi bien en présence qu'en l'absence de modèle.
 * Things to do :
 ** TODO Reread \citep{chajewska2001learning} to see the difference with \citep{ramachandran2007bayesian}
 * Open questions
