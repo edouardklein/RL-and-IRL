@@ -173,6 +173,10 @@
     En changeant le cout quadratique de LSPI par un coût en valeur absolue, \citet{sugiyama2010least} dérive l'algorithme LAPI qui est plus robustes aux samples isolés, qui représentent des évènemnts de faible probabilité mais de grande récompense (robot qui casse, par exemple).
 ** Applications
    Le papier \citep{paek2006reinforcement} dresse la liste des avantages et inconvénients du RL appliqué aux systèmes de gestion de dialogues.
+** LSTD($\lambda$)
+   LSTD($\lambda$) est une méthode dérivée de LSTD, proposée dans \citep{boyan2002technical}, dont l'analyse a été fournie par \citep{nedic2003least}.
+** $\lambda$ LSPE
+   Un algo d'itération de la politique, présenté et analysé dans l'article \citep{nedic2003least}.
 * IRL
 ** Overview
   The problem has been suggested in \citep{russell1998learning} and properly defined in \citep{ng2000algorithms}. An eminent seminal work is \citep{abbeel2004apprenticeship}, which introduce the feature expectation $\mu$ under its canonical name.
