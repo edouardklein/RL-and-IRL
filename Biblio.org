@@ -398,6 +398,10 @@
   \citep{saxe2010random} montre que lorsque l'on utilise des /convolutional pooling architectures/, le poids importe moins que l'architecture, et propose en conséquence de déterminer la meilleure architecture en se basant sur ses performances à poids aléatoires.
 
   L'architecture à base de dictionnaire et d'encodeur a été analysée par \citet{coates2011importance}.
+* Feature Learning
+  SOM of \citet{kohonen1995self} are a good start. They have been refined giving birth to the THSOM algorithm \citep{koutnik2007inductive,koutnik2008temporal} and T$^2$SOM algorithm \citep{ferro2010reading}.
+
+  La méthode TNT \citep{graziano2011unsupervised} présente encore une amélioration des SOM, qui permet de s'interfacer entre l'espace d'état-action et un algo de RL en proposant une modélisation d'un POMDP.
 * Transfer Learning
 ** TL and RL
    \citet{lazaric2008knowledge} a travaillé sur le /transfer learning/ appliqué au RL. \citep{fachantidis2011transfer} reprend ces travaux afin qu'ils utilisent plusieurs /mappings/ et non un seul, ce qui donne de meilleurs résultats, l'algorithme résultant est appelé COMBREL, il fonctionne aussi bien en présence qu'en l'absence de modèle.
