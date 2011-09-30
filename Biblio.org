@@ -388,6 +388,9 @@
   Une tentative d'unification est présentée en \cite{montana2011towards}. Autant le survey est utile, autant je reste circonspect tant aux maths du papier, qui laissent un peu l'IRL à l'écart en ne tenant pas compte du fait que les états respectent le critère de Markov. A revérifier.
 
   Un papier applicatif assez sympa, \citep{leon2011teaching}, fait un survey du domaine et combine ces méthodes avec celles consistant à intégrer du feedback humain dans du RL pour réussir une expérience de déplacement d'objet par un bras robotisé en utilisant du matériel grand public (un kinect).
+
+
+  Plus impressionnant, le vol acrobatique d'un hélicoptère télécommandé dans \citep{coates2008learning} fait appel à quelques bidouilles d'ingénierie propres au problème bien que le principe soit au fond rigoureux et transposable à d'autres applications.
 * Feature Selection
   \citep{saxe2010random} montre que lorsque l'on utilise des /convolutional pooling architectures/, le poids importe moins que l'architecture, et propose en conséquence de déterminer la meilleure architecture en se basant sur ses performances à poids aléatoires.
 
