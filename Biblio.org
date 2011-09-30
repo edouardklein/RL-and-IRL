@@ -391,6 +391,9 @@
 
 
   Plus impressionnant, le vol acrobatique d'un hélicoptère télécommandé dans \citep{coates2008learning} fait appel à quelques bidouilles d'ingénierie propres au problème bien que le principe soit au fond rigoureux et transposable à d'autres applications.
+
+
+  Une amélioration de l'algorithme Donut de \citep{grollman2011donut} est comparé à l'algorithme POWER de \cite{kober2008policy} dans \cite{grollman2011imitation}. Le but est d'apprendre non pas à partir de démonstrations réussies, mais de démonstrations où l'expert s'est trompé.
 * Feature Selection
   \citep{saxe2010random} montre que lorsque l'on utilise des /convolutional pooling architectures/, le poids importe moins que l'architecture, et propose en conséquence de déterminer la meilleure architecture en se basant sur ses performances à poids aléatoires.
 
