@@ -177,6 +177,12 @@
    LSTD($\lambda$) est une méthode dérivée de LSTD, proposée dans \citep{boyan2002technical}, dont l'analyse a été fournie par \citep{nedic2003least}.
 ** $\lambda$ LSPE
    Un algo d'itération de la politique, présenté et analysé dans l'article \citep{nedic2003least}.
+** CARLA
+   Dans le cas d'action continues l'agorithme CARLA, introduit en \citep{howell1997continuous} sur la base des travaux de \citet{santharam1994continuous} puis amélioré par \cite{rodriguez2011continuous,rodriguez2011improving}, peut être utile. 
+
+
+
+   Cette dernière amélioration est basée sur une modification de la fonction de récompense dans le but d'améliorer l'exploration.
 * IRL
 ** Overview
   The problem has been suggested in \citep{russell1998learning} and properly defined in \citep{ng2000algorithms}. An eminent seminal work is \citep{abbeel2004apprenticeship}, which introduce the feature expectation $\mu$ under its canonical name.
