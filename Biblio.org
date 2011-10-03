@@ -409,6 +409,10 @@
   \citep{saxe2010random} montre que lorsque l'on utilise des /convolutional pooling architectures/, le poids importe moins que l'architecture, et propose en conséquence de déterminer la meilleure architecture en se basant sur ses performances à poids aléatoires.
 
   L'architecture à base de dictionnaire et d'encodeur a été analysée par \citet{coates2011importance}.
+
+  
+
+  L'algorithme JELSR, proposé en \citep{hou2011feature}, joint dans une même méthode l'/embedding learning/ et la /sparse regression/ afin de faire de la sélection de feature non supervisée.
 * Feature Learning
   SOM of \citet{kohonen1995self} are a good start. They have been refined giving birth to the THSOM algorithm \citep{koutnik2007inductive,koutnik2008temporal} and T$^2$SOM algorithm \citep{ferro2010reading}.
 
