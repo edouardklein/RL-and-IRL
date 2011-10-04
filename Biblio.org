@@ -314,9 +314,12 @@
 
     The follow-up paper \citep{syed2008apprenticeship} present a computationally more efficient method for the same optimization problem. Among the subtelties I hide here lies the problem of the suboptimal expert I am not interested in at the moment.
 
+
+    Un papier de \citet{boularias2011bootstrapping} donne une méthode de bootstraping de MWAL et LPAL, à utiliser quand l'espace d'état est grand et que la politique de l'expert n'en couvre qu'une partie.
+
 *** MMP
     The max-margin planning algorithm has been introduced in \citep{ratliff2006maximum}. A few things should be noted about this algorithm : 
-    - The authors work with state-action visitation frequencies, which can be seen as state-action feature expectation with $\gamma = 1$.
+    - The authors work with state-action visitation frequencies, which can be seen as state-action feature expectation with $\gamma = 1$. On peut aussi considérer un mdp où le gamma se trouve dans les probas de transitions.
     - Because of this, estimating the feature expectation can not be done off-policy using the LSTD-$Q$ trick.
     - This method maintains two policies, the first (noted $\pi$) is the same as in the other algorithms (i.e., the optimal policy with respect to the reward defined by $\theta$). The second (noted $\pi'$) is the optimal policy with respect to the reward defined by $\theta - c\cdot \mu^{D_E}$, with $c$ being a constant parameter of the algorithm.
     - Feature expectations for both maintained policies $\pi$ and $\pi'$ ought to be computed, noted respectively $\hat\mu^\theta$ and $\hat\mu^{\theta l}$
@@ -341,7 +344,10 @@
 
     An applicative paper, \citep{ratliff2007imitation} presents the same algorithm (cast as a multi class label problem) with some impressive real life robotics applications.
 
-    Un papier de \citet{boularias2011bootstrapping} donne une méthode de bootstraping de MWAL et LPAL, à utiliser quand l'espace d'état est grand et que la politique de l'expert n'en couvre qu'une partie.
+    Ratliff voit l'imitation comme un problème supervisé et se défent de faire de l'IRL, même si on peut voir les choses comme on le souhaite.
+
+    Dans la même veine, l'algorithme TBRIL citep{natarajan2011gradient} s'occupe des domaines relationels. Le but annoncé est d'apprendre une politique, mais pas forcément d'améliorer ensuite par rapport à la récompense induite, car c'est trop compliqué (exemple des échecs).
+
 *** PM
     The Policy Matching algorithm was described by the same authors as the survey. Therefore I assumed there were faithful and I did not cross check their transcription either.
 
