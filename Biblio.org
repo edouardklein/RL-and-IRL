@@ -420,6 +420,10 @@
 * Transfer Learning
 ** TL and RL
    \citet{lazaric2008knowledge} a travaillé sur le /transfer learning/ appliqué au RL. \citep{fachantidis2011transfer} reprend ces travaux afin qu'ils utilisent plusieurs /mappings/ et non un seul, ce qui donne de meilleurs résultats, l'algorithme résultant est appelé COMBREL, il fonctionne aussi bien en présence qu'en l'absence de modèle.
+
+   
+   
+   Dans le cas multi agent, l'algorithme BITER \citep{boutsioukis2011transfer} propose une solution basée sur un biais de la valeur initiale de l'algorithme d'apprentissage par renforcement.
 * Things to do :
 ** TODO Reread \citep{chajewska2001learning} to see the difference with \citep{ramachandran2007bayesian}
 * Open questions
