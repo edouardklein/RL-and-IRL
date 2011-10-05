@@ -183,6 +183,8 @@
 
 
    Cette dernière amélioration est basée sur une modification de la fonction de récompense dans le but d'améliorer l'exploration.
+** DetH*
+   DetH* est un algo proposé par \citep{barry2011deth}. Il s'agit de factoriser les MDPs avant de les résoudre approximativement. L'algo de clustering utilisé lors de la factorisation peut s'avérer intéressant pour faire de la réduction de dimension.
 * IRL
 ** Overview
   The problem has been suggested in \citep{russell1998learning} and properly defined in \citep{ng2000algorithms}. An eminent seminal work is \citep{abbeel2004apprenticeship}, which introduce the feature expectation $\mu$ under its canonical name.
