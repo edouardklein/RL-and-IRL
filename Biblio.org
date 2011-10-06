@@ -348,7 +348,7 @@
 
     Ratliff voit l'imitation comme un problème supervisé et se défent de faire de l'IRL, même si on peut voir les choses comme on le souhaite.
 
-    Dans la même veine, l'algorithme TBRIL citep{natarajan2011gradient} s'occupe des domaines relationels. Le but annoncé est d'apprendre une politique, mais pas forcément d'améliorer ensuite par rapport à la récompense induite, car c'est trop compliqué (exemple des échecs).
+    Dans la même veine, l'algorithme TBRIL citep{natarajan2011imitation} s'occupe des domaines relationels. Le but annoncé est d'apprendre une politique, mais pas forcément d'améliorer ensuite par rapport à la récompense induite, car c'est trop compliqué (exemple des échecs).
 
 *** PM
     The Policy Matching algorithm was described by the same authors as the survey. Therefore I assumed there were faithful and I did not cross check their transcription either.
