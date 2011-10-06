@@ -416,9 +416,10 @@
 * Feature Selection
   \citep{saxe2010random} montre que lorsque l'on utilise des /convolutional pooling architectures/, le poids importe moins que l'architecture, et propose en conséquence de déterminer la meilleure architecture en se basant sur ses performances à poids aléatoires.
 
+  Cette architecture est expliquée dans un papier applicatif (optimisation du code sur GPU) : \citep{ciresan2011high}
+
   L'architecture à base de dictionnaire et d'encodeur a été analysée par \citet{coates2011importance}.
 
-  
 
   L'algorithme JELSR, proposé en \citep{hou2011feature}, joint dans une même méthode l'/embedding learning/ et la /sparse regression/ afin de faire de la sélection de feature non supervisée.
 * Feature Learning
