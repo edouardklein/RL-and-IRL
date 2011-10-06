@@ -426,6 +426,10 @@
   SOM of \citet{kohonen1995self} are a good start. They have been refined giving birth to the THSOM algorithm \citep{koutnik2007inductive,koutnik2008temporal} and T$^2$SOM algorithm \citep{ferro2010reading}.
 
   La méthode TNT \citep{graziano2011unsupervised} présente encore une amélioration des SOM, qui permet de s'interfacer entre l'espace d'état-action et un algo de RL en proposant une modélisation d'un POMDP.
+
+  
+
+  Le domaine du /feature reinforcement learning/ essaye de s'attaquer au processus non markovien en les rendant markoviens. La première étape consiste à featurer l'espace d'état pour le rendre markovien, comme par exemple dans l'algorithme GC$\phi$A de \citet{nguyen2011feature}. Ils utilisent une structure d'arbre pour intégrer l'historique dans un méta état qui lui est markovien. C'est en revanche difficilement transposable directement à l'IRL dans la mesure où leur algorithme cherche à minimiser un coût qui est fonction de la récompense.
 * Transfer Learning
 ** TL and RL
    \citet{lazaric2008knowledge} a travaillé sur le /transfer learning/ appliqué au RL. \citep{fachantidis2011transfer} reprend ces travaux afin qu'ils utilisent plusieurs /mappings/ et non un seul, ce qui donne de meilleurs résultats, l'algorithme résultant est appelé COMBREL, il fonctionne aussi bien en présence qu'en l'absence de modèle.
