@@ -413,6 +413,10 @@
 
 
   Une amélioration de l'algorithme Donut de \citep{grollman2011donut} est comparé à l'algorithme POWER de \cite{kober2008policy} dans \cite{grollman2011imitation}. Le but est d'apprendre non pas à partir de démonstrations réussies, mais de démonstrations où l'expert s'est trompé.
+
+
+
+  Dans les grands espaces d'état, la hiérarchisation en sous tâches est proposée dans \citep{konidaris2011cst}, où les sous tâches sont ensuite réunies si possible dans un arbre, qui offre une représentation compacte du domaine. Les sous tâches sont construites à partir des données d'une démonstration d'expert.
 * Feature Selection
   \citep{saxe2010random} montre que lorsque l'on utilise des /convolutional pooling architectures/, le poids importe moins que l'architecture, et propose en conséquence de déterminer la meilleure architecture en se basant sur ses performances à poids aléatoires.
 
