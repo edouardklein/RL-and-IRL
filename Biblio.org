@@ -405,6 +405,10 @@
 
    
    Un autre algo Bayesien, G-MH a été publié dans \citep{rothkopf2008modular}. Cette approche généralise le travail de \citet{ramachandran2007bayesian}.
+
+
+
+   Le cadres des MDP à récompense incertaine (IRMDP) ressemble un peu à l'IRL. On cherche la politique otpimal sachant qu'on ne connaît pas vraiment la récompense. Une approche minimax (ils parlent aussi du maximin) robuste (à relier à \citep‘{syed2008game}) peut être trouvée dans \citep{regan2011robust}. 
 * Learning from Observation/Demonstration
   Une tentative d'unification est présentée en \cite{montana2011towards}. Autant le survey est utile, autant je reste circonspect tant aux maths du papier, qui laissent un peu l'IRL à l'écart en ne tenant pas compte du fait que les états respectent le critère de Markov. A revérifier.
 
