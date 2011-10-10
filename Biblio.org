@@ -442,7 +442,6 @@
    
    Dans le cas multi agent, l'algorithme BITER \citep{boutsioukis2011transfer} propose une solution basée sur un biais de la valeur initiale de l'algorithme d'apprentissage par renforcement.
 * Things to do :
-** TODO Reread \citep{chajewska2001learning} to see the difference with \citep{ramachandran2007bayesian}
 * Open questions
   - Can the LPAL, MWAL-PI, MWAL-VI and MWAL-Dual algorithms of \cite{syed2008apprenticeship} be expressed in the framework of \cite{neu2009training} ?
   - How does \cite{ratliff2007boosting} relates to \cite{neu2009training} ?
