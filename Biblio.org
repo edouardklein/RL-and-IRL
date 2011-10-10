@@ -443,6 +443,9 @@
    
    
    Dans le cas multi agent, l'algorithme BITER \citep{boutsioukis2011transfer} propose une solution basée sur un biais de la valeur initiale de l'algorithme d'apprentissage par renforcement.
+* Theoretical tools
+** Multi-kernel Gaussian Processes
+   Pas tout compris : \cite{melkumyan2009multi}
 * Things to do :
 ** TODO Reread \citep{chajewska2001learning} to see the difference with \citep{ramachandran2007bayesian}
 * Open questions
