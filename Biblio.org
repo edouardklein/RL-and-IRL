@@ -432,6 +432,10 @@
 
 
   L'algorithme JELSR, proposé en \citep{hou2011feature}, joint dans une même méthode l'/embedding learning/ et la /sparse regression/ afin de faire de la sélection de feature non supervisée.
+
+
+
+  La régularisation $l_1$ des paramètres trouvés par LSTD pour l'approximation de la fonction de valeur donne lieu à LARS-TD, présenté en \citep{kolter2009regularization}. Le vecteur de paramètre étant sparse, les paramètres non nuls choisissent les features intéressantes.
 * Feature Learning
   SOM of \citet{kohonen1995self} are a good start. They have been refined giving birth to the THSOM algorithm \citep{koutnik2007inductive,koutnik2008temporal} and T$^2$SOM algorithm \citep{ferro2010reading}.
 
