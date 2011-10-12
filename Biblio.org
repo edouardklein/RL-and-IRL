@@ -459,6 +459,8 @@
 
 
    Ce biais est équivaent à l'utilisation d'une fonction de shaping de la reward. Ce point, ainsi que l'importance de la sélection des features dans la représentation de la fonction de shaping est discuté dans \citep{snel2011multi}, qui ne présente malheureusement pas d'algorithmes utilisables pour résoudre les problèmes soulevés.
+* Classification
+  Un papier de \citet{weinberger2010convex} présente une amélioration des kNN et des gaussian mixture models basée sur l'apprentissage d'une nouvelle distance. Ca reste du supervisé.
 * Theoretical tools
 ** Multi-kernel Gaussian Processes
    Pas tout compris : \cite{melkumyan2009multi}
