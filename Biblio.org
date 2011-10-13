@@ -191,6 +191,8 @@
    In order to speed up learning, work has been done in order to give more information than just the reward.
 
    \citet{korupolu2011beyond} present a framework for learning from sporadic instructions from a human.
+** Policy search
+   Un algo de recherche par MCMC dans l'espace des politiques assez intéressant est décrit dans \citep{wingate2011bayesian}. On  peut introduire de l'information par les priors.
 * IRL
 ** Overview
   The problem has been suggested in \citep{russell1998learning} and properly defined in \citep{ng2000algorithms}. An eminent seminal work is \citep{abbeel2004apprenticeship}, which introduce the feature expectation $\mu$ under its canonical name.
