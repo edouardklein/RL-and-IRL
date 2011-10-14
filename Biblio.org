@@ -413,7 +413,7 @@
    
 
    
-   Un autre algo Bayesien, G-MH a été publié dans \citep{rothkopf2008modular}. Cette approche généralise le travail de \citet{ramachandran2007bayesian}.
+   Un autre algo Bayesien, G-MH a été publié dans \citep{rothkopf2008modular}. Cette approche généralise le travail de \citet{ramachandran2007bayesian}. Elle est poursuivie dans \citep{dimitrakakis2011bayesian}, où elle est étendue au cas à plusieurs experts (qui font différentes tâches, ou différemment la même tâche).
 
 
 
