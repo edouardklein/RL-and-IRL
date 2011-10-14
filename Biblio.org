@@ -391,6 +391,9 @@
     \begin{equation}
     \Delta_k = \hat\mu^E - \sum_{\xi \in \Xi}\left(e^{(\theta^T \hat\mu^\xi)} \over\sum\limits_{\xi'\in\Xi} e^{(\theta^T \hat\mu^{\xi'})}\right)\hat\mu^\xi
     \end{equation}
+
+
+    A follow up is \citep{boularias2011relative}, which use the relative entropy between state-action distributions of policies to lead a search without having to solve the MDP problem at each step. Ca reste de l'imitation et non du vrai IRL.
     
 *** GPIRL
     \citet{jin2010gaussian} propose an approach based on gaussian processes. This solves the IRL algorithm in continuous settings. An interesting feature of this algorithm is the fact that it keeps track of the uncertainty.
