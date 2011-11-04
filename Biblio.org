@@ -1,7 +1,13 @@
+#+OPTIONS: LaTeX:dvipng
+#+BIBLIOGRAPHY: ../Biblio/Biblio plainnat limit:t
+
 #+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage{amsthm}
 #+LaTeX_HEADER: \newtheorem{definition}{Definition}
 #+LaTeX_HEADER: \usepackage{natbib}
+#+TITLE:Avancement biblio
+
+[TABLE-OF-CONTENTS]
 
 * Notations
 ** Conventions
@@ -417,7 +423,7 @@
 
 
 
-   Le cadres des MDP à récompense incertaine (IRMDP) ressemble un peu à l'IRL. On cherche la politique otpimal sachant qu'on ne connaît pas vraiment la récompense. Une approche minimax (ils parlent aussi du maximin) robuste (à relier à \citep‘{syed2008game}) peut être trouvée dans \citep{regan2011robust}. 
+   Le cadres des MDP à récompense incertaine (IRMDP) ressemble un peu à l'IRL. On cherche la politique otpimal sachant qu'on ne connaît pas vraiment la récompense. Une approche minimax (ils parlent aussi du maximin) robuste (à relier à \citep{syed2008game}) peut être trouvée dans \citep{regan2011robust}. 
 * Learning from Observation/Demonstration
   Une tentative d'unification est présentée en \cite{montana2011towards}. Autant le survey est utile, autant je reste circonspect tant aux maths du papier, qui laissent un peu l'IRL à l'écart en ne tenant pas compte du fait que les états respectent le critère de Markov. A revérifier.
 
@@ -476,5 +482,4 @@
   - Is it possibl to plug Thm1 (lambda alpha) in \cite{ramachandran2007bayesian}
   - Can \cite{ramachandran2007bayesian} be expressend in the framework of \cite{syed2008apprenticeship} ?
   - What is the exact relationship between \cite{chajewska2001learning} and \cite{ramachandran2007bayesian} ?
-   \bibliographystyle{plainnat}
-   \bibliography{../Biblio/Biblio.bib}
+
