@@ -1271,8 +1271,8 @@ TT_test0: TaskTransfer.py
 #+srcname: TT_cleanTest0_make
 #+begin_src makefile
 TT_cleanTest0:
-	rm test/TT_outT01.mat
-	rm test/TT_outT02.mat
+	find . -maxdepth 1 -iname "test/TT_outT01.mat"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "test/TT_outT02.mat" | xargs -tr rm
 #+end_src
 *** Task Transfer on a 2x2 Gridworld
     In this simple setting we imagine a 2x2 gridworld and two experts. Both experts optimize the same reward, located in the north east corner. Both experts can choose between the same actions at each step : the four compass directions. The first expert's policy is NORTH, EAST, the second one is EAST, NORTH. We want to see in this experiment if the true reward is among the set of reward output by our algorithm.
