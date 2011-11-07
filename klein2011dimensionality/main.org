@@ -9,6 +9,21 @@
 #+LaTeX_HEADER: \newtheorem{definition}{Definition}
 #+LaTeX_HEADER: \newtheorem{lemma}{Lemma}
 
+#+begin_abstract
+Blah
+#+end_abstract
+
+* Introduction
+* Related work
+* Background
+* Dimensionality reduction
+** Theorem
+** Linear programming constraints
+* Preliminary work
+* Conclusion
+
+
+
 * Context
 
   In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that maximizes a cumulative reward in the long run. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\
