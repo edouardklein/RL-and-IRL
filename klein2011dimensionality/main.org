@@ -1,42 +1,60 @@
-#+TITLE: Task Transfer on the GridWorld
+#+TITLE: Reducing the dimentionality of the reward space in the Inverse Reinforcement Learning problem
+#+AUTHOR: \IEEEauthorblockN{Edouard Klein}\IEEEauthorblockA{Supélec-metz Campus,\\IMS Research group, France\\Equipe ABC,\\LORIA-CNRS, France} \and \IEEEauthorblockN{Matthieu Geist}\IEEEauthorblockA{Supélec-metz Campus,\\IMS Research group, France} \and \IEEEauthorblockN{Olivier Pietquin}\IEEEauthorblockA{Supélec-metz Campus,\\IMS Research group, France\\UMI 2958 CNRS, \\GeorgiaTech, France}
+
+#+begin_src emacs-lisp :results silent :exports none
+(unless (find "IEEp" org-export-latex-classes :key 'car
+          :test 'equal)
+  (add-to-list 'org-export-latex-classes
+	       '("IEEE"
+		 "\\documentclass{IEEEtran}
+                  [NO-DEFAULT-PACKAGES]"
+		 ("\\section{%s}" . "\\section*{%s}")
+		 ("\\subsection{%s}" . "\\subsection*{%s}")
+		 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+		 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+		 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+  )
+ #+end_src
 #+EXPORT_EXCLUDE_TAGS: code
+#+LaTeX_CLASS: IEEE
+#+LaTeX_CLASS_OPTIONS: [conference]
 #+LATEX_HEADER: \usepackage{blkarray}
-#+LATEX_HEADER: \usepackage{amsmath}
 #+LATEX_HEADER: \usepackage{amsthm}
+#+LATEX_HEADER: \usepackage{amsfonts}
 #+LATEX_HEADER: \usepackage{subfigure}
 #+LATEX_HEADER: \usepackage{tabularx}
 #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
 #+LaTeX_HEADER: \newtheorem{definition}{Definition}
 #+LaTeX_HEADER: \newtheorem{lemma}{Lemma}
 
+
+
 #+begin_abstract
 Blah
 #+end_abstract
 
-* Introduction
-  In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that maximizes a cumulative reward in the long run. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\
+#+begin_LaTeX
+\IEEEpeerreviewmaketitle
+#+end_LaTeX
 
-  For a certain  tasks, defining the corresponding reward can be a daunting process. Surely, one has at least an /idea/ about what states are preferable to others. This is however not enough to precisely define the numerical reward that will yeld the desired behavior. An example of such task can be the task of driving a car. Surely, it is preferable not to be too close to the car in front of ours. Surely, it is preferable not to brake too hard in order to avoid being rear-ended. But exactly how much is it preferable not to break too hard over not being too close to the car in front of ours ? Variations between the relative weights of these twe criteria in the reward will certainly lead to very different driving behaviors.\\
+* Introduction
+  In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that, in the long run, maximizes a cumulative reward. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\
+
+  Some tasks make defining the corresponding reward can be a daunting process. Surely, one has at least an /idea/ about what states are preferable to others. This is however not enough to precisely define the numerical reward that will yeld the desired behavior. An example of such task can be the task of driving a car. It is preferable not to be too close to the car in front of ours. Similarily it is preferable not to brake too hard in order to avoid being rear-ended. But exactly how much is it preferable not to break too hard over not being too close to the car in front of ours ? Variations between the relative weights of these two criteria in the reward will certainly lead to very different driving behaviors.\\
 
   A proposed workaround is the /Inverse Reinforcement Learning/ (IRL) method, where one tries to learn the reward optimized by an expert\footnote{The expert may be non human, in which one hope to use a slow or costly expert system to train a less costly agent.}. Then, the /idea/ about what states are preferable to others can be empirically used by a human expert driving the car. The reward function can be infered from the data of the demonstration.\\
 * Background
   Often, the RL problem is solved in a /Markov Decision Process/ setting : the agent is said to be in a state $s_t\in S$ which respect the Markovian criterion (it contains all the information the agent needs) where it has to choose an action $a\in A$ which will make it transit to another state $s_{t+1}$, receiving a reward $R(s_t)$.\\
 
-  A policy (often noted $\pi$) is a mapping $S\rightarrow A$. Each policy can be associated with its /value function/, a mapping $S\rightarrow \mathbb{R}$ which associates each state with the expected sum of discounted rewards an agent will get by following policy $\pi$ from this state. Formally, given a policy $\pi$, the value function is defined by : $V^\pi(s) = E\left[\left.\sum\limits_t \gamma^tR(s_t)\right|s_0=s,\pi\right]$.\\
+  The reward is seen here as a mapping from the states only to the reals. This is not normalized in the literature, some authors using a mapping $S \times S \rightarrow \mathbb{R}$ (e.g. in \cite{ng1999policy}) or a mapping $S \times A \times S \rightarrow \mathbb{R}$. We argue that one should not take the action into account when computing the reward. First because the action is irrelevant, what the reward judges is the consequences of an action. No matter the means, the result is what is important. If an action is risky and has yeld a high reward by chance, this will likely not happen again, and the reward need not be lowered by the taking of a risky action as an upcoming transition will likely give the information that taking this action may not be a good idea. Second, in the case of IRL, recording the action can be difficult. It is possible to record the state an agent is in from an external point of view, but guessing the action from the outside is a supplementary engineering problem we shall get rid of if we can. As transitions follow each others, we also argue that there is no use in taking both states of the transition into account. The following state will be present in the next transition, so the associated reward can be computed then. Plus, needing both states to compute the reward is a sign that the states may not respect the markovian criterion. The $S \rightarrow \mathbb{R}$ mapping that $R$ is is represented as a state indexed column vector.\\
 
-  The RL problem can be casted as finding the /optimal policy/ (often noted $\pi^*$), the value function of which is greater, for every state, as the value function of any other policy : $\forall \pi, V^{\pi^*} \succeq V^\pi$.\\
+  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $n\times n$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy is a mapping $\pi, S\rightarrow A : s \mapsto \pi(s)$ which can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix. We will from now on speak about action and policies using indiscriminately  the notation $a$ and $\pi$ or $P_a$ and $P_\pi$.\\
 
-  Any optimal policy is the fixed point of a greedy mechanism : by choosing, at each step, the action that maximizes the expected value function of the optimal policy for the next state one falls back to the optimal policy :$\pi^*(s_t) = \arg\max\limits_aE\left[\left.R(s) + \gamma V^{\pi^*}(s_{t+1})\right|s_t,a\right]$. This fixed point is unique, the previous equation can hence be used as a definition for the optimal policy.\\
+  Each policy can be associated with its /value function/, a mapping $S\rightarrow \mathbb{R}$ which associates each state with the expected sum of discounted rewards an agent will get by following policy $\pi$ from this state. Formally, given a policy $\pi$, the value function is defined by : $V^\pi(s) = E\left[\left.\sum\limits_t \gamma^tR(s_t)\right|s_0=s,\pi\right]$ and represented, as the reward, by a state indexed column vector.\\
 
-  More formally, given an optimal policy $\pi^*$ and the set of actions $A$ from which the policy was drawn, one tries to guess the reward with respect to which this policy is optimal.\\
+  The RL problem can be casted as finding the /optimal policy/ (often noted $\pi^*$), the value function of which is greater, for every state,than the value function of any other policy : $\forall \pi, V^{\pi^*} \succeq V^\pi$. The value function of this optimal policy is the fixed point of the bellman operator $T$ defined as $TV^\pi=R+\gamma P_{\pi}V^{\pi}$.\\
 
-  The reward $R$ is here seen as a mapping from the state space $S$ to $\mathbb{R}$. Working in the discrete case, we use it as a vector $R\in \mathbb{R}^n$ indexed by the state space, the cardinality of which is $n$.\\
-
-  The value function when follwing policy $\pi$ under reward $R$ is also defined as a vector : $V^\pi_R\in \mathbb{R}^n$ indexed by the state space. We specify the reward in the notation because in IRL the reward is the unknown and it can thus be interesting to use the value function of a policy under two different rewards.\\
-
-  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $n\times n$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy $\pi, S\rightarrow A : s \mapsto \pi(s)$ can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix. We will from now on speak about action and policies using indiscriminately  the notation $a$ and $\pi$ or $P_a$ and $P_\pi$.\\
-
-  The fixed point definition of the optimal policy can be rewriten as : $\forall s, \pi^*(s) = \arg\max\limits_a\left(R(s) + \gamma P_{\pi^*}(s)V^{\pi^*}_R\right)$ using the notations we just have defined.\\
+  The IRL problem is, given an optimal policy $\pi^*$ and the set of actions $A$ from which the policy was drawn, to guess the reward with respect to which this policy is optimal. The reward being the unknown, we will sometimes add the reward in the notation of the value function. Thus, $V^\pi_R$ is the value function of policy $\pi$ under reward $R$.\\
 
   We denote the set of the optimal policies with respect to a certain reward $R$ as $\Pi^*(R) = \left\{\pi^* | \forall \pi, V^{\pi^*}_R\succeq  V^{\pi}_R\right\}$.\\
 
@@ -93,3 +111,7 @@ The following holds:  $R_1\equiv R_2$
    This is a Linear Programming problem. By adding the supplemantary constraints stemming from the definition of $M$, i.e. that $\mathbf{1}^TR=0$ and $||R||_1=1$, we restrict the solutions to the previously defined $n-2$-dimensional manifold.\\
 * Preliminary work
 * Conclusion
+#+begin_LaTeX
+\bibliographystyle{IEEEtran}
+\bibliography{../../Biblio/Biblio}
+#+end_LaTeX
