@@ -19,6 +19,7 @@
 #+LaTeX_CLASS: IEEE
 #+LaTeX_CLASS_OPTIONS: [conference]
 #+LATEX_HEADER: \usepackage{blkarray}
+#+LATEX_HEADER: \usepackage{graphicx}
 #+LATEX_HEADER: \usepackage{amsthm}
 #+LATEX_HEADER: \usepackage{amsfonts}
 #+LATEX_HEADER: \usepackage{subfigure}
@@ -110,11 +111,25 @@ The following holds:  $R_1\equiv R_2$
  
    Equation \ref{ng2000algorithms.eqn} yelds at most $|A|\cdot |S| - |S| = (|A|-1)|S|$ constraints. There is $|A|$ matrices $P_a$, each yelding $|S|$ constraints. $|S|$ of these, however, are null because once for each state we will have $a=\pi(s)$ and the resulting line will be filled with zeros.\\
 
-   This is a Linear Programming problem. The constraints stemming from the definition of $M$, i.e. that $\mathbf{1}^TR=0$ and $||R||_1=1$, can be added to it quite easily, thus restricting the solutions to the previously defined $|S|-2$-dimensional subset.\\
+   When a cost function is added, this is a Linear Programming problem. The constraints stemming from the definition of $M$, i.e. that $\mathbf{1}^TR=0$ and $||R||_1=1$, can be added to it quite easily, thus restricting the solutions to the previously defined $|S|-2$-dimensional subset.\\
 ** Sparsity of the reward vector
    Sparsity is often stated to be a quality of the reward vector. However Lemma \ref{lambda.lemma} shows that a sparse reward can be equivalent to a non sparse reward, and the other way around. This should be taken into account when adding a sparsity penalty term to the cost function.
 * Preliminary work
-  
+  In the previous section, no cost function has been provided, as this is beyond the scope of this paper : finding a very good cost function would be a breakthrough in the domain. If anything cost functions provided in \cite{ng2000algorithms} would yeld good results with our LP formulation above.\\
+
+  A fist experiment was run to see if a sparse reward could be found by modifying the simplex algorithm to work without a cost function, but enumerating only sparse rewards. This has proved successful on the now classical gridworld problem, see Fig. \ref{slacksfreeR3.fig}. However, with is complexity of $O(|S|^5)$ this algorithm is not very practical.
+
+#+begin_LaTeX
+\begin{figure}
+\includegraphics[width=0.4\textwidth]{../TT_5x5_R3.pdf}
+\caption{Reward found by our algorithm on the classic gridworld problem. this is very similar to what can be found in \cite{ng2000algorithms} or \cite{jin2010gaussian}.}
+\label{slacksfreeR3.fig}
+\end{figure}
+#+end_LaTeX
+
+Furthermore this algorithm falled short on two other levels, as an experiment with randomly generated MDPs showed. First the forementioned method does not always yeld an answer, second even when enumerating all the basic feasible solution of the LP problem, one does not always find a reward according to which an agent can be trained to have a behavior as good as the expert's. That is to say, on some MDPs, the agent will not have a value function with respect to the true unknown reward as good as the expert's even when testing with all the basic feasible solutions of the LP problem.
+
+Work is in progress in order to find a class of MDPs that would make our algorithm yeld a reward everytime, and also to find a way to reduce its computational complexity.
 * Conclusion
 #+begin_LaTeX
 \bibliographystyle{IEEEtran}
