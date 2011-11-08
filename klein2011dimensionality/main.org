@@ -27,11 +27,11 @@
 #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
 #+LaTeX_HEADER: \newtheorem{definition}{Definition}
 #+LaTeX_HEADER: \newtheorem{lemma}{Lemma}
-
+#+OPTIONS: toc:nil
 
 
 #+begin_abstract
-Blah
+This paper take a look on the Inverse Reinforcement Learning framework, which can be used to learn control policies from demonstration by an expert by infering from the demonstrations the utility function the expert is alledgedly mximizing. We present a small theorem that maps the reward space into a subset of smaller dimensionality without loss of generality for all MDPs. We then present three experimental results showing both the promising aspect of the application of this theorem to existing IRL methods and its (hopefully circumventable) shortcomings. We conclude with considerations on further research.
 #+end_abstract
 
 #+begin_LaTeX
@@ -131,6 +131,7 @@ Furthermore this algorithm falled short on two other levels, as an experiment wi
 
 Work is in progress in order to find a class of MDPs that would make our algorithm yeld a reward everytime, and also to find a way to reduce its computational complexity.
 * Conclusion
+In this paper, we give a small theorem and give three results about it. Although promising on a cetain light, there still are serious shortcomings before this can be applied in a practical IRL algorithm. Further work is needed on a small scope to reduce the computational complexity of our test algorithm, and to find a class of MDPs that would have theoretical garantees. On a larger scope, the question of cost function for IRL in general, and the sparsity in particular may gain from the insight given by this theorem. On an even larger scope, more work is needed about reward shaping.
 #+begin_LaTeX
 \bibliographystyle{IEEEtran}
 \bibliography{../../Biblio/Biblio}
