@@ -112,7 +112,9 @@ The following holds:  $R_1\equiv R_2$
 
    This is a Linear Programming problem. The constraints stemming from the definition of $M$, i.e. that $\mathbf{1}^TR=0$ and $||R||_1=1$, can be added to it quite easily, thus restricting the solutions to the previously defined $|S|-2$-dimensional subset.\\
 ** Sparsity of the reward vector
+   Sparsity is often stated to be a quality of the reward vector. However Lemma \ref{lambda.lemma} shows that a sparse reward can be equivalent to a non sparse reward, and the other way around. This should be taken into account when adding a sparsity penalty term to the cost function.
 * Preliminary work
+  
 * Conclusion
 #+begin_LaTeX
 \bibliographystyle{IEEEtran}
