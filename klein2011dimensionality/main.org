@@ -38,9 +38,9 @@ Blah
 #+end_LaTeX
 
 * Introduction
-  In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that, in the long run, maximizes a cumulative reward. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\
+  In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that, in the long run, maximizes a cumulative reward. By correctly defining the reward, one can use the RL framework to make an agent fulfil a certain task.\\
 
-  Some tasks make defining the corresponding reward can be a daunting process. Surely, one has at least an /idea/ about what states are preferable to others. This is however not enough to precisely define the numerical reward that will yeld the desired behavior. An example of such task can be the task of driving a car. It is preferable not to be too close to the car in front of ours. Similarily it is preferable not to brake too hard in order to avoid being rear-ended. But exactly how much is it preferable not to break too hard over not being too close to the car in front of ours ? Variations between the relative weights of these two criteria in the reward will certainly lead to very different driving behaviors.\\
+  For some tasks, defining the corresponding reward is a daunting process. Surely, one has at least an /idea/ about what states are preferable to others. This is however not enough to precisely define the numerical reward that will yeld the desired behavior. An example of such task can be the task of driving a car. It is preferable not to be too close to the car in front of ours. Similarily it is preferable not to brake too hard in order to avoid being rear-ended. But exactly how much is it preferable not to break too hard over not being too close to the car in front of ours ? Variations between the relative weights of these two criteria in the reward will certainly lead to very different driving behaviors.\\
 
   A proposed workaround is the /Inverse Reinforcement Learning/ (IRL) method, where one tries to learn the reward optimized by an expert\footnote{The expert may be non human, in which one hope to use a slow or costly expert system to train a less costly agent.}. Then, the /idea/ about what states are preferable to others can be empirically used by a human expert driving the car. The reward function can be infered from the data of the demonstration.\\
 * Background
@@ -48,7 +48,7 @@ Blah
 
   The reward is seen here as a mapping from the states only to the reals. This is not normalized in the literature, some authors using a mapping $S \times S \rightarrow \mathbb{R}$ (e.g. in \cite{ng1999policy}) or a mapping $S \times A \times S \rightarrow \mathbb{R}$. We argue that one should not take the action into account when computing the reward. First because the action is irrelevant, what the reward judges is the consequences of an action. No matter the means, the result is what is important. If an action is risky and has yeld a high reward by chance, this will likely not happen again, and the reward need not be lowered by the taking of a risky action as an upcoming transition will likely give the information that taking this action may not be a good idea. Second, in the case of IRL, recording the action can be difficult. It is possible to record the state an agent is in from an external point of view, but guessing the action from the outside is a supplementary engineering problem we shall get rid of if we can. As transitions follow each others, we also argue that there is no use in taking both states of the transition into account. The following state will be present in the next transition, so the associated reward can be computed then. Plus, needing both states to compute the reward is a sign that the states may not respect the markovian criterion. The $S \rightarrow \mathbb{R}$ mapping that $R$ is is represented as a state indexed column vector.\\
 
-  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $n\times n$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy is a mapping $\pi, S\rightarrow A : s \mapsto \pi(s)$ which can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix. We will from now on speak about action and policies using indiscriminately  the notation $a$ and $\pi$ or $P_a$ and $P_\pi$.\\
+  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $|S|\times |S|$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy is a mapping $\pi, S\rightarrow A : s \mapsto \pi(s)$ which can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix. We will from now on speak about action and policies using indiscriminately  the notation $a$ and $\pi$ or $P_a$ and $P_\pi$.\\
 
   Each policy can be associated with its /value function/, a mapping $S\rightarrow \mathbb{R}$ which associates each state with the expected sum of discounted rewards an agent will get by following policy $\pi$ from this state. Formally, given a policy $\pi$, the value function is defined by : $V^\pi(s) = E\left[\left.\sum\limits_t \gamma^tR(s_t)\right|s_0=s,\pi\right]$ and represented, as the reward, by a state indexed column vector.\\
 
@@ -74,7 +74,7 @@ Blah
   This paper proposes a small theorem and begins to explore its potential use in the framework of \cite{ng2000algorithms}.
 * Dimensionality reduction
 ** Theorem
-   In this subsection, we will show that there exists a manifold of dimension $n-2$ so that every non degenerative reward is equivalent to at least one element of the manifold.\\
+   In this subsection, we will show that there exists a set of dimension $|S|-2$ so that every non degenerative reward is equivalent to at least one element of the set.\\
 
 #+begin_lemma
 \label{alpha.lemma}
@@ -82,20 +82,23 @@ Let $R_1$ be a reward vector, \\
 Let $R_2$ be a reward vector so that $\exists \alpha > 0, R_2=\alpha R_1$ \\
 The following holds:  $R_1\equiv R_2$
 #+end_lemma
+   The proof of this uses the fact that $\forall \pi, V^\pi_{\alpha R} = \alpha V^\pi_{R}$.
 
 #+begin_lemma
 \label{lambda.lemma}
 Let $R_1$ be a reward vector, \\
-Let $\mathbf{1}$ be the column vector whose $n$ elements are all equal to $1$,\\
+Let $\mathbf{1}$ be the column vector whose $|S|$ elements are all equal to $1$,\\
 Let $R_2$ be a reward vector so that $\exists \lambda \in \mathbb{R}, R_2= R_1 + \lambda\mathbf{1}$,\\
 The following holds:  $R_1\equiv R_2$
 #+end_lemma
+   The proof make use of the fact that  $\forall \pi, V^\pi_{R+ \lambda\mathbf{1}} = V^\pi_{R} + \lambda + \gamma\sum\limits_t\gamma^t\lambda$.
 
    #+begin_theorem
    Let $M = \{R|\mathbf{1}^TR =  0, ||R||_1 = 1\}$ be,\\
    The following holds : $\forall R \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}, \exists R'\in M, R'\equiv R$.
    #+end_theorem
-
+   
+   This means that the search for the reward can take place in the unit sphere intersected with and hyperplane of the reward space, thus leading to a dimensionality reduction of 2.
 ** Linear programming constraints
    In \cite{ng2000algorithms}, we are given a necessary and sufficient condition for a reward $R$ to admit a given policy as optimal : for every action $P_a$ the expert following $P_\pi$ had the possibility to take, the following matrix inequality must be met : 
    \begin{equation}
@@ -103,11 +106,12 @@ The following holds:  $R_1\equiv R_2$
    (P_\pi-P_{a})(I-\gamma P_\pi)^{-1}R\succeq 0
    \end{equation}
 
-   Although the proof can be found in the formentionned paper, we find useful to recall its main argument here : this inequalities stem from the fact that for every action $a$, the expected value of the next state must be less than or the same as the expected value of the next state for taking action $\pi(s)$. This is written as $P_\pi V^\pi \succeq P_a V^\pi$. Consequently, the $i$-th line of the $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$ matrix is a constraint on $X$ that, if satisfied, will make it preferable to choose action $\pi(i)$ over $a$ in state $i$.\\
+   Although the proof can be found in the forementionned paper, we find useful to recall its main argument here : this inequalities stem from the fact that for every action $a$, the expected value of the next state must be less than or the same as the expected value of the next state for taking action $\pi(s)$. This is written as $P_\pi V^\pi \succeq P_a V^\pi$. Consequently, the $i$-th line of the $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$ matrix is a constraint on $R$ that, if satisfied, will make it preferable to choose action $\pi(i)$ over $a$ in state $i$.\\
  
-   Equation \ref{ng2000algorithms.eqn} yelds at most $Card(A)\cdot n - n = (Card(A)-1)n$ constraints. There is $Card(A)$ matrices $P_a$, each yelding $n$ constraints. $n$ of there, however, are null because once for each state we will have $a=\pi(s)$ and the resulting line will be filled with zeros.\\
+   Equation \ref{ng2000algorithms.eqn} yelds at most $|A|\cdot |S| - |S| = (|A|-1)|S|$ constraints. There is $|A|$ matrices $P_a$, each yelding $|S|$ constraints. $|S|$ of these, however, are null because once for each state we will have $a=\pi(s)$ and the resulting line will be filled with zeros.\\
 
-   This is a Linear Programming problem. By adding the supplemantary constraints stemming from the definition of $M$, i.e. that $\mathbf{1}^TR=0$ and $||R||_1=1$, we restrict the solutions to the previously defined $n-2$-dimensional manifold.\\
+   This is a Linear Programming problem. The constraints stemming from the definition of $M$, i.e. that $\mathbf{1}^TR=0$ and $||R||_1=1$, can be added to it quite easily, thus restricting the solutions to the previously defined $|S|-2$-dimensional subset.\\
+** Sparsity of the reward vector
 * Preliminary work
 * Conclusion
 #+begin_LaTeX
