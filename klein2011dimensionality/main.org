@@ -1,5 +1,5 @@
 #+TITLE: Reducing the dimentionality of the reward space in the Inverse Reinforcement Learning problem
-#+AUTHOR: \IEEEauthorblockN{Edouard Klein}\IEEEauthorblockA{Supélec-metz Campus,\\IMS Research group, France\\Equipe ABC,\\LORIA-CNRS, France} \and \IEEEauthorblockN{Matthieu Geist}\IEEEauthorblockA{Supélec-metz Campus,\\IMS Research group, France} \and \IEEEauthorblockN{Olivier Pietquin}\IEEEauthorblockA{Supélec-metz Campus,\\IMS Research group, France\\UMI 2958 CNRS, \\GeorgiaTech, France}
+#+AUTHOR: \IEEEauthorblockN{Edouard Klein$^{12}$}\IEEEauthorblockA{$^1$Equipe ABC,\\LORIA-CNRS, France} \and \IEEEauthorblockN{Matthieu Geist$^2$}\IEEEauthorblockA{$^2$Sup\'elec,\\IMS Research group, France} \and \IEEEauthorblockN{Olivier Pietquin$^{23}$}\IEEEauthorblockA{$^3$UMI 2958\\GeorgiaTech-CNRS, France}
 
 #+begin_src emacs-lisp :results silent :exports none
 (unless (find "IEEp" org-export-latex-classes :key 'car
@@ -31,7 +31,7 @@
 
 
 #+begin_abstract
-This paper take a look on the Inverse Reinforcement Learning framework, which can be used to learn control policies from demonstration by an expert by infering from the demonstrations the utility function the expert is alledgedly mximizing. We present a small theorem that maps the reward space into a subset of smaller dimensionality without loss of generality for all MDPs. We then present three experimental results showing both the promising aspect of the application of this theorem to existing IRL methods and its (hopefully circumventable) shortcomings. We conclude with considerations on further research.
+This paper takes a look at the Inverse Reinforcement Learning framework, which can be used to learn control policies from demonstration by an expert. This method inferins from the demonstrations the utility function the expert is alledgedly mximizing. We present a proposition that maps the reward space into a subset of smaller dimensionality without loss of generality for all /Markov Decision Processes/ (MDPs). We then present three experimental results showing both the promising aspect of the application of this theorem to existing IRL methods and its (hopefully circumventable) shortcomings. We conclude with considerations on further research.
 #+end_abstract
 
 #+begin_LaTeX
@@ -39,21 +39,27 @@ This paper take a look on the Inverse Reinforcement Learning framework, which ca
 #+end_LaTeX
 
 * Introduction
-  In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that, in the long run, maximizes a cumulative reward. By correctly defining the reward, one can use the RL framework to make an agent fulfil a certain task.\\
+  In the /Reinforcement Learning/ (RL) framework \cite{sutton1998reinforcement}, an agent is left to find the behavior that, in the long run, maximizes a cumulative reward provided by some oracle. By correctly defining the reward, one can use the RL framework to make an agent fulfil a certain task.\\
 
-  For some tasks, defining the corresponding reward is a daunting process. Surely, one has at least an /idea/ about what states are preferable to others. This is however not enough to precisely define the numerical reward that will yeld the desired behavior. An example of such task can be the task of driving a car. It is preferable not to be too close to the car in front of ours. Similarily it is preferable not to brake too hard in order to avoid being rear-ended. But exactly how much is it preferable not to break too hard over not being too close to the car in front of ours ? Variations between the relative weights of these two criteria in the reward will certainly lead to very different driving behaviors.\\
+  For some tasks, defining the corresponding reward is a daunting process. Surely, one has at least an /idea/ about what states are preferable to others. This is however not enough to precisely define the numerical reward that will yeld the desired behavior. An example of such task can be driving a car. It is preferable not to be too close to the car in front of ours. Similarily it is preferable not to brake too hard in order to avoid being rear-ended. But exactly how much is it preferable not to break too hard over not being too close to the car in front of ours ? Variations between the relative weights of these two criteria in the reward will certainly lead to very different driving behaviors.\\
 
-  A proposed workaround is the /Inverse Reinforcement Learning/ (IRL) method, where one tries to learn the reward optimized by an expert\footnote{The expert may be non human, in which one hope to use a slow or costly expert system to train a less costly agent.}. Then, the /idea/ about what states are preferable to others can be empirically used by a human expert driving the car. The reward function can be infered from the data of the demonstration.\\
+  A proposed workaround is the /Inverse Reinforcement Learning/ (IRL) method \cite{ng2000algorithms}, where one tries to learn the reward optimized by an expert\footnote{The expert may be non human, in which one hope to use a slow or costly expert system to train a less costly agent.}. Then, the /idea/ about what states are preferable to others can be empirically used by a human expert driving the car. The reward function can be infered from the data of the demonstration, and the agent can mimic the expert by optimizing this reward \cite{ng2000algorithms}.\\
+
+  The paper is organized as follows : we begin by introducing the necessary mathematical background and presents the related work in the field. We then present and prove our proposition, and explain its use in a Linear Programming framework. Finally, we explain the preliminary experimental work we have done and show where we are heading in light of these preliminary results.
 * Background
-  Often, the RL problem is solved in a /Markov Decision Process/ setting : the agent is said to be in a state $s_t\in S$ which respect the Markovian criterion (it contains all the information the agent needs) where it has to choose an action $a\in A$ which will make it transit to another state $s_{t+1}$, receiving a reward $R(s_t)$.\\
+  Often, the RL problem is solved in a /Markov Decision Process/ setting : the agent is said to be in a state $s_t\in S$ which respect the Markovian criterion (it contains all the information the agent needs to take a decision) where it has to choose an action $a\in A$ which will make it transit stochastically to another state $s_{t+1}$, receiving a reward $R(s_t)$.\\
 
-  The reward is seen here as a mapping from the states only to the reals. This is not normalized in the literature, some authors using a mapping $S \times S \rightarrow \mathbb{R}$ (e.g. in \cite{ng1999policy}) or a mapping $S \times A \times S \rightarrow \mathbb{R}$. We argue that one should not take the action into account when computing the reward. First because the action is irrelevant, what the reward judges is the consequences of an action. No matter the means, the result is what is important. If an action is risky and has yeld a high reward by chance, this will likely not happen again, and the reward need not be lowered by the taking of a risky action as an upcoming transition will likely give the information that taking this action may not be a good idea. Second, in the case of IRL, recording the action can be difficult. It is possible to record the state an agent is in from an external point of view, but guessing the action from the outside is a supplementary engineering problem we shall get rid of if we can. As transitions follow each others, we also argue that there is no use in taking both states of the transition into account. The following state will be present in the next transition, so the associated reward can be computed then. Plus, needing both states to compute the reward is a sign that the states may not respect the markovian criterion. The $S \rightarrow \mathbb{R}$ mapping that $R$ is is represented as a state indexed column vector.\\
+  The reward is seen here as a mapping from the states only to the reals. This is not normalized in the literature, some authors using a mapping $S \times S \rightarrow \mathbb{R}$ (e.g., in \cite{ng1999policy}) or a mapping $S \times A \times S \rightarrow \mathbb{R}$. We argue that one should not take the action into account when computing the reward. First because the action is irrelevant, what the reward judges is the consequences of an action. No matter the means, the result is what is important. If an action is risky and has yeld a high reward by chance, this will likely not happen again, and the reward need not be lowered by the taking of a risky action as an upcoming transition will likely give the information that taking this action may not be a good idea. Second, in the case of IRL, recording the action can be difficult. It is possible to record the state an agent is in from an external point of view, but guessing the action from the outside is a supplementary engineering problem we shall get rid of if we can. As transitions follow each others, we also argue that there is no use in taking both states of the transition into account. The following state will be present in the next transition, so the associated reward can be computed then. Plus, needing both states to compute the reward is a sign that the states may not respect the markovian criterion. The $S \rightarrow \mathbb{R}$ mapping that $R$ is is represented as a state indexed column vector.\\
 
-  Actions are defined by the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $|S|\times |S|$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy is a mapping $\pi, S\rightarrow A : s \mapsto \pi(s)$ which can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix. We will from now on speak about action and policies using indiscriminately  the notation $a$ and $\pi$ or $P_a$ and $P_\pi$.\\
+  Actions are mapped whith the probability with which they make the agent transit from one state to the other. Formally, to each action $a$ is associated a $|S|\times |S|$ matrix $P_a$ whose element $(i,j)$ is the probability to transit to state $j$ when taking action $a$ in state $i$. A policy is a mapping $\pi\textrm{,} s\in S\mapsto \pi(s) \in A$ which can be defined the same way, that is to say by associating it with a $P_\pi$ matrix whose $i$-th line is the $i$-th line of the $(P_a, a=\pi(s))$ matrix. We will from now on speak about action and policies using indiscriminately  the notation $a$ and $\pi$ or $P_a$ and $P_\pi$.\\
 
-  Each policy can be associated with its /value function/, a mapping $S\rightarrow \mathbb{R}$ which associates each state with the expected sum of discounted rewards an agent will get by following policy $\pi$ from this state. Formally, given a policy $\pi$, the value function is defined by : $V^\pi(s) = E\left[\left.\sum\limits_t \gamma^tR(s_t)\right|s_0=s,\pi\right]$ and represented, as the reward, by a state indexed column vector.\\
+  Each policy can be associated with its /value function/, a mapping $S\rightarrow \mathbb{R}$ which associates to each state the expected sum of discounted rewards an agent will get by following policy $\pi$ from this state. Formally, given a policy $\pi$, the value function is defined by : 
+\begin{equation}
+V^\pi(s) = E\left[\left.\sum\limits_t \gamma^tR(s_t)\right|s_0=s,\pi\right]
+\end{equation}
+ and represented, as the reward, by a state indexed column vector.\\
 
-  The RL problem can be casted as finding the /optimal policy/ (often noted $\pi^*$), the value function of which is greater, for every state,than the value function of any other policy : $\forall \pi, V^{\pi^*} \succeq V^\pi$. The value function of this optimal policy is the fixed point of the bellman operator $T$ defined as $TV^\pi=R+\gamma P_{\pi}V^{\pi}$.\\
+  The RL problem can be casted as finding the /optimal policy/ (often noted $\pi^*$), the value function of which is greater, for every state,than the value function of any other policy : $\forall \pi, V^{\pi^*} \succeq V^\pi$. The value function of any policy is the fixed point of the bellman evaluation operator $T^\pi$ defined as $T^\pi V=R+\gamma P_{\pi}V$.\\
 
   The IRL problem is, given an optimal policy $\pi^*$ and the set of actions $A$ from which the policy was drawn, to guess the reward with respect to which this policy is optimal. The reward being the unknown, we will sometimes add the reward in the notation of the value function. Thus, $V^\pi_R$ is the value function of policy $\pi$ under reward $R$.\\
 
@@ -64,15 +70,15 @@ This paper take a look on the Inverse Reinforcement Learning framework, which ca
   Two rewards $R_1$ and $R_2$ are said to be /equivalent/ if $\Pi^*(R_1)$ = $\Pi^*(R_2)$. This is noted $R_1 \equiv R_2$.
   #+end_definition
   
-  A reward is said to be degenerative when it is equivalent to the null vector ($R\equiv\begin{pmatrix}0\\ \vdots\\ 0\end{pmatrix}$). Indeed the null vector admits any policy as an optimal policy.
+  A reward is said to be degenerative when it is equivalent to the null vector ($R\equiv[0\dots 0]^T$). Indeed the null vector admits any policy as an optimal policy.
 * Related work
   The IRL problem was first defined in \cite{russell1998learning}, where its ill-posed nature was already noted : the set of reward with respect to which the expert's policy is optimal is far from being a singleton. Furthermore there exists some degenerative rewards that admit every policy as optimal and such bear no useful information.\\
 
-  The work of \cite{russell1998learning} was further pushed in \cite{ng2000algorithms}, where a theorem was given which defines a sufficient and necessary condition for rewards to be solution of the IRL problem. The problem of the non uniqueness and possible degenerativeness of the solution was worked around using a criterion according to which the difference between the value of the expert's actions and the value of the next to best actions is maximized. A penalty term rewarding sparse solution is also introduced. For continuous (or large) problems, a criterion for sampled trajectories is proposed.\\
+  The work of \cite{russell1998learning} was further pushed in \cite{ng2000algorithms}, where a theorem was given which defines a sufficient and necessary condition for rewards to be solution of the IRL problem. The problem of the non uniqueness and possible degenerativeness of the solution was worked around using a criterion according to which the difference between the value of the expert's actions and the value of the next to best actions is maximized. A penalty term rewarding sparse solution is also introduced. For large (or continuous) problems, a criterion for sampled trajectories is proposed.\\
 
-  The seminal work of (\cite{abbeel2004apprenticeship}) propose an iterative algorithm, where they maximize the difference between the value of the expert and the value of the second best policy. Further work (partially summed up in \cite{neu2009training}) often used the same iterative structure, changing the argument that allows to find a unique solution. In \cite{syed2008game}, \cite{syed2008apprenticeship} and \cite{boularias2011bootstrapping}, the authors use a game theoretic approach, in \cite{ratliff2006maximum}, \cite{ratliff2007boosting} and \cite{ratliff2007imitation} the IRL problem is casted as a multiclass label problem whereas in \cite{neu2007apprenticeship} and \cite{neu2009training} the reward is computed using gradient methods so that the agent's behavior matches the expert's observed behavior. Finally, maximum /a posteriori/ methods have been published ; the work in \cite{ramachandran2007bayesian} being very similar to previous work in \cite{chajewska2001learning}, which was not cast as an IRL problem. Follow ups include \cite{dimitrakakis2011bayesian} and \cite{rothkopf2008modular}. Maximum entropy priors are introduced in \cite{ziebart2008maximum}, \cite{boularias2011relative} and \cite{aghasadeghi2011maximum}.
+  The seminal work of (\cite{abbeel2004apprenticeship}) proposes an iterative algorithm, where the difference between the value of the expert and the value of the second best policy is maximized. Further work (partially summed up in \cite{neu2009training}) often used the same iterative structure, changing the argument that allows to find a unique solution. In \cite{syed2008game}, \cite{syed2008apprenticeship} and \cite{boularias2011bootstrapping}, the authors use a game theoretic approach, in \cite{ratliff2006maximum}, \cite{ratliff2007boosting} and \cite{ratliff2007imitation} the IRL problem is casted as a multiclass label problem whereas in \cite{neu2007apprenticeship} and \cite{neu2009training} the reward is computed using gradient methods so that the agent's behavior matches the expert's observed behavior. Finally, bayesian methods have been published ; the work in \cite{ramachandran2007bayesian} being very similar to previous work in \cite{chajewska2001learning}, which was not cast as an IRL problem. Follow ups include \cite{dimitrakakis2011bayesian} and \cite{rothkopf2008modular}. Maximum entropy priors are introduced in \cite{ziebart2008maximum}, \cite{boularias2011relative} and \cite{aghasadeghi2011maximum}.
 
-  This paper proposes a small theorem and begins to explore its potential use in the framework of \cite{ng2000algorithms}.
+  This paper gives a proposition about reward shaping and begins to explore its potential use in the framework of \cite{ng2000algorithms}. We do not explore any new cost function, the references given above cover that ground extensively. We do present some preliminary experimental results that pave the way for future research, aiming at speeding up search in the reward space or defining more precisely the notion of reward sparsity.
 * Dimensionality reduction
 ** Theorem
    In this subsection, we will show that there exists a set of dimension $|S|-2$ so that every non degenerative reward is equivalent to at least one element of the set.\\
@@ -83,8 +89,6 @@ Let $R_1$ be a reward vector, \\
 Let $R_2$ be a reward vector so that $\exists \alpha > 0, R_2=\alpha R_1$ \\
 The following holds:  $R_1\equiv R_2$
 #+end_lemma
-   The proof of this uses the fact that $\forall \pi, V^\pi_{\alpha R} = \alpha V^\pi_{R}$.
-
 #+begin_lemma
 \label{lambda.lemma}
 Let $R_1$ be a reward vector, \\
@@ -92,14 +96,17 @@ Let $\mathbf{1}$ be the column vector whose $|S|$ elements are all equal to $1$,
 Let $R_2$ be a reward vector so that $\exists \lambda \in \mathbb{R}, R_2= R_1 + \lambda\mathbf{1}$,\\
 The following holds:  $R_1\equiv R_2$
 #+end_lemma
-   The proof make use of the fact that  $\forall \pi, V^\pi_{R+ \lambda\mathbf{1}} = V^\pi_{R} + \lambda + \gamma\sum\limits_t\gamma^t\lambda$.
+
+   Pointers for the proof of this can be found in \cite{puterman1994markov}.
 
    #+begin_theorem
    Let $M = \{R|\mathbf{1}^TR =  0, ||R||_1 = 1\}$ be,\\
-   The following holds : $\forall R \in \mathbb{R}^n\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}, \exists R'\in M, R'\equiv R$.
+   The following holds : $\forall R \in \mathbb{R}^{|S|}\setminus \{ \lambda \mathbf{1}, \lambda \in \mathbb{R}\}, \exists R'\in M, R'\equiv R$.
    #+end_theorem
    
    This means that the search for the reward can take place in the unit sphere intersected with and hyperplane of the reward space, thus leading to a dimensionality reduction of 2.
+
+   The proof goes as follow : by defining $R' = \alpha(R+\lambda\mathbf{1})$, with $\lambda = -{\mathbf{1}^TR\over |S|}$ and $\alpha = {1\over ||R+\lambda\mathbf{1}||_1}$, one can see that $R'\in M$ and $R' \equiv R$.
 ** Linear programming constraints
    In \cite{ng2000algorithms}, we are given a necessary and sufficient condition for a reward $R$ to admit a given policy as optimal : for every action $P_a$ the expert following $P_\pi$ had the possibility to take, the following matrix inequality must be met : 
    \begin{equation}
@@ -113,25 +120,43 @@ The following holds:  $R_1\equiv R_2$
 
    When a cost function is added, this is a Linear Programming problem. The constraints stemming from the definition of $M$, i.e. that $\mathbf{1}^TR=0$ and $||R||_1=1$, can be added to it quite easily, thus restricting the solutions to the previously defined $|S|-2$-dimensional subset.\\
 ** Sparsity of the reward vector
-   Sparsity is often stated to be a quality of the reward vector. However Lemma \ref{lambda.lemma} shows that a sparse reward can be equivalent to a non sparse reward, and the other way around. This should be taken into account when adding a sparsity penalty term to the cost function.
+   Sparsity is often stated to be a quality of the reward vector, for example one of the cost functions given in \cite{ng2000algorithms} include a regularization term ($P(i)$ denotes the $i$-th row of $P$) : 
+   \begin{equation}
+   \label{J.eqn}
+   J(R) = \left(\sum_{i=1}^{|S|}\min_{a\in A}(P_\pi(i) - P_a(i))(I - \gamma P_\pi)^{-1} R\right) - \lambda||R||_1
+   \end{equation}
+However Lemma \ref{lambda.lemma} shows that a sparse reward can be equivalent to a non sparse reward, and the other way around. This should be taken into account when adding a sparsity penalty term to the cost function.
 * Preliminary work
-  In the previous section, no cost function has been provided, as this is beyond the scope of this paper : finding a very good cost function would be a breakthrough in the domain. If anything cost functions provided in \cite{ng2000algorithms} would yeld good results with our LP formulation above.\\
+  In the previous section, no cost function has been provided, as this is beyond the scope of this paper : finding the ultimate cost function, the one that generalizes all the previously published ones would be a breakthrough in the domain, even publishing a new sound one is a strong contribution. If anything cost functions provided in \cite{ng2000algorithms} (e.g., the one given Equation \ref{J.eqn}) would yeld good results with our LP formulation above.\\
 
-  A fist experiment was run to see if a sparse reward could be found by modifying the simplex algorithm to work without a cost function, but enumerating only sparse rewards. This has proved successful on the now classical gridworld problem, see Fig. \ref{slacksfreeR3.fig}. However, with is complexity of $O(|S|^5)$ this algorithm is not very practical.
+  A first experiment was run to see if a sparse reward could be found by modifying the simplex algorithm to work without a cost function, but enumerating only sparse rewards. In the simplex algorithm, one start by selecting a /basic feasible solution/ that is to say a vertex of the polytope defined by the linear constraints. Then, one jump from vertex to vertex by minimizing (or maximizing) the cost function. Basic feasible solutions can be found by choosing which constraints are binding and which are not. The linear system is then solved for the free variables (the variables corresponding to the non binding constraints), if a solution exist, it is a basic feasible solution.\\
+
+  As we did not make use of a cost function, we looked for sparse basic feasible solutions directly. As the constraints are inequalities, the system is loaded with slack variables. If all the slacks variables are considered free, then one only needs two additional variables to get a symetric linear system. Only a few of them are solvable, they are sparse as only two components of the reward vector are non zero.\\ 
+
+  This has proved successful on the now classical gridworld problem, see Fig. \ref{slacksfreeR3.fig}. In this setting, the expert goes from the lower left corner $(0,4)$ of a $5\times 5$ gridworld to its upper right corner $(4,0)$. The true reward function the expert has been trained with is $0$ everywhere but in the upper right corner where the reward is $1$. The reward found by our algorithm just adds a negative reward at the starting point that does not change the behavior. It is sparse. However, with is complexity of $O(|S|^5)$ this algorithm is not very practical.\\
 
 #+begin_LaTeX
 \begin{figure}
-\includegraphics[width=0.4\textwidth]{../TT_5x5_R3.pdf}
+\hspace{-1.2cm}\includegraphics[width=0.6\textwidth]{../TT_5x5_R3.pdf}
 \caption{Reward found by our algorithm on the classic gridworld problem. this is very similar to what can be found in \cite{ng2000algorithms} or \cite{jin2010gaussian}.}
 \label{slacksfreeR3.fig}
 \end{figure}
 #+end_LaTeX
 
-Furthermore this algorithm falled short on two other levels, as an experiment with randomly generated MDPs showed. First the forementioned method does not always yeld an answer, second even when enumerating all the basic feasible solution of the LP problem, one does not always find a reward according to which an agent can be trained to have a behavior as good as the expert's. That is to say, on some MDPs, the agent will not have a value function with respect to the true unknown reward as good as the expert's even when testing with all the basic feasible solutions of the LP problem.
+  A further experiment involving randomly generated MDPs was run. The goal was to test a hypothesis our success in the gridworld setting allowed us to make. We thought that the enumeration of all the linear systems containing all the slacks variables would always yeld a basic feasible solution and thus a sparse reward. We created random MDPs by creating random action matrices $P_a\textrm{,} a\in A$ (sum over the line should be $1$), a random reward $R$, and found the optimal policy for this reward $\pi_E$, $S\rightarrow A$ using a simple value iteration dynamic programming algorithm.\\
 
-Work is in progress in order to find a class of MDPs that would make our algorithm yeld a reward everytime, and also to find a way to reduce its computational complexity.
+  Sometimes, in one of these random MDPs, there will be no sparse basic feasible solutions. All the linear systems containing all the slacks variables will be unsovlable. We therefore have counter examples that formally disprove our hypothesis.\\
+
+* Further work
+  
+  Three directions are going to be exlpored. We first would like to characterize a class of MDPs for which a sparse basic feasible solution would always exist. We are currently looking at constraints over the transition probabilities that could yeld such a guarantee but do not have formal results yet.\\
+
+  These constraints could also lead to interesting results in speeding up the algorithm. It should be possible to reduce the number of linear constraints in the Linear programming problem.\\
+
+  Approximate solutions, trajectory sampling or even constraint sampling will also be explored.
+
 * Conclusion
-In this paper, we give a small theorem and give three results about it. Although promising on a cetain light, there still are serious shortcomings before this can be applied in a practical IRL algorithm. Further work is needed on a small scope to reduce the computational complexity of our test algorithm, and to find a class of MDPs that would have theoretical garantees. On a larger scope, the question of cost function for IRL in general, and the sparsity in particular may gain from the insight given by this theorem. On an even larger scope, more work is needed about reward shaping.
+In this paper, we prove a proposition and give some experimental results about it. Although promising on a cetain light, there still are serious shortcomings before this can be applied in a practical IRL algorithm. Further work is needed on a small scope to reduce the computational complexity of our test algorithm, and to find a class of MDPs that would have theoretical guarantees. On a larger scope, the question of cost function for IRL in general, and the sparsity in particular may gain from the insight given by this proposition. On an even larger scope, more work is needed about reward shaping \cite{ng1999policy}.
 #+begin_LaTeX
 \bibliographystyle{IEEEtran}
 \bibliography{../../Biblio/Biblio}
