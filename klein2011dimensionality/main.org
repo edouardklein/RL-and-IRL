@@ -1,8 +1,8 @@
 #+TITLE: Reducing the dimentionality of the reward space in the Inverse Reinforcement Learning problem
 #+AUTHOR: \IEEEauthorblockN{Edouard Klein$^{12}$}\IEEEauthorblockA{$^1$Equipe ABC,\\LORIA-CNRS, France} \and \IEEEauthorblockN{Matthieu Geist$^2$}\IEEEauthorblockA{$^2$Sup\'elec,\\IMS Research group, France} \and \IEEEauthorblockN{Olivier Pietquin$^{23}$}\IEEEauthorblockA{$^3$UMI 2958\\GeorgiaTech-CNRS, France}
 
-#+begin_src emacs-lisp:results silent:exports none
-(unless (find "IEEp" org-export-latex-classes:key 'car
+#+begin_src emacs-lisp :results silent :exports none
+(unless (find "IEEp" org-export-latex-classes :key 'car
          :test 'equal)
   (add-to-list 'org-export-latex-classes
 	       '("IEEE"
@@ -136,9 +136,21 @@ the following holds:  $R_1\equiv R_2$
 
 #+begin_LaTeX
 \begin{figure}
-\hspace{-1.2cm}\includegraphics[width=0.6\textwidth]{../TT_5x5_R3.pdf}
+%\hspace{-1.2cm}
+\begin{center}
+\includegraphics[width=0.4\textwidth]{../TT_5x5_R3.pdf}
+\end{center}
 \caption{Reward found by our algorithm on the classic gridworld problem. this is very similar to what can be found in \cite{ng2000algorithms} or \cite{jin2010gaussian}.}
 \label{slacksfreeR3.fig}
+\end{figure}
+#+end_LaTeX
+#+begin_LaTeX
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.3\textwidth]{Pi_E.png}
+\end{center}
+\caption{Policy of the expert. This policy is found by a dynamic programming algorithm when the reward is $0$ everywhere except in the upper right where it is $1$. Actions are executed noisily : with probability $0.3$ another action than what the agent chooses is executed.}
+\label{Pi_E.fig}
 \end{figure}
 #+end_LaTeX
 
@@ -160,3 +172,113 @@ In this paper, we give a proposition and an experimental results about it. Altho
 \bibliographystyle{IEEEtran}
 \bibliography{../../Biblio/Biblio}
 #+end_LaTeX
+* Code :code:
+  Comme on va mettre un dessin de la politique, voici un petit script python qui extrait la politique d'une matrice et l'affiche d'une manière jolie.
+  
+    #+begin_src python :tangle ShowPpi.py
+from numpy import *
+import scipy
+from a2str import*
+from TT_DP import*
+
+P_north = zeros((25,25))
+P_east = zeros((25,25))
+P_south = zeros((25,25))
+P_west = zeros((25,25))
+
+for a in range(0,4):
+    P_a = zeros((25,25))
+    for x in range(0,5):
+        for y in range(0,5):
+            index = x+5*y
+            x_north = x
+            y_north = 0
+            if( y != 0 ):
+                y_north = y-1
+            index_north = x_north + 5*y_north
+                
+            x_south = x
+            y_south = 4
+            if( y != 4 ):
+                y_south = y+1
+            index_south = x_south + 5*y_south
+
+            y_west = y
+            x_west = 0
+            if( x != 0 ):
+                x_west = x-1
+            index_west = x_west + 5*y_west
+
+            y_east = y
+            x_east = 4
+            if( x != 4 ):
+                x_east = x+1
+            index_east = x_east + 5*y_east
+
+            main_i = -1
+            others = [-1,-1,-1]
+            filename = "stderr"
+            if( a == 0 ):
+                main_i = index_north
+                others = [index_south,index_west,index_east]
+            elif( a == 1):
+                main_i = index_east
+                others = [index_south,index_west,index_north]
+            elif( a == 2):
+                main_i = index_south
+                others = [index_north,index_west,index_east]
+            elif( a == 3):
+                main_i = index_west
+                others = [index_south,index_north,index_east]
+            
+            P_a[index,main_i] +=0.7
+            for i in others:
+                P_a[index,i] +=0.1
+            
+            if( a == 0 ):
+                P_north = P_a.copy()
+            elif( a == 1):
+                P_east = P_a.copy()
+            elif( a == 2):
+                P_south = P_a.copy()
+            elif( a == 3):
+                P_west = P_a.copy()
+
+    if( a == 0 ):
+        filename = "TT_5x5_PENorth.mat"
+    elif( a == 1):
+        filename = "TT_5x5_PEEast.mat"
+    elif( a == 2):
+        filename = "TT_5x5_PESouth.mat"
+    elif( a == 3):
+        filename = "TT_5x5_PEWest.mat"
+    f = open( filename, "w" )
+    f.write( a2str(P_a) )
+    f.close()
+
+R = zeros((25,1))
+R[4,0] = 1
+P_pi = TT_DP( R, (P_north, P_south, P_west, P_east) )
+f = open( "TT_5x5_Ppi.mat", "w" )
+f.write( a2str(P_pi) )
+f.close()
+
+for i in range(0,5):
+    for j in range(0,5):
+        s = i*5+j
+        pi_s = P_pi[s]
+        if all(pi_s == P_north[s]):
+            print "^ ",
+        elif all(pi_s == P_south[s]):
+            print "v ",
+        elif all(pi_s == P_west[s]):
+            print "< ",
+        elif all(pi_s == P_east[s]):
+            print "> ",
+        else:
+            exit(-1)
+    print ""
+
+
+    #+end_src
+  
