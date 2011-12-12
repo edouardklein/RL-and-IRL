@@ -15,7 +15,7 @@ emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
   The graphs are based on the application of different algorithms on toy problems. Each toy problem lives in its sub directory. The sub-directories are :
 
   #+begin_src makefile :tangle Makefile
-SUB_DIRS=ChainWalk GridWorld InvertedPendulum
+SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality
   #+end_src
 
 ** Previously published results
@@ -81,15 +81,26 @@ export LFLAGS=`pkg-config --libs gsl` -lm -O3
 ** Cleaning
     #+begin_src makefilefile :tangle Makefile :noweb yes
 <<TT_cleanTest0_make>>
+<<TT_cleanTest1_make>>
+<<TT_cleanCode_make>>
 
-clean: TT_cleanTest0
+clean: TT_cleanTest0 TT_cleanTest1 TT_cleanCode
 	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*~"    | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.html"    | xargs -tr rm &&\
-	$(MAKE) -C ChainWalk clean         
+	find . -maxdepth 1 -iname "*.aux"    | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.bbl"    | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.blg"    | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.log"    | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.out"    | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.tex"    | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.toc"    | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.mm"    | xargs -tr rm &&\
+	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
+	$(MAKE) -C klein2011dimensionality clean
 	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs -tr rm &&\
@@ -142,7 +153,7 @@ doc: $(HTML_FILES)
    The code embedded in the .org can be tangled.
     #+begin_src makefile :tangle Makefile
 code:$(ORG_CODE_FILES)
-	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done &&\
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir code ; done &&\
 	touch code
     #+end_src
@@ -172,12 +183,6 @@ criteria.o: criteria.h criteria.c RL_Globals.h
 
 LSTDmu.o: LSTDmu.h LSTDmu.c greedy.h utils.h criteria.h LSPI.h
 	gcc -c $(CFLAGS) LSTDmu.c
-
-TT_polytope.o: TT_polytope.c TT_polytope.h TT_Globals.h
-	gcc -c $(CFLAGS) TT_polytope.c
-
-TaskTransfer.o: TaskTransfer.c TT_polytope.h TT_Globals.h
-	gcc -c $(CFLAGS) TaskTransfer.c
     #+end_src
 * Tests
   #+begin_src makefile :tangle Makefile :noweb yes

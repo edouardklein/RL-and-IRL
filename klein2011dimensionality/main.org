@@ -282,3 +282,24 @@ for i in range(0,5):
 
     #+end_src
   
+
+    #+begin_src makefile :tangle Makefile
+all: main.org
+	emacs -batch --visit main.org --funcall org-export-as-latex --script ~/.emacs
+	pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
+
+code:
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org 
+
+clean:
+	find . -maxdepth 1 -iname "ShowPpi.py"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.aux"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.bbl"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.blg"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "main.tex"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "main.pdf"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.log"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.toc"| xargs -tr rm
+
+    #+end_src
+

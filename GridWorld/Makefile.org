@@ -351,8 +351,6 @@ TaskTransfer.exe: TaskTransfer.o ../TaskTransfer.o ../TT_polytope.o
 
     #+end_src
 
-
-   
 * Miscellaneous
 ** Org files
   The .org files containing both some code and its documentation are :
@@ -400,6 +398,7 @@ clean:
 	find . -maxdepth 1 -iname "*.dat-*"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.pyc"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "generator.c"     | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "TaskTransfer.c"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "GridWorld.h"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "simulator.h"     | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "simulator.c"     | xargs -tr rm &&\

@@ -1192,6 +1192,9 @@ def TT( P_pi, Actions ):
     cmd += " > TT_tmpC.mat"
     os.system( cmd )
 
+    cmd = "rm TT_tmp_*"
+    os.system( cmd )
+
     cmd = "python TaskTransfer.py TT_tmpC.mat > TT_tmpR.mat"
     ret = os.system( cmd )
     
@@ -1225,6 +1228,20 @@ def TT_SF( P_pi, Actions ):
         return None
 
     #+end_src
+*** Cleaning
+#+srcname: TT_cleanCode_make
+#+begin_src makefile
+TT_cleanCode:
+	find . -maxdepth 1 -iname "TT_*.py"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "TT.py"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "TT*.pyc"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "TT*.gp"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "TT*.ps"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "TaskTransfer.py"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "TaskTransfer_SF.py"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "a2str.py"   | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "Constraint.py"   | xargs -tr rm
+#+end_src    
 ** Tests
 *** Test in 3D
     We test the program in a small setting so that the reward vector only has three component $x$, $y$ and $z$.
@@ -1271,8 +1288,11 @@ TT_test0: TaskTransfer.py
 #+srcname: TT_cleanTest0_make
 #+begin_src makefile
 TT_cleanTest0:
-	find . -maxdepth 1 -iname "test/TT_outT01.mat"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "test/TT_outT02.mat" | xargs -tr rm
+	find test -maxdepth 1 -iname "TT_outT01.mat"   | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_outT02.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_CT01.mat"   | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_CT02.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_expectedOutT0.mat" | xargs -tr rm
 #+end_src
 *** Task Transfer on a 2x2 Gridworld
     In this simple setting we imagine a 2x2 gridworld and two experts. Both experts optimize the same reward, located in the north east corner. Both experts can choose between the same actions at each step : the four compass directions. The first expert's policy is NORTH, EAST, the second one is EAST, NORTH. We want to see in this experiment if the true reward is among the set of reward output by our algorithm.
@@ -1361,16 +1381,18 @@ TT_test1:
     #+srcname: TT_cleanTest1_make
     #+begin_src makefile
 TT_cleanTest1:
-	rm test/TT_C1.mat
-	rm test/TT_C2.mat
-	rm test/TT_CBoth.mat
-	rm test/TT_PPi1.mat
-	rm test/TT_PPi2.mat
-	rm test/TT_PNorth.mat
-	rm test/TT_PSouth.mat
-	rm test/TT_PWest.mat
-	rm test/TT_PEast.mat
-	rm test/TT_outT1.mat
+	find test -maxdepth 1 -iname "TT_outT01.mat"   | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_outT02.mat" | xargs -tr rm
+	find test -maxdepth 1 -iname "TT_C1.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_C2.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_CBoth.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_PPi1.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_PPi2.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_PNorth.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_PSouth.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_PWest.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_PEast.mat" | xargs -tr rm &&\
+	find test -maxdepth 1 -iname "TT_outT1.mat" | xargs -tr rm
     #+end_src
 *** Dynamic pogamming on a 2x2 Gridworld
     We want to test our dynamic programming functions. We use help from the files defined in the [[TaskTransfer on a 2x2 Gridworld]] test.
