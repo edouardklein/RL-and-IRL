@@ -1,0 +1,83 @@
+#+OPTIONS: LaTeX:dvipng
+
+#+EXPORT_EXCLUDE_TAGS: code
+#+LATEX_HEADER: \usepackage{amsmath}
+#+LATEX_HEADER: \usepackage{amsthm}
+#+LaTeX_HEADER: \newtheorem{definition}{Definition}
+#+LaTeX_HEADER: \usepackage{natbib}
+#+TITLE:Deux nouveaux algos d'IRL
+[TABLE-OF-CONTENTS]
+
+* Ce qu'on tire de Ratliff
+  \label{sdef.sec}
+  Dans \citep{ratliff2007imitation}, les auteurs utilisent un système classification multi classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque entrée pour prendre une décision de classification i.e. choisir le label $y\in Y$ à appliquer à l'entrée $x\in X$ :
+  \begin{equation}
+  \label{sdef.eqn}
+  y^* = \arg\max_{y \in Y} s(x,y)
+  \end{equation}
+  Cette fonction de score est apprise dans l'espace fonctionnel en optimisant la fonction suivante : 
+  \begin{equation}
+  r[s] = {1\over N} \sum_{i=1}^N\left(\max_{y\in Y}(s(x_i,y) + l(x_i,y)) - s(x_i,y_i) \right)
+  \end{equation}
+  Cela suppose l'accès à une base de données $\{(x_i,y_i)\}_i$; i.e. une trace de l'expert.
+* Hoping $s$ is Bellman compatible (HSIBC ?)
+  La fonction de score $s$ joue le même rôle que la fonction $Q^*$, en effet l'equation \ref{sdef.eqn} est similaire à :
+  \begin{equation}
+  \pi^*(s) = \arg\max_{a} Q^*(s,a)
+  \end{equation}
+  qui décrit le mécanisme glouton liant fonction de valeur optimale et politique optimale.
+  
+  En appliquant une méthode de classification multi-classe permettant de trouver une fonction de score telle que décrite en section \ref{sdef.sec} (FIXME: Demander à Yann), on peut potentiellement arriver à retrouver la récompense.
+
+  En partant de l'équation de Bellman définissant la fonction de valeur optimale : 
+  \begin{equation}
+  Q^* = R + \gamma PQ^*
+  \end{equation}
+  on trouve facilement 
+  \begin{equation}
+  R = Q^*(Id - \gamma P)
+  \end{equation}
+  
+  Le mécanisme de classification utilisé fournit une fonction de score dont la structure importe peu mais qui permet sans doute de construire une base de données $\{(s_i,R(s_i))\}_i$ se basant sur les mêmes points $\{s_i\}_i$ que ceux utilisés pour l'entraînement du classifieur, ou sur un maillage de l'espace d'état etc. A partir de cette base de données, on peut faire de la régression pour trouver une fonction de récompense $\hat R$ ensuite utilisée dans un algorithme d'apprentissage par renforcement direct.
+
+
+  Il convient probablement d'entraîner le classifieur sur des données ayant une structure temporelle (des trajectoires) afin que la fonction de score capture cette structure.
+* Loss-augmented feature expectation matching (LAFEM ?)
+  Toujours en se basant sur la ressemblance entre $s$ et $Q^*$, on peut choisir de directement optimiser la fonction :
+  \begin{equation}
+  L_n(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
+  \end{equation}
+
+  Pour cela, on exprime la fonction de valeur suivie par l'expert comme linéaire selon certaines features. En notant $\mu_E$ la fonction de feature expectation, on peut écrire $\hat Q(s,a) = \omega ^T \mu_E(s,a)$, que l'on réinjecte dans notre fonction de coût pour obtenir : 
+ \begin{equation}
+  L_n(\omega) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\omega ^T \mu_E(s_i,a) + l(s_i,a)) - \omega ^T \mu_E(s_i,a_i) \right)
+  \end{equation}
+
+  Une descente de gradient donne la règle d'update suivante :
+  \begin{equation}
+  \omega_{t+1} = \omega_t -\alpha_t\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right)
+  \end{equation}
+
+  Avec $\alpha_t$ un pas d'apprentissage, et $a^*\arg\max_{a} = \omega ^T \mu_E(s_i,a) + l(s_i,a)$
+
+\bibliographystyle{plainnat}
+\bibliography{../Biblio/Biblio}
+* Making this document :code:
+
+#+begin_src makefile :tangle Makefile
+NouveauxAlgos.pdf: NouveauxAlgos.org
+	emacs -batch --visit NouveauxAlgos.org --funcall org-export-as-latex --script ~/.emacs
+	pdflatex NouveauxAlgos.tex && bibtex NouveauxAlgos && pdflatex NouveauxAlgos.tex && pdflatex NouveauxAlgos.tex
+#+end_src
+
+#+srcname: NA_cleanDoc_make
+#+begin_src makefile
+NA_cleanDoc:
+	find . -maxdepth 1 -iname "*.aux"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.bbl"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.blg"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "NouveauxAlgos.tex"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "NouveauxAlgos.pdf"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.log"| xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.toc"| xargs -tr rm
+#+end_src

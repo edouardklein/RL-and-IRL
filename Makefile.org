@@ -83,8 +83,9 @@ export LFLAGS=`pkg-config --libs gsl` -lm -O3
 <<TT_cleanTest0_make>>
 <<TT_cleanTest1_make>>
 <<TT_cleanCode_make>>
+<<NA_cleanDoc_make>>
 
-clean: TT_cleanTest0 TT_cleanTest1 TT_cleanCode
+clean: TT_cleanTest0 TT_cleanTest1 TT_cleanCode NA_cleanDoc
 	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
 	find . -maxdepth 1 -iname "*~"    | xargs -tr rm &&\
