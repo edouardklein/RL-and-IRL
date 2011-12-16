@@ -126,7 +126,7 @@ clean: TT_cleanTest0 TT_cleanTest1 TT_cleanCode NA_cleanDoc
 
   The .org files containing both some code and its documentation are :
   #+begin_src makefile :tangle Makefile
-ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org TaskTransfer.org
+ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org TaskTransfer.org NouveauxAlgos.org
   #+end_src
 
 ** Documentation
