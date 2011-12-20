@@ -409,13 +409,15 @@ NouveauxAlgos.pdf: NouveauxAlgos.org
 #+srcname: NA_cleanDoc_make
 #+begin_src makefile
 NA_cleanDoc:
-	find . -maxdepth 1 -iname "*.aux"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.bbl"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.blg"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "NouveauxAlgos.tex"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "NouveauxAlgos.pdf"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.log"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.toc"| xargs -tr rm
+	find . -maxdepth 1 -iname "*.aux"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.bbl"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.blg"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "NouveauxAlgos.tex"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "NouveauxAlgos.pdf"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.log"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.py"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.pyc"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.toc"| xargs -t rm
 #+end_src
 \bibliographystyle{plainnat}
 \bibliography{../Biblio/Biblio}
