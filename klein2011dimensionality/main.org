@@ -14,7 +14,9 @@
 		 ("\\paragraph{%s}" . "\\paragraph*{%s}")
 		 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
   )
- #+end_src
+#+end_src
+
+
 #+EXPORT_EXCLUDE_TAGS: code
 #+LaTeX_CLASS: IEEE
 #+LaTeX_CLASS_OPTIONS: [conference]
@@ -292,14 +294,14 @@ code:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org 
 
 clean:
-	find . -maxdepth 1 -iname "ShowPpi.py"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.aux"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.bbl"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.blg"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "main.tex"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "main.pdf"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.log"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.toc"| xargs -tr rm
+	find . -maxdepth 1 -iname "ShowPpi.py"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.aux"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.bbl"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.blg"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "main.tex"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "main.pdf"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.log"| xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.toc"| xargs -t rm
 
     #+end_src
 
