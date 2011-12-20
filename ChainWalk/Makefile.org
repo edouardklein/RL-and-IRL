@@ -66,17 +66,17 @@ lagoudakis2003least_figure10.c: code
 Cleaning is done by :
     #+begin_src make :tangle Makefile
 clean: 
-	find . -maxdepth 1 -iname "*.o"       | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.pdf"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.ps"      | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.exe"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "Samples*"  | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "ChainWalk_generator.c"  | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.c"  | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "code"      | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
+	find . -maxdepth 1 -iname "*.o"       | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.pdf"     | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.ps"      | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.exe"     | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.dat"     | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*~"        | xargs -t rm &&\
+	find . -maxdepth 1 -iname "Samples*"  | xargs -t rm &&\
+	find . -maxdepth 1 -iname "ChainWalk_generator.c"  | xargs -t rm &&\
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.c"  | xargs -t rm &&\
+	find . -maxdepth 1 -iname "code"      | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.samples" | xargs -t rm
 
     #+end_src
 
@@ -107,6 +107,6 @@ doc: $(HTML_FILES)
 
    The code embedded in the .org can be tangled.
     #+begin_src make :tangle Makefile
-code:$(ORG_CODE_FILES)
-	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
+code:
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
     #+end_src

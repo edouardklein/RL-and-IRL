@@ -86,47 +86,47 @@ export LFLAGS=`pkg-config --libs gsl` -lm -O3
 <<NA_cleanDoc_make>>
 
 clean: TT_cleanTest0 TT_cleanTest1 TT_cleanCode NA_cleanDoc
-	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*~"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.html"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.aux"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.bbl"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.blg"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.log"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.out"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.tex"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.toc"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.mm"    | xargs -tr rm &&\
+	find . -maxdepth 1 -iname "*.o"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.pdf" | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*~"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.html"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.aux"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.bbl"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.blg"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.log"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.out"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.tex"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.toc"    | xargs -t rm &&\
+	find . -maxdepth 1 -iname "*.mm"    | xargs -t rm &&\
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
 	$(MAKE) -C klein2011dimensionality clean
-	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSPI.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSPI.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "greedy.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "greedy.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "criteria.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "criteria.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "IRL_Globals.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSTDmu.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSTDmu.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "utils.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "utils.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "code"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "doc"   | xargs -tr rm -rf
+	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "LSPI.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "LSPI.c"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "greedy.c"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "greedy.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.c"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "criteria.c"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "criteria.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "IRL_Globals.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "LSTDmu.c"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "LSTDmu.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "utils.c"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "utils.h"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "code"   | xargs -t rm &&\
+	find . -maxdepth 1 -iname "doc"   | xargs -t rm -rf
     #+end_src
 * Org files
   I use [[http://orgmode.org/][org-mode]] to write my code.
 
   The .org files containing both some code and its documentation are :
   #+begin_src makefile :tangle Makefile
-ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org TaskTransfer.org NouveauxAlgos.org
+ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org TaskTransfer.org NouveauxAlgos.org
   #+end_src
 
 ** Documentation
