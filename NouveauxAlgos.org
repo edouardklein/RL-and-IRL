@@ -132,37 +132,38 @@ class LAFEM:
    L'algorithme se déroule comme suit : 
    #+begin_src python :tangle LAFEM.py
    def run( self ):
-      omega = omega_0
+      omega = self.omega_0.copy()
    #+end_src
    - Pour le nombre d'itérations prévues :
      #+begin_src python :tangle LAFEM.py
-      for t in range(0,T):
+      for t in range(0,self.T):
      #+end_src
      - Initialiser $\Delta\omega \leftarrow [0...0]^T$
        #+begin_src python :tangle LAFEM.py
-         DeltaOmega = zeros(( omega_0.size, 1 ))
+         DeltaOmega = zeros(( self.omega_0.size, 1 ))
        #+end_src
      - Pour chacun des points de données
        #+begin_src python :tangle LAFEM.py
-         for sa in data:
+         for sa in self.data:
        #+end_src
        - Déterminer $a^* = \arg\max\limits_{a} = \omega_t ^T \mu_E(s_i,a) + l(s_i,a)$
          #+begin_src python :tangle LAFEM.py
             val = -Inf
             a_star = array([])
-            for a in A:
-               newval = dot( omega.transpose(), mu_E( sa.s, a ) ) + l( sa.s, a )
-               if newval > val:
+            for a in self.A:
+               newval = dot( omega.transpose(), self.mu_E( sa[0], a ) ) + self.l( sa[0], a )
+               assert(newval.size == 1)
+               if newval[0] > val:
                   val = newval
                   a_star = a
          #+end_src
        - $\Delta\omega \leftarrow \Delta\omega + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$	 
          #+begin_src python :tangle LAFEM.py
-            DeltaOmega = DeltaOmega + mu_E( sa.s, a_star ) - mu_E( sa.s, sa.a )
+            DeltaOmega = DeltaOmega + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
          #+end_src
      - Effectuer la mise à jour $\omega_{t+1} = \omega_t -\alpha_t\Delta\omega$
        #+begin_src python :tangle LAFEM.py
-            omega = omega - alpha( t ) * DeltaOmega
+            omega = omega - self.alpha( t ) * DeltaOmega
        #+end_src
    - retourner $\omega_T$
      #+begin_src python :tangle LAFEM.py
@@ -232,11 +233,11 @@ g_fGamma = 0.9
 def NA_DP_mu( pi, Phi ):
     "Returns the matrix corresponding to the feature expectation of the given policy."
     global g_fGamma
-    answer = rand( Phi.shape[0], Phi.shape[1] )
+    answer = scipy.rand( Phi.shape[0], Phi.shape[1] )
     changed = True
     while changed:
         new_answer = Phi + g_fGamma*dot(pi,answer)
-        diff = norm( new_answer - answer)
+        diff = sum( abs( new_answer - answer ) )
         answer = new_answer
         if diff > 0.01:
             changed = True
@@ -250,6 +251,8 @@ def NA_DP_mu( pi, Phi ):
     #+begin_src python :tangle NA_Exp1.py
 from a2str import *
 from LAFEM import *
+from NA_DP_mu import *
+from TT_DP import *
     #+end_src
     
     On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
@@ -304,8 +307,10 @@ class LAFEM_Exp1( LAFEM ):
             elif all(pi_s == self.P_east[index]):
                 self.Pi_E_txt[l2str(s)] = 'East'
             else:
+                print 'On narrive pas a reconnaitre la politique de lexpert'
                 exit(-1)
-            self.data = self.data+[ [ s, self.Pi_E_txt[a2str(s)] ] ]
+            self.data = self.data+[ [ s, self.Pi_E_txt[l2str(s)] ] ]
+
       #+end_src
     On calcule les matrices de /feature expectation/
       #+begin_src python :tangle NA_Exp1.py
@@ -319,7 +324,7 @@ class LAFEM_Exp1( LAFEM ):
     On définit la fonction de perte $l$ :
     #+begin_src python :tangle NA_Exp1.py
     def l( self, s, a ):
-        if self.Pi_E_txt[a2str(s)] == a:
+        if self.Pi_E_txt[l2str(s)] == a:
             return 0
         else:
             return 1
@@ -331,23 +336,24 @@ class LAFEM_Exp1( LAFEM ):
         mu_a = array([])
         if a == 'North':
             mu_a = self.Mu_north
-        if a == 'West':
+        elif a == 'West':
             mu_a = self.Mu_west
-        if a == 'East':
+        elif a == 'East':
             mu_a = self.Mu_east
-        if a == 'South':
+        elif a == 'South':
             mu_a = self.Mu_south
         else:
+            print "On calcule mu sur une action qui nexiste pas"
             exit(-1)
         index = s[0]+5*s[1]
-        return (mu_a[index]).transpose()
+        return (zeros((1,25)) + mu_a[index]).transpose() #Ugly hack to get a column vector and not a line vector
     #+end_src
     
 
 
     On définit $\alpha(t) = 0.1,\forall t$ (pifomètre)
       #+begin_src python :tangle NA_Exp1.py
-    def alpha( t ):
+    def alpha( self, t ):
         return 0.1
       #+end_src
     On initialise $\omega_0 = [0...0]^T$
@@ -358,8 +364,36 @@ class LAFEM_Exp1( LAFEM ):
       #+begin_src python :tangle NA_Exp1.py
     T = 20
       #+end_src
+**** Affichage de la politique
+     On crée une fonction permettant un joli affichage de la politique, pour comparer celle de l'expert et celle de l'agent : 
+      #+begin_src python :tangle Pi2Asciiart.py
+def Pi2Asciiart( S, Pi ):
+    answer = {}
+    P_north = genfromtxt( "TT_5x5_PENorth.mat" )
+    P_east = genfromtxt( "TT_5x5_PEEast.mat" )
+    P_west = genfromtxt( "TT_5x5_PEWest.mat" )
+    P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+    for s in S():
+        index = s[0]+5*s[1]
+        pi_s = self.Pi[index]
+        a = ''
+        if all(pi_s == self.P_north[index]):
+            answer[l2str(s)] = 'North'
+        elif all(pi_s == self.P_south[index]):
+            answer[l2str(s)] = 'South'
+        elif all(pi_s == self.P_west[index]):
+            answer[l2str(s)] = 'West'
+        elif all(pi_s == self.P_east[index]):
+            answer[l2str(s)] = 'East'
+        else:
+            print 'On narrive pas a reconnaitre la politique'
+            exit(-1)
+    return answer
+      #+end_src
+     
 **** Expérience 1
      On fait tourner le machin :
+
       #+begin_src python :tangle NA_Exp1.py
 lafem = LAFEM_Exp1()
 omega_lafem = lafem.run()
@@ -367,7 +401,7 @@ omega_lafem = lafem.run()
      
      Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
      #+begin_src python :tangle NA_Exp1.py
-Pi = TT_DP( omega_lafem, (P_north, P_south, P_west, P_east) )
+Pi = TT_DP( omega_lafem, (lafem.P_north, lafem.P_south, lafem.P_west, lafem.P_east) )
      #+end_src
       
      Définir une politique stochastique uniforme $\pi_r$
@@ -377,23 +411,25 @@ true_reward = zeros((25,1))
 true_reward[4,0] = 1
 perf_expert = 0
 cnt = 0
-for s in S:
+for s in lafem.S():
     index = s[0] + 5*s[1]
-    perf_expert = perf_expert + dot( true_reward.transpose(), Mu_E[index].transpose() )
+    perf_expert = perf_expert + dot( true_reward.transpose(), lafem.Mu_E[index].transpose() )
     cnt = cnt + 1
 perf_expert = perf_expert/cnt
 
 Mu_pi = NA_DP_mu( Pi, identity(25) )
 perf_agent = 0
 cnt = 0
-for s in S:
+for s in lafem.S():
     index = s[0] + 5*s[1]
     perf_agent = perf_agent + dot( true_reward.transpose(), Mu_pi[index].transpose() )
+    cnt = cnt + 1
+perf_agent = perf_agent/cnt
 
 print "Performance moyenne de l'expert : "
 print perf_expert
 
-print "Performance moyenne de l'agent"
+print "Performance moyenne de l'agent :"
 print perf_agent
       #+end_src
       
