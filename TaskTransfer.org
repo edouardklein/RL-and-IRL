@@ -411,7 +411,7 @@ for a in range(0,4):
 
 R = zeros((25,1))
 R[4,0] = 1
-P_pi = TT_DP( R, (P_north, P_south, P_west, P_east) )
+P_pi = TT_DP_txt( R, (P_north, P_south, P_west, P_east), "V_expert.mat" )
 f = open( "TT_5x5_Ppi.mat", "w" )
 f.write( a2str(P_pi) )
 f.close()
@@ -1011,6 +1011,47 @@ def TT_DP( Reward, Actions ):
     Ppi = zeros((n,n))
     for s in range(0,n):
         Ppi[s] = (g_vActions[ g_vPi[s] ])[s]
+    return Ppi
+
+
+def TT_DP_txt( Reward, Actions, Filename ):
+    "Same as TT_DP, mais sauve la fonction de valeur dans un fichier."
+    #pdb.set_trace()
+    global g_vReward
+    global g_vActions
+    global g_vV
+    global g_vPi
+    n = len( Reward )
+    m = len( Actions )
+    g_vReward = Reward
+    g_vActions = Actions
+    g_vPi = map( int, floor( scipy.rand( n )*m ) )
+    g_vV = scipy.rand( n )
+    #While things change,
+    changed = True
+    while changed:
+        changed = 0
+        #For each state
+        for s in range(0,n):
+            old_pi = g_vPi[ s ]
+            old_V = g_vV[ s ]
+            chosen_a = 0
+            max_Q = TT_Q( s, chosen_a )
+            #Select the action that maximizes Q
+            for a in range(0,m):
+                Q = TT_Q( s, a )
+                if( Q > max_Q ):
+                    max_Q = Q
+                    chosen_a = a
+            g_vPi[ s ] = chosen_a
+            g_vV[ s ] = max_Q
+            if( g_vPi[ s ] != old_pi or g_vV[ s ] != old_V ):
+                changed = 1
+    #Construct the pobability matrix from the policy
+    Ppi = zeros((n,n))
+    for s in range(0,n):
+        Ppi[s] = (g_vActions[ g_vPi[s] ])[s]
+    savetxt( Filename, g_vV, "%e", "\t" )
     return Ppi
 
     #+end_src

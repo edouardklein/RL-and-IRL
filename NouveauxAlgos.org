@@ -253,6 +253,7 @@ from a2str import *
 from LAFEM import *
 from NA_DP_mu import *
 from TT_DP import *
+from Pi2txt import *
     #+end_src
     
     On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
@@ -294,23 +295,9 @@ class LAFEM_Exp1( LAFEM ):
         self.P_east = genfromtxt( "TT_5x5_PEEast.mat" )
         self.P_west = genfromtxt( "TT_5x5_PEWest.mat" )
         self.P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+        self.Pi_E_txt = Pi2txt( self.S, self.Pi_E )
         for s in self.S():
-            index = s[0]+5*s[1]
-            pi_s = self.Pi_E[index]
-            a = ''
-            if all(pi_s == self.P_north[index]):
-                self.Pi_E_txt[l2str(s)] = 'North'
-            elif all(pi_s == self.P_south[index]):
-                self.Pi_E_txt[l2str(s)] = 'South'
-            elif all(pi_s == self.P_west[index]):
-                self.Pi_E_txt[l2str(s)] = 'West'
-            elif all(pi_s == self.P_east[index]):
-                self.Pi_E_txt[l2str(s)] = 'East'
-            else:
-                print 'On narrive pas a reconnaitre la politique de lexpert'
-                exit(-1)
             self.data = self.data+[ [ s, self.Pi_E_txt[l2str(s)] ] ]
-
       #+end_src
     On calcule les matrices de /feature expectation/
       #+begin_src python :tangle NA_Exp1.py
@@ -366,8 +353,12 @@ class LAFEM_Exp1( LAFEM ):
       #+end_src
 **** Affichage de la politique
      On crée une fonction permettant un joli affichage de la politique, pour comparer celle de l'expert et celle de l'agent : 
-      #+begin_src python :tangle Pi2Asciiart.py
-def Pi2Asciiart( S, Pi ):
+      #+begin_src python :tangle Pi2txt.py
+from numpy import *
+import scipy
+from a2str import *
+
+def Pi2txt( S, Pi ):
     answer = {}
     P_north = genfromtxt( "TT_5x5_PENorth.mat" )
     P_east = genfromtxt( "TT_5x5_PEEast.mat" )
@@ -375,20 +366,46 @@ def Pi2Asciiart( S, Pi ):
     P_south = genfromtxt( "TT_5x5_PESouth.mat" )
     for s in S():
         index = s[0]+5*s[1]
-        pi_s = self.Pi[index]
+        pi_s = Pi[index]
         a = ''
-        if all(pi_s == self.P_north[index]):
+        if all(pi_s == P_north[index]):
             answer[l2str(s)] = 'North'
-        elif all(pi_s == self.P_south[index]):
+        elif all(pi_s == P_south[index]):
             answer[l2str(s)] = 'South'
-        elif all(pi_s == self.P_west[index]):
+        elif all(pi_s == P_west[index]):
             answer[l2str(s)] = 'West'
-        elif all(pi_s == self.P_east[index]):
+        elif all(pi_s == P_east[index]):
             answer[l2str(s)] = 'East'
         else:
             print 'On narrive pas a reconnaitre la politique'
             exit(-1)
     return answer
+
+def Pi2Asciiart( Pi ):
+    answer = ''
+    P_north = genfromtxt( "TT_5x5_PENorth.mat" )
+    P_east = genfromtxt( "TT_5x5_PEEast.mat" )
+    P_west = genfromtxt( "TT_5x5_PEWest.mat" )
+    P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+    for y in range(0,5):
+        for x in range(0,5):
+            index = x+5*y
+            pi_s = Pi[index]
+            a = ''
+            if all(pi_s == P_north[index]):
+                answer = answer + ' ^'
+            elif all(pi_s == P_south[index]):
+                answer = answer + ' v'
+            elif all(pi_s == P_west[index]):
+                answer = answer + ' <'
+            elif all(pi_s == P_east[index]):
+                answer = answer + ' >'
+            else:
+                print 'On narrive pas a reconnaitre la politique'
+                exit(-1)
+        answer = answer + '\n'
+    return answer
+
       #+end_src
      
 **** Expérience 1
@@ -401,7 +418,7 @@ omega_lafem = lafem.run()
      
      Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
      #+begin_src python :tangle NA_Exp1.py
-Pi = TT_DP( omega_lafem, (lafem.P_north, lafem.P_south, lafem.P_west, lafem.P_east) )
+Pi = TT_DP_txt( omega_lafem, (lafem.P_north, lafem.P_south, lafem.P_west, lafem.P_east), "V_agent.mat" )
      #+end_src
       
      Définir une politique stochastique uniforme $\pi_r$
@@ -431,6 +448,51 @@ print perf_expert
 
 print "Performance moyenne de l'agent :"
 print perf_agent
+
+print "Politique de l'expert :"
+print Pi2Asciiart( lafem.Pi_E )
+
+print "Politique de l'agent : "
+print Pi2Asciiart( Pi )
+
+V_agent = genfromtxt("V_agent.mat")
+V_expert = genfromtxt("V_expert.mat")
+
+
+f = open( "V_agent_plot.txt", "w" )
+
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,V_agent[index]) )
+    f.write("\n")
+f.close()
+
+
+f = open( "V_expert_plot.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,V_expert[index]) )
+    f.write("\n")
+f.close()
+
+f = open( "True_reward.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,true_reward[index]) )
+    f.write("\n")
+f.close()
+
+f = open( "retrieved_reward.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,omega_lafem[index]) )
+    f.write("\n")
+f.close()
+
       #+end_src
       
 *** Résultats
