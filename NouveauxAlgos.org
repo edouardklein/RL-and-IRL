@@ -83,7 +83,7 @@
    - retourner $\omega_T$
 
 * Code :code:
-** LAFEM
+** Implémentation python de LAFEM
    L'algorithme est implémenté dans une classe abstraite en python. Les éléments nécessaires à l'algorithme sont définis comme des fonctions abstraites, ce qui fait qu'il est impossible de créer ou d'utiliser cette classe sans la sous classer en définissant les éléments nécessaires.
 
 #+begin_src python :tangle LAFEM.py
@@ -193,36 +193,35 @@ class LAFEM:
     - Comparer $E[\omega^T\mu_E(s)| s\in S]$, $E[\omega^T\mu_\pi(s)| s\in S]$ et $E[\omega^T\mu_r(s)| s\in S]$
 
 *** Code :code:
-**** Calcul exact de la /feature expectation/
-     En ce qui concerne l'implémentation, on reprend le protocole ci dessus et on se soucie des détails.
+**** Helper code
+***** Calcul exact de la /feature expectation/
+      De la même manière qu'il est possible d'écrire l'equation de Bellman sous forme matricielle : 
+      \begin{equation}
+      V^\pi = R + \gamma P_\pi V^\pi 
+      \end{equation}
+      On peut écrire le même type d'équation pour $\mu$, pour une composante $i$ :
+      \begin{equation}
+      \mu^\pi_i = \phi_i + \gamma P_\pi\mu^\pi_i 
+      \end{equation}
+      Si l'on considère la matrice $\mathbf \mu$ comme étant indexée par les états sur les lignes et par les composentes sur les colonnes, et la même technique pour la matrice $\mathbf \Phi$, alors il est possible d'écrire : 
+      \begin{equation}
+      \mathbf \mu^\pi = \mathbf\Phi + \gamma P_\pi\mathbf\mu^\pi
+      \end{equation}
+      Grâce à cette équation il est possible d'adapter les algorithmes de programmation dynamique itératifs pour obtenir un calcul exact de $\mathbf \mu^\pi$.
 
-    De la même manière qu'il est possible d'écrire l'equation de Bellman sous forme matricielle : 
-    \begin{equation}
-    V^\pi = R + \gamma P_\pi V^\pi 
-    \end{equation}
-    On peut écrire le même type d'équation pour $\mu$, pour une composante $i$ :
-    \begin{equation}
-    \mu^\pi_i = \phi_i + \gamma P_\pi\mu^\pi_i 
-    \end{equation}
-    Si l'on considère la matrice $\mathbf \mu$ comme étant indexée par les états sur les lignes et par les composentes sur les colonnes, et la même technique pour la matrice $\mathbf \Phi$, alors il est possible d'écrire : 
-    \begin{equation}
-    \mathbf \mu^\pi = \mathbf\Phi + \gamma P_\pi\mathbf\mu^\pi
-    \end{equation}
-    Grâce à cette équation il est possible d'adapter les algorithmes de programmation dynamique itératifs pour obtenir un calcul exact de $\mathbf \mu^\pi$.
-
-    Cependant, la fonction dont nous avons besoin n'est pas $\mu^\pi : S \rightarrow \mathbb R^p$, mais $\mu^\pi : S \times A \rightarrow \mathbb R^p$ (la notation reste la même pour ne pas tout surcharger, la différence étant réglée assze vite). Ces deux fonctions ont entre elles la même relation qu'ont $V$ et $Q$.
-    Ainsi puisque l'on peut écrire :
-    \begin{eqnarray}
-    Q^\pi(s,a) &=& R(s) + \gamma P_a(s)V^\pi\\
-    Q^\pi_a &=& R + \gamma P_aV^\pi
-    \end{eqnarray}
-    On peut faire le parallèle (en notant $\mu^\pi(s,\cdot) = \mu^\pi_a(s)$) :
-    \begin{eqnarray}
-    \mu^\pi(s,a) &=& \phi(s) + \gamma P_a(s)\mathbf \mu^\pi\\
-    \mathbf \mu^\pi_a &=& \mathbf \Phi + \gamma P_a\mathbf \mu^\pi
-    \end{eqnarray}
-    
-    Pour résumer, il est possible de calculer la matrice $\mathbf \mu^\pi$ grâce à une adaptation des algorithmes de programmation dynamique, et à partir de celle ci de déduire les matrices $\mu^\pi_a$, qui sont celles dont nous avons besoin.
+      Cependant, la fonction dont nous avons besoin n'est pas $\mu^\pi : S \rightarrow \mathbb R^p$, mais $\mu^\pi : S \times A \rightarrow \mathbb R^p$ (la notation reste la même pour ne pas tout surcharger, la différence étant réglée assze vite). Ces deux fonctions ont entre elles la même relation qu'ont $V$ et $Q$.
+      Ainsi puisque l'on peut écrire :
+      \begin{eqnarray}
+      Q^\pi(s,a) &=& R(s) + \gamma P_a(s)V^\pi\\
+      Q^\pi_a &=& R + \gamma P_aV^\pi
+      \end{eqnarray}
+      On peut faire le parallèle (en notant $\mu^\pi(s,\cdot) = \mu^\pi_a(s)$) :
+      \begin{eqnarray}
+      \mu^\pi(s,a) &=& \phi(s) + \gamma P_a(s)\mathbf \mu^\pi\\
+      \mathbf \mu^\pi_a &=& \mathbf \Phi + \gamma P_a\mathbf \mu^\pi
+      \end{eqnarray}
+      
+      Pour résumer, il est possible de calculer la matrice $\mathbf \mu^\pi$ grâce à une adaptation des algorithmes de programmation dynamique, et à partir de celle ci de déduire les matrices $\mu^\pi_a$, qui sont celles dont nous avons besoin. C'est ce que fait le bout de code ci dessous.
 
     #+begin_src python :tangle NA_DP_mu.py
 from numpy import *
@@ -245,9 +244,10 @@ def NA_DP_mu( pi, Phi ):
             changed = False
     return answer
     #+end_src
-**** Configuration de LAFEM
+***** Configuration de LAFEM
+      On utilise le code fourni [[*Impl%C3%A9mentation%20python%20de%20LAFEM][ici]].
 
-    On importe ce qu'il importe d'importer
+      On importe ce qu'il importe d'importer
     #+begin_src python :tangle NA_Exp1.py
 from a2str import *
 from LAFEM import *
@@ -256,7 +256,7 @@ from TT_DP import *
 from Pi2txt import *
     #+end_src
     
-    On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
+      On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
       #+begin_src python :tangle NA_Exp1.py
 class LAFEM_Exp1( LAFEM ):
     P_north = array([])
@@ -271,7 +271,7 @@ class LAFEM_Exp1( LAFEM ):
     Mu_south = array([])
       #+end_src
 
-    On définit $S$ et $A$ de manière à pouvoir itérer dessus.
+      On définit $S$ et $A$ de manière à pouvoir itérer dessus.
     #+begin_src python :tangle NA_Exp1.py
     def Sgenerator( self ):
         for x in range(0,5):
@@ -351,8 +351,8 @@ class LAFEM_Exp1( LAFEM ):
       #+begin_src python :tangle NA_Exp1.py
     T = 20
       #+end_src
-**** Affichage de la politique
-     On crée une fonction permettant un joli affichage de la politique, pour comparer celle de l'expert et celle de l'agent : 
+***** Affichage de la politique
+     On crée une fonction permettant un joli affichage de la politique, pour comparer celle de l'expert et celle de l'agent, ainsi qu'une fonction changeant le format de la politique, nécessaire pour notre implémentation : d'une matrice de probabilités de transition, elle devient un dictionnaire qui à une chaîne représentant un état associe un mot réprésentant une action. 
       #+begin_src python :tangle Pi2txt.py
 from numpy import *
 import scipy
@@ -408,21 +408,19 @@ def Pi2Asciiart( Pi ):
 
       #+end_src
      
-**** Expérience 1
-     On fait tourner le machin :
-
+**** Main code
+***** Faire tourner l'expérience
       #+begin_src python :tangle NA_Exp1.py
 lafem = LAFEM_Exp1()
 omega_lafem = lafem.run()
       #+end_src
      
-     Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
+     Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$ :
      #+begin_src python :tangle NA_Exp1.py
 Pi = TT_DP_txt( omega_lafem, (lafem.P_north, lafem.P_south, lafem.P_west, lafem.P_east), "V_agent.mat" )
      #+end_src
-      
-     Définir une politique stochastique uniforme $\pi_r$
-     Comparer $E[\omega^T\mu_E(s)| s\in S]$, $E[\omega^T\mu_\pi(s)| s\in S]$ et $E[\omega^T\mu_r(s)| s\in S]$
+***** Sauver les données pour les résultats
+     Comparer $E[\omega^T\mu_E(s)| s\in S]$ et $E[\omega^T\mu_\pi(s)| s\in S]$ :
      #+begin_src python :tangle NA_Exp1.py
 true_reward = zeros((25,1))
 true_reward[4,0] = 1
@@ -449,17 +447,24 @@ print perf_expert
 print "Performance moyenne de l'agent :"
 print perf_agent
 
+     #+end_src
+
+     Afficher les deux politiques : 
+     #+begin_src python :tangle NA_Exp1.py
 print "Politique de l'expert :"
 print Pi2Asciiart( lafem.Pi_E )
 
 print "Politique de l'agent : "
 print Pi2Asciiart( Pi )
+     #+end_src
 
+     Sauver les données pour l'affichage des fonctions de valeur :
+     #+begin_src python :tangle NA_Exp1.py
 V_agent = genfromtxt("V_agent.mat")
 V_expert = genfromtxt("V_expert.mat")
 
 
-f = open( "V_agent_plot.txt", "w" )
+f = open( "V_agent.txt", "w" )
 
 for y in range(0,5):
     for x in range(0,5):
@@ -469,7 +474,7 @@ for y in range(0,5):
 f.close()
 
 
-f = open( "V_expert_plot.txt", "w" )
+f = open( "V_expert.txt", "w" )
 for y in range(0,5):
     for x in range(0,5):
         index = x+5*y
@@ -477,6 +482,10 @@ for y in range(0,5):
     f.write("\n")
 f.close()
 
+     #+end_src
+
+     Sauver les données pour l'affichage des récompenses :
+     #+begin_src python :tangle NA_Exp1.py
 f = open( "True_reward.txt", "w" )
 for y in range(0,5):
     for x in range(0,5):
@@ -494,7 +503,23 @@ for y in range(0,5):
 f.close()
 
       #+end_src
+**** Plot code
+     Il faut maintenant créer des pdf à partir des données générées lors de l'expérience, pour faire de jolies figures pour un éventuel papier.
+***** Tracé des fonctions de valeurs
+      Le fichier .gp qui va bien :
+#+begin_src gnuplot :tangle NA_Exp1_V_expert.gp
+set pm3d
+set output "V_expert.ps"
+set term postscript enhanced color
+splot V_expert.txt
+#+end_src
       
+      Et les règles du Makefile correspondantes : 
+#+begin_src makefile :tangle Makefile
+V_expert.pdf: NA_Exp1_V_expert.gp V_expert.txt
+	gnuplot NA_Exp1_V_expert.gp
+	ps2pdf V_expert.ps
+#+end_src
 *** Résultats
 * Making this document :code:
 
