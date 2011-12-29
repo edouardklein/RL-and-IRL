@@ -39,7 +39,6 @@ clean: Generator_clean lagoudakis2003least_figure10_clean
 ** Inception
 
    #+begin_src makefile :tangle Makefile :noweb yes
-.PHONY: Makefile
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
    #+end_src

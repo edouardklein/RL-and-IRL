@@ -434,12 +434,6 @@ TT_5x5_R3.gp: TT_Exp1.org
 TT_5x5_agentAsExpert.py: TT_Exp1.org 
 	$(call tangle,"TT_Exp1.org")
   #+end_src
-*** Parent Dir targets
-    On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
-#+srcname: TT_Exp1_make
-#+begin_src makefile
-#+end_src
-
 *** Experiment targets
     L'expérience produit quelques figures, et affiche des infos sur la sortie standard.
 #+srcname: TT_Exp1_make

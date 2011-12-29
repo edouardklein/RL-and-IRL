@@ -25,7 +25,7 @@ Those who do not fit in the others categories (because they fit in more than one
 <<TT_Test3_make>>
   #+end_src
 ** Code extraction
-  #+begin_src makefile :tangle Makefile
+  #+begin_src makefile :tangle Makefile :noweb yes
 <<LSPI_code_make>>
 <<LSTDQ_code_make>>
 <<LSTDmu_code_make>>
@@ -48,7 +48,7 @@ export CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
 export LFLAGS=`pkg-config --libs gsl` -lm -O3
     #+end_src
   
-#+begin_src makefile :tangle Makefile
+#+begin_src makefile :tangle Makefile :noweb yes
 <<LSPI_c2o_make>>
 <<LSTDQ_c2o_make>>
 <<LSTDmu_c2o_make>>
@@ -142,7 +142,6 @@ Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tang
 
   #+begin_src makefile :tangle Makefile :noweb yes
 SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality
-.PHONY: Makefile
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 

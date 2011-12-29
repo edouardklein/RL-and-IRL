@@ -95,16 +95,13 @@ Those who do not fit in the others categories (because they fit in more than one
 <<LSTDmu_o2exe_make>>
   #+end_src
 
-** Org source to PDF
-    #+begin_src makefile :tangle Makefile :noweb yes
-    #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
 <<Generator_clean_make>>
 <<InvertedPendulum_clean_make>>
 <<Simulator_clean_make>>
-<<LSTDmu_clean_make>>
-clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_clean
+<<LSTDmu_Exp_clean_make>>
+clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean
 
     #+end_src
 
@@ -112,7 +109,6 @@ clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_clean
 ** Inception
 
    #+begin_src makefile :tangle Makefile :noweb yes
-.PHONY:Makefile
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
    #+end_src

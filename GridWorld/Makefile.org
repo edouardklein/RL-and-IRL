@@ -6,7 +6,7 @@
 ** Misc.
 Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
   #+begin_src makefile :tangle Makefile :noweb yes
-<<Gridworld_make>>
+<<GridWorld_make>>
 <<LAFEM_Exp1_make>>
 <<LSTDmu_Exp_make>>
 <<TT_Exp1_make>>
@@ -34,9 +34,6 @@ Those who do not fit in the others categories (because they fit in more than one
 <<Generator_o2exe_make>>
   #+end_src
 
-** Org source to PDF
-    #+begin_src makefile :tangle Makefile :noweb yes
-    #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
 <<LAFEM_Exp1_clean_make>>
@@ -52,7 +49,6 @@ clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulat
 ** Inception
 
    #+begin_src makefile :tangle Makefile :noweb yes
-.PHONY:Makefile
 
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org

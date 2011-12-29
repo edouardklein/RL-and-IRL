@@ -307,7 +307,7 @@ LAFEM_Exp1_V_expert.gp: LAFEM_Exp1.org
 ../DP_mu.py:
 	make -C .. DP_mu.py
 
-../DP.py
+../DP.py:
 	make -C .. DP.py
 #+end_src
 

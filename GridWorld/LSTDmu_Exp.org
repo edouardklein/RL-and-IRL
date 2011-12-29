@@ -353,7 +353,8 @@ criteria_lstd.dat: plot.dat
 	cat plot.dat | grep -E "^B " | sed "s/B //"> criteria_lstd.dat
   #+end_src
 *** Error for both methods
-    #+begin_src make :tangle Makefile
+  #+srcname: LSTDmu_Exp_make
+  #+begin_src makefile
 both_error_EB.tex: both_error_EB.pdf
 	cat both_error_EB.tex | sed "s|both_error_EB|../Code/GridWorld/both_error_EB|g" > tmp.tex && mv tmp.tex both_error_EB.tex
 
@@ -374,8 +375,7 @@ both_error.dat: criteria_mc_samples.dat criteria_lstd.dat
 
 criteria_mc_samples.dat: plot.dat
 	cat plot.dat | grep -E "^C " | sed "s/C //"> criteria_mc_samples.dat
-
-#+end_src
+  #+end_src
 ** Cleaning
   #+srcname: LSTDmu_Exp_clean_make
   #+begin_src makefile
@@ -419,3 +419,4 @@ LSTDmu_Exp_clean:
 	find . -maxdepth 1 -iname "criteria_mc_samples.dat"   | xargs -t rm
 
   #+end_src
+   
