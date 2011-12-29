@@ -239,4 +239,29 @@ gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,
   return g_mBest_omega;
 }
      #+end_src
-     
+** Makefile rules
+   Some rules to tangle the source files :
+   #+srcname: a2a_code_make
+  #+begin_src makefile
+abbeel2004apprenticeship.c: abbeel2004apprenticeship.org 
+	$(call tangle,"abbeel2004apprenticeship.org")
+
+abbeel2004apprenticeship.h: abbeel2004apprenticeship.org 
+	$(call tangle,"abbeel2004apprenticeship.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: a2a_c2o_make
+  #+begin_src makefile
+abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h RL_Globals.h IRL_Globals.h criteria.h
+	$(call c2obj,"abbeel2004apprenticeship.c")
+  #+end_src
+
+   A rule to clean the mess :
+  #+srcname: a2a_clean_make
+  #+begin_src makefile
+a2a_clean:
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.h"   | xargs -t rm
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.c"   | xargs -t rm 
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.o"   | xargs -t rm
+  #+end_src

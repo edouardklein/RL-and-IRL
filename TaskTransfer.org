@@ -274,438 +274,8 @@ The following holds:  $R_1\equiv R_2$
    Further research is needed in the light of those experiment.
 
 * Experiments
-** /Free slacks/ search on the GridWorld
-   
-*** Goal
-   The goal of this  experiment is to reproduce some of the results of \cite{ng2000algorithms} with the /free slacks/ search method and to investigate task transfer on this setting.
-
-*** Protocol
-
-   The setting is a noisy $5\times 5$ Gridworld : the expert can choose from the $4$ compass directions, and there is a $30\%$ chance of a noisy execution, sending it in one of the other $3$ directions. The reward on which the expert is trained is a reward null everywhere, except for one corner, where it is 1. By convention, the corner opposite to where the reward is non null is viewed as the starting state, noted $s_0$. The optimal policy is computed by a /Dynamic programming/ algorithm and differs from the one in \cite{ng2000algorithms}.\\
-
-   The optimal policy, along with the description of the four possible actions is fed to our algorithm in its /free slacks/ variant.\\
-
-   The agent to be trained in order to test the task transfer is more powerful than the expert, in the sense that on top of moving in the $4$ compass directions it can also move in the $4$ diagonal directions. The agent has the same movements as a king in the game of chess. The action is still noisy : every movement has a 72% probability of sucess. If it fails the agent will move in any other direction.\\
-
-   This agent is first trained on the true reward (the same that has been used to train the expert) and the /agent as expert/ value (see Def. \ref{agentasexpert.def}) is computed.\\
-
-   The agent is then trained on all the rewards output by our algorithm, and the corresponding starting values (see Def. \ref{startingvalue.def}) are compared to the /agent as expert/ value.\\
-*** Results
-
-    The three rewards our algorithm has found are shown Fig. \ref{slacksfreeR.fig}. Trained on any of these rewards, the expert would exhibit the same performance as if trained on the true reward.\\
-
-    The comparison between the /agent as expert/ value and the starting values of the agent when trained on the found rewards can be found Table \ref{slacksfreeR.table}. For every reward, the agent is better than the expert, which is to be expected when the agent is more potent than the expert. For two rewards out of three, the agent is as good as if it had been trained on the true reward. When observing the policies, one can notice the heavy use the agent make of its ability to move diagonally. This is a successful example of task transfer.\\
-
-    this technique has a low computational cost : we have to solve $\begin{pmatrix}2n\\2\end{pmatrix} = O(n^2)$ linear systems of $m+2$ equations, as $m$ is bounded by $(Card(A)-1)n$ and a linear system of $p$ equations, $p$ variables can be solved at a cost of $O(p^3)$, the total cost of the /all slacks/ method is $O(n^5)$. 
-   #+begin_figure
-\centering
-
-\subfigure[Reward 1]{
-   \label{slacksfreeR1.fig}
-   \includegraphics[width=0.4\textwidth] {TT_5x5_R1.pdf}
- }
-\subfigure[Reward 2]{
-   \label{slacksfreeR2.fig}
-   \includegraphics[width=0.4\textwidth] {TT_5x5_R2.pdf}
- }
-\subfigure[Reward 3]{
-   \label{slacksfreeR3.fig}
-   \includegraphics[width=0.4\textwidth] {TT_5x5_R3.pdf}
- }
-
-\caption{The three rewards output by the /slacks free/ search method on the $5\times 5$ Gridworld}
-\label{slacksfreeR.fig}
-   #+end_figure
-
-    #+LABEL: slacksfreeR.table
-    #+CAPTION: /Agent as expert/ value and starting value for all rewards
-    #+ATTR_LaTeX: tabularx align=|X|X|X|X|X| width=\textwidth
-    |---------------+-------------------+----------------------------------------+----------------------------------------+----------------------------------------|
-    | Reward        | $R$ (true reward) | $R_1$ (see Fig.\ref{slacksfreeR1.fig}) | $R_2$ (see Fig.\ref{slacksfreeR2.fig}) | $R_3$ (see Fig.\ref{slacksfreeR3.fig}) |
-    |---------------+-------------------+----------------------------------------+----------------------------------------+----------------------------------------|
-    | Stating value |          4.814387 |                               4.374254 |                               4.814387 |                               4.814387 |
-    |---------------+-------------------+----------------------------------------+----------------------------------------+----------------------------------------|
-*** Code :code:
-    
-    States are indexed from 0 to 24 in the reading order. The action and policy matrices for the expert are created using the following piece of code, which describes the same setting as in \cite{ng2000algorithms} : 
-    #+begin_src python :tangle TT_5x5_expertPGen.py
-from numpy import *
-import scipy
-from a2str import*
-from TT_DP import*
-
-P_north = zeros((25,25))
-P_east = zeros((25,25))
-P_south = zeros((25,25))
-P_west = zeros((25,25))
-
-for a in range(0,4):
-    P_a = zeros((25,25))
-    for x in range(0,5):
-        for y in range(0,5):
-            index = x+5*y
-            x_north = x
-            y_north = 0
-            if( y != 0 ):
-                y_north = y-1
-            index_north = x_north + 5*y_north
-                
-            x_south = x
-            y_south = 4
-            if( y != 4 ):
-                y_south = y+1
-            index_south = x_south + 5*y_south
-
-            y_west = y
-            x_west = 0
-            if( x != 0 ):
-                x_west = x-1
-            index_west = x_west + 5*y_west
-
-            y_east = y
-            x_east = 4
-            if( x != 4 ):
-                x_east = x+1
-            index_east = x_east + 5*y_east
-
-            main_i = -1
-            others = [-1,-1,-1]
-            filename = "stderr"
-            if( a == 0 ):
-                main_i = index_north
-                others = [index_south,index_west,index_east]
-            elif( a == 1):
-                main_i = index_east
-                others = [index_south,index_west,index_north]
-            elif( a == 2):
-                main_i = index_south
-                others = [index_north,index_west,index_east]
-            elif( a == 3):
-                main_i = index_west
-                others = [index_south,index_north,index_east]
-            
-            P_a[index,main_i] +=0.7
-            for i in others:
-                P_a[index,i] +=0.1
-            
-            if( a == 0 ):
-                P_north = P_a.copy()
-            elif( a == 1):
-                P_east = P_a.copy()
-            elif( a == 2):
-                P_south = P_a.copy()
-            elif( a == 3):
-                P_west = P_a.copy()
-
-    if( a == 0 ):
-        filename = "TT_5x5_PENorth.mat"
-    elif( a == 1):
-        filename = "TT_5x5_PEEast.mat"
-    elif( a == 2):
-        filename = "TT_5x5_PESouth.mat"
-    elif( a == 3):
-        filename = "TT_5x5_PEWest.mat"
-    f = open( filename, "w" )
-    f.write( a2str(P_a) )
-    f.close()
-
-R = zeros((25,1))
-R[4,0] = 1
-P_pi = TT_DP_txt( R, (P_north, P_south, P_west, P_east), "V_expert.mat" )
-f = open( "TT_5x5_Ppi.mat", "w" )
-f.write( a2str(P_pi) )
-f.close()
-        #+end_src
-
-   The constraint matrix is then computed from this information :
-#+srcname: TT_exp1_make
-#+begin_src makefile
-TT_exp1:
-	python TT_5x5_expertPGen.py 
-	python Constraint.py TT_5x5_Ppi.mat TT_5x5_PENorth.mat TT_5x5_PEWest.mat TT_5x5_PESouth.mat TT_5x5_PEEast.mat > TT_5x5_C.mat
-#+end_src
-
-   And fed to the TaskTransfer program using the /slacks free/ method :
-#+begin_src python :noweb yes :tangle TaskTransfer_SF.py
-#!/usr/bin/python
-import sys
-from numpy import *
-import scipy
-import itertools
-from sets import *
-from a2str import *
-
-#import pdb
-
-g_mC = genfromtxt(sys.argv[1])
-g_iN = g_mC.shape[1]
-g_iM = g_mC.shape[0]
-
-#print "C matrix : %d equations in %d variables"% (g_iM,g_iN)
-<<TT_linesCreation_py>>
-
-#print A
-BFS = Set()
-index = 0
-standard_sols=[]
-<<TT_slacksfree_py>>
-<<TT_linearSystem_py>>
-
-#print "All solutions are : "
-toPrint = ""
-empty = True
-for R in BFS:
-    toPrint+=R
-    empty = False
-print toPrint
-if empty:
-    exit(1)
-else:
-    exit(0)
-#+end_src
-#+srcname: TT_exp1_make
-#+begin_src makefile
-	python TaskTransfer_SF.py TT_5x5_C.mat > TT_5x5_Rewards.mat
-#+end_src
-
-   We get 3 rewards we can plot.
-
-   First, a small utility to make the reward be displayed in a form GNUplot can understand
-   #+begin_src python :tangle TT_5x5_mat2gp.py
-#!/usr/bin/python
-import sys
-from numpy import *
-import scipy
-import itertools
-from sets import *
-from a2str import *
-
-#import pdb
-
-R = genfromtxt(sys.argv[1])
-index = int(sys.argv[2])
-
-R = R[index,:]
-
-for x in range(0,5):
-    for y in range(0,5):
-        print "%d %d %f"%(x,y,R[x+5*y])
-    print ""
-   #+end_src
-   We use it for the three rewards :
-#+srcname: TT_exp1_make
-#+begin_src makefile
-	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 0 > TT_5x5_R1.mat
-	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 1 > TT_5x5_R2.mat
-	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 2 > TT_5x5_R3.mat
-   #+end_src
-
-   The GNUplot instructions :
-
-   #+begin_src text :tangle TT_5x5_R1.gp
-set term postscript enhanced color
-set output "TT_5x5_R1.ps"
-set view 64,236
-set pm3d
-splot "TT_5x5_R1.mat" notitle
-   #+end_src
-
-   #+begin_src text :tangle TT_5x5_R2.gp
-set term postscript enhanced color
-set output "TT_5x5_R2.ps"
-set view 64,236
-set pm3d
-splot "TT_5x5_R2.mat" notitle
-   #+end_src
-
-   #+begin_src text :tangle TT_5x5_R3.gp
-set term postscript enhanced color
-set output "TT_5x5_R3.ps"
-set view 64,236
-set pm3d
-splot "TT_5x5_R3.mat" notitle
-   #+end_src
-
-   PDF files are produced :
-#+srcname: TT_exp1_make
-#+begin_src makefile
-	gnuplot TT_5x5_R1.gp
-	ps2pdf TT_5x5_R1.ps
-	gnuplot TT_5x5_R2.gp
-	ps2pdf TT_5x5_R2.ps
-	gnuplot TT_5x5_R3.gp
-	ps2pdf TT_5x5_R3.ps
-#+end_src
-   
-   The figures are now ready.
-
-   The action matrices for the expert are created using the following piece of code.
-    #+begin_src python :tangle TT_5x5_agentAsExpert.py
-from numpy import *
-import scipy
-from a2str import*
-from TT_DP import*
-
-P_N = zeros((25,25))
-P_E = zeros((25,25))
-P_S = zeros((25,25))
-P_W = zeros((25,25))
-P_NE = zeros((25,25))
-P_NW = zeros((25,25))
-P_SE = zeros((25,25))
-P_SW = zeros((25,25))
-
-for a in range(0,8):
-    P_a = zeros((25,25))
-    for x in range(0,5):
-        for y in range(0,5):
-            index = x+5*y
-            x_north = x
-            y_north = 0
-            if( y != 0 ):
-                y_north = y-1
-            index_north = x_north + 5*y_north
-                
-            x_south = x
-            y_south = 4
-            if( y != 4 ):
-                y_south = y+1
-            index_south = x_south + 5*y_south
-
-            y_west = y
-            x_west = 0
-            if( x != 0 ):
-                x_west = x-1
-            index_west = x_west + 5*y_west
-
-            y_east = y
-            x_east = 4
-            if( x != 4 ):
-                x_east = x+1
-            index_east = x_east + 5*y_east
-
-            x_NE = x
-            y_NE = y
-            if( y != 0 and x!=4 ):
-                y_NE = y-1
-                x_NE = x+1
-            index_NE = x_NE + 5*y_NE
-                
-            x_NW = x
-            y_NW = y
-            if( y != 0 and x!= 0 ):
-                y_NW = y-1
-                x_NW = x-1
-            index_NW = x_NW + 5*y_NW
-
-            y_SW = y
-            x_SW = x
-            if( x != 0 and y != 4 ):
-                x_SW = x-1
-                y_SW = y+1
-            index_SW = x_SW + 5*y_SW
-
-            y_SE = y
-            x_SE = x
-            if( x != 4 and y != 4 ):
-                x_SE = x+1
-                y_SE = y+1
-            index_SE = x_SE + 5*y_SE
-
-            main_i = -1
-            others = [-1,-1,-1,-1,-1,-1,-1]
-            filename = "stderr"
-            if( a == 0 ):
-                main_i = index_north
-                others = [index_south,index_west,index_east,index_SE,index_SW,index_NE,index_NW]
-            elif( a == 1):
-                main_i = index_east
-                others = [index_south,index_west,index_north,index_SE,index_SW,index_NE,index_NW]
-            elif( a == 2):
-                main_i = index_south
-                others = [index_north,index_west,index_east,index_SE,index_SW,index_NE,index_NW]
-            elif( a == 3):
-                main_i = index_west
-                others = [index_south,index_north,index_east,index_SE,index_SW,index_NE,index_NW]
-            elif( a == 4 ):
-                main_i = index_SE
-                others = [index_south,index_west,index_east,index_north,index_SW,index_NE,index_NW]
-            elif( a == 5):
-                main_i = index_SW
-                others = [index_south,index_west,index_north,index_SE,index_east,index_NE,index_NW]
-            elif( a == 6):
-                main_i = index_NW
-                others = [index_north,index_west,index_east,index_SE,index_SW,index_NE,index_south]
-            elif( a == 7):
-                main_i = index_NE
-                others = [index_south,index_north,index_east,index_SE,index_SW,index_east,index_NW]
-            
-            P_a[index,main_i] +=0.72
-            for i in others:
-                P_a[index,i] +=0.04
-            
-            if( a == 0 ):
-                P_N = P_a.copy()
-            elif( a == 1):
-                P_E = P_a.copy()
-            elif( a == 2):
-                P_S = P_a.copy()
-            elif( a == 3):
-                P_W = P_a.copy()
-            elif( a == 4 ):
-                P_SE = P_a.copy()
-            elif( a == 5):
-                P_SW = P_a.copy()
-            elif( a == 6):
-                P_NW = P_a.copy()
-            elif( a == 7):
-                P_NE = P_a.copy()
-
-    if( a == 0 ):
-        filename = "TT_5x5_PANorth.mat"
-    elif( a == 1):
-        filename = "TT_5x5_PAEast.mat"
-    elif( a == 2):
-        filename = "TT_5x5_PASouth.mat"
-    elif( a == 3):
-        filename = "TT_5x5_PAWest.mat"
-    elif( a == 4 ):
-        filename = "TT_5x5_PASE.mat"
-    elif( a == 5):
-        filename = "TT_5x5_PASW.mat"
-    elif( a == 6):
-        filename = "TT_5x5_PANW.mat"
-    elif( a == 7):
-        filename = "TT_5x5_PANE.mat"
-    f = open( filename, "w" )
-    f.write( a2str(P_a) )
-    f.close()
-
-    #+end_src
-
-   Then, the agent as expert value is computed, along with the starting value corresponding to the other three rewards :
-    #+begin_src python :tangle TT_5x5_agentAsExpert.py
-R = zeros((25,1))
-R[4,0] = 1
-P_piAaE = TT_DP( R, (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
-foundR = genfromtxt( "TT_5x5_Rewards.mat" )
-P_pi1 = TT_DP( foundR[0,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
-P_pi2 = TT_DP( foundR[1,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
-P_pi3 = TT_DP( foundR[2,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
-VAaE = dot(linalg.inv(identity(25) - 0.9*P_piAaE),R)
-V1 = dot(linalg.inv(identity(25) - 0.9*P_pi1),R)
-V2 = dot(linalg.inv(identity(25) - 0.9*P_pi2),R)
-V3 = dot(linalg.inv(identity(25) - 0.9*P_pi3),R)
-print "Agent as expert : %f"%VAaE[20]
-print "R1 : %f"%V1[20]
-print "R2 : %f"%V2[20]
-print "R3 : %f"%V3[20]
-        #+end_src
-
-#+srcname: TT_exp1_make
-#+begin_src makefile
-	python TT_5x5_agentAsExpert.py
-#+end_src
+** Gridworld
+   See [[file:Gridworld/TT_Exp1.org][here]].
 ** Random rewards and random experts
 *** Goal
     
@@ -750,6 +320,7 @@ print "R3 : %f"%V3[20]
     These experiments, by providing counter examples, formally rejects our hypothesis and pave the way for future research.
 
 *** Code :code:
+**** Exp 2
     The code of the first protocol is : 
     #+begin_src python :tangle TT_Exp2.py
 from numpy import *
@@ -788,15 +359,29 @@ for n in range(4,7):
     print "%d %f" % (n,meanNbRewards)
     #+end_src
 
-    It can be run with
-    #+srcname: TT_exp2_make
+    It can be tangled with:
+    #+srcname: TT_Exp2_code_make
     #+begin_src makefile
-TT_exp2:
+TT_Exp2.py: TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+    #+end_src
+
+    It can be run with :
+    #+srcname: TT_Exp2_make
+    #+begin_src makefile
+TT_Exp2: TT_Exp2.py DP.py a2str.py TT.py
 	python TT_Exp2.py
     #+end_src
 
-    
-    We rewrite the secnd protocol, adding the corresponding code at each line :
+    And cleaned with :
+    #+srcname: TT_Exp2_clean_make
+    #+begin_src makefile
+TT_Exp2_clean:
+	find . -maxdepth 1 -iname "TT_Exp2.py"   | xargs -t rm
+    #+end_src
+
+**** Exp 3
+    We rewrite the second protocol, adding the corresponding code at each line :
     - Do :
       #+srcname: TT_Exp3_py
       #+begin_src python
@@ -911,56 +496,32 @@ m_A = 2
 
 <<TT_Exp3_py>>
     #+end_src
-    
-    It can be run with
-    #+srcname: TT_exp3_make
+
+    It can be tangled with :
+    #+srcname: TT_Exp3_code_make
     #+begin_src makefile
-TT_exp3:
+TT_Exp3.py: TaskTranfer.org
+	$(call tangle,"TaskTranfer.org")
+    #+end_src
+    
+    It can be run with :
+    #+srcname: TT_Exp3_make
+    #+begin_src makefile
+TT_Exp3: TT_Exp3.py DP.py a2str.py TT.py
 	python TT_Exp3.py
     #+end_src
+    And cleaned by :
+    #+srcname: TT_Exp3_clean_make
+    #+begin_src makefile
+TT_Exp3_clean:
+	find . -maxdepth 1 -iname "TT_Exp3.py"   | xargs -t rm
+    #+end_src
+
 * Code :code:
 ** Main code
-*** Helper code
-    We need the matrices to be output so that two equal matrices are output the same way.
-
-  #+begin_src python :tangle a2str.py
-#Do not indent
-def l2str_fullprecision(l):
-	"""Return a string representing line l without los of precision"""
-	answer = ""
-	for x in l:
-		answer+="%e\t"%x
-	answer +="\n"
-	return answer
-
-def l2str(l):
-	"""Return the unique string representing line l"""
-	answer = ""
-	for x in l:
-		if (abs(x)<1e-10): #FIXME : this is not right.
-			answer += " 0.00e+00\t"
-		elif (x>0):
-			answer += " %1.2e\t"%x
-		else:
-			answer += "%+1.2e\t"%x
-	answer +="\n"
-	return answer
-		
-        
-def a2str(a):
-	"""Return the unique string representing array a"""
-	answer = ""
-	for l in a:
-		answer += l2str( l )
-	return answer
-
-
-  #+end_src
-
-    We output values near 0 as 0. Instead we probably should understand why there are so much near-0 values in the normal output. I think it has to do with the linear system solver.
 *** Dynamic programming
-    We need a MDP solver. This quick and dity dynamic programming implementation will do the trick :
-    #+begin_src python :tangle TT_DP.py
+    We need a MDP solver. This quick and dirty dynamic programming implementation will do the trick :
+    #+begin_src python :tangle DP.py
 from numpy import *
 import scipy
 import pdb
@@ -971,10 +532,10 @@ g_vV = []
 g_vPi = []
 g_fGamma = 0.9
 
-def TT_Q( s, a ):
+def Q( s, a ):
     return g_vReward[s] + 0.9 * dot( (g_vActions[ a ])[s], g_vV.transpose() )
 
-def TT_DP( Reward, Actions ):
+def DP( Reward, Actions ):
     "Returns the probability matrix corresponding to the optimal policy with respect to the given reward and the given actions. Actions are given in the form of a probability matrix. Probability matrices are so that the $(i,j)$ element gives the probability of transitioning to state $j$ upon taking action $a$ in state $i$"
     #pdb.set_trace()
     global g_vReward
@@ -996,10 +557,10 @@ def TT_DP( Reward, Actions ):
             old_pi = g_vPi[ s ]
             old_V = g_vV[ s ]
             chosen_a = 0
-            max_Q = TT_Q( s, chosen_a )
+            max_Q = Q( s, chosen_a )
             #Select the action that maximizes Q
             for a in range(0,m):
-                Q = TT_Q( s, a )
+                Q = Q( s, a )
                 if( Q > max_Q ):
                     max_Q = Q
                     chosen_a = a
@@ -1014,8 +575,8 @@ def TT_DP( Reward, Actions ):
     return Ppi
 
 
-def TT_DP_txt( Reward, Actions, Filename ):
-    "Same as TT_DP, mais sauve la fonction de valeur dans un fichier."
+def DP_txt( Reward, Actions, Filename ):
+    "Same as DP, mais sauve la fonction de valeur dans un fichier."
     #pdb.set_trace()
     global g_vReward
     global g_vActions
@@ -1036,10 +597,10 @@ def TT_DP_txt( Reward, Actions, Filename ):
             old_pi = g_vPi[ s ]
             old_V = g_vV[ s ]
             chosen_a = 0
-            max_Q = TT_Q( s, chosen_a )
+            max_Q = Q( s, chosen_a )
             #Select the action that maximizes Q
             for a in range(0,m):
-                Q = TT_Q( s, a )
+                Q = Q( s, a )
                 if( Q > max_Q ):
                     max_Q = Q
                     chosen_a = a
@@ -1171,6 +732,46 @@ for R in BFS:
 print toPrint
 #+end_src
 
+
+   We also provide a version with the slacks free method
+#+begin_src python :noweb yes :tangle TaskTransfer_SF.py
+#!/usr/bin/python
+import sys
+from numpy import *
+import scipy
+import itertools
+from sets import *
+from a2str import *
+
+#import pdb
+
+g_mC = genfromtxt(sys.argv[1])
+g_iN = g_mC.shape[1]
+g_iM = g_mC.shape[0]
+
+#print "C matrix : %d equations in %d variables"% (g_iM,g_iN)
+<<TT_linesCreation_py>>
+
+#print A
+BFS = Set()
+index = 0
+standard_sols=[]
+<<TT_slacksfree_py>>
+<<TT_linearSystem_py>>
+
+#print "All solutions are : "
+toPrint = ""
+empty = True
+for R in BFS:
+    toPrint+=R
+    empty = False
+print toPrint
+if empty:
+    exit(1)
+else:
+    exit(0)
+#+end_src
+
 *** Computing the $C$ constraints matrix
     Given a $P_\pi$ matrix and several $P_a$ matrices, this code compute the $C$ constraint matrix consisting of the non null, non repeating lines of $(P_\pi-P_{a})(I-\gamma P_\pi)^{-1}$, plus the $[1, \dots, 1]$ vector. FIXME : why ?\\
 
@@ -1269,20 +870,6 @@ def TT_SF( P_pi, Actions ):
         return None
 
     #+end_src
-*** Cleaning
-#+srcname: TT_cleanCode_make
-#+begin_src makefile
-TT_cleanCode:
-	find . -maxdepth 1 -iname "TT_*.py"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "TT.py"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "TT*.pyc"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "TT*.gp"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "TT*.ps"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "TaskTransfer.py"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "TaskTransfer_SF.py"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "a2str.py"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "Constraint.py"   | xargs -t rm
-#+end_src    
 ** Tests
 *** Test in 3D
     We test the program in a small setting so that the reward vector only has three component $x$, $y$ and $z$.
@@ -1317,22 +904,34 @@ TT_cleanCode:
 
 We now build Makefile targets that calls the program on the previously defined $C$ matrices and match the output with the expected output. Note the use of the \texttt{sort} command to make sure both output are in the same order and the diff command succeeds.
 
-#+srcname: TT_test0_make
+#+srcname: TT_Test0_make
 #+begin_src makefile
-TT_test0: TaskTransfer.py
+TT_test0: TaskTransfer.py test/TT_CT01.mat test/TT_CT02.mat test/TT_expectedOutT0.mat
 	python TaskTransfer.py test/TT_CT01.mat | sort > test/TT_outT01.mat
 	python TaskTransfer.py test/TT_CT02.mat | sort > test/TT_outT02.mat
 	../Utils/matrix_diff.py test/TT_expectedOutT0.mat test/TT_outT01.mat
 	../Utils/matrix_diff.py test/TT_expectedOutT0.mat test/TT_outT02.mat
+	rm test/TT_outT01.mat
+	rm test/TT_outT02.mat
 #+end_src
-
-#+srcname: TT_cleanTest0_make
+Tangling : 
+#+srcname: TT_Test0_code_make
 #+begin_src makefile
-TT_cleanTest0:
-	find test -maxdepth 1 -iname "TT_outT01.mat"   | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_outT02.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_CT01.mat"   | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_CT02.mat" | xargs -t rm &&\
+test/TT_CT01.mat: TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+
+test/TT_CT02.mat:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+
+test/TT_expectedOutT0.mat:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+#+end_src
+Cleaning :
+#+srcname: TT_Test0_clean_make
+#+begin_src makefile
+TT_Test0_clean:
+	find test -maxdepth 1 -iname "TT_CT01.mat"   | xargs -t rm
+	find test -maxdepth 1 -iname "TT_CT02.mat" | xargs -t rm
 	find test -maxdepth 1 -iname "TT_expectedOutT0.mat" | xargs -t rm
 #+end_src
 *** Task Transfer on a 2x2 Gridworld
@@ -1390,24 +989,25 @@ TT_cleanTest0:
        
 
     The constraint matrices relative each expert are computed :
-    #+srcname: TT_test1_make
+    #+srcname: TT_Test1_make
     #+begin_src makefile
-TT_test1:
+TT_test1: Constraint.py test/TT_PPi1.mat test/TT_PPi2.mat test/TT_PEast.mat test/TT_PWest.mat test/TT_PSouth.mat test/TT_PNorth.mat TaskTransfer.py TT_expectedOutT1.mat
 	python Constraint.py test/TT_PPi1.mat test/TT_PEast.mat test/TT_PWest.mat test/TT_PSouth.mat test/TT_PNorth.mat > test/TT_C1.mat
 	python Constraint.py test/TT_PPi2.mat test/TT_PEast.mat test/TT_PWest.mat test/TT_PSouth.mat test/TT_PNorth.mat > test/TT_C2.mat
     #+end_src
 
     The conjoint constraint matrix is extracted (duplicate lines are removed) :
-    #+srcname: TT_test1_make
+    #+srcname: TT_Test1_make
     #+begin_src makefile
 	cat test/TT_C1.mat test/TT_C2.mat | sort | uniq > test/TT_CBoth.mat
     #+end_src
 
     The TaskTransfer program is run and its output is compared against what is expected :
-    #+srcname: TT_test1_make
+    #+srcname: TT_Test1_make
     #+begin_src makefile
 	python TaskTransfer.py test/TT_CBoth.mat | sort > test/TT_outT1.mat
 	../Utils/matrix_diff.py test/TT_expectedOutT1.mat test/TT_outT1.mat
+	rm test/TT_C1.mat test/TT_C2.mat test/TT_CBoth.mat test/TT_outT1.mat
     #+end_src
 
     #+begin_src text :tangle test/TT_expectedOutT1.mat
@@ -1419,27 +1019,44 @@ TT_test1:
 
     The expected output is drawn from a run of an early version of the program, it looked consistant and logical.
 
-    #+srcname: TT_cleanTest1_make
-    #+begin_src makefile
-TT_cleanTest1:
-	find test -maxdepth 1 -iname "TT_outT01.mat"   | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_outT02.mat" | xargs -t rm
-	find test -maxdepth 1 -iname "TT_C1.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_C2.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_CBoth.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_PPi1.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_PPi2.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_PNorth.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_PSouth.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_PWest.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_PEast.mat" | xargs -t rm &&\
-	find test -maxdepth 1 -iname "TT_outT1.mat" | xargs -t rm
-    #+end_src
+Tangling : 
+#+srcname: TT_Test1_code_make
+#+begin_src makefile
+test/TT_PPi1.mat: TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+test/TT_PPi2.mat: TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+
+test/TT_PEast.mat:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+test/TT_PWest.mat:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+test/TT_PNorth.mat:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+test/TT_PSouth.mat:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+
+test/TT_expectedOutT1.mat:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+#+end_src
+Cleaning :
+#+srcname: TT_Test1_clean_make
+#+begin_src makefile
+TT_Test1_clean:
+	find test -maxdepth 1 -iname "TT_PPi1.mat"   | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PPi2.mat" | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PPEast.mat" | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PPWest.mat" | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PPNorth.mat" | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PPSouth.mat" | xargs -t rm
+	find test -maxdepth 1 -iname "TT_expectedOutT1.mat" | xargs -t rm
+#+end_src
+
 *** Dynamic pogamming on a 2x2 Gridworld
     We want to test our dynamic programming functions. We use help from the files defined in the [[TaskTransfer on a 2x2 Gridworld]] test.
 
     We first run the optimization with the action in a certain order,
-    #+begin_src python :tangle TT_test2.py
+    #+begin_src python :tangle TT_Test2.py
 from numpy import *
 import scipy
 from TT_DP import *
@@ -1456,7 +1073,7 @@ Reward = [0,1,0,0]
 print a2str( TT_DP( Reward, Actions ) )
     #+end_src
     And then in another order,
-    #+begin_src python :tangle TT_test3.py
+    #+begin_src python :tangle TT_Test3.py
 from numpy import *
 import scipy
 from TT_DP import *
@@ -1475,20 +1092,72 @@ print a2str( TT_DP( Reward, Actions ) )
     This should retrieve the policies of each of our experts, as changing the order of the actions change the default action when state-action values are the same.
 
     We add the first test to the Makefile
-    #+srcname: TT_test2_make
+    #+srcname: TT_Test2_make
     #+begin_src makefile
-TT_test2:
-	python TT_test2.py > test/TT_outT2.mat
+TT_test2: TT_Test2.py test/TT_PPi1.mat
+	python TT_Test2.py > test/TT_outT2.mat
 	../Utils/matrix_diff.py test/TT_PPi1.mat test/TT_outT2.mat
+	rm test/TT_outT2.mat
     #+end_src
     
     And the second also,
-    #+srcname: TT_test3_make
+    #+srcname: TT_Test3_make
     #+begin_src makefile
-TT_test3:
+TT_Test3:TT_Test3.py test/TT_PPi2.mat
 	python TT_test3.py > test/TT_outT3.mat
 	../Utils/matrix_diff.py test/TT_PPi2.mat test/TT_outT3.mat
+	rm test/TT_outT3.mat
     #+end_src
+
+    The rules to tangle them:
+  #+srcname: TT_Test23_code_make
+  #+begin_src makefile
+TT_Test2.py:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+TT_Test3.py:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+  #+end_src
+    And to clean them:
+  #+srcname: TT_Test23_clean_make
+  #+begin_src makefile
+TT_Test23_clean:
+	find . -maxdepth 1 -iname "TT_Test2.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "TT_Test3.py"   | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PPi1.mat"   | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PPi2.mat"   | xargs -t rm
+  #+end_src
+
+** Makefile rules
+  Tangling : 
+  #+srcname: TT_code_make
+  #+begin_src makefile
+DP.py:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+
+TaskTransfer.py:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+
+TaskTransfer_SF.py:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+
+Constraint.py:TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+
+TT.py :TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
+  #+end_src
+
+  Cleaning :
+  #+srcname: TT_clean_make
+  #+begin_src makefile
+TT_clean:
+	find . -maxdepth 1 -iname "DP.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "TaskTransfer.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "TaskTransfer_SF.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "Constraint.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "TT.py"   | xargs -t rm
+  #+end_src
+
 * Perspective
 ** Open questions
 

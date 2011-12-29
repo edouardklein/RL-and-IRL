@@ -1,5 +1,5 @@
-* Global variables for the reinforcement learning algorithms
-  
+#+TITLE: Global variables for the reinforcement learning algorithms
+* Contents
   These global variables must be set before calling any RL algorithm :
    - [[file:LSPI.org][LSPI]]
    - [[file:greedy.org][greedy]]
@@ -64,3 +64,15 @@
 #+begin_src c :tangle RL_Globals.h :main no
   extern double g_dLambda_lstdQ; 
 #+end_src
+
+
+* Makefile rules
+  We just tangle the file and give a rule to clean the result. Nothing fancy here.
+  #+srcname: RL_Globals_make
+  #+begin_src makefile
+RL_Globals.h: RL_Globals.org
+	$(call tangle,"RL_Globals.org")
+
+RL_Globals_clean:
+	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -t rm
+  #+end_src

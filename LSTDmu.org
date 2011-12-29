@@ -470,3 +470,30 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
   return g_mBest_omega;
 }
       #+end_src
+
+** Makefile rules
+   Some rules to tangle the source files :
+  #+srcname: LSTDmu_code_make
+  #+begin_src makefile
+LSTDmu.c: LSTDmu.org 
+	$(call tangle,"LSTDmu.org")
+
+LSTDmu.h: LSTDmu.org
+	$(call tangle,"LSTDmu.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: LSTDmu_c2o_make
+  #+begin_src makefile
+LSTDmu.o: LSTDmu.c LSTDmu.h utils.h criteria.h LSPI.h greedy.h RL_Globals.h IRL_Globals.h
+	$(call c2obj,"LSTDmu.c")
+  #+end_src
+
+   A rule to clean the mess :
+  #+srcname: LSTDmu_clean_make
+  #+begin_src makefile
+LSTDmu_clean:
+	find . -maxdepth 1 -iname "LSTDmu.h"   | xargs -t rm
+	find . -maxdepth 1 -iname "LSTDmu.c"   | xargs -t rm 
+	find . -maxdepth 1 -iname "LSTDmu.o"   | xargs -t rm
+  #+end_src

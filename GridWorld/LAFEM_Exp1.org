@@ -1,0 +1,344 @@
+#+TITLE: Expérience simple pour valider LAFEM
+* Description
+  La première expérience consiste à entraîner un expert sur un gridworld de 5 cases par 5 case, avec la récompense en haut à droite, puis à faire tourner LAFEM sur un set de données couvrant la totalité de l'espace d'état, un calcul exact de $\mu_E$, une fonction de perte extrêmement simple ($1$ en cas de désaccord avec l'expert, $0$ sinon) et une initialisation de la récompense à $0$ partout. Comme le problème est discret, la représentation est tabulaire.
+
+
+  L'expérience se déroule comme suit :
+  - Entraîner un expert sur le problème du gridworld, i.e. définir $\pi_E : S\rightarrow A$
+  - Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon
+  - définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
+  - Initialiser $D\leftarrow \emptyset$
+  - Pour chaque état $s \in S$
+    - $D \leftarrow D \cup (s,\pi_E(s))$
+  - Initialiser $\omega_0 = [0...0]^T$
+  - Fixer $T=20$ (pifomètre)
+  - Faire tourner LAFEM
+  - Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
+  - Comparer $E[\omega^T\mu_E(s)| s\in S]$ et $E[\omega^T\mu_\pi(s)| s\in S]$
+
+* Code								       :code:
+** Helper code
+*** Configuration de LAFEM
+      On utilise le code fourni [[id:879A40A3-5890-4665-86C0-826ABD3BC1BC][ici]].
+      On importe ce qu'il importe d'importer
+    #+begin_src python :tangle LAFEM_Exp1.py
+from a2str import *
+from LAFEM import *
+from DP_mu import *
+from DP import *
+from Pi2txt import *
+    #+end_src
+    
+      On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
+      #+begin_src python :tangle LAFEM_Exp1.py
+class LAFEM_Exp1( LAFEM ):
+    P_north = array([])
+    P_south = array([])
+    P_east = array([])
+    P_west = array([])
+    Pi_E = array([])
+    Pi_E_txt = {}
+    Mu_north = array([])
+    Mu_west = array([])
+    Mu_east = array([])
+    Mu_south = array([])
+      #+end_src
+
+      On définit $S$ et $A$ de manière à pouvoir itérer dessus.
+    #+begin_src python :tangle LAFEM_Exp1.py
+    def Sgenerator( self ):
+        for x in range(0,5):
+            for y in range(0,5):
+                yield array([x,y])
+
+    S = Sgenerator
+    A = ['North','West','East','South']
+    #+end_src
+
+    Pour entraîner un expert sur le problème du gridworld, i.e. définir $\pi_E : S\rightarrow A$, on réutilise le code du [[file:TaskTransfer.org::*Code][task transfer]] tel quel pour obtenir la politique optimale.
+      #+begin_src python :tangle LAFEM_Exp1.py
+    def __init__( self ):
+        cmd = "python TT_5x5_expertPGen.py";
+        os.system( cmd )
+        self.Pi_E = genfromtxt("TT_5x5_Ppi.mat")
+      #+end_src      
+    On peuple $D$ : 
+      #+begin_src python :tangle LAFEM_Exp1.py
+        self.P_north = genfromtxt( "TT_5x5_PENorth.mat" )
+        self.P_east = genfromtxt( "TT_5x5_PEEast.mat" )
+        self.P_west = genfromtxt( "TT_5x5_PEWest.mat" )
+        self.P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+        self.Pi_E_txt = Pi2txt( self.S, self.Pi_E )
+        for s in self.S():
+            self.data = self.data+[ [ s, self.Pi_E_txt[l2str(s)] ] ]
+      #+end_src
+    On calcule les matrices de /feature expectation/
+      #+begin_src python :tangle LAFEM_Exp1.py
+        self.Mu_E = NA_DP_mu( self.Pi_E, identity(25) )
+        self.Mu_north = identity(25) + 0.9*dot(self.P_north,self.Mu_E)
+        self.Mu_west = identity(25) + 0.9*dot(self.P_west,self.Mu_E)
+        self.Mu_east = identity(25) + 0.9*dot(self.P_east,self.Mu_E)
+        self.Mu_south = identity(25) + 0.9*dot(self.P_south,self.Mu_E)
+      #+end_src
+
+    On définit la fonction de perte $l$ :
+    #+begin_src python :tangle LAFEM_Exp1.py
+    def l( self, s, a ):
+        if self.Pi_E_txt[l2str(s)] == a:
+            return 0
+        else:
+            return 1
+    #+end_src
+    
+    On définit la fonction renvoyant $\mu_E(s,a)$ : 
+    #+begin_src python :tangle LAFEM_Exp1.py
+    def mu_E( self, s, a ):
+        mu_a = array([])
+        if a == 'North':
+            mu_a = self.Mu_north
+        elif a == 'West':
+            mu_a = self.Mu_west
+        elif a == 'East':
+            mu_a = self.Mu_east
+        elif a == 'South':
+            mu_a = self.Mu_south
+        else:
+            print "On calcule mu sur une action qui nexiste pas"
+            exit(-1)
+        index = s[0]+5*s[1]
+        return (zeros((1,25)) + mu_a[index]).transpose() #Ugly hack to get a column vector and not a line vector
+    #+end_src
+    
+
+
+    On définit $\alpha(t) = 0.1,\forall t$ (pifomètre)
+      #+begin_src python :tangle LAFEM_Exp1.py
+    def alpha( self, t ):
+        return 0.1
+      #+end_src
+    On initialise $\omega_0 = [0...0]^T$
+      #+begin_src python :tangle LAFEM_Exp1.py
+    omega_0 = zeros( (25, 1) )
+      #+end_src
+    - Fixer $T=20$ (pifomètre)
+      #+begin_src python :tangle LAFEM_Exp1.py
+    T = 20
+      #+end_src
+*** Affichage de la politique
+     On crée une fonction permettant un joli affichage de la politique, pour comparer celle de l'expert et celle de l'agent, ainsi qu'une fonction changeant le format de la politique, nécessaire pour notre implémentation : d'une matrice de probabilités de transition, elle devient un dictionnaire qui à une chaîne représentant un état associe un mot réprésentant une action. 
+      #+begin_src python :tangle Pi2txt.py
+from numpy import *
+import scipy
+from a2str import *
+
+def Pi2txt( S, Pi ):
+    answer = {}
+    P_north = genfromtxt( "TT_5x5_PENorth.mat" )
+    P_east = genfromtxt( "TT_5x5_PEEast.mat" )
+    P_west = genfromtxt( "TT_5x5_PEWest.mat" )
+    P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+    for s in S():
+        index = s[0]+5*s[1]
+        pi_s = Pi[index]
+        a = ''
+        if all(pi_s == P_north[index]):
+            answer[l2str(s)] = 'North'
+        elif all(pi_s == P_south[index]):
+            answer[l2str(s)] = 'South'
+        elif all(pi_s == P_west[index]):
+            answer[l2str(s)] = 'West'
+        elif all(pi_s == P_east[index]):
+            answer[l2str(s)] = 'East'
+        else:
+            print 'On narrive pas a reconnaitre la politique'
+            exit(-1)
+    return answer
+
+def Pi2Asciiart( Pi ):
+    answer = ''
+    P_north = genfromtxt( "TT_5x5_PENorth.mat" )
+    P_east = genfromtxt( "TT_5x5_PEEast.mat" )
+    P_west = genfromtxt( "TT_5x5_PEWest.mat" )
+    P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+    for y in range(0,5):
+        for x in range(0,5):
+            index = x+5*y
+            pi_s = Pi[index]
+            a = ''
+            if all(pi_s == P_north[index]):
+                answer = answer + ' ^'
+            elif all(pi_s == P_south[index]):
+                answer = answer + ' v'
+            elif all(pi_s == P_west[index]):
+                answer = answer + ' <'
+            elif all(pi_s == P_east[index]):
+                answer = answer + ' >'
+            else:
+                print 'On narrive pas a reconnaitre la politique'
+                exit(-1)
+        answer = answer + '\n'
+    return answer
+
+      #+end_src
+     
+** Main code
+*** Faire tourner l'expérience
+      #+begin_src python :tangle LAFEM_Exp1.py
+lafem = LAFEM_Exp1()
+omega_lafem = lafem.run()
+      #+end_src
+     
+     Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$ :
+     #+begin_src python :tangle LAFEM_Exp1.py
+Pi = TT_DP_txt( omega_lafem, (lafem.P_north, lafem.P_south, lafem.P_west, lafem.P_east), "V_agent.mat" )
+     #+end_src
+*** Sauver les données pour les résultats
+     Comparer $E[\omega^T\mu_E(s)| s\in S]$ et $E[\omega^T\mu_\pi(s)| s\in S]$ :
+     #+begin_src python :tangle LAFEM_Exp1.py
+true_reward = zeros((25,1))
+true_reward[4,0] = 1
+perf_expert = 0
+cnt = 0
+for s in lafem.S():
+    index = s[0] + 5*s[1]
+    perf_expert = perf_expert + dot( true_reward.transpose(), lafem.Mu_E[index].transpose() )
+    cnt = cnt + 1
+perf_expert = perf_expert/cnt
+
+Mu_pi = NA_DP_mu( Pi, identity(25) )
+perf_agent = 0
+cnt = 0
+for s in lafem.S():
+    index = s[0] + 5*s[1]
+    perf_agent = perf_agent + dot( true_reward.transpose(), Mu_pi[index].transpose() )
+    cnt = cnt + 1
+perf_agent = perf_agent/cnt
+
+print "Performance moyenne de l'expert : "
+print perf_expert
+
+print "Performance moyenne de l'agent :"
+print perf_agent
+
+     #+end_src
+
+     Afficher les deux politiques : 
+     #+begin_src python :tangle LAFEM_Exp1.py
+print "Politique de l'expert :"
+print Pi2Asciiart( lafem.Pi_E )
+
+print "Politique de l'agent : "
+print Pi2Asciiart( Pi )
+     #+end_src
+
+     Sauver les données pour l'affichage des fonctions de valeur :
+     #+begin_src python :tangle LAFEM_Exp1.py
+V_agent = genfromtxt("V_agent.mat")
+V_expert = genfromtxt("V_expert.mat")
+
+
+f = open( "V_agent.txt", "w" )
+
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,V_agent[index]) )
+    f.write("\n")
+f.close()
+
+
+f = open( "V_expert.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,V_expert[index]) )
+    f.write("\n")
+f.close()
+
+     #+end_src
+
+     Sauver les données pour l'affichage des récompenses :
+     #+begin_src python :tangle LAFEM_Exp1.py
+f = open( "True_reward.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,true_reward[index]) )
+    f.write("\n")
+f.close()
+
+f = open( "retrieved_reward.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,omega_lafem[index]) )
+    f.write("\n")
+f.close()
+
+      #+end_src
+** Plot code
+   Il faut maintenant créer des pdf à partir des données générées lors de l'expérience, pour faire de jolies figures pour un éventuel papier.
+*** Tracé des fonctions de valeurs
+      Le fichier .gp qui va bien :
+#+begin_src gnuplot :tangle LAFEM_Exp1_V_expert.gp
+set pm3d
+set output "V_expert.ps"
+set term postscript enhanced color
+splot V_expert.txt
+#+end_src
+      
+** Makefile Rules
+*** Tangling
+  #+srcname: LAFEM_Exp1_code_make
+  #+begin_src makefile
+LAFEM_Exp1.py: LAFEM_Exp1.org 
+	$(call tangle,"LAFEM_Exp1.org")
+
+Pi2txt.py: LAFEM_Exp1.org
+	$(call tangle,"LAFEM_Exp1.org")
+
+LAFEM_Exp1_V_expert.gp: LAFEM_Exp1.org
+	$(call tangle,"LAFEM_Exp1.org")
+  #+end_src
+*** Parent Dir targets
+    On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
+#+srcname: LAFEM_Exp1_make
+#+begin_src makefile
+../DP_mu.py:
+	make -C .. DP_mu.py
+
+../DP.py
+	make -C .. DP.py
+#+end_src
+
+*** Experiment targets
+    L'expérience produit quelques figures, et affiche des infos sur la sortie standard.
+#+srcname: LAFEM_Exp1_make
+#+begin_src makefile
+LAFEM_Exp1_run: LAFEM_Exp1.py ../DP_mu.py ../DP.py Pi2txt.py
+	python LAFEM_Exp1.py
+#+end_src
+
+#+srcname: LAFEM_Exp1_make
+#+begin_src makefile
+V_expert.pdf: LAFEM_Exp1_V_expert.gp V_expert.txt
+	gnuplot LAFEM_Exp1_V_expert.gp
+	ps2pdf V_expert.ps
+	rm V_expert.ps
+
+V_expert.txt: LAFEM_Exp1_run
+#+end_src
+    
+*** Cleaning
+   A rule to clean the mess :
+  #+srcname: LAFEM_Exp1_clean_make
+  #+begin_src makefile
+LAFEM_Exp1_clean:
+	find . -maxdepth 1 -iname "LAFEM_Exp1.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "Pi2txt.gp"   | xargs -t rm 
+	find . -maxdepth 1 -iname "LAFEM_Exp1_V_expert.gp"   | xargs -t rm
+	find . -maxdepth 1 -iname "V_expert.pdf"   | xargs -t rm
+	find . -maxdepth 1 -iname "V_expert.txt"   | xargs -t rm
+  #+end_src
+
+* Résultats

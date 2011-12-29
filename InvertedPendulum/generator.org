@@ -1,5 +1,5 @@
 #+TITLE: Trajectory generator for the inverted pendulum
-
+* C Implementation
 This program shares code with the simulator. 
 
 We use the GSL.
@@ -49,3 +49,35 @@ int main( void ){
   return 0;
 }
 #+end_src
+* Makefile rules
+  Some rules to tangle the source files :
+  #+srcname: Generator_code_make
+  #+begin_src makefile
+generator.c: generator.org 
+	$(call tangle,"generator.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: Generator_c2o_make
+  #+begin_src makefile
+generator.o: generator.c InvertedPendulum.h ../utils.h 
+	$(call c2obj,"generator.c")
+  #+end_src
+
+   A rule to create the executable from the object file :
+#+srcname: Generator_o2exe_make
+#+begin_src makefile
+generator.exe: generator.o ../utils.o InvertedPendulum.o
+	$(O2EXE) -o generator.exe generator.o ../utils.o InvertedPendulum.o
+#+end_src
+
+
+   A rule to clean the mess :
+  #+srcname: Generator_clean_make
+  #+begin_src makefile
+Generator_clean:
+	find . -maxdepth 1 -iname "generator.exe"   | xargs -t rm
+	find . -maxdepth 1 -iname "generator.c"   | xargs -t rm 
+	find . -maxdepth 1 -iname "generator.o"   | xargs -t rm
+  #+end_src
+

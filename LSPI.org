@@ -1,9 +1,9 @@
-* LSPI
+#+TITLE:LSPI
   LSPI is a reinforcement learning algorithm introduced in \cite{lagoudakis2003least}.
   
   It uses [[file:LSTDQ.org][LSTDQ]] and a [[file:greedy.org][greedy]] mechanism.
-** C implementation
-*** Externals
+* C implementation
+** Externals
     The C implementation follows quite closely the pseudo code given in \cite{lagoudakis2003least}.
     
     Most of LSPI input is taken via [[file:RL_Globals.org][global variables]].
@@ -15,7 +15,7 @@ gsl_matrix* lspi( gsl_matrix* D, gsl_matrix* omega_0 );
     The $D$ matrix is passed to [[file:LSTDQ.org][LSTDQ]].
 
     The $\omega_0$ matrix defines the initial policy.
-*** Internals
+** Internals
     We use the GSL, our [[file:LSTDQ.org][LSTDQ]] implementation and a [[file:greedy.org][greedy]] mechanism.
     
 #+begin_src c :tangle LSPI.c :main no
@@ -67,3 +67,29 @@ gsl_matrix* lspi( gsl_matrix* D, gsl_matrix* omega_0 ){
   return omega_dash;
 }
 #+end_src
+** Makefile rules
+   Some rules to tangle the source files :
+  #+srcname: LSPI_code_make
+  #+begin_src makefile
+LSPI.c: LSPI.org 
+	$(call tangle,"LSPI.org")
+
+LSPI.h: LSPI.org
+	$(call tangle,"LSPI.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: LSPI_c2o_make
+  #+begin_src makefile
+LSPI.o: LSPI.c LSPI.h LSTDQ.h utils.h greedy.h RL_Globals.h
+	$(call c2obj,"LSPI.c")
+  #+end_src
+
+   A rule to clean the mess :
+  #+srcname: LSPI_clean_make
+  #+begin_src makefile
+LSPI_clean:
+	find . -maxdepth 1 -iname "LSPI.h"   | xargs -t rm
+	find . -maxdepth 1 -iname "LSPI.c"   | xargs -t rm 
+	find . -maxdepth 1 -iname "LSPI.o"   | xargs -t rm
+  #+end_src

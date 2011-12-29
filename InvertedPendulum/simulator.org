@@ -1,5 +1,6 @@
 #+TITLE: Simulator for the inverted pendulum
 
+* C Implementation
 The following functon lets the greedy policy interact with the gridworld. The argument is the number of episodes to simulate, the return value is the matrix containing all the transitions, one per line.
 #+begin_src c :tangle simulator.h :main no
 /* Simulate nbEpisodes episodes using greedy_policy()*/
@@ -88,3 +89,32 @@ gsl_matrix* inverted_pendulum_simulator( int nbEpisodes ){
   return answer;
 }
   #+end_src
+
+* Makefile rules
+  Some rules to tangle the source files :
+  #+srcname: Simulator_code_make
+  #+begin_src makefile
+simulator.c: simulator.org 
+	$(call tangle,"simulator.org")
+simulator.h: simulator.org 
+	$(call tangle,"simulator.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: Simulator_c2o_make
+  #+begin_src makefile
+simulator.o: simulator.c simulator.h InvertedPendulum.h ../utils.h
+	$(call c2obj,"simulator.c")
+  #+end_src
+
+
+
+   A rule to clean the mess :
+  #+srcname: Simulator_clean_make
+  #+begin_src makefile
+Simulator_clean:
+	find . -maxdepth 1 -iname "simulator.h"   | xargs -t rm
+	find . -maxdepth 1 -iname "simulator.c"   | xargs -t rm 
+	find . -maxdepth 1 -iname "simulator.o"   | xargs -t rm
+  #+end_src
+

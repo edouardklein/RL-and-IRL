@@ -1,112 +1,44 @@
-* The Chainwalk
+#+TITLE: The Chainwalk
+* Introduction
   The chainwalk is a classical toy problem, used and described for example in \cite{lagoudakis2003least}.
   
-  #+begin_src make :tangle Makefile
+* Makefiles rules
+  The rules are written in the file they work with. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
+** Misc.
+Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<lagoudakis2003least_figure10_make>>
+  #+end_src
+** Code extraction
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<Generator_code_make>>
+<<lagoudakis2003least_figure10_code_make>>
+  #+end_src
+** C source to .o file
+  #+begin_src make :tangle Makefile :noweb yes
   CFLAGS+=-I..
    #+end_src
-  
-* ChainWalk trajectory generator
-  This directory contains the code for a chainwalk trajectory generator.
-
-  It can be build by invoking
-
-     #+begin_src sh
- make ChainWalk_generator.exe
-   #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-ChainWalk_generator.exe: ChainWalk_generator.o ../utils.o
-	gcc -o ChainWalk_generator.exe  $(LFLAGS) ChainWalk_generator.o ../utils.o
-
-ChainWalk_generator.o: ChainWalk_generator.c ../utils.h
-	gcc -c $(CFLAGS) ChainWalk_generator.c
-
-ChainWalk_generator.c: code
-    #+end_src
-
-   It can then be used, for example to output 50 transitions on the standard output like this :
-
-     #+begin_src sh
- ./ChainWalk_generator.exe 50
-   #+end_src
-   
-* Reproducing Lagoudakis and Parr's figure 10
-
-  Figure 10 of the paper \cite{lagoudakis2003least} can be reproduced by invoking 
-     #+begin_src sh
-make lagoudakis2003least_figure10.pdf
-   #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-lagoudakis2003least_figure10.pdf: lagoudakis2003least_figure10.ps
-	ps2pdf lagoudakis2003least_figure10.ps
-
-lagoudakis2003least_figure10.ps: lagoudakis2003least_figure10.dat lagoudakis2003least_figure10.gp
-	gnuplot lagoudakis2003least_figure10.gp
-
-lagoudakis2003least_figure10.dat: lagoudakis2003least_figure10.samples lagoudakis2003least_figure10.exe
-	./lagoudakis2003least_figure10.exe > lagoudakis2003least_figure10.dat
-
-lagoudakis2003least_figure10.samples: ChainWalk_generator.exe 
-	for i in `seq -w 1000`; do ./ChainWalk_generator.exe 50 > Samples$$i; done && touch lagoudakis2003least_figure10.samples
-
-lagoudakis2003least_figure10.exe: lagoudakis2003least_figure10.o ../LSPI.o ../LSTDQ.o ../utils.o ../greedy.o 
-	gcc -o lagoudakis2003least_figure10.exe lagoudakis2003least_figure10.o ../LSPI.o ../LSTDQ.o ../utils.o ../greedy.o  $(LFLAGS)
-
-lagoudakis2003least_figure10.o: lagoudakis2003least_figure10.c ../LSPI.h ../utils.h
-	gcc -c $(CFLAGS) lagoudakis2003least_figure10.c
-
-lagoudakis2003least_figure10.c: code
-    #+end_src
-
-* Miscellaneous
-** Cleaning
-Cleaning is done by :
-    #+begin_src make :tangle Makefile
-clean: 
-	find . -maxdepth 1 -iname "*.o"       | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.pdf"     | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.ps"      | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.exe"     | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.dat"     | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*~"        | xargs -t rm &&\
-	find . -maxdepth 1 -iname "Samples*"  | xargs -t rm &&\
-	find . -maxdepth 1 -iname "ChainWalk_generator.c"  | xargs -t rm &&\
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.c"  | xargs -t rm &&\
-	find . -maxdepth 1 -iname "code"      | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.samples" | xargs -t rm
-
-    #+end_src
-
-** Org files
-  The .org files containing both some code and its documentation are :
-  #+begin_src make :tangle Makefile
-ORG_CODE_FILES=ChainWalk_generator.org Makefile.org lagoudakis2003least_figure10.org
+  #+begin_src makefile :tangle Makefil :noweb yes
+<<Generator_c2o_make>>
+<<lagoudakis2003least_figure10_c2o_make>>
   #+end_src
-
-** Documentation
-
-   Documentation can be extracted from the .org files by executing
-   #+begin_src sh
- make doc
-   #+end_src
-
-   which triggers the following rules :
-
-   #+begin_src make :tangle Makefile
-HTML_FILES=$(ORG_CODE_FILES:.org=.html)
-
-doc: $(HTML_FILES)
-
-%.html:%.org
-	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
-   #+end_src
-** Code extraction
-
-   The code embedded in the .org can be tangled.
-    #+begin_src make :tangle Makefile
-code:
-	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
+** .o to .exe
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<Generator_o2exe_make>>
+<<lagoudakis2003least_figure10_o2exe_make>>
+  #+end_src
+** Cleaning
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<Generator_clean_make>>
+<<lagoudakis2003least_figure10_clean_make>>
+clean: Generator_clean lagoudakis2003least_figure10_clean
     #+end_src
+
+
+
+** Inception
+
+   #+begin_src makefile :tangle Makefile :noweb yes
+Makefile:
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
+   #+end_src

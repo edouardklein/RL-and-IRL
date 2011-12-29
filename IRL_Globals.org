@@ -53,3 +53,15 @@ extern gsl_matrix* g_mBest_omega;
 extern gsl_matrix* (*g_fS_0)( void );
     #+end_src
 
+
+
+* Makefile rules
+  We just tangle the file and give a rule to clean the result. Nothing fancy here.
+  #+srcname: IRL_Globals_make
+  #+begin_src makefile
+IRL_Globals.h: IRL_Globals.org
+	$(call tangle,"IRL_Globals.org")
+
+IRL_Globals_clean:
+	find . -maxdepth 1 -iname "IRL_Globals.h"   | xargs -t rm
+  #+end_src

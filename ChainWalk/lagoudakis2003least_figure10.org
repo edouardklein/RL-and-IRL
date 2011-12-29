@@ -5,7 +5,7 @@
 
   The input files are expected to have the same format as the one output by [[file:ChainWalk_generator.org]].
 
-* Implementation
+* C Implementation
   We use the GSL, its BLAS interface and ou code fo LSPI.
   #+begin_src c :tangle lagoudakis2003least_figure10.c :main no
 #include <gsl/gsl_matrix.h>
@@ -148,3 +148,70 @@ int main( void ){
   return 0;
 }
   #+end_src
+* GNUplot instructions
+#+begin_src text :tangle lagoudakis2003least_figure10.gp
+set term postscript enhanced color
+set output "lagoudakis2003least_figure10.ps"
+set grid
+set xrange[0.8:4.2]
+set xlabel "States"
+set ylabel "Q"
+set xtics 1
+plot "lagoudakis2003least_figure10.dat" u 1:2 w lines smooth csplines ls 1 title "Q(s,R)", "lagoudakis2003least_figure10.dat" u 1:2:3 w errorbars ls 1 lw 1 notitle,"lagoudakis2003least_figure10.dat" u 1:4 w lines smooth csplines ls 3 title "Q(s,L)", "lagoudakis2003least_figure10.dat" u 1:4:5 w errorbars ls 3 lw 2 notitle
+#+end_src
+* Makefile rules
+  Some rules to tangle the source files :
+  #+srcname: lagoudakis2003least_figure10_code_make
+  #+begin_src makefile
+lagoudakis2003least_figure10.c: lagoudakis2003least_figure10.org 
+	$(call tangle,"lagoudakis2003least_figure10.org")
+lagoudakis2003least_figure10.gp: lagoudakis2003least_figure10.org 
+	$(call tangle,"lagoudakis2003least_figure10.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: lagoudakis2003least_figure10_c2o_make
+  #+begin_src makefile
+lagoudakis2003least_figure10.o: lagoudakis2003least_figure10.c ../LSPI.h ../utils.h
+	$(call c2obj,"lagoudakis2003least_figure10.c")
+  #+end_src
+
+   A rule to create the executable from the object file :
+#+srcname: lagoudakis2003least_figure10_o2exe_make
+#+begin_src makefile
+lagoudakis2003least_figure10.exe: lagoudakis2003least_figure10.o ../LSPI.o ../LSTDQ.o ../utils.o ../greedy.o 
+	$(O2EXE) -o lagoudakis2003least_figure10.exe lagoudakis2003least_figure10.o ../LSPI.o ../LSTDQ.o ../utils.o ../greedy.o  $(LFLAGS)
+generator.exe: generator.o ../utils.o
+#+end_src
+
+
+   A rule to clean the mess :
+  #+srcname: lagoudakis2003least_figure10_clean_make
+  #+begin_src makefile
+lagoudakis2003least_figure10_clean:
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.exe"   | xargs -t rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.c"   | xargs -t rm 
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.o"   | xargs -t rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.gp"   | xargs -t rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.dat"   | xargs -t rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.ps"   | xargs -t rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.pdf"   | xargs -t rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.samples"   | xargs -t rm
+	find . -maxdepth 1 -iname "Samples*"   | xargs -t rm
+  #+end_src
+
+And the rules that allows for the creation of the figure :
+#+srcname: lagoudakis2003least_figure10_make
+    #+begin_src makefile
+lagoudakis2003least_figure10.pdf: lagoudakis2003least_figure10.ps
+	ps2pdf lagoudakis2003least_figure10.ps
+
+lagoudakis2003least_figure10.ps: lagoudakis2003least_figure10.dat lagoudakis2003least_figure10.gp
+	gnuplot lagoudakis2003least_figure10.gp
+
+lagoudakis2003least_figure10.dat: lagoudakis2003least_figure10.samples lagoudakis2003least_figure10.exe
+	./lagoudakis2003least_figure10.exe > lagoudakis2003least_figure10.dat
+
+lagoudakis2003least_figure10.samples: ChainWalk_generator.exe 
+	for i in `seq -w 1000`; do ./ChainWalk_generator.exe 50 > Samples$$i; done && touch lagoudakis2003least_figure10.samples
+    #+end_src
