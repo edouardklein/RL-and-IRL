@@ -201,8 +201,6 @@ plot 'both_error.dat' u 1:2 smooth csplines title 'LSTD' ls 1, 'both_error.dat' 
   The makefile rule to call this script is :
   #+srcname: LSTDmu_Exp_make
   #+begin_src makefile
-.PHONY: ErrorBars
-
 ErrorBars: conf.py criteria_lstd.dat both_error.dat 
 	../../Utils/ErrorBars.py
   #+end_src

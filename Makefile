@@ -1,3 +1,5 @@
+.PHONY: Makefile
+
 SUB_DIRS=ChainWalk GridWorld InvertedPendulum
 
 Makefile:

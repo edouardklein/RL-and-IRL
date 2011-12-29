@@ -211,7 +211,6 @@ plot 'threshold_lstd.dat-0' u 1:2 w lines title 'LSTD' ls 1, 'threshold_lstd.dat
   The makefile rule to call this script is :
   #+srcname: LSTDmu_Exp_make
   #+begin_src makefile
-.PHONY: ErrorBars
 
 ErrorBars: conf.py threshold_lstd.dat threshold_mc.dat
 	../../Utils/ErrorBars.py

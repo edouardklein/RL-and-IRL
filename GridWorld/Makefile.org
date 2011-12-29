@@ -52,6 +52,8 @@ clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulat
 ** Inception
 
    #+begin_src makefile :tangle Makefile :noweb yes
+.PHONY:Makefile
+
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
    #+end_src

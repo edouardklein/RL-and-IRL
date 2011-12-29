@@ -142,7 +142,7 @@ Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tang
 
   #+begin_src makefile :tangle Makefile :noweb yes
 SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality
-
+.PHONY: Makefile
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 
