@@ -133,7 +133,7 @@ utils.c: utils.org
 utils.h: utils.org
 	$(call tangle,"utils.org")
 
-utils.py: utils.org
+a2str.py: utils.org
 	$(call tangle,"utils.org")
   #+end_src
 
@@ -150,5 +150,5 @@ utils_clean:
 	find . -maxdepth 1 -iname "utils.h"   | xargs -t rm
 	find . -maxdepth 1 -iname "utils.c"   | xargs -t rm 
 	find . -maxdepth 1 -iname "utils.o"   | xargs -t rm
-	find . -maxdepth 1 -iname "utils.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "a2str.py"   | xargs -t rm
   #+end_src

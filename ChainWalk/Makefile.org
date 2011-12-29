@@ -18,7 +18,7 @@ Those who do not fit in the others categories (because they fit in more than one
   #+begin_src make :tangle Makefile :noweb yes
   CFLAGS+=-I..
    #+end_src
-  #+begin_src makefile :tangle Makefil :noweb yes
+  #+begin_src makefile :tangle Makefile :noweb yes
 <<Generator_c2o_make>>
 <<lagoudakis2003least_figure10_c2o_make>>
   #+end_src

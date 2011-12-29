@@ -73,11 +73,12 @@ export LFLAGS=`pkg-config --libs gsl` -lm -O3
 <<TT_Test0_clean_make>>
 <<TT_Test1_clean_make>>
 <<TT_Test23_clean_make>>
+<<TT_clean_make>>
 <<a2a_clean_make>>
 <<criteria_clean_make>>
 <<greedy_clean_make>>
 
-clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean
+clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean
 	find . -maxdepth 1 -iname "*.o"   | xargs -t rm &&\
 	find . -maxdepth 1 -iname "*.pdf" | xargs -t rm &&\
 	find . -maxdepth 1 -iname "*~"    | xargs -t rm &&\

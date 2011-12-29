@@ -1156,6 +1156,10 @@ TT_clean:
 	find . -maxdepth 1 -iname "TaskTransfer_SF.py"   | xargs -t rm
 	find . -maxdepth 1 -iname "Constraint.py"   | xargs -t rm
 	find . -maxdepth 1 -iname "TT.py"   | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PEast.mat"   | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PWest.mat"   | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PNorth.mat"   | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PSouth.mat"   | xargs -t rm
   #+end_src
 
 * Perspective
