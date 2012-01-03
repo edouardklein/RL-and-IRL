@@ -493,7 +493,7 @@ LSTDmu.o: LSTDmu.c LSTDmu.h utils.h criteria.h LSPI.h greedy.h RL_Globals.h IRL_
   #+srcname: LSTDmu_clean_make
   #+begin_src makefile
 LSTDmu_clean:
-	find . -maxdepth 1 -iname "LSTDmu.h"   | xargs -t rm
-	find . -maxdepth 1 -iname "LSTDmu.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "LSTDmu.o"   | xargs -t rm
+	find . -maxdepth 1 -iname "LSTDmu.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LSTDmu.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "LSTDmu.o"   | xargs $(XARGS_OPT) rm
   #+end_src

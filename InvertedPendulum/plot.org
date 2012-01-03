@@ -227,7 +227,7 @@ g_iN = 100
   #+srcname:LSTDmu_Exp_nuke_make
     #+begin_src makefile
 nuke: #You probably don't want to make this one
-	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs -t rm
+	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs $(XARGS_OPT) rm
     #+end_src
 
 * Makefile Rules
@@ -355,24 +355,24 @@ threshold_mc.dat-0: ErrorBars
   #+srcname: LSTDmu_Exp_clean_make
   #+begin_src makefile
 LSTDmu_Exp_clean:
-	find . -maxdepth 1 -iname "threshold.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold_EB.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "plot.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "plot.o"   | xargs -t rm
-	find . -maxdepth 1 -iname "plot.exe"   | xargs -t rm
-	find . -maxdepth 1 -iname "plot.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "plot.samples"   | xargs -t rm
-	find . -maxdepth 1 -iname "Samples.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold.tex"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold.eps"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold_lstd.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold_mc.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold_EB.tex"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold_EB.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold_EB.eps"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold_lstd.dat-0"   | xargs -t rm
-	find . -maxdepth 1 -iname "threshold_mc.dat-0"   | xargs -t rm
-	find . -maxdepth 1 -iname "conf.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "threshold.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold_EB.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "plot.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.samples"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Samples.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold_lstd.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold_mc.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold_EB.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold_EB.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold_EB.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold_lstd.dat-0"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "threshold_mc.dat-0"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "conf.py"   | xargs $(XARGS_OPT) rm
 
   #+end_src

@@ -74,5 +74,5 @@ RL_Globals.h: RL_Globals.org
 	$(call tangle,"RL_Globals.org")
 
 RL_Globals_clean:
-	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -t rm
+	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs $(XARGS_OPT) rm
   #+end_src

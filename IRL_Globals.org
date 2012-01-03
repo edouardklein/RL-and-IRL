@@ -63,5 +63,5 @@ IRL_Globals.h: IRL_Globals.org
 	$(call tangle,"IRL_Globals.org")
 
 IRL_Globals_clean:
-	find . -maxdepth 1 -iname "IRL_Globals.h"   | xargs -t rm
+	find . -maxdepth 1 -iname "IRL_Globals.h"   | xargs $(XARGS_OPT) rm
   #+end_src

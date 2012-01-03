@@ -377,7 +377,7 @@ TT_Exp2: TT_Exp2.py DP.py a2str.py TT.py
     #+srcname: TT_Exp2_clean_make
     #+begin_src makefile
 TT_Exp2_clean:
-	find . -maxdepth 1 -iname "TT_Exp2.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "TT_Exp2.py"   | xargs $(XARGS_OPT) rm
     #+end_src
 
 **** Exp 3
@@ -514,7 +514,7 @@ TT_Exp3: TT_Exp3.py DP.py a2str.py TT.py
     #+srcname: TT_Exp3_clean_make
     #+begin_src makefile
 TT_Exp3_clean:
-	find . -maxdepth 1 -iname "TT_Exp3.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "TT_Exp3.py"   | xargs $(XARGS_OPT) rm
     #+end_src
 
 * Code :code:
@@ -930,9 +930,9 @@ Cleaning :
 #+srcname: TT_Test0_clean_make
 #+begin_src makefile
 TT_Test0_clean:
-	find test -maxdepth 1 -iname "TT_CT01.mat"   | xargs -t rm
-	find test -maxdepth 1 -iname "TT_CT02.mat" | xargs -t rm
-	find test -maxdepth 1 -iname "TT_expectedOutT0.mat" | xargs -t rm
+	find test -maxdepth 1 -iname "TT_CT01.mat"   | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_CT02.mat" | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_expectedOutT0.mat" | xargs $(XARGS_OPT) rm
 #+end_src
 *** Task Transfer on a 2x2 Gridworld
     In this simple setting we imagine a 2x2 gridworld and two experts. Both experts optimize the same reward, located in the north east corner. Both experts can choose between the same actions at each step : the four compass directions. The first expert's policy is NORTH, EAST, the second one is EAST, NORTH. We want to see in this experiment if the true reward is among the set of reward output by our algorithm.
@@ -1043,13 +1043,13 @@ Cleaning :
 #+srcname: TT_Test1_clean_make
 #+begin_src makefile
 TT_Test1_clean:
-	find test -maxdepth 1 -iname "TT_PPi1.mat"   | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PPi2.mat" | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PPEast.mat" | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PPWest.mat" | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PPNorth.mat" | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PPSouth.mat" | xargs -t rm
-	find test -maxdepth 1 -iname "TT_expectedOutT1.mat" | xargs -t rm
+	find test -maxdepth 1 -iname "TT_PPi1.mat"   | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PPi2.mat" | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PPEast.mat" | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PPWest.mat" | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PPNorth.mat" | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PPSouth.mat" | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_expectedOutT1.mat" | xargs $(XARGS_OPT) rm
 #+end_src
 
 *** Dynamic pogamming on a 2x2 Gridworld
@@ -1121,10 +1121,10 @@ TT_Test3.py:TaskTransfer.org
   #+srcname: TT_Test23_clean_make
   #+begin_src makefile
 TT_Test23_clean:
-	find . -maxdepth 1 -iname "TT_Test2.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_Test3.py"   | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PPi1.mat"   | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PPi2.mat"   | xargs -t rm
+	find . -maxdepth 1 -iname "TT_Test2.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_Test3.py"   | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PPi1.mat"   | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PPi2.mat"   | xargs $(XARGS_OPT) rm
   #+end_src
 
 ** Makefile rules
@@ -1151,15 +1151,15 @@ TT.py :TaskTransfer.org
   #+srcname: TT_clean_make
   #+begin_src makefile
 TT_clean:
-	find . -maxdepth 1 -iname "DP.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TaskTransfer.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TaskTransfer_SF.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "Constraint.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT.py"   | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PEast.mat"   | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PWest.mat"   | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PNorth.mat"   | xargs -t rm
-	find test -maxdepth 1 -iname "TT_PSouth.mat"   | xargs -t rm
+	find . -maxdepth 1 -iname "DP.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TaskTransfer.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TaskTransfer_SF.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Constraint.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT.py"   | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PEast.mat"   | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PWest.mat"   | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PNorth.mat"   | xargs $(XARGS_OPT) rm
+	find test -maxdepth 1 -iname "TT_PSouth.mat"   | xargs $(XARGS_OPT) rm
   #+end_src
 
 * Perspective

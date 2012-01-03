@@ -89,7 +89,7 @@ LSPI.o: LSPI.c LSPI.h LSTDQ.h utils.h greedy.h RL_Globals.h
   #+srcname: LSPI_clean_make
   #+begin_src makefile
 LSPI_clean:
-	find . -maxdepth 1 -iname "LSPI.h"   | xargs -t rm
-	find . -maxdepth 1 -iname "LSPI.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "LSPI.o"   | xargs -t rm
+	find . -maxdepth 1 -iname "LSPI.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LSPI.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "LSPI.o"   | xargs $(XARGS_OPT) rm
   #+end_src

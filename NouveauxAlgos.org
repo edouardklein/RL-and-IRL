@@ -190,14 +190,14 @@ We provide a rule to clean the corresponding mess.
 #+srcname: NA_clean_make
 #+begin_src makefile
 NA_clean:
-	find . -maxdepth 1 -iname "NouveauxAlgos.aux"| xargs -t rm
-	find . -maxdepth 1 -iname "NouveauxAlgos.bbl"| xargs -t rm
-	find . -maxdepth 1 -iname "NouveauxAlgos.blg"| xargs -t rm
-	find . -maxdepth 1 -iname "NouveauxAlgos.tex"| xargs -t rm
-	find . -maxdepth 1 -iname "NouveauxAlgos.pdf"| xargs -t rm
-	find . -maxdepth 1 -iname "NouveauxAlgos.log"| xargs -t rm 
-	find . -maxdepth 1 -iname "NouveauxAlgos.toc"| xargs -t rm
-	find . -maxdepth 1 -iname "LAFEM.py" | xargs -t rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.aux"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.bbl"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.blg"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.tex"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.pdf"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.log"| xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "NouveauxAlgos.toc"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM.py" | xargs $(XARGS_OPT) rm
 #+end_src
 \bibliographystyle{plainnat}
 \bibliography{../Biblio/Biblio}

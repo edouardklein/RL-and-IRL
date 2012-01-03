@@ -58,6 +58,6 @@ DP_mu.py: DP_mu.org
 	$(call tangle,"DP_mu.org")
 
 DP_mu_clean:
-	find . -maxdepth 1 -iname "DP_mu.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "DP_mu.py"   | xargs $(XARGS_OPT) rm
   #+end_src
 

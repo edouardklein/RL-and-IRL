@@ -109,8 +109,8 @@ InvertedPendulum.o: InvertedPendulum.c InvertedPendulum.h ../utils.h
   #+srcname: InvertedPendulum_clean_make
   #+begin_src makefile
 InvertedPendulum_clean:
-	find . -maxdepth 1 -iname "InvertedPendulum.o"   | xargs -t rm
-	find . -maxdepth 1 -iname "InvertedPendulum.h"   | xargs -t rm 
-	find . -maxdepth 1 -iname "InvertedPendulum.c"   | xargs -t rm
+	find . -maxdepth 1 -iname "InvertedPendulum.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "InvertedPendulum.h"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "InvertedPendulum.c"   | xargs $(XARGS_OPT) rm
   #+end_src
 

@@ -76,8 +76,8 @@ generator.exe: generator.o ../utils.o InvertedPendulum.o
   #+srcname: Generator_clean_make
   #+begin_src makefile
 Generator_clean:
-	find . -maxdepth 1 -iname "generator.exe"   | xargs -t rm
-	find . -maxdepth 1 -iname "generator.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "generator.o"   | xargs -t rm
+	find . -maxdepth 1 -iname "generator.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "generator.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "generator.o"   | xargs $(XARGS_OPT) rm
   #+end_src
 

@@ -139,8 +139,8 @@ simulator.o: simulator.c simulator.h GridWorld.h ../utils.h
   #+srcname: Simulator_clean_make
   #+begin_src makefile
 Simulator_clean:
-	find . -maxdepth 1 -iname "simulator.h"   | xargs -t rm
-	find . -maxdepth 1 -iname "simulator.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "simulator.o"   | xargs -t rm
+	find . -maxdepth 1 -iname "simulator.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "simulator.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "simulator.o"   | xargs $(XARGS_OPT) rm
   #+end_src
 

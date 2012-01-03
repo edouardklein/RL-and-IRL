@@ -216,7 +216,7 @@ g_iN = 100
   #+srcname:LSTDmu_Exp_nuke_make
     #+begin_src makefile
 nuke: #You probably don't want to make this one
-	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs -t rm
+	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs $(XARGS_OPT) rm
     #+end_src
 
 * Makefile Rules
@@ -380,43 +380,43 @@ criteria_mc_samples.dat: plot.dat
   #+srcname: LSTDmu_Exp_clean_make
   #+begin_src makefile
 LSTDmu_Exp_clean:
-	find . -maxdepth 1 -iname "criteria_mc.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd_EB.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "plot.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "plot.o"   | xargs -t rm
-	find . -maxdepth 1 -iname "plot.exe"   | xargs -t rm
-	find . -maxdepth 1 -iname "plot.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "plot.samples"   | xargs -t rm
-	find . -maxdepth 1 -iname "Samples.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_mc.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_mc.eps"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_mc.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_mc.tex"   | xargs -t rm
-	find . -maxdepth 1 -iname "conf.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd_EB.tex"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd_EB.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd_EB.eps"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.dat-0"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.dat-1"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.dat-2"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.dat-3"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.tex"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.eps"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_lstd.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.tex"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.eps"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.dat-0"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.dat-1"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.tex"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "both_error_EB.eps"   | xargs -t rm
-	find . -maxdepth 1 -iname "criteria_mc_samples.dat"   | xargs -t rm
+	find . -maxdepth 1 -iname "criteria_mc.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd_EB.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "plot.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.samples"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Samples.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "conf.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd_EB.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd_EB.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd_EB.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat-0"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat-1"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat-2"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat-3"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.dat-0"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.dat-1"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc_samples.dat"   | xargs $(XARGS_OPT) rm
 
   #+end_src
    

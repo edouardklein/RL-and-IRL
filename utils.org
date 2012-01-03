@@ -147,8 +147,8 @@ utils.o: utils.c utils.h
   #+srcname: utils_clean_make
   #+begin_src makefile
 utils_clean:
-	find . -maxdepth 1 -iname "utils.h"   | xargs -t rm
-	find . -maxdepth 1 -iname "utils.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "utils.o"   | xargs -t rm
-	find . -maxdepth 1 -iname "a2str.py"   | xargs -t rm
+	find . -maxdepth 1 -iname "utils.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "utils.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "utils.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "a2str.py"   | xargs $(XARGS_OPT) rm
   #+end_src

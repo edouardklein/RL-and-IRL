@@ -261,7 +261,7 @@ abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.
   #+srcname: a2a_clean_make
   #+begin_src makefile
 a2a_clean:
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.h"   | xargs -t rm
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.o"   | xargs -t rm
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "abbeel2004apprenticeship.o"   | xargs $(XARGS_OPT) rm
   #+end_src

@@ -334,11 +334,11 @@ V_expert.txt: LAFEM_Exp1_run
   #+srcname: LAFEM_Exp1_clean_make
   #+begin_src makefile
 LAFEM_Exp1_clean:
-	find . -maxdepth 1 -iname "LAFEM_Exp1.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "Pi2txt.py"   | xargs -t rm 
-	find . -maxdepth 1 -iname "LAFEM_Exp1_V_expert.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "V_expert.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "V_expert.txt"   | xargs -t rm
+	find . -maxdepth 1 -iname "LAFEM_Exp1.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Pi2txt.py"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "LAFEM_Exp1_V_expert.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "V_expert.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "V_expert.txt"   | xargs $(XARGS_OPT) rm
   #+end_src
 
 * Résultats

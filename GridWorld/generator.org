@@ -129,8 +129,8 @@ generator.exe: generator.o ../utils.o
   #+srcname: Generator_clean_make
   #+begin_src makefile
 Generator_clean:
-	find . -maxdepth 1 -iname "Generator.exe"   | xargs -t rm
-	find . -maxdepth 1 -iname "Generator.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "Generator.o"   | xargs -t rm
+	find . -maxdepth 1 -iname "Generator.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Generator.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "Generator.o"   | xargs $(XARGS_OPT) rm
   #+end_src
 

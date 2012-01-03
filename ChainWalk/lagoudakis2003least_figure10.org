@@ -189,15 +189,15 @@ generator.exe: generator.o ../utils.o
   #+srcname: lagoudakis2003least_figure10_clean_make
   #+begin_src makefile
 lagoudakis2003least_figure10_clean:
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.exe"   | xargs -t rm
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.o"   | xargs -t rm
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.dat"   | xargs -t rm
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.ps"   | xargs -t rm
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.samples"   | xargs -t rm
-	find . -maxdepth 1 -iname "Samples*"   | xargs -t rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.ps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "lagoudakis2003least_figure10.samples"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Samples*"   | xargs $(XARGS_OPT) rm
   #+end_src
 
 And the rules that allows for the creation of the figure :

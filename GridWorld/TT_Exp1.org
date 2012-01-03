@@ -447,25 +447,25 @@ LAFEM_Exp1_run: LAFEM_Exp1.py ../DP_mu.py ../DP.py Pi2txt.py
   #+srcname: TT_Exp1_clean_make
   #+begin_src makefile
 TT_Exp1_clean:
-	find . -maxdepth 1 -iname "TT_Exp1.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_agentAsExpert.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R3.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R2.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R1.gp"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_mat2gp.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_PENorth.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_PESouth.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_PEWest.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_PEEast.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_Ppi.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_expertPGen.py"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R1.mat"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R2.mat"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R3.mat"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R1.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R2.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_R3.pdf"   | xargs -t rm
-	find . -maxdepth 1 -iname "TT_5x5_Rewards.mat"   | xargs -t rm
+	find . -maxdepth 1 -iname "TT_Exp1.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_agentAsExpert.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R3.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R2.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R1.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_mat2gp.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PENorth.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PESouth.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PEWest.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PEEast.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_Ppi.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_expertPGen.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R1.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R2.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R3.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R1.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R2.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_R3.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_Rewards.mat"   | xargs $(XARGS_OPT) rm
  #+end_src
 
 * Résultats

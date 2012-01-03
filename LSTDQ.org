@@ -133,7 +133,7 @@ LSTDQ.o: LSTDQ.c LSTDQ.h RL_Globals.h
   #+srcname: LSTDQ_clean_make
   #+begin_src makefile
 LSTDQ_clean:
-	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs -t rm
-	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs -t rm 
-	find . -maxdepth 1 -iname "LSTDQ.o"   | xargs -t rm
+	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "LSTDQ.o"   | xargs $(XARGS_OPT) rm
   #+end_src

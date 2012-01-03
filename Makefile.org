@@ -63,6 +63,7 @@ export LFLAGS=`pkg-config --libs gsl` -lm -O3
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
+export XARGS_OPT=-tr
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -79,40 +80,9 @@ export LFLAGS=`pkg-config --libs gsl` -lm -O3
 <<greedy_clean_make>>
 
 clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean
-	find . -maxdepth 1 -iname "*.o"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.pdf" | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*~"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.html"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.aux"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.bbl"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.blg"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.log"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.out"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.tex"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.toc"    | xargs -t rm &&\
-	find . -maxdepth 1 -iname "*.mm"    | xargs -t rm &&\
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
-	$(MAKE) -C klein2011dimensionality clean
-	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "LSPI.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "LSPI.c"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "greedy.c"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "greedy.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.c"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "criteria.c"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "criteria.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "IRL_Globals.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "LSTDmu.c"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "LSTDmu.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "utils.c"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "utils.h"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "code"   | xargs -t rm &&\
-	find . -maxdepth 1 -iname "doc"   | xargs -t rm -rf
     #+end_src
 * End results
 ** TaskTransfer

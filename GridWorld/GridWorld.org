@@ -18,5 +18,5 @@ GridWorld.h: GridWorld.org
 	$(call tangle,"GridWorld.org")
 
 GridWorld_clean:
-	find . -maxdepth 1 -iname "GridWorld.h"   | xargs -t rm
+	find . -maxdepth 1 -iname "GridWorld.h"   | xargs $(XARGS_OPT) rm
   #+end_src
