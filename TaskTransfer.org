@@ -500,8 +500,8 @@ m_A = 2
     It can be tangled with :
     #+srcname: TT_Exp3_code_make
     #+begin_src makefile
-TT_Exp3.py: TaskTranfer.org
-	$(call tangle,"TaskTranfer.org")
+TT_Exp3.py: TaskTransfer.org
+	$(call tangle,"TaskTransfer.org")
     #+end_src
     
     It can be run with :
@@ -842,7 +842,7 @@ def TT( P_pi, Actions ):
     else:
         answer = None
 
-    cmd = "rm TT_tmpC.mat TT_tmpR.mat TT_tmpC.mat TT_tmp_0"
+    cmd = "rm TT_tmpC.mat TT_tmpR.mat TT_tmp_0"
     index = 1
     for action in Actions:
         cmd+= " TT_tmp_%d"%index
