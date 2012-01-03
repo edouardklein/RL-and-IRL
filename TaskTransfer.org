@@ -560,9 +560,9 @@ def DP( Reward, Actions ):
             max_Q = Q( s, chosen_a )
             #Select the action that maximizes Q
             for a in range(0,m):
-                Q = Q( s, a )
-                if( Q > max_Q ):
-                    max_Q = Q
+                fQ = Q( s, a )
+                if( fQ > max_Q ):
+                    max_Q = fQ
                     chosen_a = a
             g_vPi[ s ] = chosen_a
             g_vV[ s ] = max_Q
@@ -600,9 +600,9 @@ def DP_txt( Reward, Actions, Filename ):
             max_Q = Q( s, chosen_a )
             #Select the action that maximizes Q
             for a in range(0,m):
-                Q = Q( s, a )
-                if( Q > max_Q ):
-                    max_Q = Q
+                fQ = Q( s, a )
+                if( fQ > max_Q ):
+                    max_Q = fQ
                     chosen_a = a
             g_vPi[ s ] = chosen_a
             g_vV[ s ] = max_Q

@@ -53,10 +53,12 @@
 ** Python implementation
     States are indexed from 0 to 24 in the reading order. The action and policy matrices for the expert are created using the following piece of code, which describes the same setting as in \cite{ng2000algorithms} : 
     #+begin_src python :tangle TT_5x5_expertPGen.py
+import sys
+sys.path+=['..']
 from numpy import *
 import scipy
 from a2str import*
-from TT_DP import*
+from DP import*
 
 P_north = zeros((25,25))
 P_east = zeros((25,25))
@@ -135,38 +137,39 @@ for a in range(0,4):
 
 R = zeros((25,1))
 R[4,0] = 1
-P_pi = TT_DP_txt( R, (P_north, P_south, P_west, P_east), "V_expert.mat" )
+P_pi = DP_txt( R, (P_north, P_south, P_west, P_east), "V_expert.mat" )
 f = open( "TT_5x5_Ppi.mat", "w" )
 f.write( a2str(P_pi) )
 f.close()
         #+end_src
 
    The constraint matrix is then computed from this information :
-#+srcname: TT_exp1_make
+#+srcname: TT_Exp1_make
 #+begin_src makefile
-TT_5x5_PENorth.mat: TT_5x5_expertPGen.py
+TT_5x5_PENorth.mat: TT_5x5_expertPGen.py ../a2str.py
 	python TT_5x5_expertPGen.py 
-TT_5x5_PESouth.mat: TT_5x5_expertPGen.py
+TT_5x5_PESouth.mat: TT_5x5_expertPGen.py ../a2str.py
 	python TT_5x5_expertPGen.py 
-TT_5x5_PEEast.mat: TT_5x5_expertPGen.py
+TT_5x5_PEEast.mat: TT_5x5_expertPGen.py ../a2str.py
 	python TT_5x5_expertPGen.py 
-TT_5x5_PEWest.mat: TT_5x5_expertPGen.py
+TT_5x5_PEWest.mat: TT_5x5_expertPGen.py ../a2str.py
 	python TT_5x5_expertPGen.py 
-TT_5x5_PPi.mat: TT_5x5_expertPGen.py
+TT_5x5_Ppi.mat: TT_5x5_expertPGen.py ../a2str.py
 	python TT_5x5_expertPGen.py 
 
 TT_5x5_Rewards.mat: TT_Exp1_run
 
-TT_5x5_R1.mat: TT_Exp1
-TT_5x5_R2.mat: TT_Exp1
-TT_5x5_R3.mat: TT_Exp1
+TT_5x5_R1.mat: TT_Exp1_run
+TT_5x5_R2.mat: TT_Exp1_run
+TT_5x5_R3.mat: TT_Exp1_run
+
 
 TT_Exp1_run: ../Constraint.py TT_5x5_Ppi.mat TT_5x5_PENorth.mat TT_5x5_PEWest.mat TT_5x5_PESouth.mat TT_5x5_PEEast.mat
 	python ../Constraint.py TT_5x5_Ppi.mat TT_5x5_PENorth.mat TT_5x5_PEWest.mat TT_5x5_PESouth.mat TT_5x5_PEEast.mat > TT_5x5_C.mat
 #+end_src
 
    And fed to the TaskTransfer program using the /slacks free/ method :
-#+srcname: TT_exp1_make
+#+srcname: TT_Exp1_make
 #+begin_src makefile
 	python ../TaskTransfer_SF.py TT_5x5_C.mat > TT_5x5_Rewards.mat
 	rm TT_5x5_C.mat
@@ -178,6 +181,7 @@ TT_Exp1_run: ../Constraint.py TT_5x5_Ppi.mat TT_5x5_PENorth.mat TT_5x5_PEWest.ma
    #+begin_src python :tangle TT_5x5_mat2gp.py
 #!/usr/bin/python
 import sys
+sys.path+=['..']
 from numpy import *
 import scipy
 import itertools
@@ -197,7 +201,7 @@ for x in range(0,5):
     print ""
    #+end_src
    We use it for the three rewards :
-#+srcname: TT_exp1_make
+#+srcname: TT_Exp1_make
 #+begin_src makefile
 	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 0 > TT_5x5_R1.mat
 	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 1 > TT_5x5_R2.mat
@@ -230,8 +234,12 @@ splot "TT_5x5_R3.mat" notitle
    #+end_src
 
    PDF files are produced :
-#+srcname: TT_exp1_make
+#+srcname: TT_Exp1_make
 #+begin_src makefile
+TT_5x5_R1.pdf: TT_5x5_R_pdf
+TT_5x5_R2.pdf: TT_5x5_R_pdf
+TT_5x5_R3.pdf: TT_5x5_R_pdf
+
 TT_5x5_R_pdf: TT_5x5_R1.mat TT_5x5_R2.mat TT_5x5_R3.mat
 	gnuplot TT_5x5_R1.gp
 	ps2pdf TT_5x5_R1.ps
@@ -248,10 +256,12 @@ TT_5x5_R_pdf: TT_5x5_R1.mat TT_5x5_R2.mat TT_5x5_R3.mat
 
    The action matrices for the expert are created using the following piece of code.
     #+begin_src python :tangle TT_5x5_agentAsExpert.py
+import sys
+sys.path+=['..']
 from numpy import *
 import scipy
 from a2str import*
-from TT_DP import*
+from DP import*
 
 P_N = zeros((25,25))
 P_E = zeros((25,25))
@@ -394,11 +404,11 @@ for a in range(0,8):
     #+begin_src python :tangle TT_5x5_agentAsExpert.py
 R = zeros((25,1))
 R[4,0] = 1
-P_piAaE = TT_DP( R, (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
+P_piAaE = DP( R, (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
 foundR = genfromtxt( "TT_5x5_Rewards.mat" )
-P_pi1 = TT_DP( foundR[0,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
-P_pi2 = TT_DP( foundR[1,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
-P_pi3 = TT_DP( foundR[2,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
+P_pi1 = DP( foundR[0,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
+P_pi2 = DP( foundR[1,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
+P_pi3 = DP( foundR[2,:], (P_N, P_S, P_W, P_E, P_NE, P_NW, P_SW, P_SE) )
 VAaE = dot(linalg.inv(identity(25) - 0.9*P_piAaE),R)
 V1 = dot(linalg.inv(identity(25) - 0.9*P_pi1),R)
 V2 = dot(linalg.inv(identity(25) - 0.9*P_pi2),R)
@@ -409,18 +419,26 @@ print "R2 : %f"%V2[20]
 print "R3 : %f"%V3[20]
         #+end_src
 
-#+srcname: TT_exp1_make
+#+srcname: TT_Exp1_make
 #+begin_src makefile
 TT_Exp1: TT_Exp1_run TT_5x5_R1.pdf TT_5x5_R2.pdf TT_5x5_R3.pdf
 	python TT_5x5_agentAsExpert.py
 #+end_src
 
 ** Makefile Rules
+*** Parent Dir targets
+    On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
+#+srcname: TT_Exp1_make
+#+begin_src makefile
+../Constraint.py:
+	make -C .. Constraint.py
+../a2str.py:
+	make -C .. a2str.py
+#+end_src
+
 *** Tangling
     #+srcname: TT_Exp1_code_make
   #+begin_src makefile
-TT_Exp1.py: TT_Exp1.org 
-	$(call tangle,"TT_Exp1.org")
 TT_5x5_expertPGen.py: TT_Exp1.org 
 	$(call tangle,"TT_Exp1.org")
 TT_5x5_mat2gp.py: TT_Exp1.org 
@@ -434,20 +452,14 @@ TT_5x5_R3.gp: TT_Exp1.org
 TT_5x5_agentAsExpert.py: TT_Exp1.org 
 	$(call tangle,"TT_Exp1.org")
   #+end_src
-*** Experiment targets
-    L'expérience produit quelques figures, et affiche des infos sur la sortie standard.
-#+srcname: TT_Exp1_make
-#+begin_src makefile
-LAFEM_Exp1_run: LAFEM_Exp1.py ../DP_mu.py ../DP.py Pi2txt.py
-	python LAFEM_Exp1.py
-#+end_src
 
 *** Cleaning
    A rule to clean the mess :
   #+srcname: TT_Exp1_clean_make
   #+begin_src makefile
 TT_Exp1_clean:
-	find . -maxdepth 1 -iname "TT_Exp1.py"   | xargs $(XARGS_OPT) rm
+	find .. -maxdepth 1 -iname "a2str.pyc"   | xargs $(XARGS_OPT) rm
+	find .. -maxdepth 1 -iname "DP.pyc"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "TT_5x5_agentAsExpert.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "TT_5x5_R3.gp"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "TT_5x5_R2.gp"   | xargs $(XARGS_OPT) rm
@@ -465,7 +477,21 @@ TT_Exp1_clean:
 	find . -maxdepth 1 -iname "TT_5x5_R1.pdf"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "TT_5x5_R2.pdf"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "TT_5x5_R3.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PAEast.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PANE.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PANW.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PANorth.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PASE.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PASW.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PASouth.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PAWest.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PESouth.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PENorth.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PEWest.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_PEEast.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "TT_5x5_Rewards.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT_5x5_Ppi.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "V_expert.mat"   | xargs $(XARGS_OPT) rm
  #+end_src
 
 * Résultats

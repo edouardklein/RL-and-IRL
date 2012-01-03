@@ -13,6 +13,8 @@ Those who do not fit in the others categories (because they fit in more than one
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
+tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
+
 <<LAFEM_Exp1_code_make>>
 <<LSTDmu_Exp_code_make>>
 <<Generator_code_make>>
