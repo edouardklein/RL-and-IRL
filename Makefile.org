@@ -92,10 +92,10 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
    - TT_Exp1 (GridWorld)
    - TT_Exp2
    - TT_Exp3
-   - TT_Test0
-   - TT_Test1
-   - TT_Test2
-   - TT_Test3
+   - TT_test0
+   - TT_test1
+   - TT_test2
+   - TT_test3
 ** LSTDmu
    - criteria_mc.tex (GridWorld)
    - criteria_lstd_EB.tex (GridWorld) / criteria_lstd.tex (GridWorld)
