@@ -1108,7 +1108,7 @@ print a2str( DP( Reward, Actions ) )
     We add the first test to the Makefile
     #+srcname: TT_Test2_make
     #+begin_src makefile
-TT_test2: TT_Test2.py test/TT_PPi1.mat
+TT_test2: TT_Test2.py test/TT_PPi1.mat a2str.py
 	python TT_Test2.py > test/TT_outT2.mat
 	../Utils/matrix_diff.py test/TT_PPi1.mat test/TT_outT2.mat
 	rm test/TT_outT2.mat
