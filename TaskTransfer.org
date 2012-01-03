@@ -325,7 +325,7 @@ The following holds:  $R_1\equiv R_2$
     #+begin_src python :tangle TT_Exp2.py
 from numpy import *
 import scipy
-from TT_DP import *
+from DP import *
 from a2str import *
 from TT import *
 import sys
@@ -342,7 +342,7 @@ for n in range(4,7):
             for line in P_i:
                 line /= sum(line) #Sum of proba = 1, so we normalize the random line
             ExpertsActions.append(P_i)
-        P_pi = TT_DP( R, ExpertsActions )
+        P_pi = DP( R, ExpertsActions )
         #import pdb;pdb.set_trace()
         ttRewards = TT_SF( P_pi, ExpertsActions )
         nbRewards = 0
@@ -407,7 +407,7 @@ while True:
       - Compute the expert's policy's transition probabilities by solving the MDP : $P_\pi \leftarrow DP( R, \{P_{a^E_i}\}_i)$
 	#+srcname: TT_Exp3_py
         #+begin_src python
-    P_pi = TT_DP( R, ExpertsActions )
+    P_pi = DP( R, ExpertsActions )
         #+end_src
       - Run the TaskTransfer Algorithm : $\{R_j\}_j = TaskTransfer( P_\pi, \{P_{a^E_i}\}_i)$
 	#+srcname: TT_Exp3_py
@@ -430,7 +430,7 @@ while True:
       - Compute the Agent as Expert policy's transition probabilities by solving the MDP for the true reward function : $P_\pi^{AaE} \leftarrow DP( R, \{P_{a^A_i}\}_i)$
 	#+srcname: TT_Exp3_py
         #+begin_src python
-    P_AaE = TT_DP( R, AgentsActions )
+    P_AaE = DP( R, AgentsActions )
         #+end_src
       - Store the Agent as Expert value $V^{AaE}(s_0)$
 	#+srcname: TT_Exp3_py
@@ -446,7 +446,7 @@ while True:
 	- Solve the MDP : $\pi_l \leftarrow DP(R^j, \{P_{a^A_k}\}_k )$
 	  #+srcname: TT_Exp3_py
           #+begin_src python
-        P_pi_l = TT_DP( reward, AgentsActions )
+        P_pi_l = DP( reward, AgentsActions )
           #+end_src
 	- Store the true value of the agent's behavior : $V\leftarrow V \cup \{V^{\pi_l}(s_0)\}$
 	  #+srcname: TT_Exp3_py
@@ -485,7 +485,7 @@ while True:
     #+begin_src python :tangle TT_Exp3.py :noweb yes
 from numpy import *
 import scipy
-from TT_DP import *
+from DP import *
 from a2str import *
 from TT import *
 
@@ -834,17 +834,22 @@ def TT( P_pi, Actions ):
     cmd += " > TT_tmpC.mat"
     os.system( cmd )
 
-    cmd = "rm TT_tmp_*"
-    os.system( cmd )
-
     cmd = "python TaskTransfer.py TT_tmpC.mat > TT_tmpR.mat"
     ret = os.system( cmd )
     
     if( ret == 0):
         answer = genfromtxt( "TT_tmpR.mat" )
-        return answer
     else:
-        return None
+        answer = None
+
+    cmd = "rm TT_tmpC.mat TT_tmpR.mat TT_tmpC.mat TT_tmp_0"
+    index = 1
+    for action in Actions:
+        cmd+= " TT_tmp_%d"%index
+        index +=1
+    os.system( cmd )
+
+    return answer
 
 def TT_SF( P_pi, Actions ):
     index = 0
@@ -865,9 +870,17 @@ def TT_SF( P_pi, Actions ):
 
     if( ret == 0):
         answer = genfromtxt( "TT_tmpR.mat" )
-        return answer
     else:
-        return None
+        answer = None
+
+    cmd = "rm TT_tmpC.mat TT_tmpR.mat TT_tmp_0"
+    index = 1
+    for action in Actions:
+        cmd+= " TT_tmp_%d"%index
+        index +=1
+    os.system( cmd )
+
+    return answer
 
     #+end_src
 ** Tests
@@ -1059,7 +1072,7 @@ TT_Test1_clean:
     #+begin_src python :tangle TT_Test2.py
 from numpy import *
 import scipy
-from TT_DP import *
+from DP import *
 from a2str import *
 
 Actions = []
@@ -1070,13 +1083,13 @@ for file in ['test/TT_PNorth.mat','test/TT_PEast.mat','test/TT_PSouth.mat','test
 
 Reward = [0,1,0,0]
 
-print a2str( TT_DP( Reward, Actions ) )
+print a2str( DP( Reward, Actions ) )
     #+end_src
     And then in another order,
     #+begin_src python :tangle TT_Test3.py
 from numpy import *
 import scipy
-from TT_DP import *
+from DP import *
 from a2str import *
 
 Actions = []
@@ -1087,7 +1100,7 @@ for file in ['test/TT_PEast.mat','test/TT_PNorth.mat','test/TT_PSouth.mat','test
 
 Reward = [0,1,0,0]
 
-print a2str( TT_DP( Reward, Actions ) )
+print a2str( DP( Reward, Actions ) )
     #+end_src
     This should retrieve the policies of each of our experts, as changing the order of the actions change the default action when state-action values are the same.
 
@@ -1156,6 +1169,7 @@ TT_clean:
 	find . -maxdepth 1 -iname "TaskTransfer_SF.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "Constraint.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "TT.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "TT.pyc"   | xargs $(XARGS_OPT) rm
 	find test -maxdepth 1 -iname "TT_PEast.mat"   | xargs $(XARGS_OPT) rm
 	find test -maxdepth 1 -iname "TT_PWest.mat"   | xargs $(XARGS_OPT) rm
 	find test -maxdepth 1 -iname "TT_PNorth.mat"   | xargs $(XARGS_OPT) rm
