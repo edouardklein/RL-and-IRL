@@ -1117,8 +1117,8 @@ TT_test2: TT_Test2.py test/TT_PPi1.mat a2str.py
     And the second also,
     #+srcname: TT_Test3_make
     #+begin_src makefile
-TT_Test3:TT_Test3.py test/TT_PPi2.mat
-	python TT_test3.py > test/TT_outT3.mat
+TT_test3:TT_Test3.py test/TT_PPi2.mat a2str.py
+	python TT_Test3.py > test/TT_outT3.mat
 	../Utils/matrix_diff.py test/TT_PPi2.mat test/TT_outT3.mat
 	rm test/TT_outT3.mat
     #+end_src
