@@ -919,7 +919,7 @@ We now build Makefile targets that calls the program on the previously defined $
 
 #+srcname: TT_Test0_make
 #+begin_src makefile
-TT_test0: TaskTransfer.py test/TT_CT01.mat test/TT_CT02.mat test/TT_expectedOutT0.mat
+TT_test0: TaskTransfer.py test/TT_CT01.mat test/TT_CT02.mat test/TT_expectedOutT0.mat a2str.py
 	python TaskTransfer.py test/TT_CT01.mat | sort > test/TT_outT01.mat
 	python TaskTransfer.py test/TT_CT02.mat | sort > test/TT_outT02.mat
 	../Utils/matrix_diff.py test/TT_expectedOutT0.mat test/TT_outT01.mat
