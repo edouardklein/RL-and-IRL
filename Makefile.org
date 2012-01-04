@@ -66,7 +66,7 @@ export LFLAGS=`pkg-config --libs gsl` -lm -O3
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-tr
+export XARGS_OPT=-t
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>

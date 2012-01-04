@@ -1008,12 +1008,14 @@ TT_Test0_clean:
 TT_test1: Constraint.py test/TT_PPi1.mat test/TT_PPi2.mat test/TT_PEast.mat test/TT_PWest.mat test/TT_PSouth.mat test/TT_PNorth.mat TaskTransfer.py test/TT_expectedOutT1.mat a2str.py
 	python Constraint.py test/TT_PPi1.mat test/TT_PEast.mat test/TT_PWest.mat test/TT_PSouth.mat test/TT_PNorth.mat > test/TT_C1.mat
 	python Constraint.py test/TT_PPi2.mat test/TT_PEast.mat test/TT_PWest.mat test/TT_PSouth.mat test/TT_PNorth.mat > test/TT_C2.mat
+
     #+end_src
 
     The conjoint constraint matrix is extracted (duplicate lines are removed) :
     #+srcname: TT_Test1_make
     #+begin_src makefile
 	cat test/TT_C1.mat test/TT_C2.mat | sort | uniq > test/TT_CBoth.mat
+
     #+end_src
 
     The TaskTransfer program is run and its output is compared against what is expected :

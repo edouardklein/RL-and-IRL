@@ -203,6 +203,7 @@ plot 'both_error.dat' u 1:2 smooth csplines title 'LSTD' ls 1, 'both_error.dat' 
   #+begin_src makefile
 ErrorBars: conf.py criteria_lstd.dat both_error.dat 
 	../../Utils/ErrorBars.py
+
   #+end_src
 
   The python file that configures this script for our setting is :
@@ -283,6 +284,7 @@ conf.py: LSTDmu_Exp.org
 
 ../LSPI.h:
 	make -C .. LSPI.h
+
 #+end_src
 ** C source to .o files
 #+srcname: LSTDmu_Exp_c2o_make
@@ -306,6 +308,7 @@ plot.dat: plot.samples plot.exe
 
 plot.samples: generator.exe 
 	./generator.exe > Samples.dat && touch plot.samples
+
 #+end_src
 *** Plotting the criteria for the MC method
   #+srcname: LSTDmu_Exp_make
@@ -321,6 +324,7 @@ criteria_mc.eps: criteria_mc.dat criteria_mc.gp
 
 criteria_mc.dat: plot.dat
 	cat plot.dat | grep "^500" | sed 's/500 //'> criteria_mc.dat
+
     #+end_src
 
 *** Plotting the different criteria for the LSTD method : 
@@ -351,6 +355,7 @@ criteria_lstd.eps: criteria_lstd.dat criteria_lstd.gp
 
 criteria_lstd.dat: plot.dat
 	cat plot.dat | grep -E "^B " | sed "s/B //"> criteria_lstd.dat
+
   #+end_src
 *** Error for both methods
   #+srcname: LSTDmu_Exp_make

@@ -166,6 +166,7 @@ TT_5x5_R3.mat: TT_Exp1_run
 
 TT_Exp1_run: ../Constraint.py TT_5x5_Ppi.mat TT_5x5_PENorth.mat TT_5x5_PEWest.mat TT_5x5_PESouth.mat TT_5x5_PEEast.mat
 	python ../Constraint.py TT_5x5_Ppi.mat TT_5x5_PENorth.mat TT_5x5_PEWest.mat TT_5x5_PESouth.mat TT_5x5_PEEast.mat > TT_5x5_C.mat
+
 #+end_src
 
    And fed to the TaskTransfer program using the /slacks free/ method :
@@ -173,6 +174,7 @@ TT_Exp1_run: ../Constraint.py TT_5x5_Ppi.mat TT_5x5_PENorth.mat TT_5x5_PEWest.ma
 #+begin_src makefile
 	python ../TaskTransfer_SF.py TT_5x5_C.mat > TT_5x5_Rewards.mat
 	rm TT_5x5_C.mat
+
 #+end_src
 
    We get 3 rewards we can plot.
@@ -206,6 +208,7 @@ for x in range(0,5):
 	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 0 > TT_5x5_R1.mat
 	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 1 > TT_5x5_R2.mat
 	python TT_5x5_mat2gp.py TT_5x5_Rewards.mat 2 > TT_5x5_R3.mat
+
    #+end_src
    The GNUplot instructions :
 
@@ -250,6 +253,7 @@ TT_5x5_R_pdf: TT_5x5_R1.mat TT_5x5_R2.mat TT_5x5_R3.mat
 	gnuplot TT_5x5_R3.gp
 	ps2pdf TT_5x5_R3.ps
 	rm TT_5x5_R3.ps
+
 #+end_src
    
    The figures are now ready.
@@ -423,6 +427,7 @@ print "R3 : %f"%V3[20]
 #+begin_src makefile
 TT_Exp1: TT_Exp1_run TT_5x5_R1.pdf TT_5x5_R2.pdf TT_5x5_R3.pdf
 	python TT_5x5_agentAsExpert.py
+
 #+end_src
 
 ** Makefile Rules

@@ -309,6 +309,7 @@ LAFEM_Exp1_V_expert.gp: LAFEM_Exp1.org
 
 ../DP.py:
 	make -C .. DP.py
+
 #+end_src
 
 *** Experiment targets
@@ -317,6 +318,7 @@ LAFEM_Exp1_V_expert.gp: LAFEM_Exp1.org
 #+begin_src makefile
 LAFEM_Exp1_run: LAFEM_Exp1.py ../DP_mu.py ../DP.py Pi2txt.py
 	python LAFEM_Exp1.py
+
 #+end_src
 
 #+srcname: LAFEM_Exp1_make
