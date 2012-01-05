@@ -49,6 +49,8 @@ tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
     #+begin_src makefile :tangle Makefile
 export CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
 export LFLAGS=`pkg-config --libs gsl` -lm -O3
+c2obj=gcc $(CFLAGS) -c $1
+o2exe=gcc $(LFLAGS)
     #+end_src
   
 #+begin_src makefile :tangle Makefile :noweb yes
@@ -66,7 +68,7 @@ export LFLAGS=`pkg-config --libs gsl` -lm -O3
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-t
+export XARGS_OPT=-tr
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -98,8 +100,22 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
    - TT_test3
 ** LSTDmu
    - criteria_mc.tex (GridWorld)
+    #+begin_src makefile :tangle Makefile
+criteria_mc.tex:
+	make -C GridWorld criteria_mc.tex
+    #+end_src
+
    - criteria_lstd_EB.tex (GridWorld) / criteria_lstd.tex (GridWorld)
+    #+begin_src makefile :tangle Makefile
+criteria_lstd.tex:
+	make -C GridWorld criteria_lstd.tex
+    #+end_src
+
    - both_error.tex (GridWorld) / both_error_EB.tex (GridWorld)
+    #+begin_src makefile :tangle Makefile
+both_error.tex:
+	make -C GridWorld both_error.tex
+    #+end_src
    - threshold.tex (InvertedPendulum)
    - threshold_EB.tex (InvertedPendulum)
 ** Previous results

@@ -23,7 +23,9 @@ tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
   #+end_src
 ** C source to .o file
   #+begin_src make :tangle Makefile :noweb yes
-  CFLAGS+=-I..
+  CFLAGS+= -I..
+c2obj=gcc $(CFLAGS) -c $1
+
    #+end_src
   #+begin_src makefile :tangle Makefile :noweb yes
 <<LSTDmu_Exp_c2o_make>>
@@ -32,6 +34,7 @@ tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
   #+end_src
 ** .o to .exe
   #+begin_src makefile :tangle Makefile :noweb yes
+O2EXE=gcc $(LFLAGS)
 <<LSTDmu_Exp_o2exe_make>>
 <<Generator_o2exe_make>>
   #+end_src

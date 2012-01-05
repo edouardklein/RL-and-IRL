@@ -285,11 +285,17 @@ conf.py: LSTDmu_Exp.org
 ../LSPI.h:
 	make -C .. LSPI.h
 
+../RL_Globals.h:
+	make -C .. RL_Globals.h
+
+../IRL_Globals.h:
+	make -C .. IRL_Globals.h
+
 #+end_src
 ** C source to .o files
 #+srcname: LSTDmu_Exp_c2o_make
 #+begin_src makefile
-plot.o: plot.c GridWorld.h ../utils.h ../LSPI.h ../greedy.h simulator.h ../abbeel2004apprenticeship.h ../LSTDmu.h ../LSTDQ.h
+plot.o: plot.c GridWorld.h ../utils.h ../LSPI.h ../greedy.h simulator.h ../abbeel2004apprenticeship.h ../LSTDmu.h ../LSTDQ.h ../criteria.h ../RL_Globals.h ../IRL_Globals.h
 	$(call c2obj,"plot.c")
 #+end_src
 ** .o to .exe
@@ -347,6 +353,9 @@ criteria_lstd.dat-2: ErrorBars
 
 criteria_lstd.dat-3: ErrorBars
 
+criteria_lstd.tex: criteria_lstd.pdf
+	cat criteria_lstd.tex | sed "s|criteria_lstd|../Code/GridWorld/criteria_lstd|g" > tmp.tex && mv tmp.tex criteria_lstd.tex
+
 criteria_lstd.pdf: criteria_lstd.eps
 	epstopdf criteria_lstd.eps
 
@@ -373,6 +382,15 @@ both_error.dat-0: ErrorBars
 
 both_errot.dat-1: ErrorBars
 
+both_error.tex: both_error.pdf
+	cat both_error.tex | sed "s|both_error|../Code/GridWorld/both_error|g" > tmp.tex && mv tmp.tex both_error.tex
+
+both_error.pdf: both_error.eps
+	epstopdf both_error.eps
+
+both_error.eps: both_error.dat both_error.gp
+	gnuplot both_error.gp
+
 both_error.dat: criteria_mc_samples.dat criteria_lstd.dat
 	cat criteria_lstd.dat | cut -d" " -f'1 4' > tmp &&\
 	cat criteria_mc_samples.dat | cut -d" " -f'1 4' > tmp2 &&\
@@ -390,6 +408,12 @@ LSTDmu_Exp_clean:
 	find . -maxdepth 1 -iname "criteria_lstd_EB.gp"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "both_error_EB.gp"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "both_error.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "tmp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "tmp2"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "plot.c"   | xargs $(XARGS_OPT) rm 
 	find . -maxdepth 1 -iname "plot.o"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "plot.exe"   | xargs $(XARGS_OPT) rm
