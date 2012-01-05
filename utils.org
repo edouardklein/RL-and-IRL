@@ -1,8 +1,8 @@
 #+TITLE: Utility functions that should be moved elsewhere
 
 This file regroups utility functions used elsewhere in the code, whose implementation is quite straightforward.
-
-* Externals
+* C utility functions
+** Externals
   Count the number of lines in a text file
    #+begin_src c :tangle utils.h :main no
 unsigned int nb_lines( char* fn );
@@ -28,7 +28,7 @@ int rand_1_in_10();
 double diff_norm( gsl_matrix* m1, gsl_matrix* m2 );
    #+end_src
 
-* Internals
+** Internals
   
   #+begin_src c :tangle utils.c :main no
 #include <stdio.h>
@@ -85,3 +85,70 @@ double diff_norm( gsl_matrix* m1, gsl_matrix* m2 ){
 }
   #+end_src
 
+* Python utility functions
+  We need the matrices to be output so that two equal matrices are output the same way.
+
+  #+begin_src python :tangle a2str.py
+#Do not indent
+def l2str_fullprecision(l):
+	"""Return a string representing line l without loss of precision"""
+	answer = ""
+	for x in l:
+		answer+="%e\t"%x
+	answer +="\n"
+	return answer
+
+def l2str(l):
+	"""Return the unique string representing line l"""
+	answer = ""
+	for x in l:
+		if (abs(x)<1e-10): #FIXME : this is not right.
+			answer += " 0.00e+00\t"
+		elif (x>0):
+			answer += " %1.2e\t"%x
+		else:
+			answer += "%+1.2e\t"%x
+	answer +="\n"
+	return answer
+		
+        
+def a2str(a):
+	"""Return the unique string representing array a"""
+	answer = ""
+	for l in a:
+		answer += l2str( l )
+	return answer
+
+
+  #+end_src
+
+  We output values near 0 as 0. Instead we probably should understand why there are so much near-0 values in the normal output. I think it has to do with the linear system solver.
+* Makefile rules
+  Tangling : 
+  #+srcname: utils_code_make
+  #+begin_src makefile
+utils.c: utils.org 
+	$(call tangle,"utils.org")
+
+utils.h: utils.org
+	$(call tangle,"utils.org")
+
+a2str.py: utils.org
+	$(call tangle,"utils.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: utils_c2o_make
+  #+begin_src makefile
+utils.o: utils.c utils.h
+	$(call c2obj,"utils.c")
+  #+end_src
+   A rule to clean the mess :
+  #+srcname: utils_clean_make
+  #+begin_src makefile
+utils_clean:
+	find . -maxdepth 1 -iname "utils.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "utils.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "utils.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "a2str.py"   | xargs $(XARGS_OPT) rm
+  #+end_src

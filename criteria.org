@@ -127,3 +127,31 @@ double true_V_diff( gsl_matrix* omega ){
   return answer;  
 }
    #+end_src
+
+
+* Makefile rules
+   Some rules to tangle the source files :
+  #+srcname: criteria_code_make
+  #+begin_src makefile
+criteria.c: criteria.org 
+	$(call tangle,"criteria.org")
+
+criteria.h: criteria.org
+	$(call tangle,"criteria.org")
+  #+end_src
+
+   A rule to create the object file :
+   #+srcname: criteria_c2o_make
+  #+begin_src makefile
+criteria.o: criteria.c criteria.h LSTDQ.h utils.h RL_Globals.h IRL_Globals.h abbeel2004apprenticeship.h
+	$(call c2obj,"criteria.c")
+  #+end_src
+
+   A rule to clean the mess :
+  #+srcname: criteria_clean_make
+  #+begin_src makefile
+criteria_clean:
+	find . -maxdepth 1 -iname "criteria.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "criteria.o"   | xargs $(XARGS_OPT) rm
+  #+end_src

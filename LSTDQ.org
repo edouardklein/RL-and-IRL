@@ -1,9 +1,9 @@
-* LSTDQ
+#+TITLE:LSTDQ
   LSTDQ is an off-policy approximator for the Q function based 
   on LSTD (\cite{bertsekas1996temporal}) introduced in 
   \cite{lagoudakis2003least}.
-** C implementation
-*** Externals
+* C implementation
+** Externals
     The C implementation follows quite closely the pseudo code given in \cite{lagoudakis2003least}.
     
     Some part of the behaviour are driven via [[file:RL_Globals.org][global variables]].
@@ -19,7 +19,7 @@ gsl_matrix* lstd_q( gsl_matrix* D,
     where $r$ is the reward and $eoe$ is a flag set to 0 if this transition if the last of the 
     episode and to 1 if not.
 
-*** Internals
+** Internals
     We use the GSL.
     
 #+begin_src c :tangle LSTDQ.c :main no
@@ -29,7 +29,8 @@ gsl_matrix* lstd_q( gsl_matrix* D,
 #include <gsl/gsl_linalg.h>
 #include "RL_Globals.h"
 #+end_src
-    - 
+
+    
 #+begin_src c :tangle LSTDQ.c :main no
 gsl_matrix* lstd_q( gsl_matrix* D, 
 		    gsl_matrix* (*pi)(gsl_matrix*) ){
@@ -109,3 +110,30 @@ gsl_matrix* lstd_q( gsl_matrix* D,
   return omega_pi;
 }
 #+end_src
+
+** Makefile rules
+   Some rules to tangle the source files :
+  #+srcname: LSTDQ_code_make
+  #+begin_src makefile
+LSTDQ.c: LSTDQ.org 
+	$(call tangle,"LSTDQ.org")
+
+LSTDQ.h: LSTDQ.org
+	$(call tangle,"LSTDQ.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: LSTDQ_c2o_make
+  #+begin_src makefile
+LSTDQ.o: LSTDQ.c LSTDQ.h RL_Globals.h
+	$(call c2obj,"LSTDQ.c")
+  #+end_src
+
+   A rule to clean the mess :
+  #+srcname: LSTDQ_clean_make
+  #+begin_src makefile
+LSTDQ_clean:
+	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "LSTDQ.o"   | xargs $(XARGS_OPT) rm
+  #+end_src

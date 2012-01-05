@@ -1,9 +1,9 @@
-* Greedy
+#+TITLE: Greedy
   
   The optimal policy is the greedy policy with respect to the optimal value function.
 
-** C implementation
-*** Externals
+* C implementation
+** Externals
     Some aspects are controlled by [[file:RL_Globals][global variables]].
 
     Two functions are provided :
@@ -15,7 +15,7 @@ gsl_matrix* greedy_policy( gsl_matrix* state );
 #+begin_src c :tangle greedy.h :main no
 double greedy_value_function( gsl_matrix* state );
 #+end_src
-*** Internals
+** Internals
 We use the GSL.
 #+begin_src c :tangle greedy.c :main no
 #include <gsl/gsl_matrix.h>
@@ -103,3 +103,29 @@ double greedy_value_function( gsl_matrix* state ){
   return Q_max;
 }
 #+end_src
+
+   Some rules to tangle the source files :
+  #+srcname: greedy_code_make
+  #+begin_src makefile
+greedy.c: greedy.org 
+	$(call tangle,"greedy.org")
+
+greedy.h: greedy.org
+	$(call tangle,"greedy.org")
+  #+end_src
+
+   A rule to create the object file :
+   #+srcname: greedy_c2o_make
+  #+begin_src makefile
+greedy.o: greedy.c greedy.h RL_Globals.h
+	$(call c2obj,"greedy.c")
+  #+end_src
+
+   A rule to clean the mess :
+  #+srcname: greedy_clean_make
+  #+begin_src makefile
+greedy_clean:
+	find . -maxdepth 1 -iname "greedy.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "greedy.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "greedy.o"   | xargs $(XARGS_OPT) rm
+  #+end_src

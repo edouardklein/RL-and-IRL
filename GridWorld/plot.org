@@ -2,7 +2,7 @@
 
 This program outputs the data needed to plot three of the graphs (Figures 1, 4 and 5).
 
-We use the GSL, the LSPI algorithm, Abbeel and Ng's IRL algorithm and our LSPI variant.
+We use the GSL, the LSPI algorithm, Abbeel and Ng's IRL algorithm and our LSTD variant.
 #+begin_src c :tangle plot.c :main no
 #include <gsl/gsl_matrix.h>
 #include "simulator.h"

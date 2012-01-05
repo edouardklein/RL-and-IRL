@@ -1,5 +1,6 @@
 #+TITLE: Inverted pendulum equations
 
+* C Implementation
 This file hosts the code shared by both the simulator and the generator.
 
 We have namely two functions, one that initialize the state, the other that compute the effects of one time step.
@@ -88,3 +89,28 @@ void iv_step( double state_p, double state_v,
   }
 }
 #+end_src
+* Makefile rules
+  Some rules to tangle the source files :
+  #+srcname: InvertedPendulum_code_make
+  #+begin_src makefile
+InvertedPendulum.c: InvertedPendulum.org 
+	$(call tangle,"InvertedPendulum.org")
+InvertedPendulum.h: InvertedPendulum.org 
+	$(call tangle,"InvertedPendulum.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: InvertedPendulum_c2o_make
+  #+begin_src makefile
+InvertedPendulum.o: InvertedPendulum.c InvertedPendulum.h ../utils.h
+	$(call c2obj,"InvertedPendulum.c")
+  #+end_src
+   A rule to clean the mess :
+  #+srcname: InvertedPendulum_clean_make
+  #+begin_src makefile
+InvertedPendulum_clean:
+	find . -maxdepth 1 -iname "InvertedPendulum.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "InvertedPendulum.h"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "InvertedPendulum.c"   | xargs $(XARGS_OPT) rm
+  #+end_src
+

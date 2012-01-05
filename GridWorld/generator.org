@@ -5,7 +5,7 @@ This program generates a random walk in a gridworld. See \cite{ng2000algorithms}
  - a is an int in [1:4] fo the four compass direction
  - r is the reward, 1 in $(width,height)$ 0 otherwise
  - eoe is the end of episode flag. If not at the end of a trajectory its value is 1, 0 otherwise
-
+* C implementation
 The code is quite straightforward.
 
 We use the GSL.
@@ -102,3 +102,35 @@ Finally, each transition is printed.
   }
 }
 #+end_src
+* Makefile rules
+  Some rules to tangle the source files :
+  #+srcname: Generator_code_make
+  #+begin_src makefile
+generator.c: generator.org 
+	$(call tangle,"generator.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: Generator_c2o_make
+  #+begin_src makefile
+generator.o: generator.c GridWorld.h ../utils.h 
+	$(call c2obj,"generator.c")
+  #+end_src
+
+   A rule to create the executable from the object file :
+#+srcname: Generator_o2exe_make
+#+begin_src makefile
+generator.exe: generator.o ../utils.o
+	$(O2EXE) -o generator.exe generator.o ../utils.o
+#+end_src
+
+
+   A rule to clean the mess :
+  #+srcname: Generator_clean_make
+  #+begin_src makefile
+Generator_clean:
+	find . -maxdepth 1 -iname "Generator.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Generator.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "Generator.o"   | xargs $(XARGS_OPT) rm
+  #+end_src
+

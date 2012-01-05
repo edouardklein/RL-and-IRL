@@ -1,4 +1,5 @@
 #+TITLE: Trajectory generator in a 4 states chainwalk
+* C Implementation
 
 This program generates a random walk in a 4 states chain. See \cite{lagoudakis2003least} for a longer explanation of this toy problem. The transitions are output on the standard output. They have the following format $s~a~s'~r~eoe$ where : 
  - s and s' are int in [1:4], 1 being the rightmost state and 4 the leftmost
@@ -58,4 +59,40 @@ int main(int argc, char* argv[]){
   return 0;
 }
 #+end_src
+
+
+* Makefile rules
+  Some rules to tangle the source files :
+  #+srcname: Generator_code_make
+  #+begin_src makefile
+ChainWalk_generator.c: ChainWalk_generator.org 
+	$(call tangle,"ChainWalk_generator.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: Generator_c2o_make
+  #+begin_src makefile
+../utils.h:
+	make -C .. utils.h
+
+ChainWalk_generator.o: ChainWalk_generator.c ../utils.h 
+	$(call c2obj,"ChainWalk_generator.c")
+  #+end_src
+
+   A rule to create the executable from the object file :
+#+srcname: Generator_o2exe_make
+#+begin_src makefile
+ChainWalk_generator.exe: ChainWalk_generator.o ../utils.o
+	$(O2EXE) -o ChainWalk_generator.exe ChainWalk_generator.o ../utils.o
+#+end_src
+
+
+   A rule to clean the mess :
+  #+srcname: Generator_clean_make
+  #+begin_src makefile
+Generator_clean:
+	find . -maxdepth 1 -iname "Chainwalk_generator.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Chainwalk_generator.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "Chainwalk_generator.o"   | xargs $(XARGS_OPT) rm
+  #+end_src
 

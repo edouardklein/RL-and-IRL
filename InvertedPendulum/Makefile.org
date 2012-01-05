@@ -1,128 +1,6 @@
-* Inverted Pendulum
+#+TITLE: Inverted Pendulum
   The Inverted Pendulum is a classical toy problem, used and described for example in \cite{lagoudakis2003least}.
-  #+begin_src make :tangle Makefile
-  CFLAGS+=-I..
-   #+end_src
 
-* Implementation
-  We have coded both a simulator and a generator.
-
-** Inverted Pendulum generator
-   The generator can output transitions on the standard output.
-
-   It can be built by invoking
-
-     #+begin_src sh
- make generator.exe
-     #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-generator.exe: generator.o ../utils.o InvertedPendulum.o
-	gcc -o generator.exe $(LFLAGS) generator.o ../utils.o InvertedPendulum.o
-
-generator.o: generator.c InvertedPendulum.h ../utils.h
-	gcc -c $(CFLAGS) generator.c
-
-InvertedPendulum.o: InvertedPendulum.c InvertedPendulum.h ../utils.h
-	gcc -c $(CFLAGS) InvertedPendulum.c
-    #+end_src
-
-   It can then be used like this :
-
-     #+begin_src sh
- ./generator.exe
-     #+end_src
-
-** Inverted Pendulum simulator
-   The simulator allows the direct interaction of a policy with the pendulum.
-
-   The object file is built according to the following rule :
-    #+begin_src make :tangle Makefile
-simulator.o: simulator.c InvertedPendulum.h ../utils.h simulator.h
-	gcc -c $(CFLAGS) simulator.c
-    #+end_src
-* Original research
-** LSTD-$\mu$
-   The inverted pendulum has been used as a benchmark in a paper about LSTD-$\mu$.
-
-   This directory contains the code to generate some of the plots used in the forementionned paper. One single executable generates all the data, which is then selected and plotted.
-
-*** Data generation
-    The data is made as follow :
-    #+begin_src make :tangle Makefile
-plot.dat: plot.samples plot.exe
-	./plot.exe > plot.dat
-
-clean_plot.dat:
-	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
-
-plot.samples: generator.exe 
-	./generator.exe > Samples.dat && touch plot.samples
-
-plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o InvertedPendulum.o
-	gcc -o plot.exe $(LFLAGS) plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o InvertedPendulum.o
-
-plot.o: plot.c InvertedPendulum.h ../utils.h ../LSPI.h ../greedy.h simulator.h ../abbeel2004apprenticeship.h ../LSTDmu.h
-	gcc -c $(CFLAGS) plot.c
-    #+end_src
-
-*** Sensitivity of the quality of the policy to the number of samples fed to LSPI
-**** No error bars
-    Figure 2 of the paper can be made as follow :
-
-     #+begin_src sh
- make threshold.tex
-     #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-threshold.tex: threshold.pdf
-	cat threshold.tex | sed "s|threshold|../Code/InvertedPendulum/threshold|g" > tmp.tex && mv tmp.tex threshold.tex
-
-threshold.pdf: threshold.eps
-	epstopdf threshold.eps
-
-threshold.eps: threshold_lstd.dat threshold_mc.dat threshold.gp
-	gnuplot threshold.gp
-
-threshold_lstd.dat: plot.dat
-	cat plot.dat | grep "^LSTD" | sed 's/LSTD //' | cut -d' ' -f'2 3' > threshold_lstd.dat
-
-clean_threshold_lstd.dat: clean_plot.dat
-
-threshold_mc.dat: plot.dat
-	cat plot.dat | grep "MC" | sed 's/MC //' | cut -d' ' -f'2 3' > threshold_mc.dat
-
-clean_threshold_mc.dat: clean_plot.dat
-    #+end_src
-**** Error bars
-    Figure 3 of the paper can be made as follow :
-     #+begin_src sh
- make threshold_EB.tex
-     #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-threshold_EB.tex: threshold_EB.pdf
-	cat threshold_EB.tex | sed "s|threshold_EB|../Code/InvertedPendulum/threshold_EB|g" > tmp.tex && mv tmp.tex threshold_EB.tex
-
-threshold_EB.pdf: threshold_EB.eps
-	epstopdf threshold_EB.eps
-
-threshold_EB.eps: threshold_lstd.dat-0 threshold_mc.dat-0 threshold_EB.gp ErrorBars
-	gnuplot threshold_EB.gp
-
-threshold_lstd.dat-0: ErrorBars
-
-threshold_mc.dat-0: ErrorBars
-
-.PHONY: ErrorBars
-
-ErrorBars:
-	../../Utils/ErrorBars.py
-    #+end_src
 * Miscellaneaous
 
 ** Org files
@@ -150,8 +28,8 @@ doc: $(HTML_FILES)
 
    The code embedded in the .org can be tangled.
     #+begin_src make :tangle Makefile
-code:$(ORG_CODE_FILES)
-	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
+code:
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
     #+end_src
     
 ** Cleaning
@@ -161,29 +39,81 @@ code:$(ORG_CODE_FILES)
   
     #+begin_src make :tangle Makefile
 clean:
-	find . -maxdepth 1 -iname "*.o"       | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.pdf"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.exe"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.pyc"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.eps"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.tex"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "first.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "plot.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "generator.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "InvertedPendulum.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "InvertedPendulum.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "simulator.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "simulator.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "code"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*-0"       | xargs -tr rm
+	find . -maxdepth 1 -iname "*.o"       | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*.pdf"     | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*.exe"     | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*.dat"     | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*~"        | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*.samples" | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*.pyc"     | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*.eps"     | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*.tex"     | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "first.c"   | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "plot.c"   | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "generator.c"   | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "InvertedPendulum.h"   | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "InvertedPendulum.c"   | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "simulator.h"   | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "simulator.c"   | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "code"   | xargs $(XARGS_OPT) rm &&\
+	find . -maxdepth 1 -iname "*-0"       | xargs $(XARGS_OPT) rm
     #+end_src
 
   nuke removes the data generated by the ErrorBars.py script, which may take a very long time to generate. Hence a separated target to avoid accidents.
 
     #+begin_src make :tangle Makefile
 nuke: #You probably don't want to make this one
-	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs -tr rm
+	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs $(XARGS_OPT) rm
     #+end_src
+* Makefiles rules
+  The rules are written in the file they work with. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
+** Misc.
+Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<LSTDmu_Exp_make>>
+  #+end_src
+** Code extraction
+  #+begin_src makefile :tangle Makefile :noweb yes
+tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
+
+<<Generator_code_make>>
+<<InvertedPendulum_code_make>>
+<<Simulator_code_make>>
+<<LSTDmu_Exp_code_make>>
+  #+end_src
+** C source to .o file
+  #+begin_src make :tangle Makefile :noweb yes
+  CFLAGS+= -I..
+c2obj=gcc $(CFLAGS) -c $1
+
+   #+end_src
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<Generator_c2o_make>>
+<<InvertedPendulum_c2o_make>>
+<<Simulator_c2o_make>>
+<<LSTDmu_Exp_c2o_make>>
+  #+end_src
+** .o to .exe
+  #+begin_src makefile :tangle Makefile :noweb yes
+O2EXE=gcc $(LFLAGS)
+<<Generator_o2exe_make>>
+<<LSTDmu_Exp_o2exe_make>>
+  #+end_src
+
+** Cleaning
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<Generator_clean_make>>
+<<InvertedPendulum_clean_make>>
+<<Simulator_clean_make>>
+<<LSTDmu_Exp_clean_make>>
+clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean
+
+    #+end_src
+
+
+** Inception
+
+   #+begin_src makefile :tangle Makefile :noweb yes
+Makefile:
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
+   #+end_src

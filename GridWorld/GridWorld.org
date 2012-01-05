@@ -1,6 +1,6 @@
 #+TITLE: Constants for the Gridworld
 
-The size of the grid an be set here.
+The size of the grid can be set here.
 #+begin_src c :tangle GridWorld.h :main no
 #define GRID_HEIGHT 5
 #define GRID_WIDTH 5
@@ -10,3 +10,13 @@ The size of the grid an be set here.
 #define RIGHT 4
 #+end_src
 
+* Makefile rules
+  We just tangle the file and give a rule to clean the result. Nothing fancy here.
+  #+srcname: GridWorld_make
+  #+begin_src makefile
+GridWorld.h: GridWorld.org
+	$(call tangle,"GridWorld.org")
+
+GridWorld_clean:
+	find . -maxdepth 1 -iname "GridWorld.h"   | xargs $(XARGS_OPT) rm
+  #+end_src

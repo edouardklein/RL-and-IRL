@@ -1,416 +1,60 @@
-* Gridworld
+#+TITLE: Gridworld
+* Introduction
   The GridWorld is a classical toy problem, used and described for example in \cite{ng2000algorithms}.
-  #+begin_src make :tangle Makefile
-  CFLAGS+=-I..
-   #+end_src
-
-* Implementation
-  We have coded both a simulator and a generator.
-
-** Gridworld generator
-   The generator can output transitions on the standard output.
-
-   It can be built by invoking
-
-     #+begin_src sh
- make generator.exe
-     #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-generator.exe: generator.o ../utils.o
-	gcc -o generator.exe $(LFLAGS) generator.o ../utils.o
-
-generator.o: generator.c GridWorld.h ../utils.h
-	gcc -c $(CFLAGS) generator.c
-    #+end_src
-
-   It can then be used like this :
-
-     #+begin_src sh
- ./generator.exe
-     #+end_src
-
-** Gridworld simulator
-   The simulator allows the direct interaction of a policy with the Gidworld.
-
-   The object file is built according to the following rule :
-    #+begin_src make :tangle Makefile
-simulator.o: simulator.c GridWorld.h ../utils.h
-	gcc -c $(CFLAGS) simulator.c
-    #+end_src
-* Original research
-** LSTD-$\mu$
-   The Gridworld has been used as a benchmark in a paper about LSTD-$\mu$.
-
-   This directory contains the code to generate some of the plots used in the forementionned paper. One single executable generates all the data, which is then selected and plotted.
-
-*** Data generation
-    The data is made as follow :
-
-    #+begin_src make :tangle Makefile
-plot.dat: plot.samples plot.exe
-	./plot.exe > plot.dat
-
-clean_plot.dat:
-	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
-
-plot.samples: generator.exe 
-	./generator.exe > Samples.dat && touch plot.samples
-
-plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o
-	gcc -o plot.exe $(LFLAGS) plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o
-
-plot.o: plot.c GridWorld.h ../utils.h ../LSPI.h ../greedy.h simulator.h ../abbeel2004apprenticeship.h ../LSTDmu.h
-	gcc -c $(CFLAGS) plot.c
-    #+end_src
-
-*** Different criteria for the MC method
-    Figure 4 of the paper can be made as follow :
-
-     #+begin_src sh
- make criteria_mc.tex
-     #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-criteria_mc.tex: criteria_mc.pdf
-	cat criteria_mc.tex | sed "s|criteria_mc|../Code/GridWorld/criteria_mc|g" > tmp.tex && mv tmp.tex criteria_mc.tex
-
-criteria_mc.pdf: criteria_mc.eps
-	epstopdf criteria_mc.eps
-
-criteria_mc.eps: criteria_mc.dat criteria_mc.gp
-	gnuplot criteria_mc.gp
-
-criteria_mc.dat: plot.dat
-	cat plot.dat | grep "^500" | sed 's/500 //'> criteria_mc.dat
-
-clean_criteria_mc.dat: clean_plot.dat
-	rm criteria_mc.dat
-    #+end_src
-*** Different criteria for the LSTD method
-    Figure 5 of the paper can be made as follow :
-     #+begin_src sh
- make criteria_lstd_EB.tex
-     #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-criteria_lstd_EB.tex: criteria_lstd_EB.pdf
-	cat criteria_lstd_EB.tex | sed "s|criteria_lstd_EB|../Code/GridWorld/criteria_lstd_EB|g" > tmp.tex && mv tmp.tex criteria_lstd_EB.tex
-
-criteria_lstd_EB.pdf: criteria_lstd_EB.eps
-	epstopdf criteria_lstd_EB.eps
-
-criteria_lstd_EB.eps: criteria_lstd.dat-0 criteria_lstd.dat-1 criteria_lstd.dat-2 criteria_lstd.dat-3 criteria_lstd_EB.gp
-	gnuplot criteria_lstd_EB.gp
-
-criteria_lstd.dat-0: ErrorBars
-
-criteria_lstd.dat-1: ErrorBars
-
-criteria_lstd.dat-2: ErrorBars
-
-criteria_lstd.dat-3: ErrorBars
-
-criteria_lstd.pdf: criteria_lstd.eps
-	epstopdf criteria_lstd.eps
-
-criteria_lstd.eps: criteria_lstd.dat criteria_lstd.gp
-	gnuplot criteria_lstd.gp
-
-criteria_lstd.dat: plot.dat
-	cat plot.dat | grep -E "^B " | sed "s/B //"> criteria_lstd.dat
-
-clean_criteria_lstd.dat: clean_plot.dat
-    #+end_src
-
-*** Error with respect to the number of samples from the expert, for both methods
-    Figure 1 of the paper can be made as follow :
-     #+begin_src sh
- make both_error_EB.tex
-     #+end_src
-
-   which triggers the following rules :
-    #+begin_src make :tangle Makefile
-both_error_EB.tex: both_error_EB.pdf
-	cat both_error_EB.tex | sed "s|both_error_EB|../Code/GridWorld/both_error_EB|g" > tmp.tex && mv tmp.tex both_error_EB.tex
-
-both_error_EB.pdf: both_error_EB.eps
-	epstopdf both_error_EB.eps
-
-both_error_EB.eps: both_error.dat-0 both_error.dat-1 both_error_EB.gp
-	gnuplot both_error_EB.gp
-
-both_error.dat-0: ErrorBars
-
-both_errot.dat-1: ErrorBars
-
-both_error.pdf: both_error.eps
-	epstopdf both_error.eps
-
-both_error.eps: both_error.dat both_error.gp
-	gnuplot both_error.gp
-
-both_error.dat: criteria_mc_samples.dat criteria_lstd.dat
-	cat criteria_lstd.dat | cut -d" " -f'1 4' > tmp &&\
-	cat criteria_mc_samples.dat | cut -d" " -f'1 4' > tmp2 &&\
-	paste -d' ' tmp tmp2 > both_error.dat
-
-criteria_mc_samples.dat: plot.dat
-	cat plot.dat | grep -E "^C " | sed "s/C //"> criteria_mc_samples.dat
-
-clean_criteria_mc_samples.dat: clean_plot.dat
-
-clean_both_error.dat: clean_criteria_mc_samples.dat clean_criteria_lstd.dat
-    #+end_src
-
-*** Error bars
-    All plots with error bars are generated by using the ErrorBars.py script :
-    #+begin_src make :tangle Makefile
-.PHONY: ErrorBars
-
-ErrorBars: 
-	../../Utils/ErrorBars.py
-    #+end_src
-
-** Task Transfer
-*** Description
-    #+begin_src c :tangle TaskTransfer.c :main no
-#include <gsl/gsl_matrix.h>
-#include "TT_polytope.h"
-#include "TaskTransfer.h"
-    #+end_src
-    
-    We are trying to infer the reward from two different optimal behaviors.
-    
-    The World is a 2x2 grid world. Both agents can chose among the same set of actions.
-    #+begin_src c :tangle TaskTransfer.c :main no
-unsigned int g_iNb_actions = 4; //0 is up, 1 is right, 2 is down and 3 is left
-unsigned int g_iN = 4; //There are 4 cells, numbered from 0 to 4 in the reading order
-    #+end_src
-
-    We chose a $\gamma$ of 0.9, it does not really matter.
-    #+begin_src c :tangle TaskTransfer.c :main no
-double g_dGamma_tt = 0.9;
-    #+end_src
-
-    The transition probabilties matrices are painful but straightforward to write
-    #+begin_src c :tangle TaskTransfer.c :main no
-gsl_matrix* g_mP_pi;
-
-void init_Pi_1(){
-  g_mP_pi = gsl_matrix_alloc( 4, 4 ); //Probabilties for an agent whose policy is
-  //0 <->RIGHT, 1<->RIGHT, 2 <-> UP, 3 <->UP 
-  gsl_matrix_set( g_mP_pi, 0, 0, 0 ); 
-  gsl_matrix_set( g_mP_pi, 0, 1, 1 );
-  gsl_matrix_set( g_mP_pi, 0, 2, 0 );
-  gsl_matrix_set( g_mP_pi, 0, 3, 0 );
-  gsl_matrix_set( g_mP_pi, 1, 0, 0 ); 
-  gsl_matrix_set( g_mP_pi, 1, 1, 1 );
-  gsl_matrix_set( g_mP_pi, 1, 2, 0 );
-  gsl_matrix_set( g_mP_pi, 1, 3, 0 );
-  gsl_matrix_set( g_mP_pi, 2, 0, 1 ); 
-  gsl_matrix_set( g_mP_pi, 2, 1, 0 );
-  gsl_matrix_set( g_mP_pi, 2, 2, 0 );
-  gsl_matrix_set( g_mP_pi, 2, 3, 0 );
-  gsl_matrix_set( g_mP_pi, 3, 0, 0 ); 
-  gsl_matrix_set( g_mP_pi, 3, 1, 1 );
-  gsl_matrix_set( g_mP_pi, 3, 2, 0 );
-  gsl_matrix_set( g_mP_pi, 3, 3, 0 );
-  
-}
-
-void init_Pi_2(){
-  g_mP_pi = gsl_matrix_alloc( 4, 4 ); //Probabilties for an agent whose policy is
-  //0 <->RIGHT, 1<->RIGHT, 2 <-> RIGHT, 3 <->UP 
-  gsl_matrix_set( g_mP_pi, 0, 0, 0 ); 
-  gsl_matrix_set( g_mP_pi, 0, 1, 1 );
-  gsl_matrix_set( g_mP_pi, 0, 2, 0 );
-  gsl_matrix_set( g_mP_pi, 0, 3, 0 );
-  gsl_matrix_set( g_mP_pi, 1, 0, 0 ); 
-  gsl_matrix_set( g_mP_pi, 1, 1, 1 );
-  gsl_matrix_set( g_mP_pi, 1, 2, 0 );
-  gsl_matrix_set( g_mP_pi, 1, 3, 0 );
-  gsl_matrix_set( g_mP_pi, 2, 0, 0 ); 
-  gsl_matrix_set( g_mP_pi, 2, 1, 0 );
-  gsl_matrix_set( g_mP_pi, 2, 2, 0 );
-  gsl_matrix_set( g_mP_pi, 2, 3, 1 );
-  gsl_matrix_set( g_mP_pi, 3, 0, 0 ); 
-  gsl_matrix_set( g_mP_pi, 3, 1, 1 );
-  gsl_matrix_set( g_mP_pi, 3, 2, 0 );
-  gsl_matrix_set( g_mP_pi, 3, 3, 0 );
-  
-}
-
-gsl_matrix** g_aP;
-
-void init_Pa(){
-  g_aP = malloc( 4*sizeof( *g_aP ) );
-
-  g_aP[0] = gsl_matrix_alloc( 4, 4 ); //Probabilties for action UP
-  gsl_matrix_set( g_aP[0], 0, 0, 1 ); 
-  gsl_matrix_set( g_aP[0], 0, 1, 0 );
-  gsl_matrix_set( g_aP[0], 0, 2, 0 );
-  gsl_matrix_set( g_aP[0], 0, 3, 0 );
-  gsl_matrix_set( g_aP[0], 1, 0, 0 ); 
-  gsl_matrix_set( g_aP[0], 1, 1, 1 );
-  gsl_matrix_set( g_aP[0], 1, 2, 0 );
-  gsl_matrix_set( g_aP[0], 1, 3, 0 );
-  gsl_matrix_set( g_aP[0], 2, 0, 1 ); 
-  gsl_matrix_set( g_aP[0], 2, 1, 0 );
-  gsl_matrix_set( g_aP[0], 2, 2, 0 );
-  gsl_matrix_set( g_aP[0], 2, 3, 0 );
-  gsl_matrix_set( g_aP[0], 3, 0, 0 ); 
-  gsl_matrix_set( g_aP[0], 3, 1, 1 );
-  gsl_matrix_set( g_aP[0], 3, 2, 0 );
-  gsl_matrix_set( g_aP[0], 3, 3, 0 );
-
-  g_aP[1] = gsl_matrix_alloc( 4, 4 ); //Probabilties for action RIGHT
-  gsl_matrix_set( g_aP[1], 0, 0, 0 ); 
-  gsl_matrix_set( g_aP[1], 0, 1, 1 );
-  gsl_matrix_set( g_aP[1], 0, 2, 0 );
-  gsl_matrix_set( g_aP[1], 0, 3, 0 );
-  gsl_matrix_set( g_aP[1], 1, 0, 0 ); 
-  gsl_matrix_set( g_aP[1], 1, 1, 1 );
-  gsl_matrix_set( g_aP[1], 1, 2, 0 );
-  gsl_matrix_set( g_aP[1], 1, 3, 0 );
-  gsl_matrix_set( g_aP[1], 2, 0, 0 ); 
-  gsl_matrix_set( g_aP[1], 2, 1, 0 );
-  gsl_matrix_set( g_aP[1], 2, 2, 0 );
-  gsl_matrix_set( g_aP[1], 2, 3, 1 );
-  gsl_matrix_set( g_aP[1], 3, 0, 0 ); 
-  gsl_matrix_set( g_aP[1], 3, 1, 0 );
-  gsl_matrix_set( g_aP[1], 3, 2, 0 );
-  gsl_matrix_set( g_aP[1], 3, 3, 1 );
-
-  g_aP[2] = gsl_matrix_alloc( 4, 4 ); //Probabilties for action DOWN
-  gsl_matrix_set( g_aP[2], 0, 0, 0 ); 
-  gsl_matrix_set( g_aP[2], 0, 1, 0 );
-  gsl_matrix_set( g_aP[2], 0, 2, 1 );
-  gsl_matrix_set( g_aP[2], 0, 3, 0 );
-  gsl_matrix_set( g_aP[2], 1, 0, 0 ); 
-  gsl_matrix_set( g_aP[2], 1, 1, 0 );
-  gsl_matrix_set( g_aP[2], 1, 2, 0 );
-  gsl_matrix_set( g_aP[2], 1, 3, 1 );
-  gsl_matrix_set( g_aP[2], 2, 0, 0 ); 
-  gsl_matrix_set( g_aP[2], 2, 1, 0 );
-  gsl_matrix_set( g_aP[2], 2, 2, 1 );
-  gsl_matrix_set( g_aP[2], 2, 3, 0 );
-  gsl_matrix_set( g_aP[2], 3, 0, 0 ); 
-  gsl_matrix_set( g_aP[2], 3, 1, 0 );
-  gsl_matrix_set( g_aP[2], 3, 2, 0 );
-  gsl_matrix_set( g_aP[2], 3, 3, 1 );
-
-  g_aP[3] = gsl_matrix_alloc( 4, 4 ); //Probabilties for action LEFT
-  gsl_matrix_set( g_aP[3], 0, 0, 1 ); 
-  gsl_matrix_set( g_aP[3], 0, 1, 0 );
-  gsl_matrix_set( g_aP[3], 0, 2, 0 );
-  gsl_matrix_set( g_aP[3], 0, 3, 0 );
-  gsl_matrix_set( g_aP[3], 1, 0, 1 ); 
-  gsl_matrix_set( g_aP[3], 1, 1, 0 );
-  gsl_matrix_set( g_aP[3], 1, 2, 0 );
-  gsl_matrix_set( g_aP[3], 1, 3, 0 );
-  gsl_matrix_set( g_aP[3], 2, 0, 0 ); 
-  gsl_matrix_set( g_aP[3], 2, 1, 0 );
-  gsl_matrix_set( g_aP[3], 2, 2, 1 );
-  gsl_matrix_set( g_aP[3], 2, 3, 0 );
-  gsl_matrix_set( g_aP[3], 3, 0, 0 ); 
-  gsl_matrix_set( g_aP[3], 3, 1, 0 );
-  gsl_matrix_set( g_aP[3], 3, 2, 1 );
-  gsl_matrix_set( g_aP[3], 3, 3, 0 );
-}
-    #+end_src
-   
-    We can now initialize the polytope and run the algorithm with the constraints of the first agent :
-    #+begin_src c :tangle TaskTransfer.c :main no
-int main( void){
-  init_Pa();
-  init_Pi_1();
-  tt_polytope* p = reward_shaping_simplex( g_iN );
-  reward_mapping( p );
-    #+end_src
-
-    And then with the constraints of the second agent
-    #+begin_src c :tangle TaskTransfer.c :main no
-init_Pi_2();
-reward_mapping( p );
-return 0;
-}
-    #+end_src
-*** Technical stuff
-**** Compilation
-    #+begin_src makefile :tangle Makefile
-TaskTransfer.o: TaskTransfer.c
-	gcc -c $(CFLAGS) TaskTransfer.c
-
-TaskTransfer.exe: TaskTransfer.o ../TaskTransfer.o ../TT_polytope.o
-	gcc -o TaskTransfer.exe $(LFLAGS) TaskTransfer.o ../TaskTransfer.o ../TT_polytope.o
-
-    #+end_src
-
-* Miscellaneous
-** Org files
-  The .org files containing both some code and its documentation are :
-  #+begin_src make :tangle Makefile
-ORG_CODE_FILES=generator.org Makefile.org GridWorld.org simulator.org plot.org
+* Makefiles rules
+  The rules are written in the file they work with. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
+** Misc.
+Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<GridWorld_make>>
+<<LAFEM_Exp1_make>>
+<<LSTDmu_Exp_make>>
+<<TT_Exp1_make>>
   #+end_src
-** Documentation
-   Documentation can be extracted from the .org files by executing
-   #+begin_src sh
- make doc
-   #+end_src
-
-   which triggers the following rules :
-
-   #+begin_src make :tangle Makefile
-HTML_FILES=$(ORG_CODE_FILES:.org=.html)
-
-doc: $(HTML_FILES)
-
-%.html:%.org
-	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
-   #+end_src
 ** Code extraction
+  #+begin_src makefile :tangle Makefile :noweb yes
+tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
 
-   The code embedded in the .org can be tangled.
-    #+begin_src make :tangle Makefile
-code:$(ORG_CODE_FILES)
-	for file in $(ORG_CODE_FILES); do emacs -batch --visit $$file --funcall org-babel-tangle --script ~/.emacs; done && touch code
-    #+end_src
-    
+<<LAFEM_Exp1_code_make>>
+<<LSTDmu_Exp_code_make>>
+<<Generator_code_make>>
+<<Simulator_code_make>>
+<<TT_Exp1_code_make>>
+  #+end_src
+** C source to .o file
+  #+begin_src make :tangle Makefile :noweb yes
+  CFLAGS+= -I..
+c2obj=gcc $(CFLAGS) -c $1
+
+   #+end_src
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<LSTDmu_Exp_c2o_make>>
+<<Generator_c2o_make>>
+<<Simulator_c2o_make>>
+  #+end_src
+** .o to .exe
+  #+begin_src makefile :tangle Makefile :noweb yes
+O2EXE=gcc $(LFLAGS)
+<<LSTDmu_Exp_o2exe_make>>
+<<Generator_o2exe_make>>
+  #+end_src
+
 ** Cleaning
-  Two different target exists for cleaning.
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<LAFEM_Exp1_clean_make>>
+<<LSTDmu_Exp_clean_make>>
+<<Generator_clean_make>>
+<<Simulator_clean_make>>
+<<TT_Exp1_clean_make>>
+clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulator_clean TT_Exp1_clean
 
-  clean does regular cleaning : 
-
-    #+begin_src make :tangle Makefile
-clean:
-	find . -maxdepth 1 -iname "*.o"       | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.pdf"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.eps"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.ps"      | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.tex"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.exe"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.dat"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.dat-*"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.pyc"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "generator.c"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "TaskTransfer.c"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "GridWorld.h"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "simulator.h"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "simulator.c"     | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "plot.c"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "code"      | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*~"        | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.samples" | xargs -tr rm
+<<LSTDmu_Exp_nuke_make>>
     #+end_src
 
-  nuke removes the data generated by the ErrorBars.py script, which may take a very long time to generate. Hence a separated target to avoid accidents.
+** Inception
 
-    #+begin_src make :tangle Makefile
-nuke: #You probably don't want to make this one
-	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs -tr rm
-    #+end_src
+   #+begin_src makefile :tangle Makefile :noweb yes
+
+Makefile:
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
+   #+end_src

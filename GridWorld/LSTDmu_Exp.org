@@ -1,0 +1,451 @@
+#+TITLE: Plots for the paper about LSTD-$\mu$
+
+The Gridworld has been used as a benchmark in a paper about LSTD-$\mu$.
+
+This directory contains the code to generate some of the plots used in the forementionned paper. One single executable generates all the data, which is then selected and plotted.
+
+We use the GSL, the LSPI algorithm, Abbeel and Ng's IRL algorithm and our LSTD variant.
+
+* C code
+#+begin_src c :tangle plot.c :main no
+#include <gsl/gsl_matrix.h>
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "abbeel2004apprenticeship.h"
+#include "LSTDmu.h"
+#include "criteria.h"
+#+end_src
+
+We set some constants
+#+begin_src c :tangle plot.c :main no
+#include "GridWorld.h"
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+#define D_FILE_NAME "Samples.dat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+#+end_src
+
+We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
+#+begin_src c :tangle plot.c :main no
+unsigned int g_iK = (GRID_HEIGHT*GRID_WIDTH*4); /* dim(\phi) */
+unsigned int g_iP = (GRID_HEIGHT*GRID_WIDTH); /* dim(\psi) */
+
+gsl_matrix* phi( gsl_matrix* sa ){
+  gsl_matrix* answer = gsl_matrix_calloc( g_iK, 1 );
+  unsigned int x = (unsigned int)gsl_matrix_get( sa, 0, 0 );
+  unsigned int y = (unsigned int)gsl_matrix_get( sa, 0, 1 );
+  unsigned int a = (unsigned int)gsl_matrix_get( sa, 0, 2 );
+  unsigned int index = (y-1)*GRID_WIDTH*4 + (x-1)*4 + a-1;
+  gsl_matrix_set( answer, index, 0, 1.0 );
+  return answer;
+}
+
+gsl_matrix* psi( gsl_matrix* s ){
+  gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
+  unsigned int x = (unsigned int)gsl_matrix_get( s, 0, 0 );
+  unsigned int y = (unsigned int)gsl_matrix_get( s, 0, 1 );
+  unsigned int index = (y-1)*GRID_WIDTH + (x-1);
+  gsl_matrix_set( answer, index, 0, 1.0 );
+  return answer;
+}
+#+end_src
+
+At the beginning of each episode, the player comes back to the lower left cell (i.e. coordinates (1,1) ).
+#+begin_src c :tangle plot.c :main no
+gsl_matrix* initial_state( void ){
+  gsl_matrix* answer = gsl_matrix_alloc( 1, 2 );
+  gsl_matrix_set( answer, 0, 0, 1.0 );
+  gsl_matrix_set( answer, 0, 1, 1.0 );
+  return answer;
+}
+#+end_src
+
+We declare and set the global variables of our RL and IRL implementations.
+#+begin_src c :tangle plot.c :main no
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 20;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.1;
+double g_dLambda_lstdmu = 0.1;
+double g_dGamma_anirl = 0.9;
+double g_dEpsilon_anirl = 0.1;
+unsigned int g_iIt_max_anirl = 40;
+gsl_matrix* g_mActions = NULL; 
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
+gsl_matrix* (*g_fSimulator)(int) = &gridworld_simulator;
+gsl_matrix* (*g_fS_0)(void) = &initial_state;
+#+end_src
+
+We train the expert, using LSPI fed with a large number of transitions.
+#+begin_src c :tangle plot.c :main no
+int main( void ){
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_expert = lspi( D, omega_0 );
+  g_mOmega_E = omega_expert;
+  expert_just_set();
+#+end_src
+
+The first plot is about the value of the different criteria during a run of the Monte-Carlo variant.
+#+begin_src c :tangle plot.c :main no
+  unsigned int M = 500;
+  g_iNb_samples = D->size1;
+  g_mOmega =  omega_expert;
+  gsl_matrix* D_expert = gridworld_simulator( M );
+  gsl_matrix* omega_imitation =
+    proj_mc_lspi_ANIRL( D_expert, D, M );
+  gsl_matrix_free( omega_imitation );
+  gsl_matrix_free( D_expert );
+#+end_src
+
+We then, for some values of the number of samples available from the expert, run both the Monte-Carlo variant and the LSTD variant, and print their performance.
+#+begin_src c :tangle plot.c :main no
+  /*Courbes B & C : Performance de MC et LSTDmu*/
+  M = 501; //To differentiate from above when greping.
+  //See the Makefile
+  int m_exp[] = {1,10,30,50,75,100,200};
+  for( int i=0; i<7 ; i++ ){
+    g_iNb_samples = 0;
+    g_mOmega =  omega_expert;
+    gsl_matrix* D_expert = gridworld_simulator( m_exp[i] );
+    unsigned int nb_samples_exp = g_iNb_samples;
+    gsl_matrix* omega_lstd = 
+      proj_lstd_lspi_ANIRL( D_expert, D_expert );
+    gsl_matrix_free( omega_lstd );
+    printf("B %d %lf %lf %lf %lf\n", nb_samples_exp, 
+	   g_dBest_t, g_dBest_error, 
+	   g_dBest_true_error, g_dBest_diff );
+    gsl_matrix* omega_imitation =
+      proj_mc_lspi_ANIRL( D_expert, D, M );
+    gsl_matrix_free( omega_imitation );
+    gsl_matrix_free( D_expert );
+    printf("C %d %lf %lf %lf %lf\n", nb_samples_exp, 
+	   g_dBest_t, g_dBest_error, 
+	   g_dBest_true_error, g_dBest_diff );
+  }
+  return 0;
+}
+#+end_src
+* Gnuplot instructions
+  The different figures are made thanks to the following snippets :
+** Different criteria for the MC method
+  #+begin_src gnuplot :tangle criteria_mc.gp
+#Plot showing the differences between the different criteria in the ANIRL algorithm
+set term epslatex color
+set output 'criteria_mc.eps'
+set grid
+set xlabel 'Iterations ($j$)'
+set key width -100
+plot 'criteria_mc.dat' u 1:2 smooth csplines title '$t$' ls 1, 'criteria_mc.dat' u 1:2 w points ls 1 notitle,\
+'criteria_mc.dat' u 1:3 smooth csplines title '$||\hat\mu^{\pi^{(j)}}(s_0)-\hat\mu^{\pi_E}(s_0)||_2$' ls 2, 'criteria_mc.dat' u 1:3 w points ls 2 notitle,\
+'criteria_mc.dat' u 1:4 smooth csplines title '$||\mu^{\pi^{(j)}}(s_0)-\mu^{\pi_E}(s_0)||_2$' ls 3, 'criteria_mc.dat' u 1:4 w points ls 3 notitle,\
+'criteria_mc.dat' u 1:5 smooth csplines title '$||V^{\pi^{(j)}}(s_0)-V^{\pi_E}(s_0)||_2$' ls 4, 'criteria_mc.dat' u 1:5 w points ls 4 notitle
+  #+end_src
+** Different criteria for the LSTD method
+  #+begin_src gnuplot :tangle criteria_lstd_EB.gp
+#Plot showing the differences between the different criteria in the ANIRL algorithm
+set term epslatex color
+set output 'criteria_lstd_EB.eps'
+set grid
+set xlabel 'Number of samples from the expert'
+set key width -100
+plot 'criteria_lstd.dat-0' u 1:2 w lines title '$t$' ls 1, 'criteria_lstd.dat-0' u 1:2:2 w errorbars ls 1 notitle,\
+'criteria_lstd.dat-1' u 1:2 w lines title '$||\hat\mu^{\pi^{(j)}}(s_0)-\hat\mu^{\pi_E}(s_0)||_2$' ls 2, 'criteria_lstd.dat-1' u 1:2:3 w errorbars ls 2 notitle,\
+'criteria_lstd.dat-2' u 1:2 w lines title '$||\mu^{\pi^{(j)}}(s_0)-\mu^{\pi_E}(s_0)||_2$' ls 3, 'criteria_lstd.dat-2' u 1:2:3 w errorbars ls 3 notitle,\
+'criteria_lstd.dat-3' u 1:2 w lines title '$||V^{\pi^{(j)}}(s_0)-V^{\pi_E}(s_0)||_2$' ls 4, 'criteria_lstd.dat-3' u 1:2:3 w errorbars ls 4 notitle
+  #+end_src
+  #+begin_src gnuplot :tangle criteria_lstd.gp
+#Plot showing the differences between the different criteria in the ANIRL algorithm
+set term epslatex color
+set output 'criteria_lstd.eps'
+set grid
+set xlabel 'Number of samples from the expert'
+set key width -100
+plot 'criteria_lstd.dat' u 1:2 smooth csplines title '$t$' ls 1, 'criteria_lstd.dat' u 1:2 w points ls 1 notitle,\
+'criteria_lstd.dat' u 1:3 smooth csplines title '$||\hat\mu^{\pi^{(j)}}(s_0)-\hat\mu^{\pi_E}(s_0)||_2$' ls 2, 'criteria_lstd.dat' u 1:3 w points ls 2 notitle,\
+'criteria_lstd.dat' u 1:4 smooth csplines title '$||\mu^{\pi^{(j)}}(s_0)-\mu^{\pi_E}(s_0)||_2$' ls 3, 'criteria_lstd.dat' u 1:4 w points ls 3 notitle,\
+'criteria_lstd.dat' u 1:5 smooth csplines title '$||V^{\pi^{(j)}}(s_0)-V^{\pi_E}(s_0)||_2$' ls 4, 'criteria_lstd.dat' u 1:5 w points ls 4 notitle
+  #+end_src
+** Error for both methods
+  #+begin_src gnuplot :tangle both_error_EB.gp
+#Plot comparing the objective performance of mc_ANIRL and lstd_ANIRL
+set term epslatex color
+set output 'both_error_EB.eps'
+set grid
+set xlabel 'Number of samples from the expert'
+set ylabel '$||\mu^{\pi}(s_0) - \mu^{\pi_E}(s_0)||_2$'
+set key width -100
+plot 'both_error.dat-0' u 1:2 w lines title 'LSTD' ls 1, 'both_error.dat-0' u 1:2:3 w errorbars ls 1 notitle,\
+'both_error.dat-1' u 1:2 w lines title 'Monte-Carlo' ls 2, 'both_error.dat-1' u 1:2:3 w errorbars ls 2 notitle
+#+end_src
+  #+begin_src gnuplot :tangle both_error.gp
+#Plot comparing the objective performance of mc_ANIRL and lstd_ANIRL
+set term epslatex color
+set output 'both_error.eps'
+set grid
+set xlabel 'Number of samples from the expert'
+set key width -100
+plot 'both_error.dat' u 1:2 smooth csplines title 'LSTD' ls 1, 'both_error.dat' u 1:2 w points ls 1 notitle,\
+'both_error.dat' u 3:4 smooth csplines title 'Monte-Carlo' ls 2, 'both_error.dat' u 3:4 w points ls 2 notitle
+
+  #+end_src
+* Error Bars
+  Making graphs with error bars is a process that can be automated thanks to a python script I wrote.
+  The makefile rule to call this script is :
+  #+srcname: LSTDmu_Exp_make
+  #+begin_src makefile
+ErrorBars: conf.py criteria_lstd.dat both_error.dat 
+	../../Utils/ErrorBars.py
+
+  #+end_src
+
+  The python file that configures this script for our setting is :
+  #+begin_src python :tangle conf.py
+g_nlInput = ['criteria_lstd.dat', ['-d" " -f\'1 2\'', '-d" " -f\'1 3\'', '-d" " -f\'1 4\'','-d" " -f\'1 5\''], [[5,13],[70,110],[270,330],[470,530],[700,800],[900,1100],[1800,2200]],
+             'both_error.dat', ['-d" " -f\'1 2\'','-d" " -f\'3 4\''], [[5,13],[70,110],[270,330],[470,530],[700,800],[900,1100],[1800,2200]]]
+g_iN = 100
+  #+end_src
+  
+  Removing the data generated by the ErrorBars script is called nuking. It is not put in the clean target because to do it, you should really want to do it.
+  #+srcname:LSTDmu_Exp_nuke_make
+    #+begin_src makefile
+nuke: #You probably don't want to make this one
+	find ErrorBars/ -maxdepth 1 -iname "*.dat*" | xargs $(XARGS_OPT) rm
+    #+end_src
+
+* Makefile Rules
+** Tangling
+   #+srcname: LSTDmu_Exp_code_make
+#+begin_src makefile
+plot.c: LSTDmu_Exp.org 
+	$(call tangle,"LSTDmu_Exp.org")
+criteria_mc.gp: LSTDmu_Exp.org 
+	$(call tangle,"LSTDmu_Exp.org")
+criteria_lstd.gp: LSTDmu_Exp.org 
+	$(call tangle,"LSTDmu_Exp.org")
+criteria_lstd_EB.gp: LSTDmu_Exp.org 
+	$(call tangle,"LSTDmu_Exp.org")
+both_error_EB.gp: LSTDmu_Exp.org 
+	$(call tangle,"LSTDmu_Exp.org")
+both_error.gp: LSTDmu_Exp.org 
+	$(call tangle,"LSTDmu_Exp.org")
+conf.py: LSTDmu_Exp.org 
+	$(call tangle,"LSTDmu_Exp.org")
+#+end_src
+** Parent Dir targets
+       On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
+#+srcname: LSTDmu_Exp_make
+#+begin_src makefile
+../utils.o:
+	make -C .. utils.o
+
+../greedy.o:
+	make -C .. greedy.o
+
+../LSTDQ.o:
+	make -C .. LSTDQ.o
+
+../abbeel2004apprenticeship.o:
+	make -C .. abbeel2004apprenticeship.o
+
+../LSTDmu.o:
+	make -C .. LSTDmu.o
+
+../criteria.o:
+	make -C .. criteria.o
+
+../LSPI.o:
+	make -C .. LSPI.o
+
+../utils.h:
+	make -C .. utils.h
+
+../greedy.h:
+	make -C .. greedy.h
+
+../LSTDQ.h:
+	make -C .. LSTDQ.h
+
+../abbeel2004apprenticeship.h:
+	make -C .. abbeel2004apprenticeship.h
+
+../LSTDmu.h:
+	make -C .. LSTDmu.h
+
+../criteria.h:
+	make -C .. criteria.h
+
+../LSPI.h:
+	make -C .. LSPI.h
+
+../RL_Globals.h:
+	make -C .. RL_Globals.h
+
+../IRL_Globals.h:
+	make -C .. IRL_Globals.h
+
+#+end_src
+** C source to .o files
+#+srcname: LSTDmu_Exp_c2o_make
+#+begin_src makefile
+plot.o: plot.c GridWorld.h ../utils.h ../LSPI.h ../greedy.h simulator.h ../abbeel2004apprenticeship.h ../LSTDmu.h ../LSTDQ.h ../criteria.h ../RL_Globals.h ../IRL_Globals.h
+	$(call c2obj,"plot.c")
+#+end_src
+** .o to .exe
+#+srcname: LSTDmu_Exp_o2exe_make
+#+begin_src makefile
+plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o
+	$(O2EXE) -o plot.exe plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o
+#+end_src
+   
+** Experiment targets
+*** Generating the data :
+  #+srcname: LSTDmu_Exp_make
+  #+begin_src makefile
+plot.dat: plot.samples plot.exe
+	./plot.exe > plot.dat
+
+plot.samples: generator.exe 
+	./generator.exe > Samples.dat && touch plot.samples
+
+#+end_src
+*** Plotting the criteria for the MC method
+  #+srcname: LSTDmu_Exp_make
+  #+begin_src makefile
+criteria_mc.tex: criteria_mc.pdf
+	cat criteria_mc.tex | sed "s|criteria_mc|../Code/GridWorld/criteria_mc|g" > tmp.tex && mv tmp.tex criteria_mc.tex
+
+criteria_mc.pdf: criteria_mc.eps
+	epstopdf criteria_mc.eps
+
+criteria_mc.eps: criteria_mc.dat criteria_mc.gp
+	gnuplot criteria_mc.gp
+
+criteria_mc.dat: plot.dat
+	cat plot.dat | grep "^500" | sed 's/500 //'> criteria_mc.dat
+
+    #+end_src
+
+*** Plotting the different criteria for the LSTD method : 
+  #+srcname: LSTDmu_Exp_make
+  #+begin_src makefile
+criteria_lstd_EB.tex: criteria_lstd_EB.pdf
+	cat criteria_lstd_EB.tex | sed "s|criteria_lstd_EB|../Code/GridWorld/criteria_lstd_EB|g" > tmp.tex && mv tmp.tex criteria_lstd_EB.tex
+
+criteria_lstd_EB.pdf: criteria_lstd_EB.eps
+	epstopdf criteria_lstd_EB.eps
+
+criteria_lstd_EB.eps: criteria_lstd.dat-0 criteria_lstd.dat-1 criteria_lstd.dat-2 criteria_lstd.dat-3 criteria_lstd_EB.gp
+	gnuplot criteria_lstd_EB.gp
+
+criteria_lstd.dat-0: ErrorBars
+
+criteria_lstd.dat-1: ErrorBars
+
+criteria_lstd.dat-2: ErrorBars
+
+criteria_lstd.dat-3: ErrorBars
+
+criteria_lstd.tex: criteria_lstd.pdf
+	cat criteria_lstd.tex | sed "s|criteria_lstd|../Code/GridWorld/criteria_lstd|g" > tmp.tex && mv tmp.tex criteria_lstd.tex
+
+criteria_lstd.pdf: criteria_lstd.eps
+	epstopdf criteria_lstd.eps
+
+criteria_lstd.eps: criteria_lstd.dat criteria_lstd.gp
+	gnuplot criteria_lstd.gp
+
+criteria_lstd.dat: plot.dat
+	cat plot.dat | grep -E "^B " | sed "s/B //"> criteria_lstd.dat
+
+  #+end_src
+*** Error for both methods
+  #+srcname: LSTDmu_Exp_make
+  #+begin_src makefile
+both_error_EB.tex: both_error_EB.pdf
+	cat both_error_EB.tex | sed "s|both_error_EB|../Code/GridWorld/both_error_EB|g" > tmp.tex && mv tmp.tex both_error_EB.tex
+
+both_error_EB.pdf: both_error_EB.eps
+	epstopdf both_error_EB.eps
+
+both_error_EB.eps: both_error.dat-0 both_error.dat-1 both_error_EB.gp
+	gnuplot both_error_EB.gp
+
+both_error.dat-0: ErrorBars
+
+both_errot.dat-1: ErrorBars
+
+both_error.tex: both_error.pdf
+	cat both_error.tex | sed "s|both_error|../Code/GridWorld/both_error|g" > tmp.tex && mv tmp.tex both_error.tex
+
+both_error.pdf: both_error.eps
+	epstopdf both_error.eps
+
+both_error.eps: both_error.dat both_error.gp
+	gnuplot both_error.gp
+
+both_error.dat: criteria_mc_samples.dat criteria_lstd.dat
+	cat criteria_lstd.dat | cut -d" " -f'1 4' > tmp &&\
+	cat criteria_mc_samples.dat | cut -d" " -f'1 4' > tmp2 &&\
+	paste -d' ' tmp tmp2 > both_error.dat
+
+criteria_mc_samples.dat: plot.dat
+	cat plot.dat | grep -E "^C " | sed "s/C //"> criteria_mc_samples.dat
+  #+end_src
+** Cleaning
+  #+srcname: LSTDmu_Exp_clean_make
+  #+begin_src makefile
+LSTDmu_Exp_clean:
+	find . -maxdepth 1 -iname "criteria_mc.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd_EB.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "tmp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "tmp2"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "plot.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "plot.samples"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Samples.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "conf.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd_EB.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd_EB.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd_EB.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat-0"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat-1"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat-2"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat-3"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_lstd.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.dat-0"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.dat-1"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "both_error_EB.eps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "criteria_mc_samples.dat"   | xargs $(XARGS_OPT) rm
+
+  #+end_src
+   

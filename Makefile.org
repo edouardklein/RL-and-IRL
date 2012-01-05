@@ -9,192 +9,138 @@ emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
 
   The [[End results]] produced by this Makfile have their own dedicated section.
   
-* End results
-  This code produces graphs. These graphs either are reproduction of previously published results, or part of original research.
-
-  The graphs are based on the application of different algorithms on toy problems. Each toy problem lives in its sub directory. The sub-directories are :
-
-  #+begin_src makefile :tangle Makefile
-SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality
+* Makefiles rules
+  The rules are written in the file they work with. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
+** Misc.
+Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<IRL_Globals_make>>
+<<DP_mu_make>>
+<<RL_Globals_make>>
+<<TT_Exp2_make>>
+<<TT_Exp3_make>>
+<<TT_Test0_make>>
+<<TT_Test1_make>>
+<<TT_Test2_make>>
+<<TT_Test3_make>>
   #+end_src
+** Code extraction
+  #+begin_src makefile :tangle Makefile :noweb yes
+tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
 
-** Previously published results
-*** Lest Square Policy Iteration from Lagoudakis and Parr   
-   Figure 10 of \cite{lagoudakis2003least} can be made by executing :
+<<LSPI_code_make>>
+<<LSTDQ_code_make>>
+<<LSTDmu_code_make>>
+<<TT_Exp2_code_make>>
+<<TT_Exp3_code_make>>
+<<utils_code_make>>
+<<TT_code_make>>
+<<TT_Test0_code_make>>
+<<TT_Test1_code_make>>
+<<TT_Test23_code_make>>
+<<a2a_code_make>>
+<<criteria_code_make>>
+<<greedy_code_make>>
+  #+end_src
+** C source to .o file
 
-#+begin_src sh
- make lagoudakis2003_least_figure10.pdf
-#+end_src
-   
-   This triggers the following :
-    #+begin_src makefile :tangle Makefile
-lagoudakis2003least_figure10.pdf: LSPI.o LSTDQ.o utils.o greedy.o
-	$(MAKE) -C ChainWalk lagoudakis2003least_figure10.pdf && cp ChainWalk/lagoudakis2003least_figure10.pdf ./
-    #+end_src
-   
-   The figure should be the same as in the forementionned paper, but with error bars. See the relevant [[file:ChainWalk/Makefile.org][Makefile]] to learn more about it.
-
-** Original research
-*** LSTD-$\mu$
-    Figures used in the paper about LSTD-$\mu$ can be made.
-
-#+begin_src sh
- make both_error_EB.pdf threshold.pdf threshold_EB.pdf criteria_mc.pdf criteria_lstd_EB.pdf
-#+end_src
-    
-    The PDF files do not include any text. To view the whole figure, you have to compile the .tex files.
-   
-    #+begin_src makefile :tangle Makefile
-both_error_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	$(MAKE) -C GridWorld both_error_EB.tex && cp GridWorld/both_error_EB.pdf ./both_error_EB.pdf
-
-threshold.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	$(MAKE) -C InvertedPendulum threshold.tex && cp InvertedPendulum/threshold.pdf ./threshold.pdf
-
-threshold_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	$(MAKE) -C InvertedPendulum threshold_EB.tex && cp InvertedPendulum/threshold_EB.pdf ./threshold.pdf
-
-criteria_mc.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	$(MAKE) -C GridWorld criteria_mc.tex && cp GridWorld/criteria_mc.pdf ./criteria_mc.pdf
-
-criteria_lstd_EB.pdf: LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o LSTDmu.o criteria.o
-	$(MAKE) -C GridWorld criteria_lstd_EB.tex && cp GridWorld/criteria_lstd_EB.pdf ./criteria_lstd_EB.pdf
-
-    #+end_src
-
-
-** TaskTransfer
-   Exp 1 :
-    #+begin_src makefile :tangle Makefile :noweb yes
-<<TT_exp1_make>>
-<<TT_exp2_make>>
-<<TT_exp3_make>>
-    #+end_src
-* Miscellaneous
-** Compilation flags
-  C code is compiled with
+   C code is compiled with
   
     #+begin_src makefile :tangle Makefile
 export CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
 export LFLAGS=`pkg-config --libs gsl` -lm -O3
+c2obj=gcc $(CFLAGS) -c $1
+o2exe=gcc $(LFLAGS)
+    #+end_src
+  
+#+begin_src makefile :tangle Makefile :noweb yes
+<<LSPI_c2o_make>>
+<<LSTDQ_c2o_make>>
+<<LSTDmu_c2o_make>>
+<<utils_c2o_make>>
+<<a2a_c2o_make>>
+<<criteria_c2o_make>>
+<<greedy_c2o_make>>
+  #+end_src
+** Org source to PDF
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<NA_org2pdf_make>>
     #+end_src
 ** Cleaning
-    #+begin_src makefilefile :tangle Makefile :noweb yes
-<<TT_cleanTest0_make>>
-<<TT_cleanTest1_make>>
-<<TT_cleanCode_make>>
-<<NA_cleanDoc_make>>
+    #+begin_src makefile :tangle Makefile :noweb yes
+export XARGS_OPT=-tr
+<<LSPI_clean_make>>
+<<LSTDQ_clean_make>>
+<<LSTDmu_clean_make>>
+<<TT_Exp2_clean_make>>
+<<TT_Exp3_clean_make>>
+<<utils_clean_make>>
+<<NA_clean_make>>
+<<TT_Test0_clean_make>>
+<<TT_Test1_clean_make>>
+<<TT_Test23_clean_make>>
+<<TT_clean_make>>
+<<a2a_clean_make>>
+<<criteria_clean_make>>
+<<greedy_clean_make>>
 
-clean: TT_cleanTest0 TT_cleanTest1 TT_cleanCode NA_cleanDoc
-	find . -maxdepth 1 -iname "*.o"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.pdf" | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*~"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.html"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.aux"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.bbl"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.blg"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.log"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.out"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.tex"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.toc"    | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.mm"    | xargs -tr rm &&\
+clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
-	$(MAKE) -C klein2011dimensionality clean
-	find . -maxdepth 1 -iname "RL_Globals.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSTDQ.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSPI.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSPI.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "greedy.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "greedy.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "abbeel2004apprenticeship.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "criteria.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "criteria.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "IRL_Globals.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSTDmu.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "LSTDmu.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "utils.c"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "utils.h"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "code"   | xargs -tr rm &&\
-	find . -maxdepth 1 -iname "doc"   | xargs -tr rm -rf
     #+end_src
-* Org files
-  I use [[http://orgmode.org/][org-mode]] to write my code.
-
-  The .org files containing both some code and its documentation are :
-  #+begin_src makefile :tangle Makefile
-ORG_CODE_FILES=LSPI.org RL_Globals.org LSTDQ.org greedy.org Makefile.org ChainWalk/Makefile.org GridWorld/Makefile.org InvertedPendulum/Makefile.org abbeel2004apprenticeship.org criteria.org IRL_Globals.org LSTDmu.org utils.org TaskTransfer.org NouveauxAlgos.org
-  #+end_src
-
-** Documentation
-
-   Documentation can be extracted from the .org files by executing
-   #+begin_src sh
- make doc
-   #+end_src
-
-   which triggers the following rules :
+* End results
+** TaskTransfer
+   - TT_Exp1 (GridWorld)
+   - TT_Exp2
+   - TT_Exp3
+   - TT_test0
+   - TT_test1
+   - TT_test2
+   - TT_test3
+** LSTDmu
+   - criteria_mc.tex (GridWorld)
     #+begin_src makefile :tangle Makefile
-HTML_FILES=$(ORG_CODE_FILES:.org=.html)
-
-doc: $(HTML_FILES)
-	mkdir -p doc &&\
-	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir doc && mkdir -p doc/$$dir && mv $$dir/*.html doc/$$dir/; done &&\
-	mv *.html doc/
-
-%.html:%.org
-	emacs -batch --visit $*.org --funcall org-export-as-html-and-open --script ~/.emacs
+criteria_mc.tex:
+	make -C GridWorld criteria_mc.tex
     #+end_src
-   
-** Code extraction
 
-   The code embedded in the .org can be tangled.
+   - criteria_lstd_EB.tex (GridWorld) / criteria_lstd.tex (GridWorld)
     #+begin_src makefile :tangle Makefile
-code:$(ORG_CODE_FILES)
-	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
-	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir code ; done &&\
-	touch code
+criteria_lstd.tex:
+	make -C GridWorld criteria_lstd.tex
     #+end_src
-* Common object files
-  Some code is shared amongst some of the executables.
+
+   - both_error.tex (GridWorld) / both_error_EB.tex (GridWorld)
     #+begin_src makefile :tangle Makefile
-OBJECT_FILES=LSPI.o LSTDQ.o utils.o greedy.o abbeel2004apprenticeship.o criteria.o LSTDmu.o
-obj:$(OBJECT_FILES)
-
-LSPI.o: code LSPI.h LSPI.c utils.h LSTDQ.h greedy.h
-	gcc -c $(CFLAGS) LSPI.c
-
-LSTDQ.o: LSTDQ.h LSTDQ.c code
-	gcc -c $(CFLAGS) LSTDQ.c
-
-utils.o: utils.h utils.c
-	gcc -c $(CFLAGS) utils.c
-
-greedy.o: greedy.h greedy.c code
-	gcc -c $(CFLAGS) greedy.c
-
-abbeel2004apprenticeship.o: abbeel2004apprenticeship.c abbeel2004apprenticeship.h LSPI.h utils.h criteria.h
-	gcc -c $(CFLAGS) abbeel2004apprenticeship.c
-
-criteria.o: criteria.h criteria.c RL_Globals.h
-	gcc -c $(CFLAGS) criteria.c
-
-LSTDmu.o: LSTDmu.h LSTDmu.c greedy.h utils.h criteria.h LSPI.h
-	gcc -c $(CFLAGS) LSTDmu.c
+both_error.tex:
+	make -C GridWorld both_error.tex
+    #+end_src
+   - threshold.tex (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+threshold.tex:
+	make -C InvertedPendulum threshold.tex
+    #+end_src
+   - threshold_EB.tex (InvertedPendulum)
+** Previous results
+   - lagoudakis2003least_figure10.pdf (ChainWalk)
+    #+begin_src makefile :tangle Makefile
+lagoudakis2003least_figure10.pdf:
+	make -C ChainWalk lagoudakis2003least_figure10.pdf
     #+end_src
 * Tests
   #+begin_src makefile :tangle Makefile :noweb yes
 test: TT_test0 TT_test1 TT_test2 TT_test3
+    #+end_src
 
-<<TT_test0_make>>
 
-<<TT_test1_make>>
 
-<<TT_test2_make>>
+* Inception
+Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tangle your makefile so you can tangle while you make.
 
-<<TT_test3_make>>
-
+  #+begin_src makefile :tangle Makefile :noweb yes
+SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality
+Makefile:
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
+	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 
     #+end_src

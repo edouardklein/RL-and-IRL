@@ -82,8 +82,10 @@
      - Effectuer la mise à jour $\omega_{t+1} = \omega_t -\alpha_t\Delta\omega$
    - retourner $\omega_T$
 
-* Code :code:
-** LAFEM
+* Implémentation python de LAFEM :code:
+  :PROPERTIES:
+  :ID:       879A40A3-5890-4665-86C0-826ABD3BC1BC
+  :END:
    L'algorithme est implémenté dans une classe abstraite en python. Les éléments nécessaires à l'algorithme sont définis comme des fonctions abstraites, ce qui fait qu'il est impossible de créer ou d'utiliser cette classe sans la sous classer en définissant les éléments nécessaires.
 
 #+begin_src python :tangle LAFEM.py
@@ -132,290 +134,70 @@ class LAFEM:
    L'algorithme se déroule comme suit : 
    #+begin_src python :tangle LAFEM.py
    def run( self ):
-      omega = omega_0
+      omega = self.omega_0.copy()
    #+end_src
    - Pour le nombre d'itérations prévues :
      #+begin_src python :tangle LAFEM.py
-      for t in range(0,T):
+      for t in range(0,self.T):
      #+end_src
      - Initialiser $\Delta\omega \leftarrow [0...0]^T$
        #+begin_src python :tangle LAFEM.py
-         DeltaOmega = zeros(( omega_0.size, 1 ))
+         DeltaOmega = zeros(( self.omega_0.size, 1 ))
        #+end_src
      - Pour chacun des points de données
        #+begin_src python :tangle LAFEM.py
-         for sa in data:
+         for sa in self.data:
        #+end_src
        - Déterminer $a^* = \arg\max\limits_{a} = \omega_t ^T \mu_E(s_i,a) + l(s_i,a)$
          #+begin_src python :tangle LAFEM.py
             val = -Inf
             a_star = array([])
-            for a in A:
-               newval = dot( omega.transpose(), mu_E( sa.s, a ) ) + l( sa.s, a )
-               if newval > val:
+            for a in self.A:
+               newval = dot( omega.transpose(), self.mu_E( sa[0], a ) ) + self.l( sa[0], a )
+               assert(newval.size == 1)
+               if newval[0] > val:
                   val = newval
                   a_star = a
          #+end_src
        - $\Delta\omega \leftarrow \Delta\omega + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$	 
          #+begin_src python :tangle LAFEM.py
-            DeltaOmega = DeltaOmega + mu_E( sa.s, a_star ) - mu_E( sa.s, sa.a )
+            DeltaOmega = DeltaOmega + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
          #+end_src
      - Effectuer la mise à jour $\omega_{t+1} = \omega_t -\alpha_t\Delta\omega$
        #+begin_src python :tangle LAFEM.py
-            omega = omega - alpha( t ) * DeltaOmega
+            omega = omega - self.alpha( t ) * DeltaOmega
        #+end_src
    - retourner $\omega_T$
      #+begin_src python :tangle LAFEM.py
       return omega
      #+end_src
      
-* Expériences
-** Expérience 1
-*** Description
-    FIXME: Description correcte du Gridworld.
-
-    La première expérience consiste à entraîner un expert sur un gridworld de 5 cases par 5 case, avec la récompense en haut à droite, puis à faire tourner LAFEM sur un set de données couvrant la totalité de l'espace d'état, un calcul exact de $\mu_E$, une fonction de perte extrêmement simple ($1$ en cas de désaccord avec l'expert, $0$ sinon) et une initialisation de la récompense à $0$ partout. Comme le problème est discret, la représentation est tabulaire.
-
-
-    L'expérience se déroule comme suit :
-    - Entraîner un expert sur le problème du gridworld, i.e. définir $\pi_E : S\rightarrow A$
-    - Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon
-    - définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
-    - Initialiser $D\leftarrow \emptyset$
-    - Pour chaque état $s \in S$
-      - $D \leftarrow D \cup (s,\pi_E(s))$
-    - Initialiser $\omega_0 = [0...0]^T$
-    - Fixer $T=20$ (pifomètre)
-    - Faire tourner LAFEM
-    - Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
-    - Définir une politique stochastique uniforme $\pi_r$
-    - Comparer $E[\omega^T\mu_E(s)| s\in S]$, $E[\omega^T\mu_\pi(s)| s\in S]$ et $E[\omega^T\mu_r(s)| s\in S]$
-
-*** Code :code:
-**** Calcul exact de la /feature expectation/
-     En ce qui concerne l'implémentation, on reprend le protocole ci dessus et on se soucie des détails.
-
-    De la même manière qu'il est possible d'écrire l'equation de Bellman sous forme matricielle : 
-    \begin{equation}
-    V^\pi = R + \gamma P_\pi V^\pi 
-    \end{equation}
-    On peut écrire le même type d'équation pour $\mu$, pour une composante $i$ :
-    \begin{equation}
-    \mu^\pi_i = \phi_i + \gamma P_\pi\mu^\pi_i 
-    \end{equation}
-    Si l'on considère la matrice $\mathbf \mu$ comme étant indexée par les états sur les lignes et par les composentes sur les colonnes, et la même technique pour la matrice $\mathbf \Phi$, alors il est possible d'écrire : 
-    \begin{equation}
-    \mathbf \mu^\pi = \mathbf\Phi + \gamma P_\pi\mathbf\mu^\pi
-    \end{equation}
-    Grâce à cette équation il est possible d'adapter les algorithmes de programmation dynamique itératifs pour obtenir un calcul exact de $\mathbf \mu^\pi$.
-
-    Cependant, la fonction dont nous avons besoin n'est pas $\mu^\pi : S \rightarrow \mathbb R^p$, mais $\mu^\pi : S \times A \rightarrow \mathbb R^p$ (la notation reste la même pour ne pas tout surcharger, la différence étant réglée assze vite). Ces deux fonctions ont entre elles la même relation qu'ont $V$ et $Q$.
-    Ainsi puisque l'on peut écrire :
-    \begin{eqnarray}
-    Q^\pi(s,a) &=& R(s) + \gamma P_a(s)V^\pi\\
-    Q^\pi_a &=& R + \gamma P_aV^\pi
-    \end{eqnarray}
-    On peut faire le parallèle (en notant $\mu^\pi(s,\cdot) = \mu^\pi_a(s)$) :
-    \begin{eqnarray}
-    \mu^\pi(s,a) &=& \phi(s) + \gamma P_a(s)\mathbf \mu^\pi\\
-    \mathbf \mu^\pi_a &=& \mathbf \Phi + \gamma P_a\mathbf \mu^\pi
-    \end{eqnarray}
-    
-    Pour résumer, il est possible de calculer la matrice $\mathbf \mu^\pi$ grâce à une adaptation des algorithmes de programmation dynamique, et à partir de celle ci de déduire les matrices $\mu^\pi_a$, qui sont celles dont nous avons besoin.
-
-    #+begin_src python :tangle NA_DP_mu.py
-from numpy import *
-import scipy
-
-g_fGamma = 0.9
-
-def NA_DP_mu( pi, Phi ):
-    "Returns the matrix corresponding to the feature expectation of the given policy."
-    global g_fGamma
-    answer = rand( Phi.shape[0], Phi.shape[1] )
-    changed = True
-    while changed:
-        new_answer = Phi + g_fGamma*dot(pi,answer)
-        diff = norm( new_answer - answer)
-        answer = new_answer
-        if diff > 0.01:
-            changed = True
-        else:
-            changed = False
-    return answer
-    #+end_src
-**** Configuration de LAFEM
-
-    On importe ce qu'il importe d'importer
-    #+begin_src python :tangle NA_Exp1.py
-from a2str import *
-from LAFEM import *
-    #+end_src
-    
-    On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
-      #+begin_src python :tangle NA_Exp1.py
-class LAFEM_Exp1( LAFEM ):
-    P_north = array([])
-    P_south = array([])
-    P_east = array([])
-    P_west = array([])
-    Pi_E = array([])
-    Pi_E_txt = {}
-    Mu_north = array([])
-    Mu_west = array([])
-    Mu_east = array([])
-    Mu_south = array([])
-      #+end_src
-
-    On définit $S$ et $A$ de manière à pouvoir itérer dessus.
-    #+begin_src python :tangle NA_Exp1.py
-    def Sgenerator( self ):
-        for x in range(0,5):
-            for y in range(0,5):
-                yield array([x,y])
-
-    S = Sgenerator
-    A = ['North','West','East','South']
-    #+end_src
-
-    Pour entraîner un expert sur le problème du gridworld, i.e. définir $\pi_E : S\rightarrow A$, on réutilise le code du [[file:TaskTransfer.org::*Code][task transfer]] tel quel pour obtenir la politique optimale.
-      #+begin_src python :tangle NA_Exp1.py
-    def __init__( self ):
-        cmd = "python TT_5x5_expertPGen.py";
-        os.system( cmd )
-        self.Pi_E = genfromtxt("TT_5x5_Ppi.mat")
-      #+end_src      
-    On peuple $D$ : 
-      #+begin_src python :tangle NA_Exp1.py
-        self.P_north = genfromtxt( "TT_5x5_PENorth.mat" )
-        self.P_east = genfromtxt( "TT_5x5_PEEast.mat" )
-        self.P_west = genfromtxt( "TT_5x5_PEWest.mat" )
-        self.P_south = genfromtxt( "TT_5x5_PESouth.mat" )
-        for s in self.S():
-            index = s[0]+5*s[1]
-            pi_s = self.Pi_E[index]
-            a = ''
-            if all(pi_s == self.P_north[index]):
-                self.Pi_E_txt[l2str(s)] = 'North'
-            elif all(pi_s == self.P_south[index]):
-                self.Pi_E_txt[l2str(s)] = 'South'
-            elif all(pi_s == self.P_west[index]):
-                self.Pi_E_txt[l2str(s)] = 'West'
-            elif all(pi_s == self.P_east[index]):
-                self.Pi_E_txt[l2str(s)] = 'East'
-            else:
-                exit(-1)
-            self.data = self.data+[ [ s, self.Pi_E_txt[a2str(s)] ] ]
-      #+end_src
-    On calcule les matrices de /feature expectation/
-      #+begin_src python :tangle NA_Exp1.py
-        self.Mu_E = NA_DP_mu( self.Pi_E, identity(25) )
-        self.Mu_north = identity(25) + 0.9*dot(self.P_north,self.Mu_E)
-        self.Mu_west = identity(25) + 0.9*dot(self.P_west,self.Mu_E)
-        self.Mu_east = identity(25) + 0.9*dot(self.P_east,self.Mu_E)
-        self.Mu_south = identity(25) + 0.9*dot(self.P_south,self.Mu_E)
-      #+end_src
-
-    On définit la fonction de perte $l$ :
-    #+begin_src python :tangle NA_Exp1.py
-    def l( self, s, a ):
-        if self.Pi_E_txt[a2str(s)] == a:
-            return 0
-        else:
-            return 1
-    #+end_src
-    
-    On définit la fonction renvoyant $\mu_E(s,a)$ : 
-    #+begin_src python :tangle NA_Exp1.py
-    def mu_E( self, s, a ):
-        mu_a = array([])
-        if a == 'North':
-            mu_a = self.Mu_north
-        if a == 'West':
-            mu_a = self.Mu_west
-        if a == 'East':
-            mu_a = self.Mu_east
-        if a == 'South':
-            mu_a = self.Mu_south
-        else:
-            exit(-1)
-        index = s[0]+5*s[1]
-        return (mu_a[index]).transpose()
-    #+end_src
-    
-
-
-    On définit $\alpha(t) = 0.1,\forall t$ (pifomètre)
-      #+begin_src python :tangle NA_Exp1.py
-    def alpha( t ):
-        return 0.1
-      #+end_src
-    On initialise $\omega_0 = [0...0]^T$
-      #+begin_src python :tangle NA_Exp1.py
-    omega_0 = zeros( (25, 1) )
-      #+end_src
-    - Fixer $T=20$ (pifomètre)
-      #+begin_src python :tangle NA_Exp1.py
-    T = 20
-      #+end_src
-**** Expérience 1
-     On fait tourner le machin :
-      #+begin_src python :tangle NA_Exp1.py
-lafem = LAFEM_Exp1()
-omega_lafem = lafem.run()
-      #+end_src
-     
-     Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
-     #+begin_src python :tangle NA_Exp1.py
-Pi = TT_DP( omega_lafem, (P_north, P_south, P_west, P_east) )
-     #+end_src
-      
-     Définir une politique stochastique uniforme $\pi_r$
-     Comparer $E[\omega^T\mu_E(s)| s\in S]$, $E[\omega^T\mu_\pi(s)| s\in S]$ et $E[\omega^T\mu_r(s)| s\in S]$
-     #+begin_src python :tangle NA_Exp1.py
-true_reward = zeros((25,1))
-true_reward[4,0] = 1
-perf_expert = 0
-cnt = 0
-for s in S:
-    index = s[0] + 5*s[1]
-    perf_expert = perf_expert + dot( true_reward.transpose(), Mu_E[index].transpose() )
-    cnt = cnt + 1
-perf_expert = perf_expert/cnt
-
-Mu_pi = NA_DP_mu( Pi, identity(25) )
-perf_agent = 0
-cnt = 0
-for s in S:
-    index = s[0] + 5*s[1]
-    perf_agent = perf_agent + dot( true_reward.transpose(), Mu_pi[index].transpose() )
-
-print "Performance moyenne de l'expert : "
-print perf_expert
-
-print "Performance moyenne de l'agent"
-print perf_agent
-      #+end_src
-      
-*** Résultats
 * Making this document :code:
-
-#+begin_src makefile :tangle Makefile
+This document can be compiled into a pdf.
+#+srcname: NA_org2pdf_make
+#+begin_src makefile
 NouveauxAlgos.pdf: NouveauxAlgos.org
-	emacs -batch --visit NouveauxAlgos.org --funcall org-export-as-latex --script ~/.emacs
-	pdflatex NouveauxAlgos.tex && bibtex NouveauxAlgos && pdflatex NouveauxAlgos.tex && pdflatex NouveauxAlgos.tex
+	$(call org2pdf,"NouveauxAlgos.org")
 #+end_src
 
-#+srcname: NA_cleanDoc_make
+It can also be tangled.
+#+srcname: NA_code_make
 #+begin_src makefile
-NA_cleanDoc:
-	find . -maxdepth 1 -iname "*.aux"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.bbl"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.blg"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "NouveauxAlgos.tex"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "NouveauxAlgos.pdf"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.log"| xargs -tr rm &&\
-	find . -maxdepth 1 -iname "*.toc"| xargs -tr rm
+LAFEM.py: NouveauxAlgos.org
+	$(call tangle,"NouveauxAlgos.org")
+#+end_src
+We provide a rule to clean the corresponding mess.
+#+srcname: NA_clean_make
+#+begin_src makefile
+NA_clean:
+	find . -maxdepth 1 -iname "NouveauxAlgos.aux"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.bbl"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.blg"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.tex"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.pdf"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "NouveauxAlgos.log"| xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "NouveauxAlgos.toc"| xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM.py" | xargs $(XARGS_OPT) rm
 #+end_src
 \bibliographystyle{plainnat}
 \bibliography{../Biblio/Biblio}
