@@ -117,6 +117,10 @@ both_error.tex:
 	make -C GridWorld both_error.tex
     #+end_src
    - threshold.tex (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+threshold.tex:
+	make -C InvertedPendulum threshold.tex
+    #+end_src
    - threshold_EB.tex (InvertedPendulum)
 ** Previous results
    - lagoudakis2003least_figure10.pdf (ChainWalk)
