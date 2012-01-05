@@ -198,6 +198,7 @@ NA_clean:
 	find . -maxdepth 1 -iname "NouveauxAlgos.log"| xargs $(XARGS_OPT) rm 
 	find . -maxdepth 1 -iname "NouveauxAlgos.toc"| xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "LAFEM.py" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM.pyc" | xargs $(XARGS_OPT) rm
 #+end_src
 \bibliographystyle{plainnat}
 \bibliography{../Biblio/Biblio}

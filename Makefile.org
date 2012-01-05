@@ -41,6 +41,7 @@ tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
 <<a2a_code_make>>
 <<criteria_code_make>>
 <<greedy_code_make>>
+<<NA_code_make>>
   #+end_src
 ** C source to .o file
 
@@ -90,6 +91,13 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
 	$(MAKE) -C InvertedPendulum clean
     #+end_src
 * End results
+** LAFEM
+   - LAFEM_Exp1 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp1:
+	make -C GridWorld V_expert.pdf V_agent.pdf true_reward.pdf retrieved_reward.pdf
+    #+end_src
+
 ** TaskTransfer
    - TT_Exp1 (GridWorld)
    - TT_Exp2
