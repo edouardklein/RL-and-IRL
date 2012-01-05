@@ -172,6 +172,9 @@ lagoudakis2003least_figure10.gp: lagoudakis2003least_figure10.org
    A rule to create the object file :
   #+srcname: lagoudakis2003least_figure10_c2o_make
   #+begin_src makefile
+../LSPI.h:
+	make -C .. LSPI.h
+
 lagoudakis2003least_figure10.o: lagoudakis2003least_figure10.c ../LSPI.h ../utils.h
 	$(call c2obj,"lagoudakis2003least_figure10.c")
   #+end_src
@@ -179,6 +182,18 @@ lagoudakis2003least_figure10.o: lagoudakis2003least_figure10.c ../LSPI.h ../util
    A rule to create the executable from the object file :
 #+srcname: lagoudakis2003least_figure10_o2exe_make
 #+begin_src makefile
+../LSPI.o:
+	make -C .. LSPI.o
+
+../LSTDQ.o:
+	make -C .. LSTDQ.o
+
+../utils.o:
+	make -C .. utils.o
+
+../greedy.o:
+	make -C .. greedy.o
+
 lagoudakis2003least_figure10.exe: lagoudakis2003least_figure10.o ../LSPI.o ../LSTDQ.o ../utils.o ../greedy.o 
 	$(O2EXE) -o lagoudakis2003least_figure10.exe lagoudakis2003least_figure10.o ../LSPI.o ../LSTDQ.o ../utils.o ../greedy.o  $(LFLAGS)
 generator.exe: generator.o ../utils.o

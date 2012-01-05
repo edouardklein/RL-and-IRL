@@ -124,6 +124,10 @@ threshold.tex:
    - threshold_EB.tex (InvertedPendulum)
 ** Previous results
    - lagoudakis2003least_figure10.pdf (ChainWalk)
+    #+begin_src makefile :tangle Makefile
+lagoudakis2003least_figure10.pdf:
+	make -C ChainWalk lagoudakis2003least_figure10.pdf
+    #+end_src
 * Tests
   #+begin_src makefile :tangle Makefile :noweb yes
 test: TT_test0 TT_test1 TT_test2 TT_test3

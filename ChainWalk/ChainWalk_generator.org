@@ -65,22 +65,25 @@ int main(int argc, char* argv[]){
   Some rules to tangle the source files :
   #+srcname: Generator_code_make
   #+begin_src makefile
-Chainwalk_generator.c: Chainwalk_generator.org 
-	$(call tangle,"Chainwalk_generator.org")
+ChainWalk_generator.c: ChainWalk_generator.org 
+	$(call tangle,"ChainWalk_generator.org")
   #+end_src
 
    A rule to create the object file :
   #+srcname: Generator_c2o_make
   #+begin_src makefile
-Chainwalk_generator.o: Chainwalk_generator.c ../utils.h 
-	$(call c2obj,"Chainwalk_generator.c")
+../utils.h:
+	make -C .. utils.h
+
+ChainWalk_generator.o: ChainWalk_generator.c ../utils.h 
+	$(call c2obj,"ChainWalk_generator.c")
   #+end_src
 
    A rule to create the executable from the object file :
 #+srcname: Generator_o2exe_make
 #+begin_src makefile
-Chainwalk_generator.exe: Chainwalk_generator.o ../utils.o
-	$(O2EXE) -o Chainwalk_generator.exe Chainwalk_generator.o ../utils.o
+ChainWalk_generator.exe: ChainWalk_generator.o ../utils.o
+	$(O2EXE) -o ChainWalk_generator.exe ChainWalk_generator.o ../utils.o
 #+end_src
 
 
