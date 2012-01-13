@@ -48,8 +48,8 @@ tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
    C code is compiled with
   
     #+begin_src makefile :tangle Makefile
-export CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
-export LFLAGS=`pkg-config --libs gsl` -lm -O3
+export CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
+export LFLAGS=`pkg-config --libs gsl` -lm -g
 c2obj=gcc $(CFLAGS) -c $1
 o2exe=gcc $(LFLAGS)
     #+end_src
@@ -96,6 +96,11 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
     #+begin_src makefile :tangle Makefile
 LAFEM_Exp1:
 	make -C GridWorld V_expert.pdf V_agent.pdf true_reward.pdf retrieved_reward.pdf
+    #+end_src
+   - LAFEM_Exp2 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp2:
+	make -C InvertedPendulum LAFEM_Exp2_true_R.pdf LAFEM_Exp2_lafem_R.pdf LAFEM_Exp2_Vexpert.pdf LAFEM_Exp2_Vagent.pdf
     #+end_src
 
 ** TaskTransfer

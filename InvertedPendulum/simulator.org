@@ -1,6 +1,7 @@
 #+TITLE: Simulator for the inverted pendulum
 
 * C Implementation
+** Simulator
 The following functon lets the greedy policy interact with the gridworld. The argument is the number of episodes to simulate, the return value is the matrix containing all the transitions, one per line.
 #+begin_src c :tangle simulator.h :main no
 /* Simulate nbEpisodes episodes using greedy_policy()*/
@@ -22,6 +23,7 @@ We use the GSL, the code shared with the generator and the code for greedy.
 #include "simulator.h"
 #include "greedy.h"
 #include "InvertedPendulum.h"
+#include "IRL_Globals.h"
   #+end_src
 
 We set some constants.
@@ -34,7 +36,7 @@ This variables allow one to know how many samples teh simulation has generated (
 unsigned int g_iNb_samples = 0;
 #+end_src
 
-The code for the simulation is quite straightforward. We allocat a bigger than necessary matrix and only retrurn the useful protion of it.
+The code for the simulation is quite straightforward. We allocate a bigger than necessary matrix and only retrurn the useful portion of it.
 #+begin_src c :tangle simulator.c :main no
 gsl_matrix* inverted_pendulum_simulator( int nbEpisodes ){
   srand(time(NULL)+getpid()); rand(); rand();rand();
@@ -89,6 +91,80 @@ gsl_matrix* inverted_pendulum_simulator( int nbEpisodes ){
   return answer;
 }
   #+end_src
+
+** Monte-Carlo $\mu_E(s,a)$
+The following functon computes  $\hat\mu_E(s,a) = {1\over M}\sum\limits_{i=1}^{M}\sum\limits_{t<m}\gamma^t\phi(s_t),s_0=s,a_0=a,\pi_E$
+#+begin_src c :tangle simulator.h :main no
+/* Computes \mu_E(s,a)*/
+gsl_matrix* inverted_pendulum_MC_mu( gsl_matrix* state, int action );
+#+end_src
+
+The variable noted as $m$ in the mathematical notation is g_iMax_episode_len, we declare the variable noted as $M$
+#+begin_src c :tangle simulator.h :main no
+extern unsigned int g_iNb_episodes;
+#+end_src
+
+
+We need to compute $\phi$, so we import the relevant header
+#+begin_src c :tangle simulator.c :main no
+#include "phipsi.h"
+  #+end_src
+
+We use a slightly modified version of the code of the simulator. The differences are that the first action is given in argument and not got from $\pi_E$, and that we compute $\mu_E$ instead of returning the transitions.
+
+#+begin_src c :tangle simulator.c :main no
+gsl_matrix* inverted_pendulum_MC_mu( gsl_matrix* s, int a ){
+  srand(time(NULL)+getpid()); rand(); rand();rand();
+  gsl_matrix* mu_E = gsl_matrix_calloc( g_iP, 1 );
+  gsl_matrix* state = gsl_matrix_alloc( 1, 2 );
+  for( unsigned int i = 0 ; i < g_iNb_episodes ; i++ ){
+    unsigned int nb_steps = 0;
+    int eoe = 1;
+    double state_p = gsl_matrix_get( s, 0, 0 );
+    double state_v = gsl_matrix_get( s, 0, 1 );
+    gsl_matrix* mPsi = psi(s);
+    gsl_matrix_add( mu_E, mPsi );
+    gsl_matrix_free( mPsi );
+    double gamma = g_dGamma_lafem;
+
+    double next_state_p;
+    double next_state_v;
+    double reward;
+    iv_step( state_p, state_v, a, 
+	     &next_state_p, &next_state_v, &reward, &eoe );
+    state_p = next_state_p;
+    state_v = next_state_v;
+    while( eoe==1 ){
+      nb_steps++;
+      g_iNb_samples++;
+      gsl_matrix_set( state, 0, 0, (double)state_p );
+      gsl_matrix_set( state, 0, 1, (double)state_v );
+      gsl_matrix* mAction = greedy_policy( state );
+      unsigned int action = 
+	(unsigned int)gsl_matrix_get( mAction, 0, 0 );
+      gsl_matrix_free( mAction );
+      iv_step( state_p, state_v, action, 
+	       &next_state_p, &next_state_v, &reward, &eoe );
+      if( nb_steps == g_iMax_episode_len ){
+	eoe = 0;
+      }
+      mPsi = psi(state);
+      gsl_matrix_scale( mPsi, gamma );
+      gsl_matrix_add( mu_E, mPsi );
+      gsl_matrix_free( mPsi );
+      gamma *= gamma;
+      
+      state_p = next_state_p;
+      state_v = next_state_v;
+    }
+  }
+  gsl_matrix_free( state );
+  gsl_matrix_scale( mu_E, 1./(double)g_iNb_episodes );
+  return mu_E;
+}
+#+end_src
+
+
 
 * Makefile rules
   Some rules to tangle the source files :

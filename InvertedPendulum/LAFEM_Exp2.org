@@ -1,0 +1,687 @@
+#+TITLE: Expérience simple pour valider LAFEM
+* Description
+
+  Dans cette seconde expérience, un expert est entraîné sur le problème du pendule inversé. Il fournit quelques transitions, le calcul de $\mu_E$ est est effectué grâce à un Monte-Carlo suffisament long pour que l'erreur soit négligeable, une fonction de perte simple ($1$ en cas de désaccord avec l'expert, $0$ sinon), une initialisation de la récompense à une valeur négative partout.
+
+  Le but de l'expérience est de savoir si LAFEM est en mesure de fournir une récompense permettant à l'agent de balancer le pendule.
+
+  Si elle est concluante, des expériences futures étudieront l'influence des différents paramètres sur les performances de l'algorithme.
+
+  Si elle n'est pas concluante, on reviendra au GridWorld pour avoir une idée des paramètres qu'il faut bidouiller pour parvenir à quelque chose de concluant.
+
+  L'expérience se déroule comme suit :
+  - [X] Créer une base de données $D_0$ de transitions aléatoires.
+  - [X] Entraîner un expert en utilisant LSPI nourri avec ces transitions ($\pi_E : S\rightarrow A$)
+  - [X] Vérifier que l'expert est en mesure de balancer le pendule durant 3000 pas de temps
+  - [X] Créer une base de données $D_E$ de transitions de l'expert. L'expérience sur LSTD$\mu$ a prouvé qu'une seule trajectoire était suffisante. On en prend une dizaine pour être sûrs.
+  - [X] Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$.
+  - [X] Définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
+  - [X] Définir $D$ à partir des transitions $D_E$ en enlevant l'état d'arrivée
+  - [X] Initialiser $\omega_0 = [-1...-1]^T$
+  - [X] Fixer $T=20$ (pifomètre)
+  - [X] Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) = {1\over 100}\sum\limits_{i=1}^{100}\sum\limits_{t<3000}\gamma^t\phi(s)$
+  - [X] Faire tourner LAFEM
+  - [ ] Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
+  - [ ] Regarder durant combien de pas de temps l'agent arrrive à faire tenir le pendule. Comparer à l'expert et à une politique aléatoire
+  - [ ] Afficher la fonction de valeur de l'expert
+  - [ ] Afficher la fonction de valeur de l'agent
+  - [ ] Afficher la fonction de récompense sur laquelle l'expert a été entraîné
+  - [ ] Afficher la fonction de récompense retrouvée par LAFEM
+
+* Code								       :code:
+** Parent Dir targets
+    On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+../LAFEM.py:
+	make -C .. LAFEM.py
+
+../a2str.py:
+	make -C .. a2str.py
+
+#+end_src
+
+** Experiment targets
+*** Generating the samples for $D_0$
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+LAFEM_Exp2_Samples.dat: generator.exe 
+	./generator.exe > LAFEM_Exp2_Samples.dat
+#+end_src
+*** Training the expert, checking for its quality and creating $D_E$
+We use a code very similar to what was used to train the expert in the LSTD$\mu$ experiment.
+
+#+begin_src c :tangle LAFEM_Exp2_Expert.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "LAFEM_Exp2_Samples.dat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+//FIXME : those are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+unsigned int g_iMax_episode_len = 3000;
+
+int main( void ){
+  fprintf(stderr,"Training the expert...");
+  fflush( NULL );
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_expert = lspi( D, omega_0 );
+  g_mOmega = omega_expert;
+  fprintf(stderr,"done\n");
+  gsl_matrix_fprintf( stdout, omega_expert, "%e" );
+  gsl_matrix* D_expert = inverted_pendulum_simulator( 1 );
+  fprintf(stderr,"Longueur d'un run de l'expert : %d\n",D_expert->size1);
+  if( D_expert->size1 < g_iMax_episode_len ){
+    return 1;
+  }
+  gsl_matrix_free( D_expert );
+  
+  g_iMax_episode_len = 300;
+  D_expert = inverted_pendulum_simulator( 1 );
+  FILE* f = fopen("D_expert.mat","w");
+  for( int i = 0; i < D_expert->size1 ; i++ ){
+    for( int j = 0; j < TRANS_WIDTH; j++){
+      fprintf(f,"%e ",gsl_matrix_get( D_expert, i, j ) );
+    }
+    fprintf(f, "\n");
+  }
+  fclose( f );
+  return 0;
+}
+
+#+end_src
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+LAFEM_Exp2_Expert.exe: LAFEM_Exp2_Expert.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o InvertedPendulum.o simulator.o
+	$(O2EXE) -o LAFEM_Exp2_Expert.exe LAFEM_Exp2_Expert.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o InvertedPendulum.o ../LSPI.o simulator.o
+
+LAFEM_Exp2_Expert.o: LAFEM_Exp2_Expert.c InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../greedy.h ../RL_Globals.h
+	$(call c2obj,"LAFEM_Exp2_Expert.c")
+
+LAFEM_Exp2_Expert.c: LAFEM_Exp2.org
+	$(call tangle,"LAFEM_Exp2.org")
+
+D_expert.mat: LAFEM_Exp2_Expert.exe LAFEM_Exp2_Samples.dat
+	./LAFEM_Exp2_Expert.exe > omega_expert.mat
+
+omega_expert.mat: LAFEM_Exp2_Expert.exe LAFEM_Exp2_Samples.dat
+	./LAFEM_Exp2_Expert.exe > omega_expert.mat
+
+#+end_src
+
+*** Computing $\hat\mu_E$
+     FIXME: Il faut utiliser la fonction monte_carlo_mu créée pour le test sur LSTDmu. La configuration actuelle duplique du code et mélange deux codes qui ne devraient pas l'être, celui du simulateur et celui de l'IRL.
+
+     We use some code we put in [[file:simulator.org][the simulator]] to compute $\mu_E(s,a)$ for all $s\in D$ and for all $a\in A$.
+
+     The method is straigtforward : for every $s\in D$, we compute $\mu_E(s,LEFT)$, $\mu_E(s,NONE)$ and $\mu_E(s,RIGHT)$. The results are stored in three files : mu_E_Left.mat, mu_E_None.mat and mu_E_Right.mat. The format of these files is one vector per line, the first two components are the state, the $p=10$ last ones are $\mu_E(s,a)$.
+#+begin_src c :tangle LAFEM_Exp2_MuMC.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+
+#define D_FILE_NAME "LAFEM_Exp2_Samples.dat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+gsl_matrix* g_mOmega = NULL;
+double g_dGamma_lafem =  0.9;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mActions = NULL;
+
+unsigned int g_iMax_episode_len = 300;
+unsigned int g_iNb_episodes = 50;
+
+int main( void ){
+  g_mOmega = file2matrix( "omega_expert.mat", 1 );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* D = file2matrix( "D_expert.mat", TRANS_WIDTH );
+
+  FILE* f_RIGHT = fopen( "mu_E_Right.mat", "w" );
+  FILE* f_NONE = fopen( "mu_E_None.mat", "w" );
+  FILE* f_LEFT = fopen( "mu_E_Left.mat", "w" );
+
+  for( int i = 0; i < D->size1 ; i++ ){
+    printf("Line %d/%d\n",i,D->size1);
+    gsl_matrix_view vs = gsl_matrix_submatrix( D, i, 0, 1, 2 );
+    gsl_matrix* mu_LEFT = inverted_pendulum_MC_mu( &(vs.matrix), LEFT );
+    gsl_matrix* mu_RIGHT = inverted_pendulum_MC_mu( &(vs.matrix), RIGHT );
+    gsl_matrix* mu_NONE = inverted_pendulum_MC_mu( &(vs.matrix), NONE );
+    
+    fprintf( f_RIGHT, "%e %e ", gsl_matrix_get( &(vs.matrix), 0, 0 ), 
+	     gsl_matrix_get( &(vs.matrix), 0, 1 ) );
+    fprintf( f_NONE, "%e %e ", gsl_matrix_get( &(vs.matrix), 0, 0 ), 
+	     gsl_matrix_get( &(vs.matrix), 0, 1 ) );
+    fprintf( f_LEFT, "%e %e ", gsl_matrix_get( &(vs.matrix), 0, 0 ), 
+	     gsl_matrix_get( &(vs.matrix), 0, 1 ) );
+    for( int j = 0; j< g_iP ; j++ ){
+      fprintf( f_RIGHT, "%e ", gsl_matrix_get( mu_RIGHT, j, 0 ) );
+      fprintf( f_NONE, "%e ", gsl_matrix_get( mu_NONE, j, 0 ) );
+      fprintf( f_LEFT, "%e ", gsl_matrix_get( mu_LEFT, j, 0 ) );
+    }
+    fprintf( f_RIGHT, "\n" );
+    fprintf( f_NONE, "\n" );
+    fprintf( f_LEFT, "\n" );
+
+    gsl_matrix_free( mu_LEFT );
+    gsl_matrix_free( mu_RIGHT );
+    gsl_matrix_free( mu_NONE );
+  }
+  
+  fclose( f_RIGHT );
+  fclose( f_LEFT );
+  fclose( f_NONE );
+  
+  return 0;
+}
+
+#+end_src
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+LAFEM_Exp2_MuMC.exe: LAFEM_Exp2_MuMC.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o simulator.o
+	$(O2EXE) -o LAFEM_Exp2_MuMC.exe LAFEM_Exp2_MuMC.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o  simulator.o
+
+LAFEM_Exp2_MuMC.o: LAFEM_Exp2_MuMC.c InvertedPendulum.h simulator.h ../utils.h ../greedy.h ../RL_Globals.h ../IRL_Globals.h
+	$(call c2obj,"LAFEM_Exp2_MuMC.c")
+
+LAFEM_Exp2_MuMC.c: LAFEM_Exp2.org
+	$(call tangle,"LAFEM_Exp2.org")
+
+mu_E_Left.mat: LAFEM_Exp2_MuMC.exe omega_expert.mat D_expert.mat
+	./LAFEM_Exp2_MuMC.exe
+mu_E_Right.mat: LAFEM_Exp2_MuMC.exe omega_expert.mat D_expert.mat
+	./LAFEM_Exp2_MuMC.exe
+mu_E_None.mat: LAFEM_Exp2_MuMC.exe omega_expert.mat D_expert.mat
+	./LAFEM_Exp2_MuMC.exe
+
+#+end_src
+
+*** Configuring LAFEM
+     Using the python code for LAFEM.
+#+begin_src python :tangle LAFEM_Exp2.py
+import sys
+sys.path+=['..']
+from a2str import *
+from LAFEM import *
+
+class LAFEM_Exp2( LAFEM ):
+    dicPi_E = {}
+    dicMu_Left = {}
+    dicMu_Right = {}
+    dicMu_None = {}
+
+    A = [0,1,2]
+
+    def __init__( self ):
+        D_E = genfromtxt("D_expert.mat")
+        for trans in D_E:
+            self.dicPi_E[l2str(trans[0:2])] = trans[2:3][0]
+            self.data = self.data +[[ trans[0:2], trans[2:3][0]]]
+
+        mu_Left = genfromtxt("mu_E_Left.mat")
+        for line in mu_Left:
+            self.dicMu_Left[l2str( line[0:2] )] = line[2:].copy()
+
+        mu_Right = genfromtxt("mu_E_Right.mat")
+        for line in mu_Right:
+            self.dicMu_Right[l2str( line[0:2] )] = line[2:].copy()
+
+        mu_None = genfromtxt("mu_E_None.mat")
+        for line in mu_None:
+            self.dicMu_None[l2str( line[0:2] )] = line[2:].copy()
+
+#+end_src
+     
+     It is assumed that the $l$ function will only be evaluated where the expert has been. We compare the action chosen by the expert to the action given in argument and return 1 if there is a mismatch.
+     
+#+begin_src python :tangle LAFEM_Exp2.py
+    def l( self, s, a ):
+        if self.dicPi_E[l2str(s)] == a:
+            return 0
+        else:
+            return 1
+#+end_src
+     
+     $\mu_E$ is computed thanks to the data stored earlier by the Monte-Carlo simulation.
+     
+#+begin_src python :tangle LAFEM_Exp2.py
+    def mu_E( self, s, a ):
+        mu_a = array([])
+        if a == 2: #Taken from InvertedPendulum.org
+            mu_a = self.dicMu_Right
+        elif a == 0:
+            mu_a = self.dicMu_Left
+        elif a == 1:
+            mu_a = self.dicMu_None
+        else:
+            print "On calcule mu sur une action qui nexiste pas"
+            print a
+            exit(-1)
+        return (zeros((1,10)) + mu_a[l2str( s )]).transpose() #Ugly hack to get a column vector and not a line vector
+
+    def alpha( self, t ):
+        return 0.1
+
+    omega_0 = zeros( (10, 1) ) - 1.
+
+    T = 20
+#+end_src
+
+*** Running LAFEM
+ #+begin_src python :tangle LAFEM_Exp2.py
+lafem = LAFEM_Exp2()
+omega_lafem = lafem.run()
+print a2str(omega_lafem)
+#+end_src
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+theta_lafem.mat: LAFEM_Exp2.py ../a2str.py ../LAFEM.py mu_E_Right.mat mu_E_Left.mat mu_E_None.mat D_expert.mat
+	python LAFEM_Exp2.py > theta_lafem.mat
+#+end_src
+
+*** Comparative results between the expert and the agent
+#+begin_src c :tangle LAFEM_Exp2_Results.c
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "LAFEM_Exp2_Samples.dat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+#define LAFEM_REWARD_FILE "theta_lafem.mat"
+
+//FIXME : those are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+unsigned int g_iMax_episode_len = 3000;
+
+int main( void ){
+  gsl_matrix* theta_lafem = file2matrix( LAFEM_REWARD_FILE, 1 );
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  gsl_matrix* new_reward = gsl_matrix_alloc( 1, 1 );
+  for( int i=0; i<D->size1; i++ ){
+    gsl_matrix_view vstate = gsl_matrix_submatrix( D, i, 0, 1, 2 );
+    gsl_matrix* mPsi = psi( &(vstate.matrix) );
+    gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, theta_lafem, mPsi, 0., new_reward );
+    gsl_matrix_set( D, i, 5, gsl_matrix_get( new_reward, 0,0 ) );
+    gsl_matrix_free( mPsi );
+  }
+
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_lafem = lspi( D, omega_0 );
+  gsl_matrix_fprintf( stdout, omega_lafem, "%e" );
+  
+  g_mOmega = omega_lafem;
+  gsl_matrix* D_lafem = inverted_pendulum_simulator( 1 );
+  fprintf(stderr,"Longueur d'un run de l'agent : %d\n",D_lafem->size1);
+  if( D_lafem->size1 < g_iMax_episode_len ){
+    return 1;
+  }
+  gsl_matrix_free( D_lafem );
+
+  gsl_matrix* omega_rand = gsl_matrix_alloc( g_iK, 1 );
+  for( int i=0; i< g_iK; i++ ){
+    gsl_matrix_set( omega_rand, i, 0, rand()/RAND_MAX-0.5 );
+  }
+  g_mOmega = omega_rand;
+  gsl_matrix* D_rand = inverted_pendulum_simulator( 1 );
+  fprintf(stderr,"Longueur d'un run aléatoire : %d\n",D_rand->size1);
+  gsl_matrix_free( D_rand );
+  
+  return 0;
+}
+
+#+end_src
+
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+omega_lafem.mat: LAFEM_Exp2_Results.exe theta_lafem.mat
+	./LAFEM_Exp2_Results.exe > omega_lafem.mat
+
+LAFEM_Exp2_Results.exe: LAFEM_Exp2_Results.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o simulator.o ../LSPI.o ../LSTDQ.o
+	$(O2EXE) -o LAFEM_Exp2_Results.exe LAFEM_Exp2_Results.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o  simulator.o ../LSPI.o ../LSTDQ.o
+
+LAFEM_Exp2_Results.o: LAFEM_Exp2_Results.c InvertedPendulum.h simulator.h ../utils.h ../greedy.h ../RL_Globals.h ../IRL_Globals.h ../LSPI.h
+	$(call c2obj,"LAFEM_Exp2_Results.c")
+
+LAFEM_Exp2_Results.c: LAFEM_Exp2.org
+	$(call tangle,"LAFEM_Exp2.org")
+
+#+end_src
+
+*** Plotting
+A piece of code to output the value in a correct format.
+
+#+begin_src c :tangle LAFEM_Exp2_Plot.c
+#define _POSIX_C_SOURCE 1
+#include <time.h>
+#include <unistd.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "utils.h"
+#include "phipsi.h"
+#include "greedy.h"
+#include "InvertedPendulum.h"
+#include "RL_Globals.h"
+#define ACTION_FILE "actions.mat"
+
+#define GRID_V_SIZE 20
+#define GRID_P_SIZE 20
+#define P_MIN (-PI)
+#define P_MAX (PI)
+#define V_MIN (-PI)
+#define V_MAX (PI)
+#define LAFEM_REWARD_FILE "theta_lafem.mat"
+#define LAFEM_Q_FILE "omega_lafem.mat"
+#define EXPERT_Q_FILE "omega_expert.mat"
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+gsl_matrix* g_mActions = NULL; 
+
+
+int main( void ){
+  srand(time(NULL)+getpid()); rand(); rand();rand();
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+
+  
+  double true_R[GRID_V_SIZE][GRID_P_SIZE];
+  double lafem_R[GRID_V_SIZE][GRID_P_SIZE];
+  double V_expert[GRID_V_SIZE][GRID_P_SIZE];
+  double V_agent[GRID_V_SIZE][GRID_P_SIZE];
+
+
+  gsl_matrix* theta_lafem = file2matrix( LAFEM_REWARD_FILE, 1 );
+  gsl_matrix* reward = gsl_matrix_alloc( 1, 1 );
+  gsl_matrix* state = gsl_matrix_alloc( 1, 2 );
+  for( int i=0; i<GRID_V_SIZE; i++ ){
+    double v = V_MIN + ((double)i)*( (V_MAX-V_MIN)/((double)GRID_V_SIZE - 1.) );
+    for( int j=0; j< GRID_P_SIZE; j++){
+      double p = P_MIN + ((double)j)*( (P_MAX-P_MIN)/((double)GRID_P_SIZE - 1.) );
+      
+      gsl_matrix_set( state, 0, 0, p );
+      gsl_matrix_set( state, 0, 1, v );
+      gsl_matrix* mPsi = psi( state );
+      gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, theta_lafem, mPsi, 0., reward );
+      lafem_R[i][j] = gsl_matrix_get( reward, 0, 0 );
+      gsl_matrix_free( mPsi );
+    }
+  }
+
+
+  for( int i=0; i<GRID_V_SIZE; i++ ){
+    for( int j=0; j< GRID_P_SIZE; j++){
+      double p = P_MIN + ((double)j)*( (P_MAX-P_MIN)/((double)GRID_P_SIZE - 1.) );
+   
+      int reward;
+      if( p > PI/2. || p < -PI/2. ){
+	reward = -1;
+      }else{
+	reward = 0;
+      }
+      true_R[i][j] = reward;
+    }
+  }
+
+  gsl_matrix* sa = gsl_matrix_alloc( 1,3 );    
+  gsl_matrix* omega_expert = file2matrix( EXPERT_Q_FILE, 1 );
+  g_mOmega = omega_expert;
+  gsl_matrix* Q = gsl_matrix_alloc( 1, 1 );
+  for( int i=0; i<GRID_V_SIZE; i++ ){
+    double v = V_MIN + ((double)i)*( (V_MAX-V_MIN)/((double)GRID_V_SIZE-1.) );
+    for( int j=0; j< GRID_P_SIZE; j++){
+      double p = P_MIN + ((double)j)*( (P_MAX-P_MIN)/((double)GRID_P_SIZE - 1.) );
+      
+      gsl_matrix_set( sa, 0, 0, p );
+      gsl_matrix_set( sa, 0, 1, v );
+      gsl_matrix* mAction = greedy_policy( state );
+      gsl_matrix_set( sa, 0, 2, gsl_matrix_get( mAction, 0, 0 ) );
+      gsl_matrix* mPhi = phi( sa );
+      gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, omega_expert, mPhi, 0., Q );
+      V_expert[i][j] = gsl_matrix_get( Q, 0, 0 );
+      gsl_matrix_free( mPhi );
+    }
+  }
+  
+  
+  gsl_matrix* omega_lafem = file2matrix( LAFEM_Q_FILE, 1 );
+  g_mOmega = omega_lafem;
+  for( int i=0; i<GRID_V_SIZE; i++ ){
+    double v = V_MIN + ((double)i)*( (V_MAX-V_MIN)/((double)GRID_V_SIZE - 1.) );
+    for( int j=0; j< GRID_P_SIZE; j++){
+      double p = P_MIN + ((double)j)*( (P_MAX-P_MIN)/((double)GRID_P_SIZE - 1.) );
+      gsl_matrix_set( sa, 0, 0, p );
+      gsl_matrix_set( sa, 0, 1, v );
+      gsl_matrix* mAction = greedy_policy( state );
+      gsl_matrix_set( sa, 0, 2, gsl_matrix_get( mAction, 0, 0 ) );
+      gsl_matrix* mPhi = phi( sa );
+      gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, omega_lafem, mPhi, 0., Q );
+      V_agent[i][j] = gsl_matrix_get( Q, 0, 0 );
+      gsl_matrix_free( mPhi );
+    }
+  }
+  
+  FILE* f_true_R = fopen( "LAFEM_Exp2_true_R.dat", "w" );
+  FILE* f_lafem_R = fopen( "LAFEM_Exp2_lafem_R.dat", "w" );
+  FILE* f_V_expert = fopen( "LAFEM_Exp2_Vexpert.dat", "w" );
+  FILE* f_V_agent = fopen( "LAFEM_Exp2_Vagent.dat", "w" );
+
+
+  for( int i=0; i<GRID_V_SIZE; i++ ){
+    double v = V_MIN + ((double)i)*( (V_MAX-V_MIN)/((double)GRID_V_SIZE - 1.) );
+    for( int j=0; j< GRID_P_SIZE; j++){
+      double p = P_MIN + ((double)j)*( (P_MAX-P_MIN)/((double)GRID_P_SIZE - 1.) );
+      
+      fprintf( f_true_R, "%e %e %e\n", p, v, true_R[i][j]);
+      fprintf( f_lafem_R, "%e %e %e\n", p, v, lafem_R[i][j]);
+      fprintf( f_V_expert, "%e %e %e\n", p, v, V_expert[i][j]);
+      fprintf( f_V_agent, "%e %e %e\n", p, v, V_agent[i][j]);
+    }
+    fprintf( f_true_R, "\n" );
+    fprintf( f_lafem_R, "\n" );
+    fprintf( f_V_expert, "\n" );
+    fprintf( f_V_agent, "\n" );
+  }
+  return 0;
+}
+
+#+end_src
+
+The relevant makefile rules.
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+LAFEM_Exp2_true_R.mat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat theta_lafem.mat
+	./LAFEM_Exp2_Plot.exe
+
+LAFEM_Exp2_lafem_R.mat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat theta_lafem.mat
+	./LAFEM_Exp2_Plot.exe
+
+LAFEM_Exp2_Vexpert.mat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat theta_lafem.mat
+	./LAFEM_Exp2_Plot.exe
+
+LAFEM_Exp2_Vagent.mat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat theta_lafem.mat
+	./LAFEM_Exp2_Plot.exe
+
+LAFEM_Exp2_Plot.exe: LAFEM_Exp2_Plot.o phipsi.o ../utils.o ../greedy.o phipsi.o
+	$(O2EXE) -o LAFEM_Exp2_Plot.exe LAFEM_Exp2_Plot.o phipsi.o ../utils.o ../greedy.o  
+
+LAFEM_Exp2_Plot.o: LAFEM_Exp2_Plot.c InvertedPendulum.h ../utils.h ../greedy.h ../RL_Globals.h phispi.h
+	$(call c2obj,"LAFEM_Exp2_Plot.c")
+
+LAFEM_Exp2_Plot.c: LAFEM_Exp2.org
+	$(call tangle,"LAFEM_Exp2.org")
+
+#+end_src
+
+The gnuplot instructions to plot all this, along with the relevant makefile rules :
+#+begin_src gnuplot :tangle LAFEM_Exp2_true_R.gp
+set pm3d map
+set output "LAFEM_Exp2_true_R.ps"
+set term postscript enhanced color
+set xrange [-3.15:3.15]
+set yrange [-3.15:3.15]
+set xlabel "Position"
+set ylabel "Speed"
+splot "LAFEM_Exp2_true_R.dat" notitle
+
+#+end_src
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+LAFEM_Exp2_true_R.gp: LAFEM_Exp2.org
+	$(call tangle,"LAFEM_Exp2.org")
+
+LAFEM_Exp2_true_R.pdf: LAFEM_Exp2_true_R.gp LAFEM_Exp2_true_R.mat
+	gnuplot LAFEM_Exp2_true_R.gp
+	ps2pdf LAFEM_Exp2_true_R.ps
+	rm LAFEM_Exp2_true_R.ps
+#+end_src
+
+#+begin_src gnuplot :tangle LAFEM_Exp2_lafem_R.gp
+set pm3d map
+set output "LAFEM_Exp2_lafem_R.ps"
+set term postscript enhanced color
+set xrange [-3.15:3.15]
+set yrange [-3.15:3.15]
+set xlabel "Position"
+set ylabel "Speed"
+splot "LAFEM_Exp2_lafem_R.dat" notitle
+
+#+end_src
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+LAFEM_Exp2_lafem_R.gp: LAFEM_Exp2.org
+	$(call tangle,"LAFEM_Exp2.org")
+
+LAFEM_Exp2_lafem_R.pdf: LAFEM_Exp2_lafem_R.gp LAFEM_Exp2_lafem_R.mat
+	gnuplot LAFEM_Exp2_lafem_R.gp
+	ps2pdf LAFEM_Exp2_lafem_R.ps
+	rm LAFEM_Exp2_lafem_R.ps
+#+end_src
+
+
+#+begin_src gnuplot :tangle LAFEM_Exp2_Vexpert.gp
+set pm3d map
+set output "LAFEM_Exp2_Vexpert.ps"
+set term postscript enhanced color
+set xrange [-3.15:3.15]
+set yrange [-3.15:3.15]
+set xlabel "Position"
+set ylabel "Speed"
+splot "LAFEM_Exp2_Vexpert.dat" notitle
+
+#+end_src
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+LAFEM_Exp2_Vexpert.gp: LAFEM_Exp2.org
+	$(call tangle,"LAFEM_Exp2.org")
+
+LAFEM_Exp2_Vexpert.pdf: LAFEM_Exp2_Vexpert.gp LAFEM_Exp2_Vexpert.mat
+	gnuplot LAFEM_Exp2_Vexpert.gp
+	ps2pdf LAFEM_Exp2_Vexpert.ps
+	rm LAFEM_Exp2_Vexpert.ps
+#+end_src
+
+#+begin_src gnuplot :tangle LAFEM_Exp2_Vagent.gp
+set pm3d map
+set output "LAFEM_Exp2_Vagent.ps"
+set term postscript enhanced color
+set xrange [-3.15:3.15]
+set yrange [-3.15:3.15]
+set xlabel "Position"
+set ylabel "Speed"
+splot "LAFEM_Exp2_Vagent.dat" notitle
+
+#+end_src
+
+#+srcname: LAFEM_Exp2_make
+#+begin_src makefile
+LAFEM_Exp2_Vagent.gp: LAFEM_Exp2.org
+	$(call tangle,"LAFEM_Exp2.org")
+
+LAFEM_Exp2_Vagent.pdf: LAFEM_Exp2_Vagent.gp LAFEM_Exp2_Vagent.mat
+	gnuplot LAFEM_Exp2_Vagent.gp
+	ps2pdf LAFEM_Exp2_Vagent.ps
+	rm LAFEM_Exp2_Vagent.ps
+#+end_src
+
+** Cleaning
+   A rule to clean the mess :
+  #+srcname: LAFEM_Exp2_clean_make
+  #+begin_src makefile
+LAFEM_Exp2_clean:
+	find . -maxdepth 1 -iname "LAFEM_Exp2_*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp2.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_lafem.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "theta_lafem.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_expert.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "D_expert.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "mu_E_Left.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "mu_E_Right.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "mu_E_None.mat"   | xargs $(XARGS_OPT) rm
+  #+end_src
+
+* Résultats

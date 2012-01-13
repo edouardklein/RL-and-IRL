@@ -50,7 +50,7 @@ void iv_step( double state_p, double state_v,
 	      unsigned int action,
 	      double* next_state_p, double* next_state_v, 
 	      double* reward, int* eoe ){
-  unsigned int noise = random_int( -1, 1 );
+  unsigned int noise = random_int( -10, 10 );
   int iControl;
   switch( action ){
   case LEFT:

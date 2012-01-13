@@ -11,9 +11,10 @@ extern double g_dEpsilon_anirl;
     #+begin_src c :tangle IRL_Globals.h :main no
 extern unsigned int g_iIt_max_anirl;
     #+end_src
-  - Discount factor for ANIRL
+  - Discount factor for ANIRL,LAFEM
     #+begin_src c :tangle IRL_Globals.h :main no
 extern double g_dGamma_anirl;
+extern double g_dGamma_lafem;
     #+end_src
   - Dimension of the \psi generated feature space
     #+begin_src c :tangle IRL_Globals.h :main no
