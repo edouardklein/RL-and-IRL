@@ -8,26 +8,124 @@
 #+TITLE:Deux nouveaux algos d'IRL
 [TABLE-OF-CONTENTS]
 
-* Ce qu'on tire de Ratliff
-  \label{sdef.sec}
-  Dans \citep{ratliff2007imitation}, les auteurs utilisent un système classification multi classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque entrée pour prendre une décision de classification i.e. choisir le label $y\in Y$ à appliquer à l'entrée $x\in X$ :
+* Rappel sur le RL et l'IRL
+** RL
+  L'apprentissage par renforcement (/Reinforcement Learning/, RL) consiste, à partir d'une fonction de récompense définie par exemple sur l'espace d'état $R : S \rightarrow \mathbb{R}$, à trouver la politique optimale $\pi^* : S\rightarrow A$ optimisant le cumul pondéré des récompenses sur le long terme.
+
+  L'agent évolue dans un processus decisionnel de markov (/Markov Decision Process/, MDP) ; à chaque pas de temps $t$ il choisis l'action $a_t = \pi(s_t)$ dictée par sa politique et se retrouve en conséquence dans un état $s_{t+1}$ selon une loi de probabilité $p(s_{t+1}|s_t, a_t )$. Le cumul pondéré des récompenses sur le long terme si l'on suit une politique donnée à partir d'un certain état donne la fonction de valeur de cette politique : 
   \begin{equation}
-  \label{sdef.eqn}
-  y^* = \arg\max_{y \in Y} s(x,y)
+  V^\pi(s) = E\left[\left.\sum_{t=0}^\infty \gamma^tR(s_t)\right|s_0 = s,\pi\right]
   \end{equation}
-  Cette fonction de score est apprise dans l'espace fonctionnel en optimisant la fonction suivante : 
+  Une politique est dite optimale lorsqu'à chaque état sa fonction de valeur est supérieure ou égale à la fonction de valeur de toute autre politique.
+
+  Lorsque l'on cherche à résoudre le MDP, on va souvent faire appel à la fonction de qualité qui est en quelque sorte une fonction de valeur avec un degré de liberté en plus, celui du choix de la prochaine action 
   \begin{equation}
-  r[s] = {1\over N} \sum_{i=1}^N\left(\max_{y\in Y}(s(x_i,y) + l(x_i,y)) - s(x_i,y_i) \right)
+  Q^\pi(s,a) = E\left[\left.\sum_{t=0}^\infty \gamma^tR(s_t)\right|s_0 = s,a_0=a,\pi\right]
   \end{equation}
-  Cela suppose l'accès à une base de données $\{(x_i,y_i)\}_i$; i.e. une trace de l'expert.
-* Hoping $s$ is Bellman compatible (HSIBC ?)
-  La fonction de score $s$ joue le même rôle que la fonction $Q^*$, en effet l'equation \ref{sdef.eqn} est similaire à :
+
+
+  L'approximation de la fonction de valeur est un thème central en RL, souvent on utilise un approximateur linéare utilisant un ensemble de fonction de base (/features/) $\psi : S\rightarrow \mathbb{R}^p$ ou $\phi : S\times A \rightarrow \mathbb{R}^k$.
+  \begin{eqnarray}
+  \hat Q^\pi(s,a) &= \omega^T\phi(s,a)\\
+  \hat V^\pi(s) &= \omega^T\psi(s)
+  \end{eqnarray}
+** IRL
+   L'apprentissage par renforcement inverse (/Inverse Reinforcement Learning/, IRL) consiste à retrouver la récompense qu'un expert agissant dans un MDP essaye d'optimiser. Pour reprendre les termes ci dessus il s'agit de retrouver la récompense à partir de la politique ou plus pragmatiquement à partir d'échantillons tirés selon la politique.
+
+   Puisque ce que l'on recherche est une fonction, il est aisé de définir un approximateur linéaire et d'effectuer la recherche sur les paramètres de celui-ci :
+   \begin{equation}
+   \hat R(s) = \theta^T \psi(s)
+   \end{equation}
+  
+   Lorsque l'on injecte cet approximateur dans la définition de $V$ où $Q$ apparaît le terme $\mu$, défini sous ce nom pour la première fois par \citet{abbeel2004apprenticeship} et qui désigne l'éspérance pondérée des fonctions de base (/feature expectation/). Ce terme est présent (ou peut être retrouvé) dans la majorité des publications en IRL.
+  \begin{eqnarray}
+  V^\pi(s) &= E\left[\left.\sum\limits_{t=0}^\infty \gamma^tR(s_t)\right|s_0 = s,\pi\right]\\
+  V^\pi(s) &= E\left[\left.\sum\limits_{t=0}^\infty \gamma^t\theta^T \psi(s_t)\right|s_0 = s,\pi\right]\\
+  V^\pi(s) &= \theta^T E\left[\left.\sum\limits_{t=0}^\infty \gamma^t \psi(s_t)\right|s_0 = s,\pi\right]\\
+  V^\pi(s) &= \theta^T\mu^\pi(s)
+  \end{eqnarray}
+
+* Nouveaux Algorithmes
+** Résumé spécifique des publications de Ratliff
+   \label{sdef.sec}
+   Dans \citep{ratliff2006maximum}, les auteurs présentent une méthode d'IRL en posant le problème sous forme d'un /maximum margin classification problem/. La méthode utilisée pour résoudre ce problème peut être ramenée à un algorithme itératif dans la veine de \cite{abbeel2004apprenticeship}, comme cela est expliqué dans \cite{neu2009training}. Vu à un plus haut niveau d'abstraction, la classification a lieu dans l'espace des trajectoires : à un MDP (entrée à classifier) est associée une politique (classe).
+
+   Une seconde publication, \citep{ratliff2007boosting} vient compléter la précédente en incluant du /boosting/. Ce qui nous intéresse cependant est l'expression légèrement différente du problème, qui fait apparaître une fonction de coût empirique (en omettant quelques détails comme par exemple la pondération des trajectoires) : 
+   \begin{equation}
+   {1\over n}\sum\limits_{i=1}^n \left(\theta^T\mu^E_i - \min_\pi\left(\theta^T \mu^\pi - l(\pi)\right)\right) + {\lambda \over 2} ||\theta||^2
+   \end{equation}
+  
+   On voit appraître une fonction de coût $l$ jugeant de la similitude entre la solution proposée et celle démontrée par l'expert et permettant au passage d'inclure dans le problème de l'information à priori s'il y en a de disponible.
+
+   La recherche a lieu dans l'espace des politiques via une méthode de descente de gradient sur les paramètres $\theta$ définissant la récompense, ce qui implique la résolution d'un MDP à chaque itération.
+
+   Finalement, dans \citep{ratliff2007imitation} les auteurs utilisent un système classification multi classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque entrée pour prendre une décision de classification i.e. choisir le label $y\in Y$ à appliquer à l'entrée $x\in X$ :
+   \begin{equation}
+   \label{sdef.eqn}
+   y^* = \arg\max_{y \in Y} s(x,y)
+   \end{equation}
+   Cette fonction de score est apprise dans l'espace fonctionnel en optimisant la fonction suivante : 
+   \begin{equation}
+   \label{rdef.eqn}
+   r[s] = {1\over N} \sum_{i=1}^N\left(\max_{y\in Y}(s(x_i,y) + l(x_i,y)) - s(x_i,y_i) \right)
+   \end{equation}
+   Cela suppose l'accès à une base de données $\{(x_i,y_i)\}_i$; i.e. une trace de l'expert. On note dans ce papier un changement par rapport aux papiers précédent : les entrées sont maintenant les états et les classes représentent les actions. Les deux paradigmes offerts par Ratliff semblent interchangeables.
+** Principe commun aux deux nouveaux algorithmes
+   Les deux nouveaux algorithmes se basent sur une supposition quant à la fonction de score $s$. Nous allons supposer que cette fonction capture la structure du MDP. En effet l'équation \ref{sdef.eqn} est similaire à :
   \begin{equation}
   \pi^*(s) = \arg\max_{a} Q^*(s,a)
   \end{equation}
-  qui décrit le mécanisme glouton liant fonction de valeur optimale et politique optimale.
-  
-  En appliquant une méthode de classification multi-classe permettant de trouver une fonction de score telle que décrite en section \ref{sdef.sec} (FIXME: Demander à Yann), on peut potentiellement arriver à retrouver la récompense.
+  qui décrit le mécanisme glouton liant fonction de valeur optimale et politique optimale. On peut ainsi supposer que la fonction $s$ possède la même structure que la fonction de qualité de la politique optimale $Q^*$. Fonction qui en IRL est inconnue puisqu'elle dépend très étroitement de la récompense.
+** Loss-augmented feature expectation matching (LAFEM ?)
+*** Principe
+    En se basant sur le principe énoncé ci dessus, nous allons minimiser la fonction de risque énoncée par \citep{ratliff2007imitation} et reproduite équation \ref{rdef.eqn} et que nous réécrivons par soucis de cohérence de notations :
+   \begin{equation}
+   L_n(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
+   \end{equation}
+
+   La méthode de minimisation diffère bien évidemment de celle proposée par Ratliff. Nous allons profiter de la structure présente dans $q$ pour introduire la notion de /feature expectation/ dans le problème. On rappelle qu'en IRL il est classique d'écrire $\hat Q(s,a) = \theta^T \mu(s,a)$. Nous nous basons donc sur la /feature expectation/ de l'expert, $\mu_E$ et un vecteur de paramètres $\theta$ contrôlant la fonction de récompense que l'on recherche pour réécrire la fonction de risque que nous allons minimiser :
+  \begin{equation}
+   L_n(\theta) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
+   \end{equation}
+   Il faut noter ici l'utilisation non pas de $\mu_E : S\rightarrow \mathbb{R}^p$ mais de $\mu_E : S\times A \rightarrow \mathbb{R}^k$. Cette dernière partage avec la première la même relation que $Q$ partage avec $V$, c'est à dire que l'on dispose d'un degré de liberté en plus correspondant à la prochaine action, qui peut différer de celle choisie par l'expert.
+
+   Une descente de gradient sur cette fonction de risque donne la règle d'update suivante :
+   \begin{equation}
+   \theta_{t+1} = \theta_t -\alpha_t\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right)
+   \end{equation}
+
+   Avec $\alpha_t$ un pas d'apprentissage, et $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$.
+
+   La fonction $l$ joue ici le même rôle que dans les publications de Ratliff, il s'agit de juger de la similitude entre le choix proposé et celui de l'expert.
+*** Algorithme détaillé
+   L'algorithme prend en entrée :
+   - une fonction de perte $l : S\times A \rightarrow \mathbb R$
+   - la /feature expectation/ de l'expert $\mu_E : S\times A \rightarrow \mathbb R ^p$
+   - un pas d'apprentissage $\alpha : \mathbb N \rightarrow \mathbb R$
+   - des données provenant de l'expert $\{(s_i,a_i)\}_{i=1..N}$
+   - un vecteur de paramètres initial $\theta_0$
+   - un nombre maximum d'itérations $T\in \mathbb N$
+   - une description de l'espace d'action $A$
+
+     
+   L'algorithme se déroule comme suit : 
+   - Pour le nombre d'itérations prévues :
+     - Initialiser $\Delta\theta \leftarrow [0...0]^T$
+     - Pour chacun des points de données
+       - Déterminer $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$
+       - $\Delta\theta \leftarrow \Delta\theta + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$
+     - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t\Delta\theta$
+   - retourner $\theta_T$
+*** Commentaires
+    L'expérience montre que la plus simple des fonctions $l$, celle qui vaut $1$ lorsqu'on est en désaccord avec l'expert et $0$ sinon donne de bons résultats.
+
+    Les premiers tests sont très encourageants, l'algorithme parvient à résoudre le problème discret classique du /GridWorld/, ainsi qu'un problème continu (on ne travaille alors non plus sur la politique de l'expert mais sur des échantillons tirés grâce à celle-ci) simple, celui du pendule inversé. Dans le premier cas, la /feature expectation/ est calculée de manière exacte grâce à un algorithme de programmation dynamique, dans le second grâce à une simulation de Monte-Carlo. La prochaine étape consiste à introduire notre précédent algorithme, LSTD$\mu$, afin de réaliser le calcul de $\mu_E$ de manière /batch/, permettant ainsi à l'algorithme de fonctionner avec comme unique entrée des données de l'expert.
+
+    Un autre avantage de notre algorithme est de ne pas nécessiter la résolution du problème direct, point d'étranglement lors de l'analyse de la complexité (aussi bien en termes d'échantillons que de calculs) des algorithmes existants.
+
+** Hoping $s$ is Bellman compatible (HSIBC ?)
+
+   La seconde technique à laquelle nous avons pensé mettrait en jeu une méthode de classification multi-classe permettant de trouver une fonction de score telle que décrite en section \ref{sdef.sec}.
 
   En partant de l'équation de Bellman définissant la fonction de valeur optimale : 
   \begin{equation}
@@ -38,49 +136,12 @@
   R = Q^*(Id - \gamma P)
   \end{equation}
   
-  Le mécanisme de classification utilisé fournit une fonction de score dont la structure importe peu mais qui permet sans doute de construire une base de données $\{(s_i,R(s_i))\}_i$ se basant sur les mêmes points $\{s_i\}_i$ que ceux utilisés pour l'entraînement du classifieur, ou sur un maillage de l'espace d'état etc. A partir de cette base de données, on peut faire de la régression pour trouver une fonction de récompense $\hat R$ ensuite utilisée dans un algorithme d'apprentissage par renforcement direct.
+  Ainsi, la fonction de score obtenue permet de construire une base de données $\{(s_i,R(s_i))\}_i$ se basant sur les mêmes points $\{s_i\}_i$ que ceux utilisés pour l'entraînement du classifieur, ou sur un maillage de l'espace d'état etc.
 
+  A partir de cette base de données, on peut faire de la régression pour trouver une fonction de récompense $\hat R$.
 
-  Il convient probablement d'entraîner le classifieur sur des données ayant une structure temporelle (des trajectoires) afin que la fonction de score capture cette structure.
-* Loss-augmented feature expectation matching (LAFEM ?)
-** Principe
-  Toujours en se basant sur la ressemblance entre $s$ et $Q^*$, on peut choisir de directement optimiser la fonction :
-  \begin{equation}
-  L_n(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
-  \end{equation}
-
-  FIXME: Introduction correcte de $\mu(s,a)$ et sa représentation.
-
-  Pour cela, on exprime la fonction de valeur suivie par l'expert comme linéaire selon certaines features. En notant $\mu_E$ la fonction de feature expectation, on peut écrire $\hat Q(s,a) = \omega ^T \mu_E(s,a)$, que l'on réinjecte dans notre fonction de coût pour obtenir : 
- \begin{equation}
-  L_n(\omega) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\omega ^T \mu_E(s_i,a) + l(s_i,a)) - \omega ^T \mu_E(s_i,a_i) \right)
-  \end{equation}
-
-  Une descente de gradient donne la règle d'update suivante :
-  \begin{equation}
-  \omega_{t+1} = \omega_t -\alpha_t\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right)
-  \end{equation}
-
-  Avec $\alpha_t$ un pas d'apprentissage, et $a^* = \arg\max\limits_{a} = \omega_t ^T \mu_E(s_i,a) + l(s_i,a)$
-** Algorithme détaillé
-   L'algorithme prend en entrée :
-   - une fonction de perte $l : S\times A \rightarrow \mathbb R$
-   - la /feature expectation/ de l'expert $\mu_E : S\times A \rightarrow \mathbb R ^p$
-   - un pas d'apprentissage $\alpha : \mathbb N \rightarrow \mathbb R$
-   - des données provenant de l'expert $\{(s_i,a_i)\}_{i=1..N}$
-   - un vecteur de paramètres initial $\omega_0$
-   - un nombre maximum d'itérations $T\in \mathbb N$
-   - une description de l'espace d'action $A$
-
-     
-   L'algorithme se déroule comme suit : 
-   - Pour le nombre d'itérations prévues :
-     - Initialiser $\Delta\omega \leftarrow [0...0]^T$
-     - Pour chacun des points de données
-       - Déterminer $a^* = \arg\max\limits_{a} = \omega_t ^T \mu_E(s_i,a) + l(s_i,a)$
-       - $\Delta\omega \leftarrow \Delta\omega + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$
-     - Effectuer la mise à jour $\omega_{t+1} = \omega_t -\alpha_t\Delta\omega$
-   - retourner $\omega_T$
+\bibliographystyle{plainnat}
+\bibliography{../Biblio/Biblio}
 
 * Implémentation python de LAFEM :code:
   :PROPERTIES:
@@ -177,7 +238,7 @@ This document can be compiled into a pdf.
 #+srcname: NA_org2pdf_make
 #+begin_src makefile
 NouveauxAlgos.pdf: NouveauxAlgos.org
-	$(call org2pdf,"NouveauxAlgos.org")
+	$(call org2pdf,"NouveauxAlgos")
 #+end_src
 
 It can also be tangled.
@@ -200,5 +261,3 @@ NA_clean:
 	find . -maxdepth 1 -iname "LAFEM.py" | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "LAFEM.pyc" | xargs $(XARGS_OPT) rm
 #+end_src
-\bibliographystyle{plainnat}
-\bibliography{../Biblio/Biblio}

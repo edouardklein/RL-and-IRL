@@ -65,6 +65,8 @@ o2exe=gcc $(LFLAGS)
   #+end_src
 ** Org source to PDF
     #+begin_src makefile :tangle Makefile :noweb yes
+org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.emacs && pdflatex $1.tex && bibtex $1 && pdflatex $1.tex && pdflatex $1.tex
+
 <<NA_org2pdf_make>>
     #+end_src
 ** Cleaning
