@@ -14,89 +14,115 @@
 
   L'agent évolue dans un processus decisionnel de markov (/Markov Decision Process/, MDP) ; à chaque pas de temps $t$ il choisis l'action $a_t = \pi(s_t)$ dictée par sa politique et se retrouve en conséquence dans un état $s_{t+1}$ selon une loi de probabilité $p(s_{t+1}|s_t, a_t )$. Le cumul pondéré des récompenses sur le long terme si l'on suit une politique donnée à partir d'un certain état donne la fonction de valeur de cette politique : 
   \begin{equation}
-  V^\pi(s) = E\left[\left.\sum_{t=0}^\infty \gamma^tR(s_t)\right|s_0 = s,\pi\right]
+  V^\pi(s) = E\left[\left.\sum_{t=0}^\infty \gamma^tR(s_t)\right|s_0 = s,\pi\right].
   \end{equation}
   Une politique est dite optimale lorsqu'à chaque état sa fonction de valeur est supérieure ou égale à la fonction de valeur de toute autre politique.
 
-  Lorsque l'on cherche à résoudre le MDP, on va souvent faire appel à la fonction de qualité qui est en quelque sorte une fonction de valeur avec un degré de liberté en plus, celui du choix de la prochaine action 
+  Lorsque l'on cherche à résoudre le MDP, on va souvent faire appel à la fonction de qualité qui est en quelque sorte une fonction de valeur avec un degré de liberté en plus, celui du choix de la prochaine action :
   \begin{equation}
-  Q^\pi(s,a) = E\left[\left.\sum_{t=0}^\infty \gamma^tR(s_t)\right|s_0 = s,a_0=a,\pi\right]
+  Q^\pi(s,a) = E\left[\left.\sum_{t=0}^\infty \gamma^tR(s_t)\right|s_0 = s,a_0=a,\pi\right].
   \end{equation}
 
 
-  L'approximation de la fonction de valeur est un thème central en RL, souvent on utilise un approximateur linéare utilisant un ensemble de fonction de base (/features/) $\psi : S\rightarrow \mathbb{R}^p$ ou $\phi : S\times A \rightarrow \mathbb{R}^k$.
+  L'approximation de la fonction de valeur est un thème central en RL, souvent on utilise un approximateur linéare utilisant un ensemble de fonction de base (/features/) $\psi : S\rightarrow \mathbb{R}^p$ ou $\phi : S\times A \rightarrow \mathbb{R}^k$ :
   \begin{eqnarray}
-  \hat Q^\pi(s,a) &= \omega^T\phi(s,a)\\
-  \hat V^\pi(s) &= \omega^T\psi(s)
+  \hat Q^\pi(s,a) &= \omega^T\phi(s,a),\\
+  \hat V^\pi(s) &= \omega^T\psi(s).
   \end{eqnarray}
-** IRL
-   L'apprentissage par renforcement inverse (/Inverse Reinforcement Learning/, IRL) consiste à retrouver la récompense qu'un expert agissant dans un MDP essaye d'optimiser. Pour reprendre les termes ci dessus il s'agit de retrouver la récompense à partir de la politique ou plus pragmatiquement à partir d'échantillons tirés selon la politique.
 
-   Puisque ce que l'on recherche est une fonction, il est aisé de définir un approximateur linéaire et d'effectuer la recherche sur les paramètres de celui-ci :
+
+  Le but est d'arriver à approximer la fonction de valeur ou de qualité (notées $V^*$ et $Q^*$) d'une des politiques optimales. Bien qu'il puisse exister plusieurs politiques optimales, elles partagent par définition la même fonction de valeur et de qualité, que l'on appelle fonction de valeur optimale et fonction de qualité optimale. La politique optimale, notée $\pi^*$ dans le cadre du RL et $\pi_E$ dans le cadre de l'IRL est liée à la fonction de qualité par un mécanisme glouton :
+\begin{equation}
+  \pi^*(s) = \arg\max_{a} Q^*(s,a).
+\end{equation}
+** IRL
+   L'apprentissage par renforcement inverse (/Inverse Reinforcement Learning/, IRL) consiste à retrouver la récompense qu'un expert agissant dans un MDP essaye d'optimiser. Pour reprendre les termes ci-dessus il s'agit de retrouver la récompense à partir de la politique optimale ou plus pragmatiquement à partir de trajectoires tirés selon celle-ci.
+
+   Puisque ce que l'on recherche est une fonction, il est naturel de définir un approximateur linéaire et d'effectuer la recherche sur les paramètres de celui-ci :
    \begin{equation}
-   \hat R(s) = \theta^T \psi(s)
+   \hat R(s) = \theta^T \psi(s).
    \end{equation}
   
-   Lorsque l'on injecte cet approximateur dans la définition de $V$ où $Q$ apparaît le terme $\mu$, défini sous ce nom pour la première fois par \citet{abbeel2004apprenticeship} et qui désigne l'éspérance pondérée des fonctions de base (/feature expectation/). Ce terme est présent (ou peut être retrouvé) dans la majorité des publications en IRL.
+   Lorsque l'on injecte cet approximateur dans la définition de $V$ ou $Q$ apparaît le terme $\mu$, défini sous cette notation pour la première fois par \citet{abbeel2004apprenticeship} et qui désigne l'éspérance pondérée des fonctions de base (/feature expectation/). Ce terme est présent (ou peut être retrouvé) dans la majorité des publications en IRL.
   \begin{eqnarray}
-  V^\pi(s) &= E\left[\left.\sum\limits_{t=0}^\infty \gamma^tR(s_t)\right|s_0 = s,\pi\right]\\
-  V^\pi(s) &= E\left[\left.\sum\limits_{t=0}^\infty \gamma^t\theta^T \psi(s_t)\right|s_0 = s,\pi\right]\\
-  V^\pi(s) &= \theta^T E\left[\left.\sum\limits_{t=0}^\infty \gamma^t \psi(s_t)\right|s_0 = s,\pi\right]\\
-  V^\pi(s) &= \theta^T\mu^\pi(s)
+  V^\pi_\theta(s) &=& E\left[\left.\sum\limits_{t=0}^\infty \gamma^t\hat R(s_t)\right|s_0 = s,\pi\right]\\
+  &=& E\left[\left.\sum\limits_{t=0}^\infty \gamma^t\theta^T \psi(s_t)\right|s_0 = s,\pi\right]\\
+  &=& \theta^T E\left[\left.\sum\limits_{t=0}^\infty \gamma^t \psi(s_t)\right|s_0 = s,\pi\right]\\
+  &=& \theta^T\mu^\pi(s).
   \end{eqnarray}
 
+  
+  Le problème de l'IRL est mal posé : il existe plus d'une récompense pour laquelle le comportement de l'expert est optimal. Pire, la récompense uniformément nulle est l'une d'entre elle, et tous les comportements sont optimaux pour cette récompense. Pour cette raison, les algorithmes d'IRL vont chercher un vecteur de paramètres $\theta$ satisfaisant une contrainte exprimée bien souvent à l'aide de la /feature expectation/ de l'expert et de celle de l'agent, étant supposé que l'agent maximise la récompense définie par $\theta$. Le survey \citep{neu2009training} recense quelques-uns de ces critères. A des subtilités concernant la régularisation près, ces critères aboutissent quelques fois à rapprocher en norme les deux vecteurs $\mu^E(s_0)$ et $\mu^\pi(s_0)$ ; il s'agit d'imitation par le biais de l'IRL plutôt que d'IRL au sens strict.
 * Nouveaux Algorithmes
 ** Résumé spécifique des publications de Ratliff
    \label{sdef.sec}
    Dans \citep{ratliff2006maximum}, les auteurs présentent une méthode d'IRL en posant le problème sous forme d'un /maximum margin classification problem/. La méthode utilisée pour résoudre ce problème peut être ramenée à un algorithme itératif dans la veine de \cite{abbeel2004apprenticeship}, comme cela est expliqué dans \cite{neu2009training}. Vu à un plus haut niveau d'abstraction, la classification a lieu dans l'espace des trajectoires : à un MDP (entrée à classifier) est associée une politique (classe).
 
-   Une seconde publication, \citep{ratliff2007boosting} vient compléter la précédente en incluant du /boosting/. Ce qui nous intéresse cependant est l'expression légèrement différente du problème, qui fait apparaître une fonction de coût empirique (en omettant quelques détails comme par exemple la pondération des trajectoires) : 
+   Une seconde publication, \citep{ratliff2007boosting} vient compléter la précédente en incluant du /boosting/. On y voit apparaître à nouveau une fonction de coût empirique (en omettant quelques détails comme par exemple la pondération des trajectoires) : 
    \begin{equation}
-   {1\over n}\sum\limits_{i=1}^n \left(\theta^T\mu^E_i - \min_\pi\left(\theta^T \mu^\pi - l(\pi)\right)\right) + {\lambda \over 2} ||\theta||^2
+   \label{dix.eqn}%On l'appelle comme ça parce que dans le draft et dans le papier de Ratliff elles ont le même numéro : 10.
+   {1\over n}\sum\limits_{i=1}^n \left(\theta^T\mu^E_i - \min_\pi\left(\theta^T \mu^\pi - l(\pi)\right)\right) + {\lambda \over 2} ||\theta||^2.
    \end{equation}
   
-   On voit appraître une fonction de coût $l$ jugeant de la similitude entre la solution proposée et celle démontrée par l'expert et permettant au passage d'inclure dans le problème de l'information à priori s'il y en a de disponible.
+   On constate la présence d'une fonction de coût $l$ jugeant de la similitude entre la solution proposée et celle démontrée par l'expert et permettant au passage d'inclure dans le problème de l'information à priori s'il y en a de disponible.
 
-   La recherche a lieu dans l'espace des politiques via une méthode de descente de gradient sur les paramètres $\theta$ définissant la récompense, ce qui implique la résolution d'un MDP à chaque itération.
+   La recherche a lieu dans l'espace des politiques via une méthode de descente de gradient sur les paramètres $\theta$ définissant la récompense, ce qui implique la résolution d'un MDP à chaque itération. En effet, le $\min\limits_\pi(\dots)$ présent dans la fonction de coût est analogue au $\pi^* = \arg\max\limits_\pi V^\pi$ décrivant la résolution classique d'un MDP.
 
-   Finalement, dans \citep{ratliff2007imitation} les auteurs utilisent un système classification multi classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque entrée pour prendre une décision de classification i.e. choisir le label $y\in Y$ à appliquer à l'entrée $x\in X$ :
+   Finalement, dans \citep{ratliff2007imitation} les auteurs utilisent un système de classification multi-classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque entrée pour prendre une décision de classification i.e. choisir le label $y\in Y$ à appliquer à l'entrée $x\in X$ :
    \begin{equation}
    \label{sdef.eqn}
    y^* = \arg\max_{y \in Y} s(x,y)
    \end{equation}
-   Cette fonction de score est apprise dans l'espace fonctionnel en optimisant la fonction suivante : 
+   Cette fonction de score est apprise dans l'espace fonctionnel en optimisant la fonction suivante, dont celle donnée en \ref{dix.eqn} est une instanciation : 
    \begin{equation}
    \label{rdef.eqn}
    r[s] = {1\over N} \sum_{i=1}^N\left(\max_{y\in Y}(s(x_i,y) + l(x_i,y)) - s(x_i,y_i) \right)
    \end{equation}
-   Cela suppose l'accès à une base de données $\{(x_i,y_i)\}_i$; i.e. une trace de l'expert. On note dans ce papier un changement par rapport aux papiers précédent : les entrées sont maintenant les états et les classes représentent les actions. Les deux paradigmes offerts par Ratliff semblent interchangeables.
+   Cela suppose l'accès à une base de données $\{(x_i,y_i)\}_i$; i.e. une trace de l'expert. On note dans ce papier un changement par rapport aux papiers précédent : les entrées sont maintenant les états et les classes représentent les actions.
 ** Principe commun aux deux nouveaux algorithmes
    Les deux nouveaux algorithmes se basent sur une supposition quant à la fonction de score $s$. Nous allons supposer que cette fonction capture la structure du MDP. En effet l'équation \ref{sdef.eqn} est similaire à :
   \begin{equation}
   \pi^*(s) = \arg\max_{a} Q^*(s,a)
   \end{equation}
-  qui décrit le mécanisme glouton liant fonction de valeur optimale et politique optimale. On peut ainsi supposer que la fonction $s$ possède la même structure que la fonction de qualité de la politique optimale $Q^*$. Fonction qui en IRL est inconnue puisqu'elle dépend très étroitement de la récompense.
+  qui décrit le mécanisme glouton liant fonction de valeur optimale et politique optimale. Cela nous permet de prendre la fonction de qualité de la politique optimale $Q^*$, fonction qui en IRL est inconnue puisqu'elle dépend très étroitement de la récompense, comme candidat pour $s$ lorsque nous instancions l'équation \ref{rdef.eqn}.
+
+  
+  Les deux algorithmes, comme certains autres algorithmes récents, fonctionnent en appliquant des techniques d'apprentissage supervisé développées par ailleurs et en trouvant un moyen d'introduire de l'information relative à la structure du MDP.
 ** Loss-augmented feature expectation matching (LAFEM ?)
 *** Principe
     En se basant sur le principe énoncé ci dessus, nous allons minimiser la fonction de risque énoncée par \citep{ratliff2007imitation} et reproduite équation \ref{rdef.eqn} et que nous réécrivons par soucis de cohérence de notations :
    \begin{equation}
-   L_n(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
+   L_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
    \end{equation}
 
-   La méthode de minimisation diffère bien évidemment de celle proposée par Ratliff. Nous allons profiter de la structure présente dans $q$ pour introduire la notion de /feature expectation/ dans le problème. On rappelle qu'en IRL il est classique d'écrire $\hat Q(s,a) = \theta^T \mu(s,a)$. Nous nous basons donc sur la /feature expectation/ de l'expert, $\mu_E$ et un vecteur de paramètres $\theta$ contrôlant la fonction de récompense que l'on recherche pour réécrire la fonction de risque que nous allons minimiser :
+   Nous allons profiter de la structure présente dans $q$ pour introduire la notion de /feature expectation/ dans le problème. On rappelle qu'en IRL il est classique d'écrire $Q(s,a) = \theta^T \mu(s,a)$. Nous nous basons donc sur la /feature expectation/ de l'expert, $\mu_E$ et un vecteur de paramètres $\theta$ contrôlant la fonction de récompense que l'on recherche pour réécrire la fonction de risque que nous allons minimiser :
   \begin{equation}
-   L_n(\theta) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
+   L_N(\theta) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
    \end{equation}
    Il faut noter ici l'utilisation non pas de $\mu_E : S\rightarrow \mathbb{R}^p$ mais de $\mu_E : S\times A \rightarrow \mathbb{R}^k$. Cette dernière partage avec la première la même relation que $Q$ partage avec $V$, c'est à dire que l'on dispose d'un degré de liberté en plus correspondant à la prochaine action, qui peut différer de celle choisie par l'expert.
 
-   Une descente de gradient sur cette fonction de risque donne la règle d'update suivante :
+   
+   On introduit $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$, l'expression de la fonction de risque devient alors :
+   \begin{eqnarray}
+   L_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*) + l(s_i,a^*) - \theta ^T \mu_E(s_i,a_i) \right)\\
+   &=& {1\over N} \sum_{i=1}^N\left(\theta^T\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right) + l(s_i,a^*)  \right).
+   \end{eqnarray}
+
+   Le gradent de cette expression est : 
    \begin{equation}
-   \theta_{t+1} = \theta_t -\alpha_t\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right)
+   \nabla L_N(\theta) =  {1\over N}\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right).
    \end{equation}
 
-   Avec $\alpha_t$ un pas d'apprentissage, et $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$.
+   Une descente de gradient sur le risque donne la règle d'update suivante :
+   \begin{equation}
+   \theta_{t+1} = \theta_t -\alpha_t\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right),
+   \end{equation}
 
-   La fonction $l$ joue ici le même rôle que dans les publications de Ratliff, il s'agit de juger de la similitude entre le choix proposé et celui de l'expert.
+   avec $\alpha_t$ un pas d'apprentissage.
+
+
+
+   La fonction $l$ joue ici un rôle similaire à celui décrit dans les publications de Ratliff : il s'agit de juger de la similitude entre le choix proposé et celui de l'expert mais à un échelon local, au niveau de la prochaine action.
 *** Algorithme détaillé
    L'algorithme prend en entrée :
    - une fonction de perte $l : S\times A \rightarrow \mathbb R$
@@ -129,11 +155,11 @@
 
   En partant de l'équation de Bellman définissant la fonction de valeur optimale : 
   \begin{equation}
-  Q^* = R + \gamma PQ^*
+  Q^* = R + \gamma P_{\pi^*}Q^*
   \end{equation}
   on trouve facilement 
   \begin{equation}
-  R = Q^*(Id - \gamma P)
+  R = Q^*(Id - \gamma P_{\pi^*})
   \end{equation}
   
   Ainsi, la fonction de score obtenue permet de construire une base de données $\{(s_i,R(s_i))\}_i$ se basant sur les mêmes points $\{s_i\}_i$ que ceux utilisés pour l'entraînement du classifieur, ou sur un maillage de l'espace d'état etc.
