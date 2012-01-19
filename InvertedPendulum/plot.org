@@ -247,17 +247,15 @@ nuke: #You probably don't want to make this one
 #+begin_src makefile
 plot.c: plot.org 
 	$(call tangle,"plot.org")
-phipsi.c: plot.org 
-	$(call tangle,"plot.org")
 threshold.gp: plot.org 
 	$(call tangle,"plot.org")
 threshold_EB.gp: plot.org 
 	$(call tangle,"plot.org")
 conf.py: LSTDmu_Exp.org 
 	$(call tangle,"LSTDmu_Exp.org")
-phispi.h: plot.org 
+phipsi.h: plot.org 
 	$(call tangle,"plot.org")
-phispi.c: plot.org 
+phipsi.c: plot.org 
 	$(call tangle,"plot.org")
 #+end_src
 ** Parent Dir targets
