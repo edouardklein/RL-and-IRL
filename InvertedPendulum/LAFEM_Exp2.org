@@ -21,13 +21,13 @@
   - [X] Fixer $T=20$ (pifomètre)
   - [X] Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) = {1\over 100}\sum\limits_{i=1}^{100}\sum\limits_{t<3000}\gamma^t\phi(s)$
   - [X] Faire tourner LAFEM
-  - [ ] Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
-  - [ ] Regarder durant combien de pas de temps l'agent arrrive à faire tenir le pendule. Comparer à l'expert et à une politique aléatoire
-  - [ ] Afficher la fonction de valeur de l'expert
-  - [ ] Afficher la fonction de valeur de l'agent
-  - [ ] Afficher la fonction de récompense sur laquelle l'expert a été entraîné
-  - [ ] Afficher la fonction de récompense retrouvée par LAFEM
-
+  - [X] Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
+  - [X] Regarder durant combien de pas de temps l'agent arrrive à faire tenir le pendule. Comparer à l'expert et à une politique aléatoire
+  - [X] Afficher la fonction de valeur de l'expert
+  - [X] Afficher la fonction de valeur de l'agent
+  - [X] Afficher la fonction de récompense sur laquelle l'expert a été entraîné
+  - [X] Afficher la fonction de récompense retrouvée par LAFEM
+    
 * Code								       :code:
 ** Parent Dir targets
     On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.

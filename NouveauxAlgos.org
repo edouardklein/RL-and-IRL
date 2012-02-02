@@ -48,6 +48,7 @@
   V^\pi_\theta(s) &=& E\left[\left.\sum\limits_{t=0}^\infty \gamma^t\hat R(s_t)\right|s_0 = s,\pi\right]\\
   &=& E\left[\left.\sum\limits_{t=0}^\infty \gamma^t\theta^T \psi(s_t)\right|s_0 = s,\pi\right]\\
   &=& \theta^T E\left[\left.\sum\limits_{t=0}^\infty \gamma^t \psi(s_t)\right|s_0 = s,\pi\right]\\
+  \label{mudef.eqn}
   &=& \theta^T\mu^\pi(s).
   \end{eqnarray}
 
@@ -82,6 +83,7 @@
 ** Principe commun aux deux nouveaux algorithmes
    Les deux nouveaux algorithmes se basent sur une supposition quant à la fonction de score $s$. Nous allons supposer que cette fonction capture la structure du MDP. En effet l'équation \ref{sdef.eqn} est similaire à :
   \begin{equation}
+  \label{greedy.eqn}
   \pi^*(s) = \arg\max_{a} Q^*(s,a)
   \end{equation}
   qui décrit le mécanisme glouton liant fonction de valeur optimale et politique optimale. Cela nous permet de prendre la fonction de qualité de la politique optimale $Q^*$, fonction qui en IRL est inconnue puisqu'elle dépend très étroitement de la récompense, comme candidat pour $s$ lorsque nous instancions l'équation \ref{rdef.eqn}.
@@ -92,37 +94,41 @@
 *** Principe
     En se basant sur le principe énoncé ci dessus, nous allons minimiser la fonction de risque énoncée par \citep{ratliff2007imitation} et reproduite équation \ref{rdef.eqn} et que nous réécrivons par soucis de cohérence de notations :
    \begin{equation}
-   L_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
+   R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
    \end{equation}
+
+   Pour extraire la logique derrière cette équation, considérons que la fonction de perte $l$ est uniformément nulle et regardons ce qui se passe lorsque la fonction de risque $R_N(q)$ est minimisée. On introduit $a^* = \arg\max\limits_a(q(s_i,a))$. Si la fonction de risque $R_N(q)$ est positive, alors il arrive pour certains $i$ que $q(s_i,a^*) > q(s_i,a_i)$. Cela signifie que la fonction $q$ ne permet pas de justifier le choix de l'expert. A l'opposé, si l'on parvient à anuller $R_N(q)$, on a $\forall i, q(s_i,a^*) = q(s_i,a_i)$, et donc $a_i \in \arg\max\limits_a q(s_i,a)$, ce qui justifie le choix de l'expert.\\
+
+   La fonction de perte $l$ permet d'introduire de la connaissance à priori en laissant l'opérateur influer sur la forme de la fonction $q$ recherchée.\\
 
    Nous allons profiter de la structure présente dans $q$ pour introduire la notion de /feature expectation/ dans le problème. On rappelle qu'en IRL il est classique d'écrire $Q(s,a) = \theta^T \mu(s,a)$. Nous nous basons donc sur la /feature expectation/ de l'expert, $\mu_E$ et un vecteur de paramètres $\theta$ contrôlant la fonction de récompense que l'on recherche pour réécrire la fonction de risque que nous allons minimiser :
   \begin{equation}
-   L_N(\theta) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
+   R_N(\theta) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
    \end{equation}
    Il faut noter ici l'utilisation non pas de $\mu_E : S\rightarrow \mathbb{R}^p$ mais de $\mu_E : S\times A \rightarrow \mathbb{R}^k$. Cette dernière partage avec la première la même relation que $Q$ partage avec $V$, c'est à dire que l'on dispose d'un degré de liberté en plus correspondant à la prochaine action, qui peut différer de celle choisie par l'expert.
 
    
-   On introduit $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$, l'expression de la fonction de risque devient alors :
+   De la même manière que précedemment, on note $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$, l'expression de la fonction de risque devient alors :
    \begin{eqnarray}
-   L_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*) + l(s_i,a^*) - \theta ^T \mu_E(s_i,a_i) \right)\\
+   R_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*) + l(s_i,a^*) - \theta ^T \mu_E(s_i,a_i) \right)\\
    &=& {1\over N} \sum_{i=1}^N\left(\theta^T\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right) + l(s_i,a^*)  \right).
    \end{eqnarray}
 
-   Le gradent de cette expression est : 
+   La présence d'un $\max$ dans cette expression (caché dans le $a^*$) nous oblige à utiliser le sous gradient (FIXME: Trouver une ref précise en regardant qui Ratliff cite et mettre quelque chose de plus rigoureux que ce qui suit) dont la règle est que le sous gradient du $\max$ est le gradient de l'$\arg\max$.
+
+   Le gradient de cette expression est : 
    \begin{equation}
    \nabla L_N(\theta) =  {1\over N}\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right).
    \end{equation}
 
    Une descente de gradient sur le risque donne la règle d'update suivante :
    \begin{equation}
-   \theta_{t+1} = \theta_t -\alpha_t\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right),
+   \theta_{t+1} = \theta_t -\alpha_t{1\over N}\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right),
    \end{equation}
 
    avec $\alpha_t$ un pas d'apprentissage.
 
-
-
-   La fonction $l$ joue ici un rôle similaire à celui décrit dans les publications de Ratliff : il s'agit de juger de la similitude entre le choix proposé et celui de l'expert mais à un échelon local, au niveau de la prochaine action.
+   FIXME: Dans le futur, il faudrait voir ce que ça donne si on minimise non plus le risque $R_N(q)$ mais le risque au carré.
 *** Algorithme détaillé
    L'algorithme prend en entrée :
    - une fonction de perte $l : S\times A \rightarrow \mathbb R$
@@ -140,7 +146,7 @@
      - Pour chacun des points de données
        - Déterminer $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$
        - $\Delta\theta \leftarrow \Delta\theta + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$
-     - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t\Delta\theta$
+     - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t{1\over N}\Delta\theta$
    - retourner $\theta_T$
 *** Commentaires
     L'expérience montre que la plus simple des fonctions $l$, celle qui vaut $1$ lorsqu'on est en désaccord avec l'expert et $0$ sinon donne de bons résultats.
@@ -150,21 +156,66 @@
     Un autre avantage de notre algorithme est de ne pas nécessiter la résolution du problème direct, point d'étranglement lors de l'analyse de la complexité (aussi bien en termes d'échantillons que de calculs) des algorithmes existants.
 
 ** Hoping $s$ is Bellman compatible (HSIBC ?)
+*** Principe
+   La seconde technique à laquelle nous avons pensé mettrait en jeu une méthode de classification multi-classe permettant de trouver une fonction de score telle que décrite en section \ref{sdef.sec}.\\
 
-   La seconde technique à laquelle nous avons pensé mettrait en jeu une méthode de classification multi-classe permettant de trouver une fonction de score telle que décrite en section \ref{sdef.sec}.
+   Afin d'introduire la structure du MDP dans l'algorithme, nous allons à nouveau supposer que cette fonction de score est cohérente avec la fonction de qualité $Q_E$ de l'expert, qui est une fonction de qualité optimale vis-à-vis de la récompense inconnue que nous cherchons. De fait, $Q_E$ vérifie l'équation \ref{greedy.eqn}, elle même similaire à l'équation \ref{sdef.eqn} qui caractérise la fonction de score considérée.\\
+
+   Pour une politique $\pi$ donnée, il est aisé de passer de la fonction de qualité à la fonction de valeur, en effet :
+   \begin{equation}
+   \label{Q2V.eqn}
+   V^\pi(\cdot) = Q^\pi(\cdot,\pi(\cdot)).
+   \end{equation}
 
   En partant de l'équation de Bellman définissant la fonction de valeur optimale : 
   \begin{equation}
-  Q^* = R + \gamma P_{\pi^*}Q^*
+  \label{BellmanStart.eqn}
+  V^* = R + \gamma P_{\pi^*}V^*
   \end{equation}
   on trouve facilement 
   \begin{equation}
-  R = Q^*(Id - \gamma P_{\pi^*})
+  R = (Id - \gamma P_{\pi^*})V^*
   \end{equation}
-  
-  Ainsi, la fonction de score obtenue permet de construire une base de données $\{(s_i,R(s_i))\}_i$ se basant sur les mêmes points $\{s_i\}_i$ que ceux utilisés pour l'entraînement du classifieur, ou sur un maillage de l'espace d'état etc.
+  Si l'on quitte la forme matricielle, on obtient pour chaque $(s_i,a_i)$ de la base d'exemple :
+  \begin{eqnarray}
+  R(s_i) &=& \sum_{s'}\left[\left(I(s_i,s') - \gamma p(s'|s_i,\pi^*)\right)V^*(s')\right]\\
+  &=& \sum_{s'}\left[I(s_i,s')V^*(s') - \gamma p(s'|s_i,\pi^*)V^*(s')\right]\\
+  &=& \sum_{s'}I(s_i,s')V^*(s') - \gamma \sum_{s'}p(s'|s_i,\pi^*)V^*(s')\\
+  &=& V^*(s_i) - \gamma E[V^*(s_{i+1})|s_i,\pi^*]\\
+  \end{eqnarray}
 
-  A partir de cette base de données, on peut faire de la régression pour trouver une fonction de récompense $\hat R$.
+  L'on introduit alors la fonction de score $q$ fournie par la méthode de classification, en considérant qu'il s'agit d'un bon candidat pour approximer la fonction de qualité de l'expert $Q_E$ (qui, rappelons le est une fonction de qualité optimale et de ce fait respecte l'équation de Bellman \ref{BellmanStart.eqn} dont nous sommes partis). En utilisant de plus l'équation \ref{Q2V.eqn} on obtient alors :
+  \begin{equation}
+  \label{29.eqn} %lame name
+  R(s_i) = q(s_i,a_i) - \gamma E[q(s_{i+1},a_{i+1})|s_i,\pi_E].
+  \end{equation}
+  Nous disposon d'un estimateur non biaisé de $E[q(s_{i+1},a_{i+1})|s_i,\pi_E]$ en allant simplement chercher dans la base d'exemple les données $(s_{i+1},a_{i+1})$. Finalement, on obtient une base de données d'entraînement pour la récompense $(s_i,R(s_i))$ en calculant :
+  \begin{equation}
+  \hat R(s_i) = q(s_i,a_i) - \gamma q(s_{i+1},a_{i+1}).
+  \end{equation}
+  Il ne reste plus alors qu'à employer une méthode de régression permettant de généraliser ces exemples à tout l'espace d'état, et nous possédons une représentation d'une récompense compatible avec le comportement de l'expert.
+
+*** Instanciation avec une architecture linéaire
+
+    Si l'on suppose que la méthode de classification employée maintient une représentation de $q$ linéaire de la forme 
+\begin{equation}
+q(s,a) = \theta^T \mu_E(s,a),
+\end{equation}
+c'est à dire utilisant la /feature expectation/ de l'expert en tant que fonctions de bases, alors il est intéressant de repartir de l'équation \ref{29.eqn} :
+\begin{eqnarray}
+  R(s_i) &=& q(s_i,a_i) - \gamma E[q(s_{i+1},a_{i+1})|s_i,\pi_E]\\
+  &=& \theta^T \mu_E(s_i,a_i)- \gamma E[\theta^T\mu_E(s_{i+1},a_{i+1})|s_i,\pi_E]\\
+  &=& \theta^T (\mu_E(s_i,a_i)- \gamma E[\mu_E(s_{i+1},a_{i+1})|s_i,\pi_E]
+\end{eqnarray}
+La définition de la /feature expectation/ $\mu$ (equation \ref{mudef.eqn}) peut se réécrire :
+\begin{equation}
+\mu_E(s_t,a_t) = \phi(s_t) + \gamma E[\mu_E(s_{t+1},a_{t+1})|s_t,a_t,\pi_E].
+\end{equation}
+Il suffit d'injecter cette dernière équation dans la précédente et l'on obtient :
+\begin{equation}
+R(s_i) = \theta^T \phi(s_i).
+\end{equation}
+Cela signifie qu'en choisissant les bonnes fonctions de base l'on arrive directement à une représentation pratique de la récompense.
 
 \bibliographystyle{plainnat}
 \bibliography{../Biblio/Biblio}
@@ -250,9 +301,9 @@ class LAFEM:
          #+begin_src python :tangle LAFEM.py
             DeltaOmega = DeltaOmega + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
          #+end_src
-     - Effectuer la mise à jour $\omega_{t+1} = \omega_t -\alpha_t\Delta\omega$
+     - Effectuer la mise à jour $\omega_{t+1} = \omega_t -\alpha_t {1\over N}\Delta\omega$
        #+begin_src python :tangle LAFEM.py
-            omega = omega - self.alpha( t ) * DeltaOmega
+            omega = omega - self.alpha( t ) * DeltaOmega # FIXME rajouter le 1/N
        #+end_src
    - retourner $\omega_T$
      #+begin_src python :tangle LAFEM.py
