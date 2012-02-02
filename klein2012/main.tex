@@ -64,11 +64,12 @@ GeorgiaTech-CNRS, France
 
 
 \begin{abstract}
-  This paper addresses the problem of apprenticeship learning, that is learning control policies from demonstration by an expert. An efficient framework for it is inverse reinforcement learning  (IRL). Based on the assumption that the expert maximizes a utility  function, IRL aims at learning the underlying reward from example trajectories. Many IRL algorithms assume that the reward function is linearly parameterized and rely on some or all of the following elements : complete trajectories from the expert, a generative model for Monte-Carlo estimations, known transition probabilities and the ability to repeatedly solve the forward problem. In this paper we introduce a simple gradient ascent algorithm that lifts all these constraints. Relying on a temporal difference method for the estimation of the expert's {\it feature expectation} and a good set of features, our algorithm devise a reward function compatible with the expert's demonstrated behavior with a small computational and sample complexity.
+  Cette publication s'occupe du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse ({\it Inverse Reinforcement Learning, IRL}). Dans ce contexte, un expert accomplit une tâche qu'un agent doit essayer de reproduire. L'IRL part du postulat que l'expert optimise avec succès une fonction d'utilité et cherche à deviner cette fonction (appelée récompense) avec pour entrée une trace du comportement de l'expert. Les algorithmes d'IRL existant nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition et la capacité de résoudre le problème direct (celui du {\it Reinforcement Learning, RL}) de manière répétée. Notre contribution est la présentation d'un nouvel algorithme d'IRL levant toutes ces contraintes. En utilisant méthode supervisée dans laquelle nous introduisons la structure du processus décisionnel de Markov ({\it Markov Decision Process, MDP}) sous-jacent, nous créons un algorithme basé sur une descente de sous gradient et possèdant une faible complexité tant en échantillons que calculatoire.
   \motscles{Apprentissage par renforcement, Apprentissage par renforcement inverse, Processus Decisionnel de Markov}
 \end{abstract}
 \section{Introduction}
 \begin{itemize}
+\item Introduction informelle sur les processus de décision séquentiels
 \item Intérêt de l'Apprenticeship learning
 \item Intérêt de l'IRL pour faire de l'apprenticeship learning
 \item Rapide point sur les limitations des algos d'IRL actuels
@@ -81,12 +82,10 @@ GeorgiaTech-CNRS, France
 \label{back.sec}
 \begin{itemize}
 \item Introduction rapide, pour les notations, des MDPs, du RL et de l'IRL
-\item Résumé plus détaillé que précédemment des approches IRL actuelles
-\item Introduction du travail de Ratliff
 \end{itemize}
 \section{Loss-augmented Feature Expectation Matching}
 \begin{itemize}
-\item Reprise de l'équation de Ratliff
+\item Reprise de l'équation de Ratliff, justification sommaire
 \item Reprise de l'explication sur l'approximation de $Q$ de la section \ref{back.sec}.
 \item Dérivation de l'algo à partir de ces deux éléments
 \item Pseudo-code
@@ -139,6 +138,12 @@ GeorgiaTech-CNRS, France
 \item Présentation des résultats
 \item Discussion sur la variabilité de la récompense
 \item Présentation des performances statistiques (expérience pas encore effectuée)/ Etude de la complexité en échantillons 
+\item Pas de comparaison avec le travail de \cite{abbeel2004apprenticeship} car celui-ci ne marche tout simplement pas avec les informations dont on dispose
+\end{itemize}
+\section{Related Work}
+\begin{itemize}
+\item Résumé plus détaillé que précédemment des approches IRL actuelles
+\item Laïus sur Ratliff et son approche locale (imitation pure) et globale (plain de contraintes)
 \end{itemize}
 \section{Conclusion and future work}
 \begin{itemize}
@@ -147,7 +152,7 @@ GeorgiaTech-CNRS, France
 \item Dans la même veine, il reste la résolution du problème direct une fois la récompense obtenue, il faut peut-être creuser du côté du reward shaping
 \item Faible complexité computationnelle
 \item Faible complexité en échantillons
-\item Il reste des tests à faire sur le Highway driving (Pour ICML ?) et sur des expériences dans la vraie vie (bras robot ?)
+\item Il reste des tests à faire sur le Highway driving (Pour ICML ?) et sur des expériences dans la vraie vie (bras robot ?) pour comparer à l'existant
 \end{itemize}
 %
 % Bibliographie
