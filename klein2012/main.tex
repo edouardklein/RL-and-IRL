@@ -26,10 +26,36 @@
 \usepackage[french]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
 
 \usepackage{natbib}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+%%% francisation des algorithmes
+\renewcommand{\algorithmicrequire} {\textbf{\textsc{Entrées:}}}
+\renewcommand{\algorithmicensure}  {\textbf{\textsc{Sorties:}}}
+\renewcommand{\algorithmicwhile}   {\textbf{tantque}}
+\renewcommand{\algorithmicdo}      {\textbf{faire}}
+\renewcommand{\algorithmicendwhile}{\textbf{fin tantque}}
+\renewcommand{\algorithmicend}     {\textbf{fin}}
+\renewcommand{\algorithmicif}      {\textbf{si}}
+\renewcommand{\algorithmicendif}   {\textbf{finsi}}
+\renewcommand{\algorithmicelse}    {\textbf{sinon}}
+\renewcommand{\algorithmicthen}    {\textbf{alors}}
+\renewcommand{\algorithmicfor}     {\textbf{pour}}
+\renewcommand{\algorithmicforall}  {\textbf{pour tout}}
+\renewcommand{\algorithmicdo}      {\textbf{faire}}
+\renewcommand{\algorithmicendfor}  {\textbf{fin pour}}
+\renewcommand{\algorithmicloop}    {\textbf{boucler}}
+\renewcommand{\algorithmicendloop} {\textbf{fin boucle}}
+\renewcommand{\algorithmicrepeat}  {\textbf{répéter}}
+\renewcommand{\algorithmicuntil}   {\textbf{jusqu'à}}
 
-\newtheorem{algorithm}{Algorithme}
+\floatname{algorithm}{Algorithme}
+
+
+%\newtheorem{algorithm}{Algorithme}
 \newtheorem{definition}{Définition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -84,12 +110,71 @@ GeorgiaTech-CNRS, France
 \item Introduction rapide, pour les notations, des MDPs, du RL et de l'IRL
 \end{itemize}
 \section{Loss-augmented Feature Expectation Matching}
-\begin{itemize}
-\item Reprise de l'équation de Ratliff, justification sommaire
-\item Reprise de l'explication sur l'approximation de $Q$ de la section \ref{back.sec}.
-\item Dérivation de l'algo à partir de ces deux éléments
-\item Pseudo-code
-\end{itemize}
+\subsection{Principe}
+Notre algorithme cherche à minimiser la fonction de risque suivante :
+\begin{equation}
+  R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
+\end{equation}
+Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est introduite pour décrire un classifieur utilisant la fonction de score $q$ et qui à un élément $s$ associe la label $a = \arg\max\limits_a q(s,a)$. Cela est très similaire à l'équation
+  \begin{equation}
+  \label{greedy.eqn}
+  \pi^*(s) = \arg\max_{a} Q^*(s,a)
+  \end{equation}
+  qui décrit le mécanisme glouton liant fonction de valeur optimale et politique optimale. La politique de l'expert étant une politique optimale, elle doit respecter cette équation. Minimiser notre fonction de risque revient donc à chercher une fonction $q$ compatible avec la fonction de valeur optimale de l'expert. En effet, considérons que la fonction de perte $l$ est uniformément nulle et regardons ce qui se passe lorsque la fonction de risque $R_N(q)$ est minimisée. On introduit $a^* = \arg\max\limits_a(q(s_i,a))$. Si la fonction de risque $R_N(q)$ est positive, alors il arrive pour certains $i$ que $q(s_i,a^*) > q(s_i,a_i)$. Cela signifie que la fonction $q$ ne permet pas de justifier le choix de l'expert. A l'opposé, si l'on parvient à anuller $R_N(q)$, on a $\forall i, q(s_i,a^*) = q(s_i,a_i)$, et donc $a_i \in \arg\max\limits_a q(s_i,a)$, ce qui justifie le choix de l'expert.\\
+
+   La fonction de perte $l$ permet d'introduire de la connaissance à priori en laissant l'opérateur influer sur la forme de la fonction $q$ recherchée.\\
+
+   Nous allons profiter de la structure présente dans $Q$ pour introduire la notion de \emph{feature expectation} dans le problème. On rappelle qu'en IRL il est classique d'écrire $Q(s,a) = \theta^T \mu(s,a)$. Nous nous basons donc sur la \emph{feature expectation} de l'expert, $\mu_E$ et un vecteur de paramètres $\theta$ contrôlant la fonction de récompense que l'on recherche pour réécrire la fonction de risque que nous allons minimiser :
+  \begin{equation}
+   R_N(\theta) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
+   \end{equation}
+   Il faut noter ici l'utilisation non pas de $\mu_E : S\rightarrow \mathbb{R}^p$ mais de $\mu_E : S\times A \rightarrow \mathbb{R}^k$. Cette dernière partage avec la première la même relation que $Q$ partage avec $V$, c'est à dire que l'on dispose d'un degré de liberté en plus correspondant à la prochaine action, qui peut différer de celle choisie par l'expert.
+
+   
+   De la même manière que précedemment, on note $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$, l'expression de la fonction de risque devient alors :
+   \begin{eqnarray}
+   R_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*) + l(s_i,a^*) - \theta ^T \mu_E(s_i,a_i) \right)\\
+   &=& {1\over N} \sum_{i=1}^N\left(\theta^T\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right) + l(s_i,a^*)  \right).
+   \end{eqnarray}
+
+   La présence d'un $\max$ dans cette expression (caché dans le $a^*$) nous oblige à utiliser le sous gradient dont la règle est que le sous gradient du $\max$ est le gradient de l'$\arg\max$.
+
+   Le sous gradient de cette expression est donc : 
+   \begin{equation}
+   \nabla L_N(\theta) =  {1\over N}\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right).
+   \end{equation}
+
+   Une descente de gradient sur le risque donne la règle d'update suivante :
+   \begin{equation}
+   \theta_{t+1} = \theta_t -\alpha_t{1\over N}\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right),
+   \end{equation}
+
+   avec $\alpha_t$ un pas d'apprentissage. L'algorithme complet est détaillé algorithme \ref{LAFEM.alg}.
+
+\begin{algorithm}
+\caption{LAFEM ({\it Loss-Augmented Feature Expectation Matching})}
+\label{LAFEM.alg}
+\begin{algorithmic}
+  \REQUIRE une fonction de perte $l : S\times A \rightarrow \mathbb R$
+  \REQUIRE la \emph{feature expectation} de l'expert $\mu_E : S\times A \rightarrow \mathbb R ^p$
+  \REQUIRE un pas d'apprentissage $\alpha : \mathbb N \rightarrow \mathbb R$
+  \REQUIRE des données provenant de l'expert $\{(s_i,a_i)\}_{i=1..N}$
+  \REQUIRE un vecteur de paramètres initial $\theta_0$
+  \REQUIRE un nombre maximum d'itérations $T\in \mathbb N$
+  \REQUIRE une description de l'espace d'action $A$
+
+     
+  \FOR {T iterations}
+  \STATE $\Delta\theta \leftarrow [0...0]^T$
+    \FORALL{ $(s_i,a_i)$}
+    \STATE $a^* \leftarrow \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$
+    \STATE $\Delta\theta \leftarrow \Delta\theta + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$
+    \ENDFOR
+    \STATE $\theta_{t+1} = \theta_t -\alpha_t{1\over N}\Delta\theta$
+    \ENDFOR
+    \RETURN $\theta_T$
+\end{algorithmic}
+\end{algorithm}
 \section{Experimental results}
 \subsection{GridWorld}
 \begin{itemize}
