@@ -120,7 +120,7 @@ int main( void ){
 LAFEM_Exp2_Expert.exe: LAFEM_Exp2_Expert.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o InvertedPendulum.o simulator.o
 	$(O2EXE) -o LAFEM_Exp2_Expert.exe LAFEM_Exp2_Expert.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o InvertedPendulum.o ../LSPI.o simulator.o
 
-LAFEM_Exp2_Expert.o: LAFEM_Exp2_Expert.c InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../greedy.h ../RL_Globals.h
+LAFEM_Exp2_Expert.o: LAFEM_Exp2_Expert.c InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../greedy.h ../RL_Globals.h phipsi.h
 	$(call c2obj,"LAFEM_Exp2_Expert.c")
 
 LAFEM_Exp2_Expert.c: LAFEM_Exp2.org
