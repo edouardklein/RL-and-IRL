@@ -175,56 +175,115 @@ Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est in
     \RETURN $\theta_T$
 \end{algorithmic}
 \end{algorithm}
-\section{Experimental results}
-\subsection{GridWorld}
-\begin{itemize}
-\item Description du setting (GridWorld, expert, nombre de trajectoires, etc.)
-\item Description des réglages de LAFEM (fonction $l$ notamment, calcul exact de $\mu_E$)
-\item Présentation des résultats (pas grand chose à dire)
-\end{itemize}
+\subsection{Calcul de $\mu_E$}
+L'algorithme présenté repose sur le calcul de la {\it feature expectation} de l'expert, $\mu_E$. Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour la calculer.
+
+La définition du vecteur $\mu_E$ étant proche de celle de la fonction de valeur, en adaptant les algorithmes de programmation dynamique destinés au calcul de la fonction de valeur on obtient une règle de la forme :
+\begin{equation}
+\mathbf \mu^\pi = \mathbf\Phi + \gamma P_\pi\mathbf\mu^\pi
+\end{equation}
+permettant le calcul exact de la fonction de valeur pour peu que l'on dispose des probabilités de transitions.\\
+
+Dans le cas plus probable où celles-ci sont inconnues, on peut si l'on dispose d'un simulateur utiliser une simple approximation de Monte-Carlo où pour approximer $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ l'on utilise 
+\begin{equation}
+\hat\mu_E(s,a) = {1\over N}\sum\limits_{i=1}^{N}\sum\limits_{t}\gamma^t\phi(s), s_0=s, a_0=a, a_{t>0} = \pi_E(s_t).
+\end{equation}
+
+Finalement si l'on ne dispose ni des probabilités de transition ni d'un simulateur, alors il est possible d'utiliser LSTD$\mu$ (\citep{klein2011batch}), un algorithme permettant l'estimation en {\it batch} de la {\it feature expectation} de l'expert.
+\section{Résultats expérimentaux}
+\subsection{Description de la tâche}
+Le problème du pendule inversé à maintenir en équilibre vertical un pendule à un degré de liberté. il s'agit d'un problème classique en apprentissage par renforcement ({\it Reinforcement Learning, RL}). Pour jouer le rôle de notre expert, nous utilisons d'ailleurs la politique trouvée par LSPI, un algorithme de RL décrit par \citet{lagoudakis2003least}. Les différents réglages utilisés, de la valeur de la masse du pendule codée dans notre simulateur jusqu'au choix des fonctions de bases $\phi : S\times A \rightarrow \mathbb{R}^k$ et $\psi : \S \rightarrow \mathbb{R}^p$ sont conformes à ce qui est donné dans cette publication.\\
+
+La politique ainsi trouvée parvient systématiquement à maintenir le pendule en équlibre durant 3000 pas de temps. Ces derniers ayant une valeur d'un dixième de seconde, cela signifie que nous interrompons l'expert après 5 minutes de contrôle sans chute du pendule.\\
+
+Le but de cette expérience est de montrer que notre algorithme est capable, à partir des seuls transitions fournies par l'expert et de la définition des fonctions de bases, de retrouver une récompense telle qu'un agent entraîné sur cette récompense puisse lui aussi faire balancer le pendule durant 5 minutes sans échec. Cela n'est pas trivial étant donné que l'espace d'état est continu et que les données fournies par l'expert n'en couvrent qu'une petite partie (correspondant à la position verticale). Ce dernier point est d'ailleur la raison pour laquelle l'algorithme d'\citet{abbeel2004apprenticeship} ne parvient pas à résoudre le problème à l'aide des seules transitions de l'expert.\\
+
+En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fournir quelques transitions aléatoires couvrant tout l'espace d'état il est impossible d'utiliser les algorithmes itératifs du type de celui d'\citet{abbeel2004apprenticeship} car ceux-ci requièrent la résolution du problème direct à chaque itération ; résolution qui ne peut se faire si l'on ne dispose que de données ne couvrant qu'une petite partie de l'espace d'état. Comme notre algorithme ne nécessite pas la résolution du problème direct, il ne rencontre pas ce problème.
+\subsection{Illustration des résultats}
 \begin{figure}
-\begin{minipage}[t]{.4\linewidth}
+  \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../GridWorld/true_reward.pdf}
-       \caption{Expert's reward}
-       \label{nbabo}
+       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_true_R.pdf}
+       \caption{Récompense sur laquelle l'expert a été entraîné}
+       \label{trueR.fig}
     \end{center}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../GridWorld/retrieved_reward.pdf}
-       \caption{Reward found by LAFEM}
-       \label{croissnbabo}
+       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_lafem_R.pdf}
+       \caption{Récompense trouvée par LAFEM}
+       \label{lafemR.fig}
     \end{center}
 \end{minipage}\\
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../GridWorld/V_expert.pdf}
-       \caption{Expert's reward}
-       \label{nbabo}
+       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_Vexpert.pdf}
+       \caption{Fonction de valeur de l'expert}
+       \label{trueV.fig}
     \end{center}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../GridWorld/V_agent.pdf}
-       \caption{Agent's value function}
-       \label{croissnbabo}
+       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_Vagent.pdf}
+       \caption{Fonction de valeur de l'agent entraîné sur la récompense trouvée par LAFEM}
+       \label{lafemV.fig}
     \end{center}
 \end{minipage}\\
-
 \end{figure}
-
-\subsection{Inverted Pendulum}
+Afin d'étudier le comportement de notre algorithmes, nous avons établi le protocole expérimental suivant :
 \begin{itemize}
-\item Présentation du setting (Le pendule, l'expert)
-\item Réglages de LAFEM (Préciser l'utilisation de LSTD$\mu$)
-\item Présentation des résultats
-\item Discussion sur la variabilité de la récompense
-\item Présentation des performances statistiques (expérience pas encore effectuée)/ Etude de la complexité en échantillons 
-\item Pas de comparaison avec le travail de \cite{abbeel2004apprenticeship} car celui-ci ne marche tout simplement pas avec les informations dont on dispose
+ \item Créer une base de données $D_0$ de transitions aléatoires.
+ \item Entraîner un expert en utilisant LSPI nourri avec ces transitions ( definissant ainsi $\pi_E : S\rightarrow A$)
+ \item Vérifier que l'expert est en mesure de balancer le pendule durant 3000 pas de temps
+ \item Créer une base de données $D_E$ de transitions de l'expert, contenant 10 trajectoires de 300 transitions chacune.
+ \item Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$.
+ \item Définir $\alpha(t) = 0.1,\forall t$.
+ \item Définir $D$ à partir des transitions $D_E$ en enlevant l'état d'arrivée.
+ \item Initialiser $\omega_0 = [-1...-1]^T$.
+ \item Fixer $T=20$.
+ \item Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) =  \omega^T_{\pi_E}\phi(s,a), \omega_{\pi_E} = LSTD\mu(D_E)$.
+ \item Faire tourner LAFEM.
+ \item Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$.
+ \item Vérifier que l'agent parvient lui aussi à maintenir le pendule en équilibre durant 3000 pas de temps.
+ \item Afficher la fonction de valeur de l'expert.
+ \item Afficher la fonction de valeur de l'agent.
+ \item Afficher la fonction de récompense sur laquelle l'expert a été entraîné
+ \item Afficher la fonction de récompense retrouvée par LAFEM
 \end{itemize}
+
+Si la fonction de récompense trouvée par LAFEM (figure \ref{lafemR.fig}) diffère de celle fournie à l'expert (figure \ref{trueR.fig}) on constate en revanche que les fonctions de valeurs sont très similaires (figures \ref{trueV.fig} et \ref{lafemV.fig}). Cela est une illustration du fait que le problème de l'IRL est mal posé en ceci qu'il n'y a pas qu'une seule récompense pouvant expliquer une politique.\\
+
+Avec le nombre d'échantillons fournis par l'expert (3000 en 10 trajectoires de 300 transitions chacune), l'agent parvient systématiquement à maintenir le pendule en équilibre durant 5 minutes, ce qui est rappelons le notre critère de réussite.
+
+
+\subsection{Etude statistique de la qualité de l'imitation}
+
+Nous souhaitons maintenant empiriquement étudier l'impact de la quantité de données fournies par l'expert sur la qualité du contrôle exhibé par l'agent. Pour cela nous appliquons le protocole suivant :
+\begin{itemize}
+ \item Créer une base de données $D_0$ de transitions aléatoires.
+ \item Entraîner un expert en utilisant LSPI nourri avec ces transitions (ce qui définit $\pi_E : S\rightarrow A$)
+ \item Vérifier que l'expert est en mesure de balancer le pendule durant 3000 pas de temps
+ \item Créer une base de données $D_E$ de transitions de l'expert. On la crée de 10 trajectoires de 300 transitions chacune.
+ \item Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$.
+ \item Définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
+ \item Fixer $T=20$ (pifomètre)
+ \item Pour différentes quantités de données $N$,
+\begin{itemize}
+   \item Définir $D_E^N$ en tronquant $D_E$ à ses $N$ premières transitions
+   \item Définir $D$ à partir des de $D_E^N$ en enlevant l'état d'arrivée
+   \item Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) =  \omega^T_{\pi_E}\phi(s,a), \omega_{\pi_E} = LSTD\mu(D_E^N)$
+   \item Initialiser $\omega_0 = [-1...-1]^T$
+   \item Faire tourner LAFEM
+   \item Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
+   \item Regarder durant combien de pas de temps l'agent arrrive à faire tenir le pendule.
+   \item Tracer la courbe donnant la qualité du contrôle (nombre de pas de temps durant lequel l'agent balance le pendule) en fonction de la quantitié de données disponible ($N$)
+\end{itemize}
+\end{itemize}
+
+Cette expérience a été répétée FIXME:nombre de fois, avec les résultats illutrés FIXME:mettre une figure.
+
 \section{Related Work}
 \begin{itemize}
 \item Résumé plus détaillé que précédemment des approches IRL actuelles
