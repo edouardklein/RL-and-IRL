@@ -28,6 +28,7 @@
 
 * Code								       :code:
 ** Experiment targets
+*** Single pass experiment
    The first task is to build the variable length data files from the expert. This is doable with the code from the [[file:LAFEM_Exp2.org][second experiment]], but it has the drawback of linking the values used in this experiment and the one used in this one. The alnertative solution would duplicate code.
 
    A makefile rule will take care of the creation of the data files
@@ -49,7 +50,6 @@ omega_mu_E_X.mat: D_expert_X.mat LAFEM_Exp3_LSTDmu.exe omega_expert.mat#Dummy ta
 		cp D_expert_$$i.mat D_expert.mat &&\
 		./LAFEM_Exp3_LSTDmu.exe > omega_mu_E_$$i.mat;\
 	done;
-	rm D_expert.mat
 	touch omega_mu_E_X.mat
 #+end_src
 
@@ -64,8 +64,6 @@ theta_lafem_X.mat: D_expert_X.mat omega_mu_E_X.mat ../LAFEM.py LAFEM_Exp3.py ../
 		cp omega_mu_E_$$i.mat omega_mu_E.mat &&\
 		python LAFEM_Exp3.py > theta_lafem_$$i.mat;\
 	done;
-	rm D_expert.mat
-	rm omega_mu_E.mat
 	touch omega_mu_E_X.mat
 #+end_src
 
@@ -81,18 +79,106 @@ LAFEM_Exp4_quality.dat: theta_lafem_X.mat LAFEM_Exp2_Samples.dat LAFEM_Exp2_Resu
 	done;
 #+end_src
 
+A bit of greping, tring and seding later and we have a plottable file :
+
+#+srcname: LAFEM_Exp4_make
+#+begin_src makefile
+	cat LAFEM_Exp4_quality.dat | grep agent | tr "[:punct:]" " " | sed 's/ Longueur d un run de l agent  //' > toto
+	mv toto LAFEM_Exp4_quality.dat
+#+end_src
+
+It can be plot using these GNUPlot instructions :
+#+begin_src gnuplot :tangle LAFEM_Exp4_quality.gp
+set output "LAFEM_Exp4_quality.ps"
+set term postscript enhanced color
+set yrange [0:3100]
+set xlabel "Number of samples from the expert"
+set ylabel "Number of time steps the agent can balance the pendulum"
+plot "LAFEM_Exp4_quality.dat" notitle w line
+#+end_src
+
+Which are activated by the following makefile rule:
+#+srcname: LAFEM_Exp4_make
+#+begin_src makefile
+LAFEM_Exp4_quality.gp: LAFEM_Exp4.org
+	$(call tangle,"LAFEM_Exp4.org")
+
+LAFEM_Exp4_quality.pdf: LAFEM_Exp4_quality.gp LAFEM_Exp4_quality.dat
+	gnuplot LAFEM_Exp4_quality.gp
+	ps2pdf LAFEM_Exp4_quality.ps
+	rm LAFEM_Exp4_quality.ps
+#+end_src
+
+*** Error bars
+    To generate error bars, we use the ErrorBars.py script (as in the experiment about LSTD$\mu$).
+
+    The first thing to do is to define a clean rule to remove the file to plot and all the other files that have been used to create it, so that making it again will be a statistically independant experiment.
+  #+srcname: LAFEM_Exp4_clean_make
+  #+begin_src makefile
+clean_LAFEM_Exp4_quality.dat: 
+	find . -maxdepth 1 -iname "D_expert.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "D_expert_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_mu_E_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "theta_lafem_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp4_quality.*"   | xargs $(XARGS_OPT) rm
+
+  #+end_src
+
+    Then we make the configuration script for the error bars script :
+  #+begin_src python :tangle LAFEM_Exp4_conf.py
+g_nlInput = ['LAFEM_Exp4_quality.dat', ['-d" " -f\'1 2\''], []]
+g_iN = 1000
+  #+end_src
+    Which can be tangled using :
+  #+srcname: LAFEM_Exp4_make
+  #+begin_src makefile
+LAFEM_Exp4_conf.py: LAFEM_Exp4.org 
+	$(call tangle,"LAFEM_Exp4.org")
+  #+end_src
 
 
+    Finally the makefile rule :
+  #+srcname: LAFEM_Exp4_make
+  #+begin_src makefile
+LAFEM_Exp4_ErrorBars: LAFEM_Exp4_conf.py LAFEM_Exp4_quality.dat
+	mv LAFEM_Exp4_conf.py conf.py
+	../../Utils/ErrorBars.py
+	rm conf.py
+  #+end_src
+
+The file used to plot this with the errorbars is :
+  #+begin_src gnuplot :tangle LAFEM_Exp4_quality_EB.gp
+set output "LAFEM_Exp4_quality_EB.ps"
+set term postscript enhanced color
+set yrange [0:3100]
+set xlabel "Number of samples from the expert"
+set ylabel "Number of time steps the agent can balance the pendulum"
+plot 'LAFEM_Exp4_quality.dat-0' u 1:2 w lines ls 1 notitle, 'LAFEM_Exp4_quality.dat-0' u 1:2:3 w errorbars ls 1 notitle
+#+end_src
+
+It is activated by :
+Which are activated by the following makefile rule:
+#+srcname: LAFEM_Exp4_make
+#+begin_src makefile
+LAFEM_Exp4_quality_EB.gp: LAFEM_Exp4.org
+	$(call tangle,"LAFEM_Exp4.org")
+
+LAFEM_Exp4_quality_EB.pdf: LAFEM_Exp4_quality_EB.gp LAFEM_Exp4_ErrorBars
+	gnuplot LAFEM_Exp4_quality_EB.gp
+	ps2pdf LAFEM_Exp4_quality_EB.ps
+	rm LAFEM_Exp4_quality_EB.ps
+#+end_src
 
 
 ** Cleaning
    A rule to clean the mess :
-  #+srcname: LAFEM_Exp3_clean_make
+  #+srcname: LAFEM_Exp4_clean_make
   #+begin_src makefile
 LAFEM_Exp4_clean: LAFEM_Exp3_clean LAFEM_Exp2_clean
 	find . -maxdepth 1 -iname "D_expert_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "omega_mu_E_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "theta_lafem_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp4_quality.*"   | xargs $(XARGS_OPT) rm
   #+end_src
 
 * Résultats

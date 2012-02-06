@@ -112,7 +112,9 @@ LAFEM_Exp3:
    - LAFEM_Exp4 (InvertedPendulum)
     #+begin_src makefile :tangle Makefile
 LAFEM_Exp4:
-	make -C InvertedPendulum LAFEM_Exp4_quality.dat
+	make -C InvertedPendulum LAFEM_Exp4_quality.pdf
+LAFEM_Exp42:
+	make -C InvertedPendulum LAFEM_Exp4_quality_EB.pdf
     #+end_src
 
 ** TaskTransfer
