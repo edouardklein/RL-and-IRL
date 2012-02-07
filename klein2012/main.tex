@@ -175,48 +175,38 @@ Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est in
     \RETURN $\theta_T$
 \end{algorithmic}
 \end{algorithm}
-\section{Experimental results}
-\subsection{GridWorld}
-\begin{itemize}
-\item Description du setting (GridWorld, expert, nombre de trajectoires, etc.)
-\item Description des réglages de LAFEM (fonction $l$ notamment, calcul exact de $\mu_E$)
-\item Présentation des résultats (pas grand chose à dire)
-\end{itemize}
+\section{Résultats expérimentaux}
+
 \begin{figure}
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../GridWorld/true_reward.pdf}
+       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_true_R.pdf}
        \caption{Expert's reward}
-       \label{nbabo}
     \end{center}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../GridWorld/retrieved_reward.pdf}
+       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_lafem_R.pdf}
        \caption{Reward found by LAFEM}
-       \label{croissnbabo}
     \end{center}
 \end{minipage}\\
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../GridWorld/V_expert.pdf}
-       \caption{Expert's reward}
-       \label{nbabo}
+       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_Vexpert.pdf}
+       \caption{Expert's value function}
     \end{center}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../GridWorld/V_agent.pdf}
+       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_Vagent.pdf}
        \caption{Agent's value function}
-       \label{croissnbabo}
     \end{center}
 \end{minipage}\\
 
 \end{figure}
 
-\subsection{Inverted Pendulum}
 \begin{itemize}
 \item Présentation du setting (Le pendule, l'expert)
 \item Réglages de LAFEM (Préciser l'utilisation de LSTD$\mu$)
