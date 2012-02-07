@@ -218,6 +218,7 @@ LAFEM_Exp3.py: LAFEM_Exp3.org
 
 theta_lafem_mu.mat: LAFEM_Exp3.py ../a2str.py ../LAFEM.py omega_mu_E.mat D_expert.mat
 	python LAFEM_Exp3.py > theta_lafem_mu.mat
+
 #+end_src
 
 *** Comparative results between the expert and the agent
@@ -227,6 +228,7 @@ theta_lafem_mu.mat: LAFEM_Exp3.py ../a2str.py ../LAFEM.py omega_mu_E.mat D_exper
 #+begin_src makefile
 omega_lafem_mu.mat: LAFEM_Exp2_Results.exe theta_lafem_mu.mat
 	./LAFEM_Exp2_Results.exe theta_lafem_mu.mat > omega_lafem_mu.mat
+
 #+end_src
 
 *** Plotting
@@ -272,6 +274,7 @@ LAFEM_Exp3_true_R.pdf: LAFEM_Exp3_true_R.gp LAFEM_Exp3_true_R.mat
 	gnuplot LAFEM_Exp3_true_R.gp
 	ps2pdf LAFEM_Exp3_true_R.ps
 	rm LAFEM_Exp3_true_R.ps
+
 #+end_src
 
 #+begin_src gnuplot :tangle LAFEM_Exp3_lafem_R.gp
@@ -295,6 +298,7 @@ LAFEM_Exp3_lafem_R.pdf: LAFEM_Exp3_lafem_R.gp LAFEM_Exp3_lafem_R.mat
 	gnuplot LAFEM_Exp3_lafem_R.gp
 	ps2pdf LAFEM_Exp3_lafem_R.ps
 	rm LAFEM_Exp3_lafem_R.ps
+
 #+end_src
 
 
@@ -319,6 +323,7 @@ LAFEM_Exp3_Vexpert.pdf: LAFEM_Exp3_Vexpert.gp LAFEM_Exp3_Vexpert.mat
 	gnuplot LAFEM_Exp3_Vexpert.gp
 	ps2pdf LAFEM_Exp3_Vexpert.ps
 	rm LAFEM_Exp3_Vexpert.ps
+
 #+end_src
 
 #+begin_src gnuplot :tangle LAFEM_Exp3_Vagent.gp
@@ -342,6 +347,7 @@ LAFEM_Exp3_Vagent.pdf: LAFEM_Exp3_Vagent.gp LAFEM_Exp3_Vagent.mat
 	gnuplot LAFEM_Exp3_Vagent.gp
 	ps2pdf LAFEM_Exp3_Vagent.ps
 	rm LAFEM_Exp3_Vagent.ps
+
 #+end_src
 
 ** Cleaning
