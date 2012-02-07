@@ -48,6 +48,7 @@
 #+begin_src makefile
 LAFEM_Exp2_Samples.dat: generator.exe 
 	./generator.exe > LAFEM_Exp2_Samples.dat
+
 #+end_src
 *** Training the expert, checking for its quality and creating $D_E$
 We use a code very similar to what was used to train the expert in the LSTD$\mu$ experiment.
@@ -315,6 +316,7 @@ LAFEM_Exp2.py: LAFEM_Exp2.org
 
 theta_lafem.mat: LAFEM_Exp2.py ../a2str.py ../LAFEM.py mu_E_Right.mat mu_E_Left.mat mu_E_None.mat D_expert.mat
 	python LAFEM_Exp2.py > theta_lafem.mat
+
 #+end_src
 
 *** Comparative results between the expert and the agent
@@ -621,6 +623,7 @@ LAFEM_Exp2_true_R.pdf: LAFEM_Exp2_true_R.gp LAFEM_Exp2_true_R.mat
 	gnuplot LAFEM_Exp2_true_R.gp
 	ps2pdf LAFEM_Exp2_true_R.ps
 	rm LAFEM_Exp2_true_R.ps
+
 #+end_src
 
 #+begin_src gnuplot :tangle LAFEM_Exp2_lafem_R.gp
@@ -644,6 +647,7 @@ LAFEM_Exp2_lafem_R.pdf: LAFEM_Exp2_lafem_R.gp LAFEM_Exp2_lafem_R.mat
 	gnuplot LAFEM_Exp2_lafem_R.gp
 	ps2pdf LAFEM_Exp2_lafem_R.ps
 	rm LAFEM_Exp2_lafem_R.ps
+
 #+end_src
 
 
@@ -668,6 +672,7 @@ LAFEM_Exp2_Vexpert.pdf: LAFEM_Exp2_Vexpert.gp LAFEM_Exp2_Vexpert.mat
 	gnuplot LAFEM_Exp2_Vexpert.gp
 	ps2pdf LAFEM_Exp2_Vexpert.ps
 	rm LAFEM_Exp2_Vexpert.ps
+
 #+end_src
 
 #+begin_src gnuplot :tangle LAFEM_Exp2_Vagent.gp
@@ -691,6 +696,7 @@ LAFEM_Exp2_Vagent.pdf: LAFEM_Exp2_Vagent.gp LAFEM_Exp2_Vagent.mat
 	gnuplot LAFEM_Exp2_Vagent.gp
 	ps2pdf LAFEM_Exp2_Vagent.ps
 	rm LAFEM_Exp2_Vagent.ps
+
 #+end_src
 
 ** Cleaning

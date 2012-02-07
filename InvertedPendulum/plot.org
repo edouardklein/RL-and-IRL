@@ -335,6 +335,7 @@ plot.dat: plot.samples plot.exe
 
 plot.samples: generator.exe 
 	./generator.exe > Samples.dat && touch plot.samples
+
 #+end_src
 *** Sensitivity of the quality of the policy to the number of samples fed to LSPI (No error bars)
     #+srcname: LSTDmu_Exp_make

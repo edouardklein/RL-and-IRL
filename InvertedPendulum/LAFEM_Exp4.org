@@ -40,6 +40,7 @@ N_VALUES=2 20 200 2000
 D_expert_X.mat: D_expert.mat #Dummy target
 	for i in $(N_VALUES); do head -n $$i D_expert.mat > D_expert_$$i.mat; done
 	touch D_expert_X.mat
+
 #+end_src
 
    Now, using code from the [[file:LAFEM_Exp3.org][third experiment]], we can create the files containing the matrices output by the $LSTD\mu$ algorithm. The code reads the =D_expert.mat= and =omega_expert.mat= files (this is hard coded) and outuput the matrix on its standard output. The following makefile rule handles this.
@@ -52,6 +53,7 @@ omega_mu_E_X.mat: D_expert_X.mat LAFEM_Exp3_LSTDmu.exe omega_expert.mat#Dummy ta
 		./LAFEM_Exp3_LSTDmu.exe > omega_mu_E_$$i.mat;\
 	done;
 	touch omega_mu_E_X.mat
+
 #+end_src
 
 
@@ -144,6 +146,39 @@ LAFEM_Exp4_ErrorBars: LAFEM_Exp4_conf.py LAFEM_Exp4_quality.dat
 	mv LAFEM_Exp4_conf.py conf.py
 	../../Utils/ErrorBars.py
 	rm conf.py
+  #+end_src
+
+The file used to plot this with the errorbars is :
+  #+begin_src gnuplot :tangle LAFEM_Exp4_quality_EB.gp
+set output "LAFEM_Exp4_quality_EB.ps"
+set term postscript enhanced color
+set yrange [0:3100]
+set xlabel "Number of samples from the expert"
+set ylabel "Number of time steps the agent can balance the pendulum"
+plot 'LAFEM_Exp4_quality.dat-0' u 1:2 w lines ls 1 notitle, 'LAFEM_Exp4_quality.dat-0' u 1:2:3 w errorbars ls 1 notitle
+#+end_src
+
+It is activated by :
+Which are activated by the following makefile rule:
+#+srcname: LAFEM_Exp4_make
+#+begin_src makefile
+LAFEM_Exp4_quality_EB.gp: LAFEM_Exp4.org
+	$(call tangle,"LAFEM_Exp4.org")
+
+LAFEM_Exp4_quality_EB.pdf: LAFEM_Exp4_quality_EB.gp LAFEM_Exp4_ErrorBars
+	gnuplot LAFEM_Exp4_quality_EB.gp
+	ps2pdf LAFEM_Exp4_quality_EB.ps
+	rm LAFEM_Exp4_quality_EB.ps
+#+end_src
+
+    Finally the makefile rule :
+  #+srcname: LAFEM_Exp4_make
+  #+begin_src makefile
+LAFEM_Exp4_ErrorBars: LAFEM_Exp4_conf.py LAFEM_Exp4_quality.dat
+	mv LAFEM_Exp4_conf.py conf.py
+	../../Utils/ErrorBars.py
+	rm conf.py
+
   #+end_src
 
 The file used to plot this with the errorbars is :
