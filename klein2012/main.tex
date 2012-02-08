@@ -119,6 +119,7 @@ Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,a_0=a,\pi\right]\\
 \end{eqnarray}
 La politique optimale se définit simplement à partir de la fonction de qualité optimale $Q^*$ via un mécanisme glouton :
 \begin{equation}
+\label{greedy.eqn}
 \pi^*(s) \in \arg\max_a Q^*(s,a).
 \end{equation}
 Dès lors, l'approximation de la fonction de valeur (terme qui employé au sens large désigne aussi la fonction de qualité) est un thème central en apprentissage par renforcement. Une caractéristique répandue dans la litérature est l'utilisation d'un cadre d'approximation linéaire où, après avoir défini des attributs vectoriels $\phi: S\times A \rightarrow \mathbb{R}^k$, l'on va chercher un vecteur de paramètres $\omega$ tel que l'on ait une bonne approximation de la fonction de qualité :
@@ -127,6 +128,7 @@ Dès lors, l'approximation de la fonction de valeur (terme qui employé au sens 
 \end{equation}
 Il est naturel d'adopter le même type d'approche pour l'apprentissage par renforcement inverse, c'est à dire de considérer que l'inconnue du problème, la récompense $R$, peut être bien approximée grâce à un vecteur de poids $\theta$ et des attributs vectoriels $\psi : S\rightarrow \mathbb{R}^p$ :
 \begin{equation}
+\label{hatRdef.eqn}
 \hat R(s) = \theta^T\psi(s)\approx R(s).
 \end{equation}
 
@@ -135,6 +137,7 @@ Introduire cette expression dans la définition de la fonction de valeur (Equati
 V^\pi(s) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,\pi\right]\\
 V^\pi(s) &=& \theta^TE\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,\pi\right]\\
 V^\pi(s) &=& \theta^T\mu^\pi(s)
+\label{Vmu.eqn}
 \end{eqnarray}
 
 Le terme $\mu^\pi$ est appelé la {\it feature expectation} d'une politique. Il existe plusieurs variantes basées sur la même définition que nous venons de donner. Dans sa version la plus spécifique, notée simplement $\mu^\pi$, il s'agit en toute rigueur de l'expression :
@@ -145,6 +148,14 @@ où $d$ est une distribution sur l'état initial. Il peut également être utile
 \begin{eqnarray}
 \mu^\pi(s,a) = E\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right].
 \end{eqnarray}
+C'est d'ailleurs cette variante de l'expression qui sera utilisée si, au lieu d'injecter l'équation \ref{hatRdef.eqn} dans la définition de la fonction de valeur comme nous l'avons fait pour obtenir l'équation \ref{Vmu.eqn}, nous l'injectons dans la définition de la fonction de qualité. On obtient alors :
+\begin{eqnarray}
+Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,a_0=a,\pi\right]\\
+ &=& \theta^TE\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right]\\
+ &=& \theta^T\mu^\pi(s,a)
+\label{Qmu.eqn}
+\end{eqnarray}
+
 On peut noter que si deux politiques ont la même {\it feature expectation}, alors ces deux politiques ont la même valeur vis à vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
 \begin{eqnarray}
 \mu^{\pi_1} = \mu^{\pi_2} &\Rightarrow& \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2}\\
@@ -157,53 +168,52 @@ La {\it feature expectation} de l'expert, $\mu_E$, pouvant être calculée sans 
 %%%
 \subsection{Principe}
 %%%
-Notre algorithme cherche à minimiser la fonction de risque suivante :
+L'un des postulats de base de l'apprentissage par renforcement inverse est que l'expert est un agent \emph{optimal} vis à vis d'une certaine fonction de récompense que l'on cherche à retrouver. Cela implique, comme nous l'avons vu Equation \ref{greedy.eqn}, qu'il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à cette fonction de récompense inconnue :
 \begin{equation}
-  R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
+\pi_E(s) \in \arg\max_aQ^E_R(s,a).
 \end{equation}
-Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est introduite pour décrire un classifieur utilisant la fonction de score $q$ et qui à un élément $s$ associe la label $a = \arg\max\limits_a q(s,a)$. Cela est très similaire à l'équation
-  \begin{equation}
-  \label{greedy.eqn}
-  \pi^*(s) = \arg\max_{a} Q^*(s,a)
-  \end{equation}
-  qui décrit le mécanisme glouton liant fonction de valeur optimale et politique optimale. La politique de l'expert étant une politique optimale, elle doit respecter cette équation. Minimiser notre fonction de risque revient donc à chercher une fonction $q$ compatible avec la fonction de valeur optimale de l'expert. En effet, considérons que la fonction de perte $l$ est uniformément nulle et regardons ce qui se passe lorsque la fonction de risque $R_N(q)$ est minimisée. On introduit $a^* = \arg\max\limits_a(q(s_i,a))$. Si la fonction de risque $R_N(q)$ est positive, alors il arrive pour certains $i$ que $q(s_i,a^*) > q(s_i,a_i)$. Cela signifie que la fonction $q$ ne permet pas de justifier le choix de l'expert. A l'opposé, si l'on parvient à anuller $R_N(q)$, on a $\forall i, q(s_i,a^*) = q(s_i,a_i)$, et donc $a_i \in \arg\max\limits_a q(s_i,a)$, ce qui justifie le choix de l'expert.\\
-
-   La fonction de perte $l$ permet d'introduire de la connaissance à priori en laissant l'opérateur influer sur la forme de la fonction $q$ recherchée.\\
-
-   Nous allons profiter de la structure présente dans $Q$ pour introduire la notion de \emph{feature expectation} dans le problème. On rappelle qu'en IRL il est classique d'écrire $Q(s,a) = \theta^T \mu(s,a)$. Nous nous basons donc sur la \emph{feature expectation} de l'expert, $\mu_E$ et un vecteur de paramètres $\theta$ contrôlant la fonction de récompense que l'on recherche pour réécrire la fonction de risque que nous allons minimiser :
-  \begin{equation}
-   R_N(\theta) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
-   \end{equation}
-   Il faut noter ici l'utilisation non pas de $\mu_E : S\rightarrow \mathbb{R}^p$ mais de $\mu_E : S\times A \rightarrow \mathbb{R}^k$. Cette dernière partage avec la première la même relation que $Q$ partage avec $V$, c'est à dire que l'on dispose d'un degré de liberté en plus correspondant à la prochaine action, qui peut différer de celle choisie par l'expert.
-
-
-   De la même manière que précedemment, on note $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$, l'expression de la fonction de risque devient alors :
-   \begin{eqnarray}
-   R_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*) + l(s_i,a^*) - \theta ^T \mu_E(s_i,a_i) \right)\\
-   &=& {1\over N} \sum_{i=1}^N\left(\theta^T\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right) + l(s_i,a^*)  \right).
+Nous allons utiliser cette propriété pour imaginer une fonction de risque dépendante d'une fonction $q$ qui devra partager avec la fonction inconnue $Q^E$ la propriété d'optimalité de l'expert que nous venons d'exprimer.\\
+Notons $(s_i,a_i)_i$ les échantillons représentant une ou plusieurs trajectoires de l'expert. Il faut que pour chacun de ces échantillons l'on ait :
+\begin{equation}
+\label{butLAFEM.eqn}
+a_i \in \arg\max_aq(s_i,a).
+\end{equation}
+Notons 
+\begin{equation}
+a^*_i = \arg\max_aq(s_i,a),
+\end{equation}
+alors le critère exprimé Equation \ref{butLAFEM.eqn} s'écrit $\forall i, q(s_i,a^*_i) = q(s_i,a_i)$. Notre fonction de risque doit pénaliser les cas où $q(s_i,a^*_i)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \ref{greedy.eqn}) le choix $a_i$ de l'expert.\\
+Nous introduisons de surcroit une fonction de perte $l : S \times A \rightarrow \mathbb{R}_+$ dans la définition de $a^*_i$ qui devient maintenant :
+\begin{equation}
+\label{astar.def}
+a^*_i = \arg\max_aq(s_i,a) + l(s_i,a).
+\end{equation}
+La définition de notre fonction de risque peut alors être assemblée en :
+  \begin{eqnarray}
+   R_N(q) &=& {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)\\
+   &=& {1\over N} \sum_{i=1}^N\left(q(s_i,a_i^*) + l(s_i,a_i^*) - q(s_i,a_i) \right)
    \end{eqnarray}
 
-   La présence d'un $\max$ dans cette expression (caché dans le $a^*$) nous oblige à utiliser le sous gradient dont la règle est que le sous gradient du $\max$ est le gradient de l'$\arg\max$.
+Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance à priori dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature. Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères fournis en sous-section \ref{proof.sec}.\\
 
-   Le sous gradient de cette expression est donc :
+
+Comme nous l'avons vu Equation \ref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de la {\it feature expectation} de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ la {\it feature expectation} de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \ref{hatRdef.eqn}).
+   \begin{eqnarray}
+   R_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)\\
+   &=& {1\over N} \sum_{i=1}^N\left(\theta^T\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right) + l(s_i,a^*_i)  \right).
+   \end{eqnarray}
+   Il est possible de minimiser ce risque grâce à la règle d'update qui suit, comme cela est expliqué en sous-section \ref{proof.sec} :
    \begin{equation}
-   \nabla L_N(\theta) =  {1\over N}\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right).
+   \theta_{t+1} = \theta_t -\alpha_t{{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)\over ||{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)||_2}.
    \end{equation}
-
-   Une descente de gradient sur le risque donne la règle d'update suivante :
-   \begin{equation}
-   \theta_{t+1} = \theta_t -\alpha_t{1\over N}\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right),
-   \end{equation}
-
-   avec $\alpha_t$ un pas d'apprentissage. L'algorithme complet est détaillé algorithme \ref{LAFEM.alg}.
-
-
 %%%%%
 \section{Résultats expérimentaux}
+\label{exp.sec}
 %%%%%
 %%%
 \subsection{Calcul de $\mu_E$}
 %%%
+\label{calculmu.sec}
 L'algorithme présenté repose sur le calcul de la {\it feature expectation} de l'expert, $\mu_E$. Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour la calculer.
 
 La définition du vecteur $\mu_E$ étant proche de celle de la fonction de valeur, en adaptant les algorithmes de programmation dynamique destinés au calcul de la fonction de valeur on obtient une règle de la forme :
