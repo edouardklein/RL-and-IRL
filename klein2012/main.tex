@@ -90,13 +90,15 @@ GeorgiaTech-CNRS, France
 
 
 \begin{abstract}
-  Cette publication s'occupe du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse ({\it Inverse Reinforcement Learning, IRL}). Dans ce contexte, un expert accomplit une tâche qu'un agent doit essayer de reproduire. L'IRL part du postulat que l'expert optimise avec succès une fonction d'utilité et cherche à deviner cette fonction (appelée récompense) avec pour entrée une trace du comportement de l'expert. Les algorithmes d'IRL existant nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition et la capacité de résoudre le problème direct (celui du {\it Reinforcement Learning, RL}) de manière répétée. Notre contribution est la présentation d'un nouvel algorithme d'IRL levant toutes ces contraintes. En utilisant méthode supervisée dans laquelle nous introduisons la structure du processus décisionnel de Markov ({\it Markov Decision Process, MDP}) sous-jacent, nous créons un algorithme basé sur une descente de sous gradient et possèdant une faible complexité tant en échantillons que calculatoire.
+  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse ({\it Inverse Reinforcement Learning, IRL}). Dans ce contexte, un expert accomplit une tâche qu'un agent doit essayer de reproduire. L'IRL part du postulat que l'expert optimise avec succès une fonction d'utilité et cherche à deviner cette fonction (appelée récompense) avec pour entrée une trace du comportement de l'expert. Les algorithmes d'IRL existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui du {\it Reinforcement Learning, RL}) de manière répétée et l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'IRL levant toutes ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it Markov Decision Process, MDP}) sous-jacent, nous créons un algorithme basé sur une descente de sous gradient et possèdant une faible complexité tant en échantillons que calculatoire.
   \motscles{Apprentissage par renforcement, Apprentissage par renforcement inverse, Processus Decisionnel de Markov}
 \end{abstract}
+%%%%%
 \section{Introduction}
+%%%%%
 \begin{itemize}
 \item Introduction informelle sur les processus de décision séquentiels
-\item Intérêt de l'Apprenticeship learning
+\item Intérêt de l'apprentissage par démonstration
 \item Intérêt de l'IRL pour faire de l'apprenticeship learning
 \item Rapide point sur les limitations des algos d'IRL actuels
 \begin{itemize}
@@ -104,13 +106,80 @@ GeorgiaTech-CNRS, France
 \item \cite{abbeel2004apprenticeship} et toutes les approches résumées dans \cite{neu2009training}: Résolution du problème direct à chaque itération
 \end{itemize}
 \end{itemize}
+%%%%%
 \section{Background}
+%%%%%
 \label{back.sec}
-\begin{itemize}
-\item Introduction rapide, pour les notations, des MDPs, du RL et de l'IRL
-\end{itemize}
-\section{Loss-augmented Feature Expectation Matching}
+%%%
 \subsection{Principe}
+%%%
+Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielle. La configuration du système à contrôler est alors décrite à chaque instant $t$ par un état $s_t \in S$. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe \footnote{On peut se restreindre au cas déterministe sans perte de généralité} $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décision séquentielle.\\
+
+Dans le cadre plus restreint de l'apprentissage par renforcement, pour guider la résolution de ce problème il faut fournir à l'agent une fonction de récompense $R : S \rightarrow \mathbb{R}$ qui lui apprendra le degré auquel l'état dans lequel il se trouve est désirable. Une des forces de l'apprentissage par renforcement réside dans le fait que l'agent ne va pas apprendre à maximiser la récompense immédiate mais au contraire un critère prenant le futur en compte. On définit pour ce faire la fonction de valeur $V^\pi$ :
+\begin{eqnarray}
+\label{Vdef.eqn}
+V^\pi(s) &=& E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,\pi\right]\\
+&=& R(s) + \gamma\sum_{s'}p(s'|s,\pi(s))V^\pi(s')
+\end{eqnarray}
+où $\gamma$ est un facteur d'actualisation strictement plus petit que $1$. Une politique optimale est alors définie comme une politique dont la fonction de valeur $V^*$ (appelée fonction de valeur optimale) vérifie :
+\begin{equation}
+\forall \pi, \forall s, V^*(s) \geq V^\pi(s).
+\end{equation}
+L'ensemble formé par l'espace d'état $S$, l'espace d'action $A$, les probabilités de transition $p$, le facteur $\gamma$ et la fonction de récompense $R$ forme un processus décisionnel de Markov ({\it Markov Decision Process, MDP}).\\
+
+Parfois, définir la fonction de récompense est une tâche ardue alors qu'il est possible à l'opérateur de convenablement contrôler le système de manière intuitive. Un exemple de ce type de tâche est la conduite d'une voiture. Nous accompplissons ce genre de choses au quotidien sans trop y penser mais nous serions bien en peine de préciser les poids précis que nous attribuons aux différents critères tels que la distance nous séparant de la voiture devant nous, la brutalité avec laquelle nous appuyons sur la pédale de frein lorsqu'un danger se présente et ainsi de suite. Dans de tels cas, il est utile d'inférer la récompense à partir d'un comportement démontré.\\
+
+C'est la définition de l'apprentissage par renforcement inverse. Le problème est de retrouver la fonction de récompense optimisée par un expert. Usuellement l'expert est considéré comme un agent optimal dans un MDP et l'on a accès ou bien à la politique complète $\pi_E$ de l'expert ou bien à quelques trajectoires tirées selon cette politique.\\
+
+Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour lequel ce comportement est optimal. Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis à vis de cette récompense.
+%%%
+\subsection{Considérations techniques}
+%%%
+La recherche de la politique optimale en apprentissage par renforcement se fait souvent en utilisant une fonction voisine de la fonction de valeur, la fonction de qualité définie par :
+\begin{eqnarray}
+Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,a_0=a,\pi\right]\\
+&=& R(s) + \gamma\sum_{s'}p(s'|s,a)V^\pi(s').
+\end{eqnarray}
+La politique optimale se définit simplement à partir de la fonction de qualité optimale $Q^*$ via un mécanisme glouton :
+\begin{equation}
+\pi^*(s) \in \arg\max_a Q^*(s,a).
+\end{equation}
+Dès lors, l'approximation de la fonction de valeur (terme qui employé au sens large désigne aussi la fonction de qualité) est un thème central en apprentissage par renforcement. Une caractéristique répandue dans la litérature est l'utilisation d'un cadre d'approximation linéaire où, après avoir défini des attributs vectoriels $\phi: S\times A \rightarrow \mathbb{R}^k$, l'on va chercher un vecteur de paramètres $\omega$ tel que l'on ait une bonne approximation de la fonction de qualité :
+\begin{equation}
+\hat Q (s,a) = \omega^T\phi(s,a)\approx Q(s,a).
+\end{equation}
+Il est naturel d'adopter le même type d'approche pour l'apprentissage par renforcement inverse, c'est à dire de considérer que l'inconnue du problème, la récompense $R$, peut être bien approximée grâce à un vecteur de poids $\theta$ et des attributs vectoriels $\psi : S\rightarrow \mathbb{R}^p$ :
+\begin{equation}
+\hat R(s) = \theta^T\psi(s)\approx R(s).
+\end{equation}
+
+Introduire cette expression dans la définition de la fonction de valeur (Equation \ref{Vdef.eqn}) fait apparaître un terme intéressant et dont l'usage est assez répandu dans les algorithmes existants :
+\begin{eqnarray}
+V^\pi(s) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,\pi\right]\\
+V^\pi(s) &=& \theta^TE\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,\pi\right]\\
+V^\pi(s) &=& \theta^T\mu^\pi(s)
+\end{eqnarray}
+
+Le terme $\mu^\pi$ est appelé la {\it feature expectation} d'une politique. Il existe plusieurs variantes basées sur la même définition que nous venons de donner. Dans sa version la plus spécifique, notée simplement $\mu^\pi$, il s'agit en toute rigueur de l'expression :
+\begin{eqnarray}
+\mu^\pi = E\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0\sim d,\pi\right],
+\end{eqnarray}
+où $d$ est une distribution sur l'état initial. Il peut également être utile de le définir sous la forme $\mu^\pi(s,a)$ où son rôle par rapport à $\mu^\pi(s)$ est le même que celui de $Q$ par rapport à $V$ :
+\begin{eqnarray}
+\mu^\pi(s,a) = E\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right].
+\end{eqnarray}
+On peut noter que si deux politiques ont la même {\it feature expectation}, alors ces deux politiques ont la même valeur vis à vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet 
+\begin{eqnarray}
+\mu^{\pi_1} = \mu^{\pi_2} &\Rightarrow& \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2}\\
+& \Rightarrow& V^{\pi_1} = V^{\pi_2}.
+\end{eqnarray}
+La {\it feature expectation} de l'expert, $\mu_E$, pouvant être calculée sans forcément avoir accès à l'intégralité de la politique $\pi_E$, certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les {\it feature expectations} respectives de l'agent et de l'expert, afin d'obtenir un agent dont le comportement à la même valeur que celui de l'expert.
+%%%%%
+\section{Loss-augmented Feature Expectation Matching}
+%%%%%
+%%%
+\subsection{Principe}
+%%%
 Notre algorithme cherche à minimiser la fonction de risque suivante :
 \begin{equation}
   R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
@@ -175,9 +244,12 @@ Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est in
     \RETURN $\theta_T$
 \end{algorithmic}
 \end{algorithm}
+%%%%%
 \section{Résultats expérimentaux}
-
+%%%%%
+%%%
 \subsection{Calcul de $\mu_E$}
+%%%
 L'algorithme présenté repose sur le calcul de la {\it feature expectation} de l'expert, $\mu_E$. Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour la calculer.
 
 La définition du vecteur $\mu_E$ étant proche de celle de la fonction de valeur, en adaptant les algorithmes de programmation dynamique destinés au calcul de la fonction de valeur on obtient une règle de la forme :
@@ -192,8 +264,9 @@ Dans le cas plus probable où celles-ci sont inconnues, on peut si l'on dispose 
 \end{equation}
 
 Finalement si l'on ne dispose ni des probabilités de transition ni d'un simulateur, alors il est possible d'utiliser LSTD$\mu$ (\citep{klein2011batch}), un algorithme permettant l'estimation en {\it batch} de la {\it feature expectation} de l'expert.
-\section{Résultats expérimentaux}
+%%%
 \subsection{Description de la tâche}
+%%%
 Le problème du pendule inversé à maintenir en équilibre vertical un pendule à un degré de liberté. il s'agit d'un problème classique en apprentissage par renforcement ({\it Reinforcement Learning, RL}). Pour jouer le rôle de notre expert, nous utilisons d'ailleurs la politique trouvée par LSPI, un algorithme de RL décrit par \citet{lagoudakis2003least}. Les différents réglages utilisés, de la valeur de la masse du pendule codée dans notre simulateur jusqu'au choix des fonctions de bases $\phi : S\times A \rightarrow \mathbb{R}^k$ et $\psi : \S \rightarrow \mathbb{R}^p$ sont conformes à ce qui est donné dans cette publication.\\
 
 La politique ainsi trouvée parvient systématiquement à maintenir le pendule en équlibre durant 3000 pas de temps. Ces derniers ayant une valeur d'un dixième de seconde, cela signifie que nous interrompons l'expert après 5 minutes de contrôle sans chute du pendule.\\
@@ -201,7 +274,9 @@ La politique ainsi trouvée parvient systématiquement à maintenir le pendule e
 Le but de cette expérience est de montrer que notre algorithme est capable, à partir des seuls transitions fournies par l'expert et de la définition des fonctions de bases, de retrouver une récompense telle qu'un agent entraîné sur cette récompense puisse lui aussi faire balancer le pendule durant 5 minutes sans échec. Cela n'est pas trivial étant donné que l'espace d'état est continu et que les données fournies par l'expert n'en couvrent qu'une petite partie (correspondant à la position verticale). Ce dernier point est d'ailleur la raison pour laquelle l'algorithme d'\citet{abbeel2004apprenticeship} ne parvient pas à résoudre le problème à l'aide des seules transitions de l'expert.\\
 
 En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fournir quelques transitions aléatoires couvrant tout l'espace d'état il est impossible d'utiliser les algorithmes itératifs du type de celui d'\citet{abbeel2004apprenticeship} car ceux-ci requièrent la résolution du problème direct à chaque itération ; résolution qui ne peut se faire si l'on ne dispose que de données ne couvrant qu'une petite partie de l'espace d'état. Comme notre algorithme ne nécessite pas la résolution du problème direct, il ne rencontre pas ce problème.
+%%%
 \subsection{Illustration des résultats}
+%%%
 \begin{figure}
   \begin{minipage}[t]{.4\linewidth}
     \begin{center}
@@ -259,9 +334,9 @@ Si la fonction de récompense trouvée par LAFEM (figure \ref{lafemR.fig}) diff�
 
 Avec le nombre d'échantillons fournis par l'expert (3000 en 10 trajectoires de 300 transitions chacune), l'agent parvient systématiquement à maintenir le pendule en équilibre durant 5 minutes, ce qui est rappelons le notre critère de réussite.
 
-
+%%%
 \subsection{Etude statistique de la qualité de l'imitation}
-
+%%%
 Nous souhaitons maintenant empiriquement étudier l'impact de la quantité de données fournies par l'expert sur la qualité du contrôle exhibé par l'agent. Pour cela nous appliquons le protocole suivant :
 \begin{itemize}
  \item Créer une base de données $D_0$ de transitions aléatoires.
@@ -285,8 +360,9 @@ Nous souhaitons maintenant empiriquement étudier l'impact de la quantité de do
 \end{itemize}
 
 Cette expérience a été répétée FIXME:nombre de fois, avec les résultats illutrés FIXME:mettre une figure.
-
+%%%%%
 \section{Related Work}
+%%%%%
 \begin{itemize}
 \item Résumé plus détaillé que précédemment des approches IRL actuelles
 \item Laïus sur Ratliff et son approche locale (imitation pure) et globale (plain de contraintes)
