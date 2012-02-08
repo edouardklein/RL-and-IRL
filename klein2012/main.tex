@@ -1,5 +1,5 @@
 % Exemple de fichier fonctionnnant avec la classe CAp2012.cls
-% Base :  
+% Base :
 %	Classe pf2010.cls adpatée de pf2003 par Jean CHarlet
 %	Classe pf2003.cls adpatée de ic2001 par Jean CHarlet
 %
@@ -28,31 +28,8 @@
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
 \usepackage{amssymb}
-
 \usepackage{natbib}
-\usepackage{algorithm}
-\usepackage{algorithmic}
 %%% francisation des algorithmes
-\renewcommand{\algorithmicrequire} {\textbf{\textsc{Entrées:}}}
-\renewcommand{\algorithmicensure}  {\textbf{\textsc{Sorties:}}}
-\renewcommand{\algorithmicwhile}   {\textbf{tantque}}
-\renewcommand{\algorithmicdo}      {\textbf{faire}}
-\renewcommand{\algorithmicendwhile}{\textbf{fin tantque}}
-\renewcommand{\algorithmicend}     {\textbf{fin}}
-\renewcommand{\algorithmicif}      {\textbf{si}}
-\renewcommand{\algorithmicendif}   {\textbf{finsi}}
-\renewcommand{\algorithmicelse}    {\textbf{sinon}}
-\renewcommand{\algorithmicthen}    {\textbf{alors}}
-\renewcommand{\algorithmicfor}     {\textbf{pour}}
-\renewcommand{\algorithmicforall}  {\textbf{pour tout}}
-\renewcommand{\algorithmicdo}      {\textbf{faire}}
-\renewcommand{\algorithmicendfor}  {\textbf{fin pour}}
-\renewcommand{\algorithmicloop}    {\textbf{boucler}}
-\renewcommand{\algorithmicendloop} {\textbf{fin boucle}}
-\renewcommand{\algorithmicrepeat}  {\textbf{répéter}}
-\renewcommand{\algorithmicuntil}   {\textbf{jusqu'à}}
-
-\floatname{algorithm}{Algorithme}
 
 
 %\newtheorem{algorithm}{Algorithme}
@@ -168,7 +145,7 @@ où $d$ est une distribution sur l'état initial. Il peut également être utile
 \begin{eqnarray}
 \mu^\pi(s,a) = E\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right].
 \end{eqnarray}
-On peut noter que si deux politiques ont la même {\it feature expectation}, alors ces deux politiques ont la même valeur vis à vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet 
+On peut noter que si deux politiques ont la même {\it feature expectation}, alors ces deux politiques ont la même valeur vis à vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
 \begin{eqnarray}
 \mu^{\pi_1} = \mu^{\pi_2} &\Rightarrow& \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2}\\
 & \Rightarrow& V^{\pi_1} = V^{\pi_2}.
@@ -199,7 +176,7 @@ Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est in
    \end{equation}
    Il faut noter ici l'utilisation non pas de $\mu_E : S\rightarrow \mathbb{R}^p$ mais de $\mu_E : S\times A \rightarrow \mathbb{R}^k$. Cette dernière partage avec la première la même relation que $Q$ partage avec $V$, c'est à dire que l'on dispose d'un degré de liberté en plus correspondant à la prochaine action, qui peut différer de celle choisie par l'expert.
 
-   
+
    De la même manière que précedemment, on note $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$, l'expression de la fonction de risque devient alors :
    \begin{eqnarray}
    R_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*) + l(s_i,a^*) - \theta ^T \mu_E(s_i,a_i) \right)\\
@@ -208,7 +185,7 @@ Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est in
 
    La présence d'un $\max$ dans cette expression (caché dans le $a^*$) nous oblige à utiliser le sous gradient dont la règle est que le sous gradient du $\max$ est le gradient de l'$\arg\max$.
 
-   Le sous gradient de cette expression est donc : 
+   Le sous gradient de cette expression est donc :
    \begin{equation}
    \nabla L_N(\theta) =  {1\over N}\sum_{i=1}^N\left(\mu_E(s_i,a^*) - \mu_E(s_i,a_i)\right).
    \end{equation}
@@ -220,30 +197,7 @@ Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est in
 
    avec $\alpha_t$ un pas d'apprentissage. L'algorithme complet est détaillé algorithme \ref{LAFEM.alg}.
 
-\begin{algorithm}
-\caption{LAFEM ({\it Loss-Augmented Feature Expectation Matching})}
-\label{LAFEM.alg}
-\begin{algorithmic}
-  \REQUIRE une fonction de perte $l : S\times A \rightarrow \mathbb R$
-  \REQUIRE la \emph{feature expectation} de l'expert $\mu_E : S\times A \rightarrow \mathbb R ^p$
-  \REQUIRE un pas d'apprentissage $\alpha : \mathbb N \rightarrow \mathbb R$
-  \REQUIRE des données provenant de l'expert $\{(s_i,a_i)\}_{i=1..N}$
-  \REQUIRE un vecteur de paramètres initial $\theta_0$
-  \REQUIRE un nombre maximum d'itérations $T\in \mathbb N$
-  \REQUIRE une description de l'espace d'action $A$
 
-     
-  \FOR {T iterations}
-  \STATE $\Delta\theta \leftarrow [0...0]^T$
-    \FORALL{ $(s_i,a_i)$}
-    \STATE $a^* \leftarrow \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$
-    \STATE $\Delta\theta \leftarrow \Delta\theta + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$
-    \ENDFOR
-    \STATE $\theta_{t+1} = \theta_t -\alpha_t{1\over N}\Delta\theta$
-    \ENDFOR
-    \RETURN $\theta_T$
-\end{algorithmic}
-\end{algorithm}
 %%%%%
 \section{Résultats expérimentaux}
 %%%%%
@@ -258,7 +212,7 @@ La définition du vecteur $\mu_E$ étant proche de celle de la fonction de valeu
 \end{equation}
 permettant le calcul exact de la fonction de valeur pour peu que l'on dispose des probabilités de transitions.\\
 
-Dans le cas plus probable où celles-ci sont inconnues, on peut si l'on dispose d'un simulateur utiliser une simple approximation de Monte-Carlo où pour approximer $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ l'on utilise 
+Dans le cas plus probable où celles-ci sont inconnues, on peut si l'on dispose d'un simulateur utiliser une simple approximation de Monte-Carlo où pour approximer $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ l'on utilise
 \begin{equation}
 \hat\mu_E(s,a) = {1\over N}\sum\limits_{i=1}^{N}\sum\limits_{t}\gamma^t\phi(s), s_0=s, a_0=a, a_{t>0} = \pi_E(s_t).
 \end{equation}
@@ -280,7 +234,7 @@ En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fo
 \begin{figure}
   \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_true_R.pdf}
+       \includegraphics[width=\textwidth]{LAFEM_Exp3_true_R.pdf}
        \caption{Récompense sur laquelle l'expert a été entraîné}
        \label{trueR.fig}
     \end{center}
@@ -288,14 +242,14 @@ En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fo
 \hfill
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_lafem_R.pdf}
+       \includegraphics[width=\textwidth]{LAFEM_Exp3_lafem_R.pdf}
        \caption{Récompense trouvée par LAFEM}
        \label{lafemR.fig}
     \end{center}
 \end{minipage}\\
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_Vexpert.pdf}
+       \includegraphics[width=\textwidth]{LAFEM_Exp3_Vexpert.pdf}
        \caption{Fonction de valeur de l'expert}
        \label{trueV.fig}
     \end{center}
@@ -303,7 +257,7 @@ En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fo
 \hfill
 \begin{minipage}[t]{.4\linewidth}
     \begin{center}
-       \includegraphics[width=\textwidth]{../InvertedPendulum/LAFEM_Exp3_Vagent.pdf}
+       \includegraphics[width=\textwidth]{LAFEM_Exp3_Vagent.pdf}
        \caption{Fonction de valeur de l'agent entraîné sur la récompense trouvée par LAFEM}
        \label{lafemV.fig}
     \end{center}
@@ -369,7 +323,7 @@ Cette expérience a été répétée FIXME:nombre de fois, avec les résultats i
 \end{itemize}
 \section{Conclusion and future work}
 \begin{itemize}
-\item On enlève les contraintes du domaine d'un seul coup, 
+\item On enlève les contraintes du domaine d'un seul coup,
 \item Il ne reste que la sélection ou détection de features, mais ce n'est pas hors de portée
 \item Dans la même veine, il reste la résolution du problème direct une fois la récompense obtenue, il faut peut-être creuser du côté du reward shaping
 \item Faible complexité computationnelle
