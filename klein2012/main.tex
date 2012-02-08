@@ -34,6 +34,107 @@
 
 %\newtheorem{algorithm}{Algorithme}
 \newtheorem{definition}{Définition}
+\newtheorem{lemme}{Lemme}
+\newtheorem{theorem}{Théorème}
+\newtheorem{hypo}{Hypothèse}
+\newtheorem{cor}{Corollaire}
+\newtheorem{prop}{Proposition}
+\newtheorem{exemple}{Exemple}
+\newtheorem{remarques}{Remarques}
+\newtheorem{remarque}{Remarque}
+\newtheorem{problem}{Problème}
+\newtheorem{algo}{Algorithme}
+\newtheorem{preuve}{Démonstration}
+\newcommand{\argmax}{\operatorname*{argmax}} %\operatorname* pour les op. pouvant admettre des limites...
+\newcommand{\argmin}{\operatorname*{argmin}}
+\newcommand{\minp}{\operatorname*{min_+}}
+\newcommand{\dom}{\operatorname*{dom}}
+\newcommand{\Ker}{\operatorname*{Ker}}
+\newcommand{\trace}{\operatorname*{trace}}
+\newcommand{\cov}{\operatorname{cov}}
+\newcommand{\epi}{\operatorname{epi}}
+\newcommand{\card}{\operatorname*{Card}}
+\newcommand{\conv}{\operatorname*{Conv}}
+\newcommand{\vect}{\operatorname*{Vect}}
+\newcommand{\var}{\operatorname{Var}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\erf}{\operatorname{erf}}
+\newcommand{\bound}{\operatorname*{bound}}
+\newcommand{\vpi}{\operatorname{VPI}}
+\newcommand{\gn}{\operatorname{Gain}}
+\newcommand{\p}{\operatorname{Pr}}
+\newcommand{\mlp}{\operatorname{MLP}}
+\newcommand*\tto[2]{\smash{\mathop{\longrightarrow}\limits_{#1}^{#2}}}
+\newcommand*\ntto[2]{\smash{\mathop{\nrightarrow}\limits_{#1}^{#2}}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\Q}{\mathbf{Q}}
+\newcommand{\A}{\mathbf{A}}
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\Y}{\mathbf{Y}}
+\newcommand{\E}{\mathbf{E}}
+\newcommand{\K}{\mathbf{K}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\R}{\mathbf{R}}
+\newcommand{\ba}{\mathbf{a}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\bc}{\mathbf{c}}
+\newcommand{\bd}{\mathbf{d}}
+\newcommand{\be}{\mathbf{e}}
+\newcommand{\af}{\mathbf{f}}
+\newcommand{\bg}{\mathbf{g}}
+\newcommand{\bh}{\mathbf{h}}
+\newcommand{\bi}{\mathbf{i}}
+\newcommand{\bj}{\mathbf{j}}
+\newcommand{\bk}{\mathbf{k}}
+\newcommand{\bl}{\mathbf{l}}
+\newcommand{\bm}{\mathbf{m}}
+\newcommand{\bn}{\mathbf{n}}
+\newcommand{\bo}{\mathbf{o}}
+\newcommand{\bp}{\mathbf{p}}
+\newcommand{\bq}{\mathbf{q}}
+\newcommand{\br}{\mathbf{r}}
+\newcommand{\bs}{\mathbf{s}}
+\newcommand{\bt}{\mathbf{t}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bv}{\mathbf{v}}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bz}{\mathbf{z}}
+\newcommand{\ma}{\mathbf{A}}
+\newcommand{\mb}{\mathbf{B}}
+\newcommand{\mc}{\mathbf{C}}
+\newcommand{\md}{\mathbf{D}}
+\newcommand{\me}{\mathbf{E}}
+\newcommand{\mf}{\mathbf{F}}
+\newcommand{\mg}{\mathbf{G}}
+\newcommand{\mh}{\mathbf{H}}
+\newcommand{\mi}{\mathbf{I}}
+\newcommand{\mj}{\mathbf{J}}
+\newcommand{\mk}{\mathbf{K}}
+\newcommand{\ml}{\mathbf{L}}
+\newcommand{\mm}{\mathbf{M}}
+\newcommand{\mn}{\mathbf{N}}
+\newcommand{\mo}{\mathbf{O}}
+\newcommand{\Mp}{\mathbf{P}}
+\newcommand{\mq}{\mathbf{Q}}
+\newcommand{\mr}{\mathbf{R}}
+\newcommand{\ms}{\mathbf{S}}
+\newcommand{\mt}{\mathbf{T}}
+\newcommand{\Mu}{\mathbf{U}}
+\newcommand{\mv}{\mathbf{V}}
+\newcommand{\mw}{\mathbf{W}}
+\newcommand{\mx}{\mathbf{X}}
+\newcommand{\my}{\mathbf{Y}}
+\newcommand{\mz}{\mathbf{Z}}
+\newcommand{\tphi}{\tilde{\Phi}}
+\newcommand{\espace}{\text{ }}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\s}{\mathbf{s}}
+\newcommand{\n}{\mathbf{n}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\I}{\mathbf{I}}
+\newcommand{\rr}{\mathbf{r}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Titre court si le titre fait plus de 40 caractères
@@ -197,6 +298,42 @@ Dans le travail de \citep{ratliff2007imitation}, cette fonction de risque est in
 
    avec $\alpha_t$ un pas d'apprentissage. L'algorithme complet est détaillé algorithme \ref{LAFEM.alg}.
 
+
+%%%%%
+\section{Preuves}\label{proof.sec}
+\subsection{Convergence de l'algorithme de sous-gradient sous réserve de l'existence d'une solution}
+\begin{definition}[Fonction convexe]
+Soient $\me$ un espace vectoriel et $\overline{\mathbb{R}}=\mathbb{R}\cup\{+\infty,-\infty\}$ la droite achevée. On dira qu'une fonction $\af$ de $\me$ vers $\overline{\mathbb{R}}$ est une fonction convexe si pour tout couple $(\bx,\by)\in(\dom\af)\times(\dom\af)$ et pour tout $\bt\in]0,1[$ :
+\begin{equation}
+\af((1-\bt)\bx+\bt\by)\leq(1-\bt)\af(\bx)+\bt\af(\by),
+\end{equation}
+où $\dom\af=\{\bx\in\me:\af(\bx)<+\infty\}$.
+On définit aussi l'épigraphe de $\af$ : $\epi \af=\{(\bx,\alpha)\in\me\times\mathbb{R}:\af(\bx)\leq\alpha\}$. Si ce dernier est fermé alors on dira que $\af$ est convexe fermée. 
+\end{definition}
+\begin{definition}[Sous-gradient d'une fonction convexe]
+Soit $\af$ une fonction convexe de $\me$ vers $\mathbb{R}\cup\{+\infty\}$ tel que $\dom\af$ non vide. On dira alors que $\af$ est une fonction convexe propre. On note $\conv(\me)$ l'ensemble des fonctions convexes propres. Lorsque $\me$ est un espace euclidien muni du produit scalaire $<,>$, on dit que la fonction $\af$ est sous-différentiable en $\bx\in\dom\af$ s'il existe un $\bx^*\in\me$ tel que:
+\begin{equation}
+\forall \by\in\me : \af(\by)\geq\af(\bx)+<\bx^*,\by-\bx>.
+\end{equation}
+On dira alors que $\bx^*$ est un sous-gradient de $\af$ en $\bx$ et on note $\partial_\bx\af$ l'ensemble des sous-gradients de $\af$ en $\bx$.   
+\end{definition}
+\begin{theorem}[Théorème issu de l'article \cite{correa1993convergence}]
+Soit $\af$ une fonction convexe, propre et fermée de $\me$ vers $\mathbb{R}\cup\{+\infty\}$.
+On suppose que $\me$ est un espace euclidien muni du produit scalaire $<,>$ et de la norme $\|.\|_2$ associée et que $\af$ prend des valeurs finies.
+Alors si la fonction admet un minimum sur $\me$, la suite définie par :
+\begin{align}
+&\bx_0\in\me,
+\\
+&\forall \bk\in\mathbb{N} : \bx_{\bk+1}=\bx_\bk-\alpha_{\bk}\frac{\gamma_{\bk}}{\|\gamma_{\bk}\|_2},
+\end{align}
+telle que :
+\begin{align}
+&\sum_{\bk=0}^{\bk=+\infty}\alpha_{\bk}=+\infty,
+\\
+&\sum_{\bk=0}^{\bk=+\infty}\alpha_{\bk}^2<+\infty,
+\end{align}
+est convergente vers un point qui minimise $\af$, où $\gamma_{\bk}\in\partial_{\bx_\bk}\af$. De plus, on a $\liminf\af({\bx_\bk})=\min_{\bx\in\me}\af(\bx)$.
+\end{theorem}
 
 %%%%%
 \section{Résultats expérimentaux}
