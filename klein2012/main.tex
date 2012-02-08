@@ -97,6 +97,7 @@ Dans le cadre plus restreint de l'apprentissage par renforcement, pour guider la
 \label{Vdef.eqn}
 V^\pi(s) &=& E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,\pi\right]\\
 &=& R(s) + \gamma\sum_{s'}p(s'|s,\pi(s))V^\pi(s')
+\label{BellmanV.eqn}
 \end{eqnarray}
 où $\gamma$ est un facteur d'actualisation strictement plus petit que $1$. Une politique optimale est alors définie comme une politique dont la fonction de valeur $V^*$ (appelée fonction de valeur optimale) vérifie :
 \begin{equation}
@@ -111,6 +112,7 @@ C'est la définition de l'apprentissage par renforcement inverse. Le problème e
 Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour lequel ce comportement est optimal. Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis à vis de cette récompense.
 %%%
 \subsection{Considérations techniques}
+\label{ConsiderationsTechniques.sec}
 %%%
 La recherche de la politique optimale en apprentissage par renforcement se fait souvent en utilisant une fonction voisine de la fonction de valeur, la fonction de qualité définie par :
 \begin{eqnarray}
@@ -142,6 +144,7 @@ V^\pi(s) &=& \theta^T\mu^\pi(s)
 
 Le terme $\mu^\pi$ est appelé la {\it feature expectation} d'une politique. Il existe plusieurs variantes basées sur la même définition que nous venons de donner. Dans sa version la plus spécifique, notée simplement $\mu^\pi$, il s'agit en toute rigueur de l'expression :
 \begin{eqnarray}
+\label{mupidef.eqn}
 \mu^\pi = E\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0\sim d,\pi\right],
 \end{eqnarray}
 où $d$ est une distribution sur l'état initial. Il peut également être utile de le définir sous la forme $\mu^\pi(s,a)$ où son rôle par rapport à $\mu^\pi(s)$ est le même que celui de $Q$ par rapport à $V$ :
@@ -172,7 +175,7 @@ L'un des postulats de base de l'apprentissage par renforcement inverse est que l
 \begin{equation}
 \pi_E(s) \in \arg\max_aQ^E_R(s,a).
 \end{equation}
-Nous allons utiliser cette propriété pour imaginer une fonction de risque dépendante d'une fonction $q$ qui devra partager avec la fonction inconnue $Q^E$ la propriété d'optimalité de l'expert que nous venons d'exprimer.\\
+Nous allons utiliser cette propriété pour imaginer une fonction de risque dépendante d'une fonction $q$ qui devra partager avec la fonction inconnue $Q^E_R$ la propriété d'optimalité de l'expert que nous venons d'exprimer.\\
 Notons $(s_i,a_i)_i$ les échantillons représentant une ou plusieurs trajectoires de l'expert. Il faut que pour chacun de ces échantillons l'on ait :
 \begin{equation}
 \label{butLAFEM.eqn}
@@ -194,10 +197,10 @@ La définition de notre fonction de risque peut alors être assemblée en :
    &=& {1\over N} \sum_{i=1}^N\left(q(s_i,a_i^*) + l(s_i,a_i^*) - q(s_i,a_i) \right)
    \end{eqnarray}
 
-Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance à priori dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature. Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères fournis en sous-section \ref{proof.sec}.\\
+Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature. Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères fournis en sous-section \ref{proof.sec}.\\
 
 
-Comme nous l'avons vu Equation \ref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de la {\it feature expectation} de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ la {\it feature expectation} de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \ref{hatRdef.eqn}).
+Comme nous l'avons vu Equation \ref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de la {\it feature expectation} de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ la {\it feature expectation} de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \ref{hatRdef.eqn}).
    \begin{eqnarray}
    R_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)\\
    &=& {1\over N} \sum_{i=1}^N\left(\theta^T\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right) + l(s_i,a^*_i)  \right).
@@ -206,32 +209,49 @@ Comme nous l'avons vu Equation \ref{Qmu.eqn}, en faisant l'hypothèse d'une repr
    \begin{equation}
    \theta_{t+1} = \theta_t -\alpha_t{{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)\over ||{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)||_2}.
    \end{equation}
+%%%
+\subsection{Calcul de $\mu_E$}
+%%%
+\label{calculmu.sec}
+L'algorithme présenté repose sur le calcul de la {\it feature expectation} de \mbox{l'expert}, $\mu_E$. Comme signalé dans la sous-section \ref{ConsiderationsTechniques.sec}, beaucoup d'algorithmes de la littérature reposent sur un calcul de cette {\it feature expectation}. Notre algorithme a cependant ceci de particulier qu'il ne nécessite que le calcul de $\mu_E$, la {\it feature expectation} de l'expert et non le calcul de la {\it feature expectation} d'une politique arbitraire. De fait cela nous épargne le besoin d'un simulateur, d'un solveur de MDP ou d'échantillons couvrant tout l'espace d'état.\\
+
+Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour calculer $\mu_E$.\\
+
+Dans le cas le plus facile, on peut utiliser la proximité entre la définition du vecteur $\mu$ (Equation \ref{mupidef.eqn}) et celle de la fonction de valeur (Equation \ref{Vdef.eqn}) pour adapter les algorithmes d'évaluation de la fonction de valeur dans le cadre de la programmation dynamique au calcul de la {\it feature expectation}.\\
+En supposant un espace d'état de cardinal fini, l'équation de Bellman (Equation \ref{BellmanV.eqn}) peut s'écrire sous forme matricelle :
+\begin{equation}
+\mathbf V^\pi = \mathbf R + \gamma P_\pi\mathbf V^\pi
+\end{equation}
+Il est connu qu'une règle d'update de la forme 
+\begin{equation}
+\mathbf V^\pi_{t+1} \leftarrow \mathbf R + \gamma P_\pi\mathbf V^\pi_t
+\end{equation}
+convergera vers la valeur exacte recherchée. Ce sont les algorithmes du type \emph{value iteration} qui exploitent cette propriété. Parallèlement il est possible d'utiliser une règle d'update de la forme :
+\begin{equation}
+\mathbf \mu^\pi_{t+1} \leftarrow \mathbf\Phi + \gamma P_\pi\mathbf\mu^\pi_t
+\end{equation}
+pour obtenir la valeur exacte de la {\it feature expectation}.\\
+
+Dans le cas plus réaliste où les probabilités de transitions sont inconnues, on peut, si l'on dispose d'un simulateur et qu'il est possible d'interroger l'expert en un grand nombre d'états arbitraires, utiliser une simple approximation de Monte-Carlo où pour approximer $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ l'on utilise
+\begin{equation}
+\hat\mu_E(s,a) = {1\over N}\sum\limits_{i=1}^{N}\sum\limits_{t}\gamma^t\phi(s), s_0=s, a_0=a, a_{t>0} = \pi_E(s_t).
+\end{equation}
+
+Finalement, afin d'entrer dans le cadre où les seules données qui nous sont accessibles sont des trajectoires fournies par l'expert il est possible d'utiliser l'algorithme LSTD$\mu$ (\citep{klein2011batch}) dans sa version \emph{on-policy}. Cet algorithme se base également sur la similarité entre les definitions de $\mu$ et $Q$ mais au lieu d'adapter un algorithme de programmation dynamique comme nous venons d'en donner l'exemple, il adapte l'algorithme LSTD (\cite{bradtke1996linear}) dont il conserve les caractéritiques, notamment la capacité à effectuer le calcul en mode {\it batch} et {\it offline}. Une approximation de la forme $\hat{\mu}_i^\pi(s) = (\xi_i^*)^T \psi(s)$ est obtenue grâce à la solution des moindres carrés : 
+\begin{equation}
+  \xi_i^* = \left(\sum_{t=1}^n
+  \psi(s_t)(\psi(s_t)-\gamma\psi(s_{t+1}))^T\right)^{-1}
+  \sum_{t=1}^n \psi(s_t) \phi_i(s_t).
+\end{equation}
+
 %%%%%
 \section{Résultats expérimentaux}
 \label{exp.sec}
 %%%%%
 %%%
-\subsection{Calcul de $\mu_E$}
-%%%
-\label{calculmu.sec}
-L'algorithme présenté repose sur le calcul de la {\it feature expectation} de l'expert, $\mu_E$. Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour la calculer.
-
-La définition du vecteur $\mu_E$ étant proche de celle de la fonction de valeur, en adaptant les algorithmes de programmation dynamique destinés au calcul de la fonction de valeur on obtient une règle de la forme :
-\begin{equation}
-\mathbf \mu^\pi = \mathbf\Phi + \gamma P_\pi\mathbf\mu^\pi
-\end{equation}
-permettant le calcul exact de la fonction de valeur pour peu que l'on dispose des probabilités de transitions.\\
-
-Dans le cas plus probable où celles-ci sont inconnues, on peut si l'on dispose d'un simulateur utiliser une simple approximation de Monte-Carlo où pour approximer $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ l'on utilise
-\begin{equation}
-\hat\mu_E(s,a) = {1\over N}\sum\limits_{i=1}^{N}\sum\limits_{t}\gamma^t\phi(s), s_0=s, a_0=a, a_{t>0} = \pi_E(s_t).
-\end{equation}
-
-Finalement si l'on ne dispose ni des probabilités de transition ni d'un simulateur, alors il est possible d'utiliser LSTD$\mu$ (\citep{klein2011batch}), un algorithme permettant l'estimation en {\it batch} de la {\it feature expectation} de l'expert.
-%%%
 \subsection{Description de la tâche}
 %%%
-Le problème du pendule inversé à maintenir en équilibre vertical un pendule à un degré de liberté. il s'agit d'un problème classique en apprentissage par renforcement ({\it Reinforcement Learning, RL}). Pour jouer le rôle de notre expert, nous utilisons d'ailleurs la politique trouvée par LSPI, un algorithme de RL décrit par \citet{lagoudakis2003least}. Les différents réglages utilisés, de la valeur de la masse du pendule codée dans notre simulateur jusqu'au choix des fonctions de bases $\phi : S\times A \rightarrow \mathbb{R}^k$ et $\psi : \S \rightarrow \mathbb{R}^p$ sont conformes à ce qui est donné dans cette publication.\\
+Le problème du pendule inversé à maintenir en équilibre vertical un pendule à un degré de liberté. il s'agit d'un problème classique en apprentissage par renforcement ({\it Reinforcement Learning, RL}). Pour jouer le rôle de notre expert, nous utilisons d'ailleurs la politique trouvée par LSPI, un algorithme de RL décrit par \citet{lagoudakis2003least}. Les différents réglages utilisés, de la valeur de la masse du pendule codée dans notre simulateur jusqu'au choix des fonctions de bases $\phi : S\times A \rightarrow \mathbb{R}^k$ et $\psi : S \rightarrow \mathbb{R}^p$ sont conformes à ce qui est donné dans cette publication.\\
 
 La politique ainsi trouvée parvient systématiquement à maintenir le pendule en équlibre durant 3000 pas de temps. Ces derniers ayant une valeur d'un dixième de seconde, cela signifie que nous interrompons l'expert après 5 minutes de contrôle sans chute du pendule.\\
 
