@@ -279,7 +279,7 @@ Notons $(s_i,a_i)_i$ les échantillons représentant une ou plusieurs trajectoir
 \label{butLAFEM.eqn}
 a_i \in \arg\max_aq(s_i,a).
 \end{equation}
-Notons 
+Notons
 \begin{equation}
 a^*_i = \arg\max_aq(s_i,a),
 \end{equation}
@@ -311,24 +311,24 @@ Comme nous l'avons vu Equation \ref{Qmu.eqn}, en faisant l'hypothèse d'une repr
 \section{Preuves}\label{proof.sec}
 \subsection{Convergence de l'algorithme de sous-gradient sous réserve de l'existence d'une solution}
 \begin{definition}[Fonction convexe]
-Soient $\me$ un espace vectoriel et $\overline{\mathbb{R}}=\mathbb{R}\cup\{+\infty,-\infty\}$ la droite achevée. On dira qu'une fonction $\af$ de $\me$ vers $\overline{\mathbb{R}}$ est une fonction convexe si pour tout couple $(\bx,\by)\in(\dom\af)\times(\dom\af)$ et pour tout $\bt\in]0,1[$ :
+Soient ~$\me$ un espace vectoriel et ~$\overline{\mathbb{R}}=\mathbb{R}\cup\{+\infty,-\infty\}$ la droite achevée. On dira qu'une fonction ~$\af$ de ~$\me$ vers ~$\overline{\mathbb{R}}$ est une fonction convexe si pour tout couple ~$(\bx,\by)\in(\dom\af)\times(\dom\af)$ et pour tout ~$\bt\in]0,1[$ :
 \begin{equation}
 \af((1-\bt)\bx+\bt\by)\leq(1-\bt)\af(\bx)+\bt\af(\by),
 \end{equation}
-où $\dom\af=\{\bx\in\me:\af(\bx)<+\infty\}$.
-On définit aussi l'épigraphe de $\af$ : $\epi \af=\{(\bx,\alpha)\in\me\times\mathbb{R}:\af(\bx)\leq\alpha\}$. Si ce dernier est fermé alors on dira que $\af$ est convexe fermée. 
+où ~$\dom\af=\{\bx\in\me:\af(\bx)<+\infty\}$.
+On définit aussi l'épigraphe de ~$\af$ : ~$\epi \af=\{(\bx,\alpha)\in\me\times\mathbb{R}:\af(\bx)\leq\alpha\}$. Si ce dernier est fermé alors on dira que ~$\af$ est convexe fermée.
 \end{definition}
 \begin{definition}[Sous-gradient d'une fonction convexe]
-Soit $\af$ une fonction convexe de $\me$ vers $\mathbb{R}\cup\{+\infty\}$ tel que $\dom\af$ non vide. On dira alors que $\af$ est une fonction convexe propre. On note $\conv(\me)$ l'ensemble des fonctions convexes propres. Lorsque $\me$ est un espace euclidien muni du produit scalaire $<,>$, on dit que la fonction $\af$ est sous-différentiable en $\bx\in\dom\af$ s'il existe un $\bx^*\in\me$ tel que:
+Soit ~$\af$ une fonction convexe de ~$\me$ vers ~$\mathbb{R}\cup\{+\infty\}$ tel que ~$\dom\af$ non vide. On dira alors que ~$\af$ est une fonction convexe propre. On note ~$\conv(\me)$ l'ensemble des fonctions convexes propres. Lorsque ~$\me$ est un espace euclidien muni du produit scalaire $<,>$, on dit que la fonction ~$\af$ est sous-différentiable en ~$\bx\in\dom\af$ s'il existe un ~$\bx^*\in\me$ tel que:
 \begin{equation}
 \forall \by\in\me : \af(\by)\geq\af(\bx)+<\bx^*,\by-\bx>.
 \end{equation}
-On dira alors que $\bx^*$ est un sous-gradient de $\af$ en $\bx$ et on note $\partial_\bx\af$ l'ensemble des sous-gradients de $\af$ en $\bx$.   
+On dira alors que ~$\bx^*$ est un sous-gradient de ~$\af$ en ~$\bx$ et on note ~$\partial_\bx\af$ l'ensemble des sous-gradients de ~$\af$ en ~$\bx$.
 \end{definition}
-\begin{theorem}[Théorème issu de l'article \cite{correa1993convergence}]
-Soit $\af$ une fonction convexe, propre et fermée de $\me$ vers $\mathbb{R}\cup\{+\infty\}$.
-On suppose que $\me$ est un espace euclidien muni du produit scalaire $<,>$ et de la norme $\|.\|_2$ associée et que $\af$ prend des valeurs finies.
-Alors si la fonction admet un minimum sur $\me$, la suite définie par :
+\begin{theorem}[Théorème issu de l'article \cite{correa1993convergence}]\label{theoreme.sec}
+Soit ~$\af$ une fonction convexe, propre et fermée de ~$\me$ vers ~$\mathbb{R}\cup\{+\infty\}$.
+On suppose que ~$\me$ est un espace euclidien muni du produit scalaire $<,>$ et de la norme ~$\|.\|_2$ associée et que ~$\af$ prend des valeurs finies.
+Alors si la fonction admet un minimum sur ~$\me$, la suite définie par :
 \begin{align}
 &\bx_0\in\me,
 \\
@@ -340,9 +340,38 @@ telle que :
 \\
 &\sum_{\bk=0}^{\bk=+\infty}\alpha_{\bk}^2<+\infty,
 \end{align}
-est convergente vers un point qui minimise $\af$, où $\gamma_{\bk}\in\partial_{\bx_\bk}\af$. De plus, on a $\liminf\af({\bx_\bk})=\min_{\bx\in\me}\af(\bx)$.
+est convergente vers un point qui minimise ~$\af$, où ~$\gamma_{\bk}\in\partial_{\bx_\bk}\af$. De plus, on a ~$\liminf\af({\bx_\bk})=\min_{\bx\in\me}\af(\bx)$.
 \end{theorem}
-
+\subsection{Application à notre fonction de risque}
+On rappelle que notre fonction de risque $R_N$ est une fonction de l'espace euclidien $\mathbb{R}^p$, qu'on munira du produit scalaire canonique $<.,.>$ et de sa norme associée $\|\|_2$, vers $\mathbb{R}$ où $p$ est la dimension de l'inconnue $\theta$. Pour $\theta\in\mathbb{R}^p$, on a :
+\begin{eqnarray}
+   R_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)\\
+   &=& {1\over N} \sum_{i=1}^N\left(\theta^T\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right) + l(s_i,a^*_i)  \right).
+\end{eqnarray}
+On peut montrer que $R_N$ est définie correctement de la manière suivante.
+On définit pour chaque $i\in\{1,\dots,N\}$ et pour chaque $a\in A$, où $A$ est un ensemble fini d'actions, les fonctions $f_{(i,a)}$ qui sont des fonctions de $\mathbb{R}^p$ vers $\mathbb{R}$ par :
+\begin{equation}
+f_{(i,a)}({\theta})=\theta ^T \mu_E(s_i,a) + l(s_i,a).
+\end{equation}
+Il est évident que $f_{i,a}$ est une fonction convexe, propre et fermée à valeurs finies. De plus elle est continue. On définit aussi pour chaque $i\in\{1,\dots,N\}$, les fonctions $g_{i}$ qui sont des fonctions de $\mathbb{R}^p$ vers $\mathbb{R}$ par :
+\begin{equation}
+g_{i}({\theta})=-\theta ^T \mu_E(s_i,a_i).
+\end{equation}
+Il est évident que $g_{i}$ est une fonction convexe, propre et fermée à valeurs finies. De plus elle est continue.
+Comme $\A$ est fini, alors on peut définir pour chaque $i\in\{1,\dots,N\}$, les fonctions $h_{(i,a)}$ qui sont des fonctions de $\mathbb{R}^p$ vers $\mathbb{R}$ par :
+\begin{equation}
+h_{i}({\theta})=\max_{a \in A}\theta ^T \mu_E(s_i,a) + l(s_i,a)=\max_{a \in A}f_{(i,a)}({\theta}).
+\end{equation}
+La fonction $g_{i}$ étant défini comme un maximum sur un ensemble fini de fonctions continues, convexes, propres et fermées à valeurs finies est encore continue, convexe, propre et fermée à valeurs finies.
+Finalement il vient que l'on peut écrire pour tout $\theta$ :
+\begin{equation}
+R_N(\theta) = {1\over N} \sum_{i=1}^N g_{i}({\theta})+h_{i}({\theta}).
+\end{equation}
+Ainsi $R_N$ est la somme finie de fonctions convexes, propres, fermées et continues à valeurs finies, elle aura donc ces propriétés et est définie correctement. On voit donc que la fonction $R_N$ est une bonne candidate à l'application du théorème \ref{theoreme.sec} sous réserve de l'existence d'un $\theta^*$ tel que :
+\begin{equation}
+R_N(\theta^*)=\inf_{\theta \in \mathbb{R}^p}R_N(\theta).
+\end{equation}
+Nous allons montrer l'existence de ce $\theta^*$ dans un cas particulier.
 %%%%%
 \section{Résultats expérimentaux}
 \label{exp.sec}
