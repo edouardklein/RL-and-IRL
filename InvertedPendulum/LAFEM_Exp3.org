@@ -278,15 +278,17 @@ LAFEM_Exp3_true_R.pdf: LAFEM_Exp3_true_R.gp LAFEM_Exp3_true_R.mat
 #+end_src
 
 #+begin_src gnuplot :tangle LAFEM_Exp3_lafem_R.gp
-set pm3d map
+
 set output "LAFEM_Exp3_lafem_R.ps"
 set term postscript enhanced color
 set xrange [-3.15:3.15]
 set yrange [-3.15:3.15]
 set xlabel "Position"
 set ylabel "Speed"
-splot "LAFEM_Exp3_lafem_R.dat" notitle
-
+set parametric
+set style line 2 lt 1 lw 1 pt 1 linecolor rgb "green"
+set pm3d map
+splot "LAFEM_Exp3_lafem_R.dat" notitle w pm3d, "D_expert.mat" u 1:2:(0.0) w points ls 2 notitle
 #+end_src
 
 #+srcname: LAFEM_Exp3_make
