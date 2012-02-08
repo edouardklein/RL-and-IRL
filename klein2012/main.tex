@@ -306,7 +306,7 @@ Comme nous l'avons vu Equation \ref{Qmu.eqn}, en faisant l'hypothèse d'une repr
    R_N(\theta) &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)\\
    &=& {1\over N} \sum_{i=1}^N\left(\theta^T\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right) + l(s_i,a^*_i)  \right).
    \end{eqnarray}
-   Il est possible de minimiser ce risque grâce à la règle d'update qui suit, comme cela est expliqué en sous-section \ref{proof.sec} :
+   Il est possible de minimiser ce risque grâce à la règle d'update qui suit, comme cela est expliqué en section \ref{proof.sec} :
    \begin{equation}
    \theta_{t+1} = \theta_t -\alpha_t{{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)\over ||{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)||_2}.
    \end{equation}
@@ -475,42 +475,16 @@ Afin d'étudier le comportement de notre algorithmes, nous avons établi le prot
  \item Faire tourner LAFEM.
  \item Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$.
  \item Vérifier que l'agent parvient lui aussi à maintenir le pendule en équilibre durant 3000 pas de temps.
- \item Afficher la fonction de valeur de l'expert.
- \item Afficher la fonction de valeur de l'agent.
- \item Afficher la fonction de récompense sur laquelle l'expert a été entraîné
- \item Afficher la fonction de récompense retrouvée par LAFEM
 \end{itemize}
 
 Si la fonction de récompense trouvée par LAFEM (figure \ref{lafemR.fig}) diffère de celle fournie à l'expert (figure \ref{trueR.fig}) on constate en revanche que les fonctions de valeurs sont très similaires (figures \ref{trueV.fig} et \ref{lafemV.fig}). Cela est une illustration du fait que le problème de l'IRL est mal posé en ceci qu'il n'y a pas qu'une seule récompense pouvant expliquer une politique.\\
 
-Avec le nombre d'échantillons fournis par l'expert (3000 en 10 trajectoires de 300 transitions chacune), l'agent parvient systématiquement à maintenir le pendule en équilibre durant 5 minutes, ce qui est rappelons le notre critère de réussite.
+Avec le nombre d'échantillons fournis par l'expert (3000 en 10 trajectoires de 300 transitions chacune), l'agent parvient systématiquement à maintenir le pendule en équilibre durant 5 minutes, ce qui est rappelons le notre critère de réussite.\\
 
-%%%
-\subsection{Etude statistique de la qualité de l'imitation}
-%%%
-Nous souhaitons maintenant empiriquement étudier l'impact de la quantité de données fournies par l'expert sur la qualité du contrôle exhibé par l'agent. Pour cela nous appliquons le protocole suivant :
-\begin{itemize}
- \item Créer une base de données $D_0$ de transitions aléatoires.
- \item Entraîner un expert en utilisant LSPI nourri avec ces transitions (ce qui définit $\pi_E : S\rightarrow A$)
- \item Vérifier que l'expert est en mesure de balancer le pendule durant 3000 pas de temps
- \item Créer une base de données $D_E$ de transitions de l'expert. On la crée de 10 trajectoires de 300 transitions chacune.
- \item Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$.
- \item Définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
- \item Fixer $T=20$ (pifomètre)
- \item Pour différentes quantités de données $N$,
-\begin{itemize}
-   \item Définir $D_E^N$ en tronquant $D_E$ à ses $N$ premières transitions
-   \item Définir $D$ à partir des de $D_E^N$ en enlevant l'état d'arrivée
-   \item Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) =  \omega^T_{\pi_E}\phi(s,a), \omega_{\pi_E} = LSTD\mu(D_E^N)$
-   \item Initialiser $\omega_0 = [-1...-1]^T$
-   \item Faire tourner LAFEM
-   \item Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
-   \item Regarder durant combien de pas de temps l'agent arrrive à faire tenir le pendule.
-   \item Tracer la courbe donnant la qualité du contrôle (nombre de pas de temps durant lequel l'agent balance le pendule) en fonction de la quantitié de données disponible ($N$)
-\end{itemize}
-\end{itemize}
+Deux éléments méritent d'être notés. Tout d'abord la faible couverture de l'espace d'état offerte par les échantillons de l'expert. Ceux-ci sont portés en vert sur la Figure \ref{lafemR.fig} et l'on constate qu'ils n'occupent qu'une toute petite partie de l'espace : celle dans laquelle le pendule est proche de la verticale. En l'absence de données dans le reste de l'espace d'état il n'est pas possible de pouvoir y inférer avec certitude la récompense. Le second point à noter est que la "vraie" récompense ne se trouve pas dans l'espace d'hypothèse que notre algorithme explore, en effet les attributs proposés dans le problème du pendule inversé par \citet{lagoudakis2003least} consistent en un réseau de gaussiennes qui ne peuvent qu'approximer la fonction de récompense utilisée sans l'atteindre.\\
 
-Cette expérience a été répétée FIXME:nombre de fois, avec les résultats illutrés FIXME:mettre une figure.
+Malgré ces deux difficultés, notre algorithme parvient comme nous l'avons dit à extraire une récompense qui permet à un agent d'obtenir des performances similaires à celles de l'expert. 
+
 %%%%%
 \section{Related Work}
 %%%%%
