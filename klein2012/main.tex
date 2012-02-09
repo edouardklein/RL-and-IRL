@@ -26,7 +26,8 @@
 \usepackage[french]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{amsmath}
+\usepackage{mathtools}
+\mathtoolsset{showonlyrefs=true}
 \usepackage{amssymb}
 \usepackage{natbib}
 %%% francisation des algorithmes
@@ -140,7 +141,7 @@
 % Titre court si le titre fait plus de 40 caractères
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\shorttitle{Batch Inverse Reinforcement Learning}
+\shorttitle{Classification structurée pour l'IRL}
 
 \shortouvrage{CAp 2012}
 
@@ -148,7 +149,7 @@
 
 \title{Classification structurée pour l'apprentissage par renforcement inverse}
 
-\author{\fontsize{12}{12}\selectfont{Edouard Klein\inst{1}\inst{2}, Matthieu Geist\inst{1}, Olivier Pietquin\inst{1}\inst{3}}}
+\author{\fontsize{12}{12}\selectfont{Edouard Klein\inst{1}$^,$\inst{2}, Bilal Piot \inst{1}$^,$\inst{3}, Matthieu Geist\inst{1}, Olivier Pietquin\inst{1}$^,$\inst{3}}}
 
 \institute{
 Sup\'elec,\\
@@ -156,7 +157,7 @@ IMS Research group, France\\
 \texttt{prenom.nom@supelec.fr}
 \and
 Equipe ABC,\\
-LORIA-CNRS, France
+LORIA, France
 \and
 UMI 2958\\
 GeorgiaTech-CNRS, France
@@ -168,7 +169,7 @@ GeorgiaTech-CNRS, France
 
 
 \begin{abstract}
-  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse ({\it Inverse Reinforcement Learning, IRL}). Dans ce contexte, un expert accomplit une tâche qu'un agent doit essayer de reproduire. L'IRL part du postulat que l'expert optimise avec succès une fonction d'utilité ; le problème consiste à deviner cette fonction (appelée récompense) avec pour entrée une trace du comportement de l'expert. Les algorithmes d'IRL existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui du {\it Reinforcement Learning, RL}) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'IRL levant toutes ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it Markov Decision Process, MDP}) sous-jacent, nous créons un algorithme basé sur une descente de sous gradient, possèdant une faible complexité tant en échantillons que calculatoire et ne nécessitant pas la résolution du problème direct.
+  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse ({\it Inverse Reinforcement Learning, IRL}). Dans ce contexte, un expert accomplit une tâche qu'un agent doit essayer de reproduire. L'IRL part du postulat que l'expert optimise avec succès une fonction d'utilité ; le problème consiste à deviner cette fonction (appelée récompense) à partir de  traces du comportement de l'expert. Les algorithmes d'IRL existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui du {\it Reinforcement Learning, RL}) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'IRL levant l'ensemble de ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it Markov Decision Process, MDP}) sous-jacent, nous créons un algorithme basé sur une descente de sous-gradient, possèdant une faible complexité tant en échantillons que calculatoire et ne nécessitant pas la résolution du problème direct.
   \motscles{Apprentissage par renforcement, Apprentissage par renforcement inverse, Processus Decisionnel de Markov}
 \end{abstract}
 %%%%%
@@ -185,15 +186,15 @@ GeorgiaTech-CNRS, France
 \end{itemize}
 \end{itemize}
 %%%%%
-\section{Background}
+\section{Contexte}
 %%%%%
 \label{back.sec}
 %%%
-\subsection{Principe}
+\subsection{Apprentissage par renforcement direct et inverse}
 %%%
-Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielle. La configuration du système à contrôler est alors décrite à chaque instant $t$ par un état $s_t \in S$. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe \footnote{On peut se restreindre au cas déterministe sans perte de généralité} $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décision séquentielle.\\
+Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielles. La configuration du système à contrôler est alors décrite à chaque instant discret $t$ par un état $s_t \in S$. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe \footnote{On peut se restreindre au cas déterministe sans perte de généralité.} $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décisions séquentielles.\\
 
-Dans le cadre plus restreint de l'apprentissage par renforcement, pour guider la résolution de ce problème il faut fournir à l'agent une fonction de récompense $R : S \rightarrow \mathbb{R}$ qui lui apprendra le degré auquel l'état dans lequel il se trouve est désirable. Une des forces de l'apprentissage par renforcement réside dans le fait que l'agent ne va pas apprendre à maximiser la récompense immédiate mais au contraire un critère prenant le futur en compte. On définit pour ce faire la fonction de valeur $V^\pi$ :
+Dans le cadre de l'apprentissage par renforcement,la résolution de ce problème est guidée par une fonction de récompense $R : S \rightarrow \mathbb{R}$ qui indique le degré de désirabilité de chaque état. Une des forces de l'apprentissage par renforcement réside dans le fait que l'agent ne va pas apprendre à maximiser la récompense immédiate mais au contraire un critère prenant le futur en compte, ce qui permet de spécifier uniquement le but et non la façon de l'atteindre. On définit pour ce faire la fonction de valeur $V^\pi$ :
 \begin{eqnarray}
 \label{Vdef.eqn}
 V^\pi(s) &=& E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,\pi\right]\\
@@ -206,7 +207,7 @@ où $\gamma$ est un facteur d'actualisation strictement plus petit que $1$. Une 
 \end{equation}
 L'ensemble formé par l'espace d'état $S$, l'espace d'action $A$, les probabilités de transition $p$, le facteur $\gamma$ et la fonction de récompense $R$ forme un processus décisionnel de Markov ({\it Markov Decision Process, MDP}).\\
 
-Parfois, définir la fonction de récompense est une tâche ardue alors qu'il est possible à l'opérateur de convenablement contrôler le système de manière intuitive. Un exemple de ce type de tâche est la conduite d'une voiture. Nous accompplissons ce genre de choses au quotidien sans trop y penser mais nous serions bien en peine de préciser les poids précis que nous attribuons aux différents critères tels que la distance nous séparant de la voiture devant nous, la brutalité avec laquelle nous appuyons sur la pédale de frein lorsqu'un danger se présente et ainsi de suite. Dans de tels cas, il est utile d'inférer la récompense à partir d'un comportement démontré.\\
+Parfois, définir la fonction de récompense est une tâche ardue alors qu'il est possible à l'opérateur de convenablement contrôler le système de manière intuitive. Un exemple de ce type de tâche est la conduite d'une voiture. Nous accomplissons ce genre de choses au quotidien sans trop y penser mais nous serions bien en peine de préciser les poids précis que nous attribuons aux différents critères tels que la distance nous séparant de la voiture devant nous, la brutalité avec laquelle nous appuyons sur la pédale de frein lorsqu'un danger se présente et ainsi de suite. Dans de tels cas, il est utile d'inférer la récompense à partir d'un comportement démontré.\\
 
 C'est la définition de l'apprentissage par renforcement inverse. Le problème est de retrouver la fonction de récompense optimisée par un expert. Usuellement l'expert est considéré comme un agent optimal dans un MDP et l'on a accès ou bien à la politique complète $\pi_E$ de l'expert ou bien à quelques trajectoires tirées selon cette politique.\\
 
@@ -235,7 +236,7 @@ Il est naturel d'adopter le même type d'approche pour l'apprentissage par renfo
 \hat R(s) = \theta^T\psi(s)\approx R(s).
 \end{equation}
 
-Introduire cette expression dans la définition de la fonction de valeur (Equation \ref{Vdef.eqn}) fait apparaître un terme intéressant et dont l'usage est assez répandu dans les algorithmes existants :
+Introduire cette expression dans la définition de la fonction de valeur (Equation \eqref{Vdef.eqn}) fait apparaître un terme intéressant et dont l'usage est assez répandu dans les algorithmes existants :
 \begin{eqnarray}
 V^\pi(s) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,\pi\right]\\
 V^\pi(s) &=& \theta^TE\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,\pi\right]\\
@@ -252,7 +253,7 @@ où $d$ est une distribution sur l'état initial. Il peut également être utile
 \begin{eqnarray}
 \mu^\pi(s,a) = E\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right].
 \end{eqnarray}
-C'est d'ailleurs cette variante de l'expression qui sera utilisée si, au lieu d'injecter l'équation \ref{hatRdef.eqn} dans la définition de la fonction de valeur comme nous l'avons fait pour obtenir l'équation \ref{Vmu.eqn}, nous l'injectons dans la définition de la fonction de qualité. On obtient alors :
+C'est d'ailleurs cette variante de l'expression qui sera utilisée si, au lieu d'injecter l'équation \eqref{hatRdef.eqn} dans la définition de la fonction de valeur comme nous l'avons fait pour obtenir l'équation \eqref{Vmu.eqn}, nous l'injectons dans la définition de la fonction de qualité. On obtient alors :
 \begin{eqnarray}
 Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,a_0=a,\pi\right]\\
  &=& \theta^TE\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right]\\
@@ -273,7 +274,7 @@ La {\it feature expectation} de l'expert, $\mu_E$, pouvant être calculée sans 
 %%%
 \subsection{Principe}
 %%%
-L'un des postulats de base de l'apprentissage par renforcement inverse est que l'expert est un agent \emph{optimal} vis à vis d'une certaine fonction de récompense que l'on cherche à retrouver. Cela implique, comme nous l'avons vu Equation \ref{greedy.eqn}, qu'il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à cette fonction de récompense inconnue :
+L'un des postulats de base de l'apprentissage par renforcement inverse est que l'expert est un agent \emph{optimal} vis à vis d'une certaine fonction de récompense que l'on cherche à retrouver. Cela implique, comme nous l'avons vu Equation \eqref{greedy.eqn}, qu'il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à cette fonction de récompense inconnue :
 \begin{equation}
 \pi_E(s) \in \arg\max_aQ^E_R(s,a).
 \end{equation}
@@ -287,7 +288,7 @@ Notons
 \begin{equation}
 a^*_i = \arg\max_aq(s_i,a),
 \end{equation}
-alors le critère exprimé Equation \ref{butLAFEM.eqn} s'écrit $\forall i, q(s_i,a^*_i) = q(s_i,a_i)$. Notre fonction de risque doit pénaliser les cas où $q(s_i,a^*_i)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \ref{greedy.eqn}) le choix $a_i$ de l'expert.\\
+alors le critère exprimé Equation \eqref{butLAFEM.eqn} s'écrit $\forall i, q(s_i,a^*_i) = q(s_i,a_i)$. Notre fonction de risque doit pénaliser les cas où $q(s_i,a^*_i)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \eqref{greedy.eqn}) le choix $a_i$ de l'expert.\\
 Nous introduisons de surcroit une fonction de perte $l : S \times A \rightarrow \mathbb{R}_+$ dans la définition de $a^*_i$ qui devient maintenant :
 \begin{equation}
 \label{astar.def}
@@ -302,7 +303,7 @@ La définition de notre fonction de risque peut alors être assemblée en :
 Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères fournis en sous-section \ref{proof.sec}.\\
 
 
-Comme nous l'avons vu Equation \ref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de la {\it feature expectation} de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ la {\it feature expectation} de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \ref{hatRdef.eqn}).
+Comme nous l'avons vu Equation \eqref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de la {\it feature expectation} de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ la {\it feature expectation} de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \eqref{hatRdef.eqn}).
    \begin{equation}
    R_N(\theta) = {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)
    \end{equation}
@@ -318,8 +319,8 @@ Comme signalé dans la sous-section \ref{ConsiderationsTechniques.sec}, beaucoup
 
 Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour calculer $\mu_E$.\\
 
-Dans le cas le plus facile, on peut utiliser la proximité entre la définition du vecteur $\mu$ (Equation \ref{mupidef.eqn}) et celle de la fonction de valeur (Equation \ref{Vdef.eqn}) pour adapter les algorithmes d'évaluation de la fonction de valeur dans le cadre de la programmation dynamique au calcul de la {\it feature expectation}.\\
-En supposant un espace d'état de cardinal fini, l'équation de Bellman (Equation \ref{BellmanV.eqn}) peut s'écrire sous forme matricelle :
+Dans le cas le plus facile, on peut utiliser la proximité entre la définition du vecteur $\mu$ (Equation \eqref{mupidef.eqn}) et celle de la fonction de valeur (Equation \eqref{Vdef.eqn}) pour adapter les algorithmes d'évaluation de la fonction de valeur dans le cadre de la programmation dynamique au calcul de la {\it feature expectation}.\\
+En supposant un espace d'état de cardinal fini, l'équation de Bellman (Equation \eqref{BellmanV.eqn}) peut s'écrire sous forme matricelle :
 \begin{equation}
 \mathbf V^\pi = \mathbf R + \gamma P_\pi\mathbf V^\pi
 \end{equation}
@@ -429,9 +430,9 @@ Supposons l'existence d'un ~$\hat{\theta}\in\mathbb{R}^p$ vérifiant :
 \begin{equation}\label{eq:existence}
 \forall i\in\{1,\dots,N\}, \hat{\theta}^T\mu_E(s_i,a_i)>\max_{A \backslash a_i}\hat{\theta}^T\mu_E(s_i,).
 \end{equation}
-En toute généralité, un vecteur de récompense vérifiant l'équation \ref{eq:existence} est tel que la politique de l'expert est optimale pour cette récompense sur les états
+En toute généralité, un vecteur de récompense vérifiant l'équation \eqref{eq:existence} est tel que la politique de l'expert est optimale pour cette récompense sur les états
 $s_i, \forall i\in\{1,\dots,N\}$.\\
-Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$,{ et ~$\hat{M}=\{\theta\in\mathbb{R}^p:\theta \text{ vérifie l'équation \ref{eq:existence} }  \}$ et posons :
+Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$,{ et ~$\hat{M}=\{\theta\in\mathbb{R}^p:\theta \text{ vérifie l'équation \eqref{eq:existence} }  \}$ et posons :
 \begin{equation}
 \forall i\in\{1,\dots,N\}, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,).
 \end{equation}
@@ -496,15 +497,15 @@ Or on a :
 \end{align}
 D'ou ~$\theta^*\in \hat{M}$. C'est bien ce que l'on recherchait.
 \end{preuve}
-Ainsi on sait que, sous l'existence de ~$\hat{\theta}$, les minimiseurs de ~$\R_N$ existent (il y en a d'ailleurs une infinité) et vérifient l'équation \ref{eq:existence}.
-On peut donc appliquer l'algorithme de descente de sous-gradient avec l'assurance de la convergence de ce dernier vers un minimiseur de la fonction de risque qui vérifie l'équation \ref{eq:existence}. L'équation \ref{eq:existence} est la formulation mathématique de ce que l'on recherche pour vecteur de récompense $\theta$. La politique optimale obtenue à partir de la récompense définie par un minimiseur $\theta^*$ de $R_N$, sous l'existence d'un ~$\hat{\theta}$, aura la même fonction de valeur sur les états $s_i,\forall i\in\{1,\dots,N\}$ que la politique de l'expert car cette dernière est optimale sur les états $s_i,\forall i\in\{1,\dots,N\}$ puisque $\theta^*$ vérifie l'équation \ref{eq:existence}.
+Ainsi on sait que, sous l'existence de ~$\hat{\theta}$, les minimiseurs de ~$\R_N$ existent (il y en a d'ailleurs une infinité) et vérifient l'équation \eqref{eq:existence}.
+On peut donc appliquer l'algorithme de descente de sous-gradient avec l'assurance de la convergence de ce dernier vers un minimiseur de la fonction de risque qui vérifie l'équation \eqref{eq:existence}. L'équation \eqref{eq:existence} est la formulation mathématique de ce que l'on recherche pour vecteur de récompense $\theta$. La politique optimale obtenue à partir de la récompense définie par un minimiseur $\theta^*$ de $R_N$, sous l'existence d'un ~$\hat{\theta}$, aura la même fonction de valeur sur les états $s_i,\forall i\in\{1,\dots,N\}$ que la politique de l'expert car cette dernière est optimale sur les états $s_i,\forall i\in\{1,\dots,N\}$ puisque $\theta^*$ vérifie l'équation \eqref{eq:existence}.
 %%%%%
 \section{Related Work}
 \label{biblio.sec}
 %%%%%
 Parmi les algorithmes d'apprentissage par renforcement inverse existants, certains partagent des caractéristiques communes.\\
 
-Historiquement, la première approche générique est celle d'\cite{abbeel2004apprenticeship}, travail qui a servi de bases à d'autres algorithmes fonctionnant sur le même principe : \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}. L'approche consiste à imiter l'expert par le biais de l'IRL ; les {\it feature expectations} de l'agent et de l'expert doivent être proche (l'on a vu Equation \ref{memevaleur.eqn} que cela impliquait des valeurs similaires). Cette proximité est atteinte en modifiant la récompense par itérations successives et en entraînant l'agent sur la nouvelle récompense.\\
+Historiquement, la première approche générique est celle d'\cite{abbeel2004apprenticeship}, travail qui a servi de bases à d'autres algorithmes fonctionnant sur le même principe : \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}. L'approche consiste à imiter l'expert par le biais de l'IRL ; les {\it feature expectations} de l'agent et de l'expert doivent être proche (l'on a vu Equation \eqref{memevaleur.eqn} que cela impliquait des valeurs similaires). Cette proximité est atteinte en modifiant la récompense par itérations successives et en entraînant l'agent sur la nouvelle récompense.\\
 
 Une autre approche consiste à effectuer la recherche dans l'espace des politiques grâce à de l'inférence bayesienne sur les paires état-action fournies par l'expert, comme par exemple \cite{ramachandran2007bayesian}.\\
 
