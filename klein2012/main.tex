@@ -192,18 +192,26 @@ GeorgiaTech-CNRS, France
 %%%
 \subsection{Apprentissage par renforcement direct et inverse}
 %%%
-Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielles. La configuration du système à contrôler est alors décrite à chaque instant discret $t$ par un état $s_t \in S$. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe \footnote{On peut se restreindre au cas déterministe sans perte de généralité.} $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décisions séquentielles.\\
+Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielles. La configuration du système à contrôler est alors complètement décrite à chaque instant discret $t$ par un état $s_t \in S$, qui respecte donc le critère de Markov. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe \footnote{On peut se restreindre au cas déterministe sans perte de généralité.} $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décisions séquentielles.\\
 
 Dans le cadre de l'apprentissage par renforcement,la résolution de ce problème est guidée par une fonction de récompense $R : S \rightarrow \mathbb{R}$ qui indique le degré de désirabilité de chaque état. Une des forces de l'apprentissage par renforcement réside dans le fait que l'agent ne va pas apprendre à maximiser la récompense immédiate mais au contraire un critère prenant le futur en compte, ce qui permet de spécifier uniquement le but et non la façon de l'atteindre. On définit pour ce faire la fonction de valeur $V^\pi$ :
-\begin{eqnarray}
+\begin{equation}
 \label{Vdef.eqn}
-V^\pi(s) &=& E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,\pi\right]\\
-&=& R(s) + \gamma\sum_{s'}p(s'|s,\pi(s))V^\pi(s')
-\label{BellmanV.eqn}
-\end{eqnarray}
-où $\gamma$ est un facteur d'actualisation strictement plus petit que $1$. Une politique optimale est alors définie comme une politique dont la fonction de valeur $V^*$ (appelée fonction de valeur optimale) vérifie :
+V^\pi(s) = E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,\pi\right]=R(s) + \gamma E[V^\pi(s')|s,\pi]
+\end{equation}
+où $\gamma$ est un facteur d'actualisation strictement plus petit que $1$. Il est également possible de définir une fonction voisine de la fonction de valeur, la fonction de qualité :
+\begin{equation}
+\label{Qdef.eqn}
+Q^\pi(s,a) = E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,a_0=a,\pi\right] = R(s) + \gamma E[Q^\pi(s',\pi(s'))|s,a].
+\end{equation}
+  Une politique optimale est définie comme une politique dont la fonction de valeur $V^*$ (appelée fonction de valeur optimale) vérifie :
 \begin{equation}
 \forall \pi, \forall s, V^*(s) \geq V^\pi(s).
+\end{equation}
+La politique optimale se calcule simplement à partir de la fonction de qualité optimale $Q^*$ via un mécanisme glouton :
+\begin{equation}
+\label{greedy.eqn}
+\pi^*(s) \in \arg\max_a Q^*(s,a).
 \end{equation}
 L'ensemble formé par l'espace d'état $S$, l'espace d'action $A$, les probabilités de transition $p$, le facteur $\gamma$ et la fonction de récompense $R$ forme un processus décisionnel de Markov ({\it Markov Decision Process, MDP}).\\
 
@@ -211,49 +219,18 @@ Parfois, définir la fonction de récompense est une tâche ardue alors qu'il es
 
 C'est la définition de l'apprentissage par renforcement inverse. Le problème est de retrouver la fonction de récompense optimisée par un expert. Usuellement l'expert est considéré comme un agent optimal dans un MDP et l'on a accès ou bien à la politique complète $\pi_E$ de l'expert ou bien à quelques trajectoires tirées selon cette politique.\\
 
-Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour lequel ce comportement est optimal. Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis à vis de cette récompense.
+Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour lequel ce comportement est optimal (voir par exemple \cite{ng1999policy}). Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis à vis de cette récompense.
 %%%
 \subsection{Considérations techniques}
 \label{ConsiderationsTechniques.sec}
 %%%
-La recherche de la politique optimale en apprentissage par renforcement se fait souvent en utilisant une fonction voisine de la fonction de valeur, la fonction de qualité définie par :
-\begin{eqnarray}
-Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,a_0=a,\pi\right]\\
-&=& R(s) + \gamma\sum_{s'}p(s'|s,a)V^\pi(s').
-\end{eqnarray}
-La politique optimale se définit simplement à partir de la fonction de qualité optimale $Q^*$ via un mécanisme glouton :
-\begin{equation}
-\label{greedy.eqn}
-\pi^*(s) \in \arg\max_a Q^*(s,a).
-\end{equation}
-Dès lors, l'approximation de la fonction de valeur (terme qui employé au sens large désigne aussi la fonction de qualité) est un thème central en apprentissage par renforcement. Une caractéristique répandue dans la litérature est l'utilisation d'un cadre d'approximation linéaire où, après avoir défini des attributs vectoriels $\phi: S\times A \rightarrow \mathbb{R}^k$, l'on va chercher un vecteur de paramètres $\omega$ tel que l'on ait une bonne approximation de la fonction de qualité :
-\begin{equation}
-\hat Q (s,a) = \omega^T\phi(s,a)\approx Q(s,a).
-\end{equation}
-Il est naturel d'adopter le même type d'approche pour l'apprentissage par renforcement inverse, c'est à dire de considérer que l'inconnue du problème, la récompense $R$, peut être bien approximée grâce à un vecteur de poids $\theta$ et des attributs vectoriels $\psi : S\rightarrow \mathbb{R}^p$ :
+La récompense $R$ étant l'inconnue du problème, il est naturel de l'approximer grâce à un vecteur de poids $\theta$ et des attributs vectoriels $\psi : S\rightarrow \mathbb{R}^p$ servant de fonctions de base :
 \begin{equation}
 \label{hatRdef.eqn}
 \hat R(s) = \theta^T\psi(s)\approx R(s).
 \end{equation}
 
-Introduire cette expression dans la définition de la fonction de valeur (Equation \eqref{Vdef.eqn}) fait apparaître un terme intéressant et dont l'usage est assez répandu dans les algorithmes existants :
-\begin{eqnarray}
-V^\pi(s) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,\pi\right]\\
-V^\pi(s) &=& \theta^TE\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,\pi\right]\\
-V^\pi(s) &=& \theta^T\mu^\pi(s)
-\label{Vmu.eqn}
-\end{eqnarray}
-
-Le terme $\mu^\pi$ est appelé la {\it feature expectation} d'une politique. Il existe plusieurs variantes basées sur la même définition que nous venons de donner. Dans sa version la plus spécifique, notée simplement $\mu^\pi$, il s'agit en toute rigueur de l'expression :
-\begin{eqnarray}
-\label{mupidef.eqn}
-\mu^\pi = E\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0\sim d,\pi\right],
-\end{eqnarray}
-où $d$ est une distribution sur l'état initial. Il peut également être utile de le définir sous la forme $\mu^\pi(s,a)$ où son rôle par rapport à $\mu^\pi(s)$ est le même que celui de $Q$ par rapport à $V$ :
-\begin{eqnarray}
-\mu^\pi(s,a) = E\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right].
-\end{eqnarray}
-C'est d'ailleurs cette variante de l'expression qui sera utilisée si, au lieu d'injecter l'équation \eqref{hatRdef.eqn} dans la définition de la fonction de valeur comme nous l'avons fait pour obtenir l'équation \eqref{Vmu.eqn}, nous l'injectons dans la définition de la fonction de qualité. On obtient alors :
+Introduire cette expression dans la définition de la fonction de qualité (Equation \eqref{Qdef.eqn}) fait apparaître un terme intéressant et dont l'usage est assez répandu dans les algorithmes existants :
 \begin{eqnarray}
 Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,a_0=a,\pi\right]\\
  &=& \theta^TE\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right]\\
@@ -261,13 +238,15 @@ Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,a_0=a,\p
 \label{Qmu.eqn}
 \end{eqnarray}
 
+Le terme $\mu^\pi$ est appelé la {\it feature expectation} ou plutôt l'attribut vectoriel moyen d'une politique. On peut voir que la paramétrisation choisie pour $R$ et la dynamique imposée par l'application de la politique $\pi$ dans le MDP fixe la paramétrisation de $Q^\pi$.\\
+
 On peut noter que si deux politiques ont la même {\it feature expectation}, alors ces deux politiques ont la même valeur vis à vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
 \begin{eqnarray}
 \mu^{\pi_1} = \mu^{\pi_2} &\Rightarrow& \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2}\\
 & \Rightarrow& V^{\pi_1} = V^{\pi_2}.
 \label{memevaleur.eqn}
 \end{eqnarray}
-La {\it feature expectation} de l'expert, $\mu_E$, pouvant être calculée sans forcément avoir accès à l'intégralité de la politique $\pi_E$, certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les {\it feature expectations} respectives de l'agent et de l'expert, afin d'obtenir un agent dont le comportement à la même valeur que celui de l'expert.
+La {\it feature expectation} de l'expert, $\mu_E$, pouvant être calculée sans forcément avoir accès à l'intégralité de la politique $\pi_E$, certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les {\it feature expectations} respectives de l'agent et de l'expert, afin d'obtenir un agent dont le comportement à la même valeur que celui de l'expert (voir \cite{neu2009training}).
 %%%%%
 \section{Loss-augmented Feature Expectation Matching}
 %%%%%
@@ -284,29 +263,21 @@ Notons $(s_i,a_i)_i$ les échantillons représentant une ou plusieurs trajectoir
 \label{butLAFEM.eqn}
 a_i \in \arg\max_aq(s_i,a).
 \end{equation}
-Notons
-\begin{equation}
-a^*_i = \arg\max_aq(s_i,a),
-\end{equation}
-alors le critère exprimé Equation \eqref{butLAFEM.eqn} s'écrit $\forall i, q(s_i,a^*_i) = q(s_i,a_i)$. Notre fonction de risque doit pénaliser les cas où $q(s_i,a^*_i)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \eqref{greedy.eqn}) le choix $a_i$ de l'expert.\\
-Nous introduisons de surcroit une fonction de perte $l : S \times A \rightarrow \mathbb{R}_+$ dans la définition de $a^*_i$ qui devient maintenant :
-\begin{equation}
-\label{astar.def}
-a^*_i = \arg\max_aq(s_i,a) + l(s_i,a).
-\end{equation}
-La définition de notre fonction de risque peut alors être assemblée en :
-  \begin{eqnarray}
-   R_N(q) &=& {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)\\
-   &=& {1\over N} \sum_{i=1}^N\left(q(s_i,a_i^*) + l(s_i,a_i^*) - q(s_i,a_i) \right)
-   \end{eqnarray}
+Notre fonction de risque doit donc pénaliser les cas où $\exists a, q(s_i,a)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \eqref{greedy.eqn}) le choix $a_i$ de l'expert.\\
+Nous introduisons de surcroit une fonction de perte $l : S \times A \rightarrow \mathbb{R}_+$ dans notre fonction de risque qui peut alors s'assembler en :
+  \begin{equation}
+   R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
+   \end{equation}
 
-Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères fournis en sous-section \ref{proof.sec}.\\
+Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères dévelopés dans les preuves (Section \ref{proof.sec}).\\
 
 
 Comme nous l'avons vu Equation \eqref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de la {\it feature expectation} de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ la {\it feature expectation} de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \eqref{hatRdef.eqn}).
-   \begin{equation}
-   R_N(\theta) = {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)
-   \end{equation}
+   \begin{eqnarray}
+   R_N(\theta)  &=& {1\over N} \sum_{i=1}^N\left(\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)\\
+   &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)\\
+\textrm{avec } a^*_i &=& \arg\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a))
+   \end{eqnarray}
    Il est possible de minimiser ce risque grâce à la règle d'update qui suit, comme cela est expliqué en section \ref{proof.sec} :
    \begin{equation}
    \theta_{t+1} = \theta_t -\alpha_t{{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)\over ||{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)||_2}.
@@ -319,8 +290,8 @@ Comme signalé dans la sous-section \ref{ConsiderationsTechniques.sec}, beaucoup
 
 Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour calculer $\mu_E$.\\
 
-Dans le cas le plus facile, on peut utiliser la proximité entre la définition du vecteur $\mu$ (Equation \eqref{mupidef.eqn}) et celle de la fonction de valeur (Equation \eqref{Vdef.eqn}) pour adapter les algorithmes d'évaluation de la fonction de valeur dans le cadre de la programmation dynamique au calcul de la {\it feature expectation}.\\
-En supposant un espace d'état de cardinal fini, l'équation de Bellman (Equation \eqref{BellmanV.eqn}) peut s'écrire sous forme matricelle :
+Dans le cas le plus facile, on peut utiliser la proximité entre la définition du vecteur $\mu$ (Equation \eqref{Qmu.eqn}) et celle de la fonction de valeur (Equation \eqref{Vdef.eqn}) pour adapter les algorithmes d'évaluation de la fonction de valeur dans le cadre de la programmation dynamique au calcul de la {\it feature expectation}.\\
+En supposant un espace d'état de cardinal fini, l'équation de Bellman (Equation \eqref{Vdef.eqn}) peut s'écrire sous forme matricelle :
 \begin{equation}
 \mathbf V^\pi = \mathbf R + \gamma P_\pi\mathbf V^\pi
 \end{equation}
