@@ -502,18 +502,35 @@ On peut donc appliquer l'algorithme de descente de sous-gradient avec l'assuranc
 %%%%%
 Parmi les algorithmes d'apprentissage par renforcement inverse existants, certains partagent des caractéristiques communes.\\
 
-Un argument revenant parfois est celui qui consiste à voir en l'expert non pas un acteur optimal mais un optimal par une certaine marge, c'est à dire que l'action choisie par l'expert doit avoir une qualité supérieure d'une certaine marge à n'importe quelle autre action. Il s'agit de maximiser cette marge. C'est l'approche de \citet{ratliff2006maximum,ratliff2007imitation, ratliff2007boosting, kolter2008hierarchical}.\\
+Historiquement, la première approche générique est celle d'\cite{abbeel2004apprenticeship}, travail qui a servi de bases à d'autres algorithmes fonctionnant sur le même principe : \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}. L'approche consiste à imiter l'expert par le biais de l'IRL ; les {\it feature expectations} de l'agent et de l'expert doivent être proche (l'on a vu Equation \ref{memevaleur.eqn} que cela impliquait des valeurs similaires). Cette proximité est atteinte en modifiant la récompense par itérations successives et en entraînant l'agent sur la nouvelle récompense.\\
 
 Une autre approche consiste à effectuer la recherche dans l'espace des politiques grâce à de l'inférence bayesienne sur les paires état-action fournies par l'expert, comme par exemple \cite{ramachandran2007bayesian}.\\
 
-Historiquement, la première approche générique est celle d'\cite{abbeel2004apprenticeship}, travail qui a servi de bases à d'autres algorithmes fonctionnant sur le même principe : \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}. L'approche consiste à imiter l'expert par le biais de l'IRL ; les {\it feature expectations} de l'agent et de l'expert doivent être proche (l'on a vu Equation \ref{memevaleur.eqn} que cela impliquait des valeurs similaires). Cette proximité est atteinte en modifiant la récompense par itérations successives et en entraînant l'agent sur la nouvelle récompense.\\
+Un argument revenant parfois est celui qui consiste à voir en l'expert non pas un acteur optimal mais un optimal par une certaine marge, c'est à dire que l'action choisie par l'expert doit avoir une qualité supérieure d'une certaine marge à n'importe quelle autre action. Il s'agit de maximiser cette marge. C'est l'approche de \citet{ratliff2006maximum,ratliff2007imitation, ratliff2007boosting, kolter2008hierarchical}.\\
 
+Particulièrement, le travail de \citet{ratliff2006maximum} partage des similarités avec le nôtre ; dans \citep{ratliff2006maximum}, les auteurs présentent une méthode d'IRL en posant le problème sous forme d'un \emph{maximum margin classification problem}. La méthode utilisée pour résoudre ce problème peut être ramenée à un algorithme itératif dans la veine de \cite{abbeel2004apprenticeship}, comme cela est expliqué dans \cite{neu2009training}. Vu à un plus haut niveau d'abstraction, la classification a lieu dans l'espace des trajectoires : à un MDP (entrée à classifier) est associée une politique (classe).
 
-\begin{itemize}
-\item Résumé plus détaillé que précédemment des approches IRL actuelles
-\item Laïus sur Ratliff et son approche locale (imitation pure) et globale (plain de contraintes)
-\end{itemize}
+   Une seconde publication, \citep{ratliff2007boosting} vient compléter la précédente en incluant du \emph{boosting}. On y voit apparaître à nouveau une fonction de coût empirique (en omettant quelques détails comme par exemple la pondération des trajectoires) : 
+   \begin{equation}
+   \label{dix.eqn}%On l'appelle comme ça parce que dans le draft et dans le papier de Ratliff elles ont le même numéro : 10.
+   {1\over n}\sum\limits_{i=1}^n \left(\theta^T\mu^E_i - \min_\pi\left(\theta^T \mu^\pi - l(\pi)\right)\right) + {\lambda \over 2} ||\theta||^2.
+   \end{equation}
+  
+   On constate la présence d'une fonction de coût $l$ similaire à celle que nous utilisons.
 
+   La recherche a lieu dans l'espace des politiques via une méthode de descente de gradient sur les paramètres $\theta$ définissant la récompense, ce qui implique la résolution d'un MDP à chaque itération. En effet, le $\min\limits_\pi(\dots)$ présent dans la fonction de coût est analogue au $\pi^* = \arg\max\limits_\pi V^\pi$ décrivant la résolution classique d'un MDP.
+
+   Finalement, dans \citep{ratliff2007imitation} les auteurs utilisent un système de classification multi-classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque entrée pour prendre une décision de classification i.e. choisir le label $y\in Y$ à appliquer à l'entrée $x\in X$ :
+   \begin{equation}
+   \label{sdef.eqn}
+   y^* = \arg\max_{y \in Y} s(x,y)
+   \end{equation}
+   Cette fonction de score est apprise dans l'espace fonctionnel en optimisant la fonction suivante, dont celle donnée en \ref{dix.eqn} est une instanciation : 
+   \begin{equation}
+   \label{rdef.eqn}
+   r[s] = {1\over N} \sum_{i=1}^N\left(\max_{y\in Y}(s(x_i,y) + l(x_i,y)) - s(x_i,y_i) \right)
+   \end{equation}
+   Cela suppose l'accès à une base de données $\{(x_i,y_i)\}_i$; i.e. une trace de l'expert. On note dans ce papier un changement par rapport aux papiers précédent : les entrées sont maintenant les états et les classes représentent les actions.
 
 %%%%%
 \section{Résultats expérimentaux}
