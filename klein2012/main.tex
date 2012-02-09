@@ -264,6 +264,7 @@ On peut noter que si deux politiques ont la même {\it feature expectation}, alo
 \begin{eqnarray}
 \mu^{\pi_1} = \mu^{\pi_2} &\Rightarrow& \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2}\\
 & \Rightarrow& V^{\pi_1} = V^{\pi_2}.
+\label{memevaleur.eqn}
 \end{eqnarray}
 La {\it feature expectation} de l'expert, $\mu_E$, pouvant être calculée sans forcément avoir accès à l'intégralité de la politique $\pi_E$, certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les {\it feature expectations} respectives de l'agent et de l'expert, afin d'obtenir un agent dont le comportement à la même valeur que celui de l'expert.
 %%%%%
@@ -298,7 +299,7 @@ La définition de notre fonction de risque peut alors être assemblée en :
    &=& {1\over N} \sum_{i=1}^N\left(q(s_i,a_i^*) + l(s_i,a_i^*) - q(s_i,a_i) \right)
    \end{eqnarray}
 
-Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature. Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères fournis en sous-section \ref{proof.sec}.\\
+Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères fournis en sous-section \ref{proof.sec}.\\
 
 
 Comme nous l'avons vu Equation \ref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de la {\it feature expectation} de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ la {\it feature expectation} de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \ref{hatRdef.eqn}).
@@ -416,7 +417,17 @@ Nous allons montrer l'existence de ce $\theta^*$ dans un cas particulier.
 
 %%%%%
 \section{Related Work}
+\label{biblio.sec}
 %%%%%
+Parmi les algorithmes d'apprentissage par renforcement inverse existants, certains partagent des caractéristiques communes.\\
+
+Un argument revenant parfois est celui qui consiste à voir en l'expert non pas un acteur optimal mais un optimal par une certaine marge, c'est à dire que l'action choisie par l'expert doit avoir une qualité supérieure d'une certaine marge à n'importe quelle autre action. Il s'agit de maximiser cette marge. C'est l'approche de \citet{ratliff2006maximum,ratliff2007imitation, ratliff2007boosting, kolter2008hierarchical}.\\
+
+Une autre approche consiste à effectuer la recherche dans l'espace des politiques grâce à de l'inférence bayesienne sur les paires état-action fournies par l'expert, comme par exemple \cite{ramachandran2007bayesian}.\\
+
+Historiquement, la première approche générique est celle d'\cite{abbeel2004apprenticeship}, travail qui a servi de bases à d'autres algorithmes fonctionnant sur le même principe : \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}. L'approche consiste à imiter l'expert par le biais de l'IRL ; les {\it feature expectations} de l'agent et de l'expert doivent être proche (l'on a vu Equation \ref{memevaleur.eqn} que cela impliquait des valeurs similaires). Cette proximité est atteinte en modifiant la récompense par itérations successives et en entraînant l'agent sur la nouvelle récompense.\\
+
+
 \begin{itemize}
 \item Résumé plus détaillé que précédemment des approches IRL actuelles
 \item Laïus sur Ratliff et son approche locale (imitation pure) et globale (plain de contraintes)
