@@ -433,7 +433,7 @@ En toute généralité, un vecteur de récompense vérifiant l'équation \ref{eq
 $s_i, \forall i\in\{1,\dots,N\}$.\\
 Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$,{ et ~$\hat{M}=\{\theta\in\mathbb{R}^p:\theta \text{ vérifie l'équation \ref{eq:existence} }  \}$ et posons :
 \begin{equation}
-\forall i\in\{1,\dots,N\}, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a).
+\forall i\in\{1,\dots,N\}, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)>0.
 \end{equation}
 Montrons qu'il existe un $x\geq0$ tel que :
 \begin{equation}
@@ -474,10 +474,43 @@ Or comme ~$\max_{A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,)+\max_{a\in A \back
 &R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).
 \end{align}
 C'est bien le résultat recherché.
+De plus on peut remarquer, que si l'on choisi la fonction de loss telle que :
+\begin{equation}
+\forall i\in\{1,\dots,N\}, \forall a \in A \backslash a_i, l(s_i,a)=\max_{a \in A \backslash a_i}>l(s_i,a_i)\geq0,
+\end{equation}
+alors on a ~$\max_{A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,)+\max_{a\in A \backslash a_i}l(s_i,a)~=~\max_{A \backslash a_i}(\hat{\theta}_x^T\mu_E(s_i,)~+~l(s_i,a))$. Et donc :
+\begin{align}
+&\forall i\in\{1,\dots,N\}, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},
+\\
+\nonumber\Updownarrow
+\\
+&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).
+\end{align}
+Majorons les $\beta_i$ :
+\begin{equation}
+\forall i\in\{1,\dots,N\}, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\leq\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2.
+\end{equation}
+Donc :
+\begin{align}
+&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i),
+\\
+\nonumber\Updownarrow
+\\
+&\forall i\in\{1,\dots,N\}, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},
+\\
+\nonumber\Downarrow
+\\
+&\forall i\in\{1,\dots,N\}, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}.
+\end{align}
+Ainsi, cela impose que la solution $\hat{\theta}_x$ soit au moins de norme $\max_{i\in\{1,\dots,N\}}\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}$.
 \end{preuve}
-De plus on peut montrer, toujours sous l'existence de ~$\hat{\theta}$ que $M^*\subset\hat{M}$.
+Revenons au premier type de fonction de loss :
+\begin{equation}
+\forall i\in\{1,\dots,N\}, \forall a \in A \backslash a_i, l(s_i,a)>l(s_i,a_i)\geq0.
+\end{equation}
+On peut montrer, toujours sous l'existence de ~$\hat{\theta}$ que $M^*\subset\hat{M}$.
 \begin{preuve}
-Soit ~$\theta^*\in\ M^*$. Sous l'existence de ~$\hat{\theta}$, on a vu qu'il existait un ~$\x>0$ tel que $R_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $R_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i),~\forall \theta\in\mathbb{R}^p$, $R_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$.
+Soit ~$\theta^*\in\ M^*$. Sous l'existence de ~$\hat{\theta}$, on a vu qu'il existait un ~$\x>0$ tel que $R_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $~\forall \theta\in\mathbb{R}^p, R_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i)$, $R_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$.
 Or on a :
 \begin{align}
 &R_N(\theta^*)={1\over N} \sum_{i=1}^N l(s_i,a_i),
