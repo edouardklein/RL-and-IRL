@@ -240,13 +240,13 @@ Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,a_0=a,\p
 
 Le terme $\mu^\pi$ est appelé la {\it feature expectation} ou plutôt l'attribut vectoriel moyen d'une politique. On peut voir que la paramétrisation choisie pour $R$ et la dynamique imposée par l'application de la politique $\pi$ dans le MDP fixe la paramétrisation de $Q^\pi$.\\
 
-On peut noter que si deux politiques ont la même {\it feature expectation}, alors ces deux politiques ont la même valeur vis à vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
+On peut noter que si deux politiques ont le même attribut vectoriel moyen, alors ces deux politiques ont la même valeur vis à vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
 \begin{eqnarray}
 \mu^{\pi_1} = \mu^{\pi_2} &\Rightarrow& \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2}\\
 & \Rightarrow& V^{\pi_1} = V^{\pi_2}.
 \label{memevaleur.eqn}
 \end{eqnarray}
-La {\it feature expectation} de l'expert, $\mu_E$, pouvant être calculée sans forcément avoir accès à l'intégralité de la politique $\pi_E$, certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les {\it feature expectations} respectives de l'agent et de l'expert, afin d'obtenir un agent dont le comportement à la même valeur que celui de l'expert (voir \cite{neu2009training}).
+L'attribut vectoriel moyen de l'expert, $\mu_E$, pouvant être calculée sans forcément avoir accès à l'intégralité de la politique $\pi_E$, certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les attributs vectoriels moyens respectifs de l'agent et de l'expert, afin d'obtenir un agent dont le comportement à la même valeur que celui de l'expert (voir \cite{neu2009training}).
 %%%%%
 \section{Loss-augmented Feature Expectation Matching}
 %%%%%
@@ -272,7 +272,7 @@ Nous introduisons de surcroit une fonction de perte $l : S \times A \rightarrow 
 Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères dévelopés dans les preuves (Section \ref{proof.sec}).\\
 
 
-Comme nous l'avons vu Equation \eqref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de la {\it feature expectation} de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ la {\it feature expectation} de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \eqref{hatRdef.eqn}).
+Comme nous l'avons vu Equation \eqref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de l'attribut vectoriel moyen de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ l'attribut vectoriel moyen de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \eqref{hatRdef.eqn}).
    \begin{eqnarray}
    R_N(\theta)  &=& {1\over N} \sum_{i=1}^N\left(\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)\\
    &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)\\
@@ -286,11 +286,11 @@ Comme nous l'avons vu Equation \eqref{Qmu.eqn}, en faisant l'hypothèse d'une re
 \subsection{Calcul de $\mu_E$}
 %%%
 \label{calculmu.sec}
-Comme signalé dans la sous-section \ref{ConsiderationsTechniques.sec}, beaucoup d'algorithmes de la littérature reposent sur un calcul de la {\it feature expectation}. Notre algorithme a cependant ceci de particulier qu'il ne nécessite que le calcul de $\mu_E$, la {\it feature expectation} de l'expert et non le calcul de la {\it feature expectation} d'une politique arbitraire. De fait cela nous épargne le besoin d'un simulateur, d'un solveur de MDP ou d'échantillons couvrant tout l'espace d'état.\\
+Comme signalé dans la sous-section \ref{ConsiderationsTechniques.sec}, beaucoup d'algorithmes de la littérature reposent sur un calcul de l''attribut vectoriel moyen. Notre algorithme a cependant ceci de particulier qu'il ne nécessite que le calcul de $\mu_E$, l'attribut vectoriel moyen de l'expert et non le calcul de l'attribut vectoriel moyen d'une politique arbitraire. De fait cela nous épargne le besoin d'un simulateur, d'un solveur de MDP ou d'échantillons couvrant tout l'espace d'état.\\
 
 Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour calculer $\mu_E$.\\
 
-Dans le cas le plus facile, on peut utiliser la proximité entre la définition du vecteur $\mu$ (Equation \eqref{Qmu.eqn}) et celle de la fonction de valeur (Equation \eqref{Vdef.eqn}) pour adapter les algorithmes d'évaluation de la fonction de valeur dans le cadre de la programmation dynamique au calcul de la {\it feature expectation}.\\
+Dans le cas le plus facile, on peut utiliser la proximité entre la définition du vecteur $\mu$ (Equation \eqref{Qmu.eqn}) et celle de la fonction de valeur (Equation \eqref{Vdef.eqn}) pour adapter les algorithmes d'évaluation de la fonction de valeur dans le cadre de la programmation dynamique au calcul de l'attribut vectoriel moyen.\\
 En supposant un espace d'état de cardinal fini, l'équation de Bellman (Equation \eqref{Vdef.eqn}) peut s'écrire sous forme matricelle :
 \begin{equation}
 \mathbf V^\pi = \mathbf R + \gamma P_\pi\mathbf V^\pi
@@ -303,7 +303,7 @@ convergera vers la valeur exacte recherchée. Ce sont les algorithmes du type \e
 \begin{equation}
 \mathbf \mu^\pi_{t+1} \leftarrow \mathbf\Phi + \gamma P_\pi\mathbf\mu^\pi_t
 \end{equation}
-pour obtenir la valeur exacte de la {\it feature expectation}.\\
+pour obtenir la valeur exacte de l'attribut vectoriel moyen.\\
 
 Dans le cas plus réaliste où les probabilités de transitions sont inconnues, on peut, si l'on dispose d'un simulateur et qu'il est possible d'interroger l'expert en un grand nombre d'états arbitraires, utiliser une simple approximation de Monte-Carlo où pour approximer 
 \begin{equation}
@@ -476,7 +476,7 @@ On peut donc appliquer l'algorithme de descente de sous-gradient avec l'assuranc
 %%%%%
 Parmi les algorithmes d'apprentissage par renforcement inverse existants, certains partagent des caractéristiques communes.\\
 
-Historiquement, la première approche générique est celle d'\cite{abbeel2004apprenticeship}, travail qui a servi de bases à d'autres algorithmes fonctionnant sur le même principe : \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}. L'approche consiste à imiter l'expert par le biais de l'IRL ; les {\it feature expectations} de l'agent et de l'expert doivent être proche (l'on a vu Equation \eqref{memevaleur.eqn} que cela impliquait des valeurs similaires). Cette proximité est atteinte en modifiant la récompense par itérations successives et en entraînant l'agent sur la nouvelle récompense.\\
+Historiquement, la première approche générique est celle d'\cite{abbeel2004apprenticeship}, travail qui a servi de bases à d'autres algorithmes fonctionnant sur le même principe : \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}. L'approche consiste à imiter l'expert par le biais de l'IRL ; les attributs vectoriels moyens de l'agent et de l'expert doivent être proche (l'on a vu Equation \eqref{memevaleur.eqn} que cela impliquait des valeurs similaires). Cette proximité est atteinte en modifiant la récompense par itérations successives et en entraînant l'agent sur la nouvelle récompense.\\
 
 Une autre approche consiste à effectuer la recherche dans l'espace des politiques grâce à de l'inférence bayesienne sur les paires état-action fournies par l'expert, comme par exemple \cite{ramachandran2007bayesian}.\\
 
@@ -520,7 +520,7 @@ La politique ainsi trouvée parvient systématiquement à maintenir le pendule e
 Le but de cette expérience est de montrer que notre algorithme est capable, à partir des seules transitions fournies par l'expert et de la définition des fonctions de bases, de retrouver une récompense telle qu'un agent entraîné sur cette récompense puisse lui aussi faire balancer le pendule durant 5 minutes sans échec. Cela n'est pas trivial étant donné que l'espace d'état est continu et que les données fournies par l'expert n'en couvrent qu'une petite partie (correspondant à la position verticale).\\
 
  Ce dernier point est d'ailleur la raison pour laquelle l'algorithme d'\citet{abbeel2004apprenticeship} ne parvient pas à résoudre le problème à l'aide des seules transitions de l'expert.
-En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fournir quelques transitions aléatoires couvrant tout l'espace d'état il est impossible d'utiliser les algorithmes itératifs du type de celui d'\citet{abbeel2004apprenticeship}. Ces algorithmes procèdent par itérations à l'élaboration d'une politique $\pi$ dont la {\it feature expectation} est utilisée en association à celle de l'expert. Cette politique est obtenue par optimisation d'une récompense sur le MDP dans lequel évolue l'expert ; cette résolution du problème direct à chaque itération ne peut se faire si l'on ne dispose que de données ne couvrant qu'une petite partie de l'espace d'état. Comme notre algorithme ne nécessite pas le calcul d'autre {\it feature expectation} que celle de l'expert, la résolution du problème direct est inutile et nous ne rencontrons pas ce problème.
+En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fournir quelques transitions aléatoires couvrant tout l'espace d'état il est impossible d'utiliser les algorithmes itératifs du type de celui d'\citet{abbeel2004apprenticeship}. Ces algorithmes procèdent par itérations à l'élaboration d'une politique $\pi$ dont l'attribut vectoriel moyen est utilisée en association à celle de l'expert. Cette politique est obtenue par optimisation d'une récompense sur le MDP dans lequel évolue l'expert ; cette résolution du problème direct à chaque itération ne peut se faire si l'on ne dispose que de données ne couvrant qu'une petite partie de l'espace d'état. Comme notre algorithme ne nécessite pas le calcul d'autre attribut vectoriel moyen que celui de l'expert, la résolution du problème direct est inutile et nous ne rencontrons pas ce problème.
 %%%
 \subsection{Illustration des résultats}
 %%%
