@@ -441,7 +441,7 @@ Montrons qu'il existe un $x\geq0$ tel que :
 \begin{equation}
 R_N(\hat{\theta}_x)= {1\over N} \sum_{i=1}^N l(s_i,a_i),
 \end{equation}
-et cela nous assurera que ~$\hat{\theta}_x\in M^*$ d'après la minoration ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^Nl(s_i,a_i),~\forall~\theta~\in~\mathbb{R}^p$.
+et cela nous assurera que ~$\hat{\theta}_x\in M^*$ d'après la minoration ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i),~\forall~\theta~\in~\mathbb{R}^p$.
 \begin{preuve}
 On va chercher $x\geq0$ tel que :
 \begin{align}
@@ -478,7 +478,7 @@ Or comme ~$\max_{A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,)+\max_{a\in A \back
 C'est bien le résultat recherché.
 De plus on peut remarquer, que si l'on choisi la fonction de loss telle que :
 \begin{equation}
-\forall i\in\{1,\dots,N\}, \forall a \in A \backslash a_i, l(s_i,a)=\max_{a \in A \backslash a_i}>l(s_i,a_i)\geq0,
+\forall i\in\{1,\dots,N\}, \forall a \in A \backslash a_i, l(s_i,a)=c_i=\max_{a\in A \backslash a_i}l(s_i,a)>l(s_i,a_i)\geq0, \text{ où $c_i$ est une constante réelle,} 
 \end{equation}
 alors on a ~$\max_{A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,)+\max_{a\in A \backslash a_i}l(s_i,a)~=~\max_{A \backslash a_i}(\hat{\theta}_x^T\mu_E(s_i,)~+~l(s_i,a))$. Et donc :
 \begin{align}
@@ -490,7 +490,7 @@ alors on a ~$\max_{A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,)+\max_{a\in A \ba
 \end{align}
 Majorons les $\beta_i$ :
 \begin{equation}
-\forall i\in\{1,\dots,N\}, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\leq\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2.
+\forall i\in\{1,\dots,N\}, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\leq\max_{A \backslash a_i}(\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2).
 \end{equation}
 Donc :
 \begin{align}
@@ -504,7 +504,24 @@ Donc :
 \\
 &\forall i\in\{1,\dots,N\}, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}.
 \end{align}
-Ainsi, cela impose que la solution $\hat{\theta}_x$ soit au moins de norme $\max_{i\in\{1,\dots,N\}}\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}$.
+Ainsi, cela impose que la solution $\hat{\theta}_x$ soit au moins de norme $\max_{i\in\{1,\dots,N\}}\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}$.\\
+Minorons les $\beta_i$ :
+\begin{equation}
+\forall i\in\{1,\dots,N\}, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\geq|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|.
+\end{equation}
+Donc :
+\begin{align}
+&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i),
+\\
+\nonumber\Updownarrow
+\\
+&\forall i\in\{1,\dots,N\}, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},
+\\
+\nonumber\Uparrow
+\\
+&\forall i\in\{1,\dots,N\}, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|}.
+\end{align}
+Ainsi cela impose que si $\hat{\theta}_x$ est de norme supérieure à $\max_{i\in\{1,\dots,N\}}\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|}$, alors il est un minimiseur de $R_N$.
 \end{preuve}
 Revenons au premier type de fonction de loss :
 \begin{equation}
