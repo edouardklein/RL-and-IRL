@@ -223,7 +223,7 @@ Q^\pi(s,a) = \theta^T\mu^\pi(s,a) \textrm{ avec } \mu^\pi(s,a) = E[\sum_t\gamma^
 \label{Qmu.eqn}
 \end{equation}
 
-Le terme $\mu^\pi$ est appelé la {\it feature expectation} ou plutôt l'attribut vectoriel moyen d'une politique. On peut voir que la paramétrisation choisie pour $R$ et la dynamique imposée par l'application de la politique $\pi$ dans le PDM fixe la paramétrisation de $Q^\pi$.\\
+Le terme $\mu^\pi$ est appelé l'attribut vectoriel moyen ({\it feature expectation}) d'une politique. On peut voir que la paramétrisation choisie pour $R$ et la dynamique imposée par l'application de la politique $\pi$ dans le PDM fixe la paramétrisation de $Q^\pi$.\\
 
 On peut noter que si deux politiques ont le même attribut vectoriel moyen, alors ces deux politiques ont la même valeur vis-à-vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
 \begin{eqnarray}
@@ -231,28 +231,28 @@ On peut noter que si deux politiques ont le même attribut vectoriel moyen, alor
 & \Rightarrow& V^{\pi_1} = V^{\pi_2}.
 \label{memevaleur.eqn}
 \end{eqnarray}
-L'attribut vectoriel moyen de l'expert, $\mu_E$, peut être calculé sans forcément avoir accès à l'intégralité de la politique $\pi_E$. Certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les attributs vectoriels moyens respectifs de l'agent et de l'expert. Cela permet d'obtenir un agent dont le comportement a la même valeur que celui de l'expert (voir \cite{neu2009training}).
+L'attribut vectoriel moyen de l'expert, $\mu_E$, peut être calculé sans forcément avoir accès à l'intégralité de la politique $\pi_E$. La plupart des algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les attributs vectoriels moyens respectifs de l'agent et de l'expert. Cela permet d'obtenir un agent dont le comportement a la même fonction de valeur que celui de l'expert (voir par exemple \cite{neu2009training}).
 %%%%%
-\section{Classification structurée pour l'apprentissage par renforcement inverse (SCARI)}
+\section{Classification structurée pour l'apprentissage par renforcement inverse}
 %%%%%
 %%%
 \subsection{Principe}
 %%%
-L'un des postulats de base de l'apprentissage par renforcement inverse est que l'expert est un agent \emph{optimal} vis-à-vis d'une certaine fonction de récompense que l'on cherche à retrouver. Cela implique, comme nous l'avons vu Equation \eqref{greedy.eqn}, qu'il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à cette fonction de récompense inconnue :
+Comme nous l'avons vu Equation \eqref{greedy.eqn}, il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à la fonction de récompense inconnue :
 \begin{equation}
 \pi_E(s) \in \arg\max_aQ^E_R(s,a).
 \end{equation}
 Nous allons utiliser cette propriété pour considérer un risque dépendant d'une fonction de score $q$ qui devra partager avec la fonction inconnue $Q^E_R$ la propriété d'optimalité de l'expert que nous venons d'exprimer.\\
-Notons $(s_i,a_i,s_{i+1})_{i=1..N}$ les échantillons représentant une ou plusieurs trajectoires de l'expert. Il faut que pour chacun de ces échantillons l'on ait :
+Notons $(s_i,a_i,s_{i+1})_{1\geq i\geq N}$ les échantillons représentant une ou plusieurs trajectoires de l'expert. Nous cherchons donc une fonction de score qui vérifie pour chacun de ces échantillons :
 \begin{equation}
 \label{butLAFEM.eqn}
 a_i \in \arg\max_aq(s_i,a).
 \end{equation}
-Notre fonction de risque doit donc pénaliser les cas où $\exists a, q(s_i,a)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \eqref{greedy.eqn}) le choix $a_i$ de l'expert. Nous introduisons de surcroit une fonction $l : S \times A \rightarrow \mathbb{R}_+$ ; cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système en précisant la marge qu'il souhaite obtenir entre la qualité de l'action choisie par l'expert et la qualité de la seconde meilleure action selon l'inégalité $\forall a, q(s_i,a) + l(s_i,a) \leq q(s_i,a_i)$. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Nous introduisons la fonction de risque empirique :
+Nous souhaitons donc introduire une fonction de risque qui devrait pénaliser les cas où $\exists a, q(s_i,a)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \eqref{greedy.eqn}) le choix $a_i$ de l'expert. Nous introduisons de surcroit une fonction $l : S \times A \rightarrow \mathbb{R}_+$ ; cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système en précisant l'écart qu'il souhaite obtenir entre la qualité de l'action choisie par l'expert et la qualité de la seconde meilleure action selon l'inégalité $\forall a, q(s_i,a) + l(s_i,a) \leq q(s_i,a_i)$. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Nous introduisons donc la fonction de risque empirique suivante :
   \begin{equation}
    R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right).
    \end{equation}
-Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères dévelopés dans les preuves (Section \ref{proof.sec}).\\
+Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères dévelopés dans l'analyse (Section \ref{proof.sec}).\\
 
 Nous traitons le problème de l'imitation comme un problème de classification multi-classe, ce qui a déjà été envisagé (\citep{ratliff2007imitation}). Les approches existantes en prennent toutefois pas en compte la structure du PDM, notamment l'information sur les transitions entre états conditionnée par la politique de l'expert. C'est aussi pour cette raison que les approches purement supervisées ne peuvent fonctionner pour l'imitation.\\
 
@@ -286,7 +286,7 @@ Cette inférence est facilité par le fait que l'attribut vectoriel moyen obéit
 \begin{equation}
 \mu_E^j(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \psi^j(s)\right|s_0 = s, a_0 = a, \pi_E\right],
 \end{equation}
-expression qui lorsqu'on la rapproche de l'équation \eqref{Qdef.eqn} permet d'affirmer que $\mu^j_E$ est en fait la fonction de qualité de la politique $\pi_E$ vis-à-vis de la récompense définie par la $j$-ème composante du vecteur d'attribut $\psi$.\\
+expression qui lorsqu'on la rapproche de l'équation \eqref{Qdef.eqn} permet d'affirmer que $\mu^j_E$ est en fait la fonction de qualité de la politique $\pi_E$ vis-à-vis de la récompense définie par la $j$-ème composante du vecteur d'attributs $\psi$.\\
 
 Selon les informations disponibles, plusieurs méthodes peuvent donc être utilisées pour calculer $\mu_E$.\\
 
