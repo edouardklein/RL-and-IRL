@@ -142,7 +142,7 @@
 % Titre court si le titre fait plus de 40 caractères
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\shorttitle{Classification structurée pour l'IRL}
+\shorttitle{Classification structurée pour l'ARI}
 
 \shortouvrage{CAp 2012}
 
@@ -153,14 +153,12 @@
 \author{\fontsize{12}{12}\selectfont{Edouard Klein\inst{1}$^,$\inst{2}, Bilal Piot \inst{1}$^,$\inst{3}, Matthieu Geist\inst{1}, Olivier Pietquin\inst{1}$^,$\inst{3}}}
 
 \institute{
-Sup\'elec,\\
-IMS Research group, France\\
-\texttt{prenom.nom@supelec.fr}
+Sup\'elec, IMS Research group, France, \texttt{prenom.nom@supelec.fr}
 \and
-Equipe ABC,\\
+Equipe ABC,
 LORIA, France
 \and
-UMI 2958\\
+UMI 2958
 GeorgiaTech-CNRS, France
 }
 
@@ -170,26 +168,15 @@ GeorgiaTech-CNRS, France
 
 
 \begin{abstract}
-  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse. Dans ce contexte, un expert accomplit une tâche qu'un agent doit essayer de reproduire. L'IRL part du postulat que l'expert optimise avec succès une fonction d'utilité ; le problème consiste à deviner cette fonction (appelée récompense) à partir de  traces du comportement de l'expert. Les algorithmes d'IRL existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui de l'apprentissage par renforcement) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'IRL levant l'ensemble de ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it PDM}) sous-jacent, nous créons un algorithme basé sur une descente de sous-gradient, possèdant une faible complexité tant en échantillons que calculatoire et ne nécessitant pas la résolution du problème direct.
-  \motscles{Apprentissage par renforcement, Apprentissage par renforcement inverse, Processus Decisionnel de Markov}
+  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse (\emph{ARI}). Dans ce contexte, un expert accomplit une tâche qu'un agent artificiel doit essayer de reproduire. L'ARI part du postulat que l'expert optimise avec succès une fonction d'utilité ; le problème consiste à deviner cette fonction (appelée récompense) à partir de  traces du comportement de l'expert. Les algorithmes d'ARI existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui de l'apprentissage par renforcement) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'ARI levant l'ensemble de ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it PDM}) sous-jacent, nous créons un algorithme basé sur une descente de sous-gradient, possèdant une faible complexité tant en échantillons que calculatoire et surtout ne nécessitant pas la résolution du problème direct.
+  \motscles{Apprentissage par renforcement inverse, classification multi-classe, attribut vectoriel moyen}
 \end{abstract}
 %%%%%
 \section{Introduction}
 %%%%%
-Le problème de l'apprentissage par renforcement inverse a pour la première fois été introduit dans \cite{russell1998learning}. Formellement défini dans \cite{ng2000algorithms}, les approches proposées restent intractables jusqu'à la publication de \cite{abbeel2004apprenticeship}, qui lança toute une vague d'algorithmes cherchant une politique par modifications successives d'une fonction de récompense, approches pour la plupart résumées dans le \emph{survey} \cite{neu2009training}.
-\begin{itemize}
-\item Introduction informelle sur les processus de décision séquentielles
-\item Intérêt de l'apprentissage par démonstration
-\item Intérêt de l'IRL pour faire de l'apprenticeship learning
-\item Rapide point sur les limitations des algos d'IRL actuels
+Le problème de l'imitation se pose dans des champs variés tels la robotique, les systèmes de dialogue ou la conception d'interfaces homme-machine. Un expert effectue une tâche, le but est de parvenir à faire un sorte qu'un agent parvienne à accomplir la même tâche en observant l'expert. Dans le cadre de la prise de décisions séqueltielles, l'apprentissage par renforcement est une approche connaissant le succès. Cette approche consiste à guider un agent par le biais d'une récompense. Le mécanisme inverse peut servir de cadre au problème de l'imitation, en effet si l'on parvient à retrouver la récompense optimisée par un expert alors la résolution du problème direct donnera naissance à un comportement imitant cet expert.\\
 
-
-\begin{itemize}
-
-\item \cite{ng2000algorithms} : Probabilités de transitions devant être connues
-\item \cite{abbeel2004apprenticeship} et toutes les approches résumées dans \cite{neu2009training}: Résolution du problème direct à chaque itération
-\end{itemize}
-\end{itemize}
+Le problème de l'apprentissage par renforcement inverse a pour la première fois été introduit dans \cite{russell1998learning}. Formellement défini dans \cite{ng2000algorithms}, les approches proposées restent intractables jusqu'à la publication de \cite{abbeel2004apprenticeship}, qui lança toute une vague d'algorithmes cherchant une politique par modifications successives d'une fonction de récompense, approches pour la plupart résumées dans la vue d'ensemble fournie par \cite{neu2009training}.
 %%%%%
 \section{Contexte}
 %%%%%
@@ -197,55 +184,48 @@ Le problème de l'apprentissage par renforcement inverse a pour la première foi
 %%%
 \subsection{Apprentissage par renforcement direct et inverse}
 %%%
-Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielles. La configuration du système à contrôler est alors complètement décrite à chaque instant discret $t$ par un état $s_t \in S$, qui respecte donc le critère de Markov. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe \footnote{On peut se restreindre au cas déterministe sans perte de généralité.} $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décisions séquentielles.\\
+Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielles. La configuration du système à contrôler est alors complètement décrite à chaque instant discret $t$ par un état $s_t \in S$. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité markovienne $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe \footnote{On peut se restreindre au cas déterministe sans perte de généralité.} $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décisions séquentielles.\\
 
 Dans le cadre de l'apprentissage par renforcement,la résolution de ce problème est guidée par une fonction de récompense $R : S \rightarrow \mathbb{R}$ qui indique le degré de désirabilité de chaque état. Une des forces de l'apprentissage par renforcement réside dans le fait que l'agent ne va pas apprendre à maximiser la récompense immédiate mais au contraire un critère prenant le futur en compte, ce qui permet de spécifier uniquement le but et non la façon de l'atteindre. On définit pour ce faire la fonction de valeur $V^\pi$ :
 \begin{equation}
 \label{Vdef.eqn}
-V^\pi(s) = E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,\pi\right]=R(s) + \gamma E[V^\pi(s')|s,\pi]
+V^\pi(s) = E[\sum_t\gamma^tR(s_t)|s_0=s,\pi]=R(s) + \gamma E[V^\pi(s')|s,\pi]
 \end{equation}
-où $\gamma$ est un facteur d'actualisation positif strictement plus petit que $1$. Il est également possible de définir une fonction voisine de la fonction de valeur, la fonction de qualité :
+où $\gamma \in [0,1)$ est un facteur d'actualisation. Il est également possible de définir une fonction de qualité qui ajoute à la fonction de valeur un degré de liberté sur le choix de l'action suivante :
 \begin{equation}
 \label{Qdef.eqn}
-Q^\pi(s,a) = E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,a_0=a,\pi\right] = R(s) + \gamma E[Q^\pi(s',\pi(s'))|s,a].
+Q^\pi(s,a) = E[\sum_t\gamma^tR(s_t|s_0=s,a_0=a,\pi] = R(s) + \gamma E[Q^\pi(s',\pi(s'))|s,a].
 \end{equation}
-  Une politique optimale $\pi^*$ est définie comme une politique dont la fonction de valeur $V^*$ (appelée fonction de valeur optimale) vérifie :
-\begin{equation}
-\forall \pi, \forall s, V^*(s) \geq V^\pi(s).
-\end{equation}
-La politique optimale se calcule simplement à partir de la fonction de qualité optimale $Q^*$ via un mécanisme glouton :
+  Une politique optimale $\pi^*$ est définie comme une politique dont la fonction de valeur $V^*$ (appelée fonction de valeur optimale) vérifie $\forall \pi, \forall s, V^*(s) \geq V^\pi(s)$. La politique optimale se calcule simplement à partir de la fonction de qualité optimale $Q^*$ via un mécanisme glouton :
 \begin{equation}
 \label{greedy.eqn}
 \pi^*(s) \in \arg\max_a Q^*(s,a).
 \end{equation}
-L'ensemble formé par l'espace d'état $S$, l'espace d'action $A$, les probabilités de transition $p$, le facteur $\gamma$ et la fonction de récompense $R$ forme un processus décisionnel de Markov ({\it Markov Decision Process, MDP}).\\
+L'ensemble formé par l'espace d'état $S$, l'espace d'action $A$, les probabilités de transition $p$, le facteur $\gamma$ et la fonction de récompense $R$ forme un processus décisionnel de Markov (\emph{PDM}).\\
 
-Parfois, définir la fonction de récompense est une tâche ardue alors qu'il est possible à l'opérateur de convenablement contrôler le système de manière intuitive. Un exemple de ce type de tâche est la conduite d'une voiture. Nous accomplissons ce genre de choses au quotidien sans trop y penser mais nous serions bien en peine de préciser les poids précis que nous attribuons aux différents critères tels que la distance nous séparant de la voiture devant nous, la brutalité avec laquelle nous appuyons sur la pédale de frein lorsqu'un danger se présente et ainsi de suite. Dans de tels cas, il est utile d'inférer la récompense à partir d'un comportement démontré.\\
+Parfois, définir la fonction de récompense est une tâche ardue alors qu'il est possible à l'opérateur de convenablement contrôler le système de manière intuitive. Un exemple de ce type de tâche est la conduite d'une voiture. Nous accomplissons ce genre de chose au quotidien sans trop y penser mais nous serions bien en peine de préciser les poids précis que nous attribuons aux différents critères tels que la distance nous séparant de la voiture devant nous, la brutalité avec laquelle nous appuyons sur la pédale de frein lorsqu'un danger se présente et ainsi de suite. Dans de tels cas, il est utile d'inférer la récompense à partir d'un comportement démontré.\\
 
-C'est la définition de l'apprentissage par renforcement inverse. Le problème est de retrouver la fonction de récompense optimisée par un expert. Usuellement l'expert est considéré comme un agent optimal dans un MDP et l'on a accès ou bien à la politique complète $\pi_E$ de l'expert ou bien à quelques trajectoires tirées selon cette politique.\\
+C'est la définition de l'apprentissage par renforcement inverse. Le problème est de retrouver la fonction de récompense optimisée par un expert. Usuellement l'expert est considéré comme un agent optimal dans un PDM et l'on a accès ou bien à la politique complète $\pi_E$ de l'expert ou bien à quelques trajectoires tirées selon cette politique.\\
 
-Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour laquelle ce comportement est optimal (voir par exemple \cite{ng1999policy}). Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis à vis de cette récompense.
+Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour laquelle ce comportement est optimal (voir par exemple \cite{ng1999policy}). Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis-à-vis de cette récompense. Il convient donc de contraindre l'espace des solutions.
 %%%
 \subsection{Attribut vectoriel moyen}
 \label{ConsiderationsTechniques.sec}
 %%%
-La récompense $R$ étant l'inconnue du problème, il est naturel de l'approximer grâce à un vecteur de poids $\theta$ et des attributs vectoriels $\psi : S\rightarrow \mathbb{R}^p$ servant de fonctions de base :
+La récompense $R$ est l'inconnue du problème. Nous supposons que l'utilisateur est en mesure de fournir $p$ fonctions de base $\psi_{1\leq i \leq N}$ telles que 
 \begin{equation}
 \label{hatRdef.eqn}
-\hat R(s) = \theta^T\psi(s)\approx R(s).
+\exists \theta | R(s) = \theta^T\psi(s) = \sum_{i=1}^N\theta_i\psi_i(s).
+\end{equation}
+Comme nous allons le voir, cette contrainte peut cependant être relâchée si nécessaire. Introduire cette expression dans la définition de la fonction de qualité (Equation \eqref{Qdef.eqn}) fait apparaître un terme intéressant et dont l'usage est assez répandu dans les algorithmes existants :
+\begin{equation}
+Q^\pi(s,a) = \theta^T\mu^\pi(s,a) \textrm{ avec } \mu^\pi(s,a) = E[\sum_t\gamma^t\psi(s_t)|s_0=s,a_0=a,\pi]
+\label{Qmu.eqn}
 \end{equation}
 
-Introduire cette expression dans la définition de la fonction de qualité (Equation \eqref{Qdef.eqn}) fait apparaître un terme intéressant et dont l'usage est assez répandu dans les algorithmes existants :
-\begin{eqnarray}
-Q^\pi(s,a) &=& E\left[\left.\sum_t\gamma^t\theta^T\psi(s_t)\right|s_0=s,a_0=a,\pi\right]\\
- &=& \theta^TE\left[\left.\sum_t\gamma^t\psi(s_t)\right|s_0=s,a_0=a,\pi\right]\\
- &=& \theta^T\mu^\pi(s,a)
-\label{Qmu.eqn}
-\end{eqnarray}
+Le terme $\mu^\pi$ est appelé la {\it feature expectation} ou plutôt l'attribut vectoriel moyen d'une politique. On peut voir que la paramétrisation choisie pour $R$ et la dynamique imposée par l'application de la politique $\pi$ dans le PDM fixe la paramétrisation de $Q^\pi$.\\
 
-Le terme $\mu^\pi$ est appelé la {\it feature expectation} ou plutôt l'attribut vectoriel moyen d'une politique. On peut voir que la paramétrisation choisie pour $R$ et la dynamique imposée par l'application de la politique $\pi$ dans le MDP fixe la paramétrisation de $Q^\pi$.\\
-
-On peut noter que si deux politiques ont le même attribut vectoriel moyen, alors ces deux politiques ont la même valeur vis à vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
+On peut noter que si deux politiques ont le même attribut vectoriel moyen, alors ces deux politiques ont la même valeur vis-à-vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
 \begin{eqnarray}
 \mu^{\pi_1} = \mu^{\pi_2} &\Rightarrow& \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2}\\
 & \Rightarrow& V^{\pi_1} = V^{\pi_2}.
@@ -253,12 +233,12 @@ On peut noter que si deux politiques ont le même attribut vectoriel moyen, alor
 \end{eqnarray}
 L'attribut vectoriel moyen de l'expert, $\mu_E$, peut être calculé sans forcément avoir accès à l'intégralité de la politique $\pi_E$. Certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les attributs vectoriels moyens respectifs de l'agent et de l'expert. Cela permet d'obtenir un agent dont le comportement a la même valeur que celui de l'expert (voir \cite{neu2009training}).
 %%%%%
-\section{Classification structurée pour l'apprentissage par renforcement inverse (SCIRL)}
+\section{Classification structurée pour l'apprentissage par renforcement inverse (SCARI)}
 %%%%%
 %%%
 \subsection{Principe}
 %%%
-L'un des postulats de base de l'apprentissage par renforcement inverse est que l'expert est un agent \emph{optimal} vis à vis d'une certaine fonction de récompense que l'on cherche à retrouver. Cela implique, comme nous l'avons vu Equation \eqref{greedy.eqn}, qu'il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à cette fonction de récompense inconnue :
+L'un des postulats de base de l'apprentissage par renforcement inverse est que l'expert est un agent \emph{optimal} vis-à-vis d'une certaine fonction de récompense que l'on cherche à retrouver. Cela implique, comme nous l'avons vu Equation \eqref{greedy.eqn}, qu'il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à cette fonction de récompense inconnue :
 \begin{equation}
 \pi_E(s) \in \arg\max_aQ^E_R(s,a).
 \end{equation}
@@ -306,7 +286,7 @@ Cette inférence est facilité par le fait que l'attribut vectoriel moyen obéit
 \begin{equation}
 \mu_E^j(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \psi^j(s)\right|s_0 = s, a_0 = a, \pi_E\right],
 \end{equation}
-expression qui lorsqu'on la rapproche de l'équation \eqref{Qdef.eqn} permet d'affirmer que $\mu^j_E$ est en fait la fonction de qualité de la politique $\pi_E$ vis à vis de la récompense définie par la $j$-ème composante du vecteur d'attribut $\psi$.\\
+expression qui lorsqu'on la rapproche de l'équation \eqref{Qdef.eqn} permet d'affirmer que $\mu^j_E$ est en fait la fonction de qualité de la politique $\pi_E$ vis-à-vis de la récompense définie par la $j$-ème composante du vecteur d'attribut $\psi$.\\
 
 Selon les informations disponibles, plusieurs méthodes peuvent donc être utilisées pour calculer $\mu_E$.\\
 
@@ -449,7 +429,7 @@ Les approches bayésiennes du type de \cite{ramachandran2007bayesian} nécessite
 
 Un argument revenant parfois est celui qui consiste à voir en l'expert non pas un acteur optimal mais un acteur optimal par une certaine marge. C'est à dire que l'action choisie par l'expert doit avoir une qualité strictement supérieure à n'importe quelle autre action. Les approches de planification structurée comme \citet{ratliff2006maximum,ratliff2007imitation, ratliff2007boosting, kolter2008hierarchical} permettent d'influer sur cette marge.\\
 
-Particulièrement, notre travail présente des similarités avec celui de \citet{ratliff2006maximum}. Les auteurs présentent une méthode d'IRL en posant le problème sous forme d'un \emph{maximum margin classification problem}. La méthode utilisée pour résoudre ce problème peut être ramenée à un algorithme itératif dans la veine de \cite{abbeel2004apprenticeship}, comme cela est expliqué dans \cite{neu2009training}. Vu à un plus haut niveau d'abstraction, la classification a lieu dans l'espace des trajectoires : à un MDP (entrée à classifier) est associée une politique (classe). Cela impose également un cadre déterministe pour les MDP, l'algorithme de résolution utilisé étant $A^*$.\\
+Particulièrement, notre travail présente des similarités avec celui de \citet{ratliff2006maximum}. Les auteurs présentent une méthode d'ARI en posant le problème sous forme d'un \emph{maximum margin classification problem}. La méthode utilisée pour résoudre ce problème peut être ramenée à un algorithme itératif dans la veine de \cite{abbeel2004apprenticeship}, comme cela est expliqué dans \cite{neu2009training}. Vu à un plus haut niveau d'abstraction, la classification a lieu dans l'espace des trajectoires : à un PDM (entrée à classifier) est associée une politique (classe). Cela impose également un cadre déterministe pour les PDM, l'algorithme de résolution utilisé étant $A^*$.\\
 
 Finalement, dans \citep{ratliff2007imitation} les auteurs utilisent un système de classification multi-classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque état pour prendre une décision de classification i.e. choisir le label (correspondant à une action) $y\in Y$ à appliquer à l'entrée (correspondant à un état) $x\in X$. Notre fonction de risque est similaire à la leur, mais outre la résolution répétée du PDM liée à la manière dont ils minimisent la fonction de risque et dont nous avons déjà parlé, leur approche souffre de ne pas profiter de l'introduction de la structure dont profite la nôtre (Equation \eqref{structure.eqn}).
 
@@ -467,7 +447,7 @@ La politique optimisant la fonction de récompense donnée figure \ref{trueR.fig
 Le but de cette expérience est de montrer que notre algorithme est capable, à partir des seules transitions fournies par l'expert et de la définition des fonctions de bases, de retrouver une récompense telle qu'un agent entraîné sur cette récompense puisse lui aussi faire balancer le pendule durant 5 minutes sans échec. Cela n'est pas trivial étant donné que l'espace d'état est continu et que les données fournies par l'expert n'en couvrent qu'une petite partie (correspondant à la position verticale et son voisinage proche).\\
 
  Ce dernier point est d'ailleur la raison pour laquelle l'algorithme d'\citet{abbeel2004apprenticeship} ne parvient pas à résoudre le problème à l'aide des seules transitions de l'expert.
-En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fournir un certain nombre de transitions aléatoires couvrant tout l'espace d'état il est impossible d'utiliser les algorithmes itératifs du type de celui d'\citet{abbeel2004apprenticeship}. Ces algorithmes procèdent par itérations à l'élaboration d'une politique $\pi$ dont l'attribut vectoriel moyen est utilisée en association à celle de l'expert. Cette politique est obtenue par optimisation d'une récompense sur le MDP dans lequel évolue l'expert ; cette résolution du problème direct à chaque itération ne peut se faire si l'on ne dispose que de données ne couvrant qu'une petite partie de l'espace d'état. Comme notre algorithme ne nécessite pas le calcul d'autre attribut vectoriel moyen que celui de l'expert, la résolution du problème direct est inutile et nous ne rencontrons pas ce problème.
+En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fournir un certain nombre de transitions aléatoires couvrant tout l'espace d'état il est impossible d'utiliser les algorithmes itératifs du type de celui d'\citet{abbeel2004apprenticeship}. Ces algorithmes procèdent par itérations à l'élaboration d'une politique $\pi$ dont l'attribut vectoriel moyen est utilisée en association à celle de l'expert. Cette politique est obtenue par optimisation d'une récompense sur le PDM dans lequel évolue l'expert ; cette résolution du problème direct à chaque itération ne peut se faire si l'on ne dispose que de données ne couvrant qu'une petite partie de l'espace d'état. Comme notre algorithme ne nécessite pas le calcul d'autre attribut vectoriel moyen que celui de l'expert, la résolution du problème direct est inutile et nous ne rencontrons pas ce problème.
 %%%
 \subsection{Illustration des résultats}
 %%%
@@ -507,7 +487,7 @@ En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fo
 Afin d'étudier le comportement de notre algorithme, nous avons fait générer à l'expert une base de données $D_E$ de transitions contenant 10 trajectoires de 300 transitions chacune. La fonction $l$ fut définie sur les états présents dans $D_E$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon. Le pas de temps est constant à $\alpha(t) = 0.1, \forall t$ et le nombre d'itérations est de $T=20$. Le vecteur initial $\theta_0$ fut fixé à $[-1...-1]^T$, la récompense étant paramétrée à l'aide du vecteur d'attribut $\psi : S \rightarrow \mathbb{R}^p$ correspondant au mélange de gaussiennes défini dans \cite{lagoudakis2003least}. Pour l'approximation de l'attribut vectoriel moyen de l'expert, c'est l'algorithme LSTD$\mu$ qui fut employé.\\
 
 
-Si la fonction de récompense trouvée par LAFEM (figure \ref{lafemR.fig}) diffère de celle fournie à l'expert (figure \ref{trueR.fig}) on constate en revanche que les fonctions de valeurs sont très similaires (figures \ref{trueV.fig} et \ref{lafemV.fig}). Cela est une illustration du fait que le problème de l'IRL est mal posé en ceci qu'il n'y a pas qu'une seule récompense pouvant expliquer une politique.\\
+Si la fonction de récompense trouvée par LAFEM (figure \ref{lafemR.fig}) diffère de celle fournie à l'expert (figure \ref{trueR.fig}) on constate en revanche que les fonctions de valeurs sont très similaires (figures \ref{trueV.fig} et \ref{lafemV.fig}). Cela est une illustration du fait que le problème de l'ARI est mal posé en ceci qu'il n'y a pas qu'une seule récompense pouvant expliquer une politique.\\
 
 Avec le nombre d'échantillons fournis par l'expert (3000 en 10 trajectoires de 300 transitions chacune), l'agent parvient systématiquement à maintenir le pendule en équilibre durant 5 minutes, ce qui est rappelons le notre critère de réussite.\\
 
@@ -520,14 +500,13 @@ La différence dans les amplitudes des récompenses et des fonctions de valeurs 
 
 L'algorithme présenté dans cette publication lève les problèmes les plus contraignants de l'apprentissage par renforcement inverse. En rendant la résolution du problème inverse indépendante de celle du problème direct, nous sommes en mesure d'inférer une récompense cohérente avec le comportement d'un expert en mode purement \emph{batch}.\\
 
-La complexité calculatoire de notre algorithme instancié avec LSTD$\mu$ reste sous contrôle. L'étape gourmande étant l'inversion d'une matrice de taille $p \times p$.
-\begin{itemize}
-\item On enlève les contraintes du domaine d'un seul coup,
-\item Il ne reste que la sélection ou détection de features, mais ce n'est pas hors de portée
-\item Faible complexité computationnelle
-\item Faible complexité en échantillons
-\item Il reste des tests à faire sur le Highway driving (Pour ICML ?) et sur des expériences dans la vraie vie (bras robot ?) pour comparer à l'existant
-\end{itemize}
+La complexité calculatoire de notre algorithme instancié avec LSTD$\mu$ reste sous contrôle, létape gourmande étant l'inversion d'une matrice de taille $p \times p$.\\
+
+Comme nous l'avons illustré, les échantillons nécessaires à la réussite de notre algorithmes sont faciles à recueillir. Une simple trace de l'expert, même si elle ne couvre qu'une petite partie de l'espace d'état, suffit à inférer une récompense. Cette récompense, description compacte de la tâche effectuée par l'expert, peut alors être optimisée par un agent dont les capacités diffèrent de celles de l'expert. On rentre dans le cadre du \emph{transfer learning}.\\
+
+Bien que ne posant pas particulièrment problème, le point central de notre algorithme qu'est le calcul de $\mu_E$ gagnerait à être amélioré. L'axe d'étude que nous envisageons d'explorer serait de s'en passer purement et simplement en trouvant le moyen d'introduire la structure du PDM dans la démarche de classification sueprvisée.\\
+
+Des tests empiriques sur des problèmes plus comlpexes sont également envisagés.
 %
 % Bibliographie
 %
