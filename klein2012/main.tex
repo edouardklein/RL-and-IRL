@@ -212,7 +212,7 @@ Ce problème est mal posé dans la mesure où étant donné un comportement, il 
 \subsection{Attribut vectoriel moyen}
 \label{ConsiderationsTechniques.sec}
 %%%
-La récompense $R$ est l'inconnue du problème. Nous supposons que l'utilisateur est en mesure de fournir $p$ fonctions de base $\psi_{1\leq i \leq N}$ telles que 
+La récompense $R$ est l'inconnue du problème. Nous supposons que l'utilisateur est en mesure de fournir $p$ fonctions de base $\psi_{1\leq i \leq N}$ telles que
 \begin{equation}
 \label{hatRdef.eqn}
 \exists \theta | R(s) = \theta^T\psi(s) = \sum_{i=1}^N\theta_i\psi_i(s).
@@ -328,8 +328,8 @@ Or comme la somme des $\max$ est supérieur au $\max$ d'une somme, il est clair 
 \Rightarrow&\hat{\theta}_x^T\mu_E(s_i,a_i) + l(s_i,a_i)-\max_{a \in A  \backslash a_i}(\hat{\theta}_x^T\mu_E(s_i,a)+l(s_i,a))\geq0,\\
 \Leftrightarrow&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).
 \end{align}
-C'est bien le résultat recherché. Montrons à présent que les minimiseurs de $R_N$ vérifient bien l'équation \eqref{eq:existence}. 
-Soit ~$\theta^*\in\ M^*$.Pour ~$\hat{\theta}\in \hat{M}$, on a vu qu'il existait un ~$\x>0$ tel que $R_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $~\forall \theta\in\mathbb{R}^p, R_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i)$, $R_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$. Or on a $\forall 1\leq i \leq N$ :
+C'est bien le résultat recherché. Montrons à présent que les minimiseurs de $R_N$ vérifient bien l'équation \eqref{eq:existence}.
+Soit ~$\theta^*\in\ M^*$.Pour ~$\hat{\theta}\in \hat{M}$, on a vu qu'il existait un ~$x>0$ tel que $R_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $~\forall \theta\in\mathbb{R}^p, R_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i)$, $R_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$. Or on a $\forall 1\leq i \leq N$ :
 \begin{align}
 &R_N(\theta^*)={1\over N} \sum_{i=1}^N l(s_i,a_i),\\
 \Leftrightarrow&\forall a \in A \backslash a_i,  (\theta^*)^T\mu_E(s_i,a_i)-(\theta^*)^T\mu_E(s_i,a)\geq l(s_i,a)- l(s_i,a_i)>0,\\
