@@ -394,53 +394,30 @@ De plus on peut remarquer, que si l'on choisi la fonction de perte telle que :
 \end{equation}
 alors on a ~$\max_{A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,)+\max_{a\in A \backslash a_i}l(s_i,a)~=~\max_{A \backslash a_i}(\hat{\theta}_x^T\mu_E(s_i,)~+~l(s_i,a))$. Et donc :
 \begin{align}
-&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},
-\\
-\nonumber\Updownarrow
-\\
-&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).
+&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},\\
+\Leftrightarrow&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).
 \end{align}
-Majorons les $\beta_i$ :
-\begin{equation}
-\forall 1\leq i \leq N, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\leq\max_{A \backslash a_i}(\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2).
-\end{equation}
+Majorons les $\beta_i$: $\forall 1\leq i \leq N, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\leq\max_{A \backslash a_i}(\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2).$
 Donc :
 \begin{align}
 &R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i),
-\\
-\nonumber\Updownarrow
-\\
-&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},
-\\
-\nonumber\Downarrow
-\\
-&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}.
+\Rightarrow&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},
+\Leftrightarrow&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}.
 \end{align}
 Ainsi, cela impose que la solution $\hat{\theta}_x$ soit au moins de norme $\max_{i\in\{1,\dots,N\}}\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}$.\\
-Minorons les $\beta_i$ :
-\begin{equation}
-\forall 1\leq i \leq N, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\geq|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|.
-\end{equation}
+Minorons les $\beta_i$ :$\forall 1\leq i \leq N, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\geq|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|.$
 Donc :
 \begin{align}
-&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i),
-\\
-\nonumber\Updownarrow
-\\
-&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},
-\\
-\nonumber\Uparrow
-\\
-&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|}.
+&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|},
+\Rightarrow&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},\\
+\Leftrightarrow&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).\\
 \end{align}
 Ainsi cela impose que si $\hat{\theta}_x$ est de norme supérieure à $\max_{i\in\{1,\dots,N\}}\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|}$, alors il est un minimiseur de $R_N$.
-
-Revenons au premier type de fonction de loss :
-\begin{equation}
+Revenons au premier type de fonction de perte :
 \forall 1\leq i \leq N, \forall a \in A \backslash a_i, l(s_i,a)>l(s_i,a_i)\geq0.
-\end{equation}
-On peut montrer, toujours sous l'existence de ~$\hat{\theta}$ que $M^*\subset\hat{M}$.
-\begin{preuve}
+
+On peut montrer à présent que $M^*\subset\hat{M}$.
+
 Soit ~$\theta^*\in\ M^*$. Sous l'existence de ~$\hat{\theta}$, on a vu qu'il existait un ~$\x>0$ tel que $R_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $~\forall \theta\in\mathbb{R}^p, R_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i)$, $R_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$.
 Or on a :
 \begin{align}
