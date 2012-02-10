@@ -327,94 +327,40 @@ Finalement, il est possible de travailler avec une approximation de Monte-Carlo 
 %%%%%
 \section{Analyse}\label{proof.sec}
 \subsection{Hypothèses}
-Dans cette section, nous allons présenter le cadre sous lequel notre algorithme de sous gradient converge vers un minimiseur de $R_N$ qui rende la politique de l'expert optimale. On supposera que la récompense $R$ recherchée s'écrive sous la forme $R(s)=\theta_E^T\phi(s)$ où $\theta_E\in\mathbb{R}^p$. De plus, on supposera que notre base d'exemples est telle que $(S\times A) \subset (s_i,a_i)_{1\leq i \leq N}$. Finalement la récompense $R$ devra vérifier la propriété suivante :
+Ici, on présente le cadre sous lequel notre algorithme de sous gradient converge vers un minimiseur de $R_N$ qui rende la politique de l'expert optimale. On supposera que la récompense $R$ s'écrive sous la forme $R(s)=\theta_E^T\psi(s)$ où $\theta_E\in\mathbb{R}^p$. De plus, on supposera que notre base d'exemples est telle que $S\subset \{s_i\}_{1\leq i \leq N}$. Finalement la récompense $R$ devra vérifier la propriété suivante :
 \begin{equation}\label{eq:existence}
 \forall 1\leq i \leq N, \theta_E^T\mu_E(s_i,a_i)>\max_{a\in A \backslash a_i}\theta_E^T\mu_E(s_i,a),
 \end{equation}
-où la notation ~$A \backslash a_i$ désigne l'ensemble $A$ privé de l'action $a_i$, qui est légèrement plus forte que l'équation d'optimalité de Bellman puisque l'équation \ref{eq:existence} implique :
-\begin{equation}
-\forall s\in S, V^{\pi_E}(s)\geq\max_{a\in A}Q^{\pi_E}(s,a).
-\end{equation}
-Ainsi tout vecteur $\theta$ vérifiant l'équation \ref{eq:existence} rendra la politique de l'expert optimale. Dans le cadre que nous venons d'établir, nous allons montrer qu'il existe bien un $\theta$ vérifiant l'équation $\ref{eq:existence}$ qui minimise $R_N$,  que les minimiseurs de $R_N$ vérifient bien l'équation \ref{eq:existence} et que l'algorithme de sous-gradient converge vers un minimiseur.
+où la notation ~$A \backslash a_i$ désigne l'ensemble $A$ privé de l'action $a_i$, qui est légèrement plus forte que l'équation d'optimalité de Bellman puisque l'équation \eqref{eq:existence} implique : $\forall s\in S, V^{\pi_E}(s)\geq\max_{a\in A}Q^{\pi_E}(s,a)$. Ainsi tout vecteur $\theta$ vérifiant l'équation \eqref{eq:existence} rendra la politique de l'expert optimale. Si la base d'exemples est tel que $\{s_i\}_{1\leq i \leq N}\subset S$, alors un $\theta$ vérifiant l'équation \eqref{eq:existence} rendra la politique de l'expert optimale au moins sur $\{s_i\}_{1\leq i \leq N}$ car l'équation \eqref{eq:existence} impliquera dans ce cas :$\forall s\in \{s_i\}_{1\leq i \leq N}, V^{\pi_E}(s)\geq\max_{a\in A}Q^{\pi_E}(s,a)$.
+Dans ce cadre, nous allons montrer qu'il existe bien un $\theta$ vérifiant l'équation $\eqref{eq:existence}$ qui minimise $R_N$,  que les minimiseurs de $R_N$ vérifient bien l'équation \eqref{eq:existence} et que l'algorithme de sous-gradient converge vers un minimiseur.
 \subsection{Résultats}
-On va montrer dans un premier temps qu'il existe bien un $\hat{\theta}$ qui vérifie l'équation \ref{eq:existence} et qui minimise $R_N$.
-On note tout d'abord ~$M^*=\{\theta\in\mathbb{R}^p:R_N(\theta)=\inf_{\theta \in \mathbb{R}^p}R_N(\theta)\}$.
-Désormais, on imposera que notre fonction de perte vérifie :
-\begin{equation}
-\forall 1\leq i \leq N, \forall a \in A \backslash a_i, l(s_i,a)>l(s_i,a_i)\geq0.
-\end{equation}
-Il est facile de borné inférieurement le risque $R_N$, pour tout ~$\theta\in\mathbb{R}^p$ on a :
-\begin{equation}
-R_N(\theta)\geq{1\over N} \geq {1\over N} \sum_{i=1}^N l(s_i,a_i).
-\end{equation}
-Soit ~$\hat{\theta}\in\mathbb{R}^p$ vérifiant l'équation \ref{eq:existence}, l'existence de ce dernier est assuré par l'hypothèse sur $\theta_E$. Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$, et ~$\hat{M}=\{\hat{\theta}\in\mathbb{R}^p:\hat{\theta} \text{ vérifie l'équation \ref{eq:existence} }\}$ et posons ~$\forall~1\leq i \leq N,~\beta_i~=~\hat{\theta}_1^T~\mu_E(s_i,a_i)~-~\max_{A \backslash a_i}~\hat{\theta}_1^T~\mu_E(s_i,a)~>~0~$.
-Montrons qu'il existe un $x\geq0$ tel que $\forall 1\leq i \leq N, R_N(\hat{\theta}_x)= {1\over N} \sum_{i=1}^N l(s_i,a_i)$, et cela nous assurera que ~$\hat{\theta}_x\in M^*$ d'après la minoration ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i),~\forall~\theta~\in~\mathbb{R}^p$.\\
-Avec les notations précédentes, on vérifie:
+On va montrer, dans un premier temps, qu'il existe bien un $\hat{\theta}$ qui vérifie l'équation \eqref{eq:existence} et qui minimise $R_N$.
+On note tout d'abord ~$M^*=\{\theta\in\mathbb{R}^p:R_N(\theta)=\inf_{\theta \in \mathbb{R}^p}R_N(\theta)\}$. Désormais, on imposera que notre fonction de perte vérifie : ~$\forall~1\leq~i~\leq~N,~\forall~a~\in~A~\backslash~a_i,~l(s_i,a)~>~l(s_i,a_i)~\geq~0$. Il est facile de borné inférieurement le risque $R_N$, pour tout ~$\theta\in\mathbb{R}^p$ on a : ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i)$. Soit ~$\hat{\theta}\in\mathbb{R}^p$ vérifiant l'équation \eqref{eq:existence}, l'existence de ce dernier est assuré par l'hypothèse sur $\theta_E$. Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$,~$\hat{M}=\{\hat{\theta}\in\mathbb{R}^p:\hat{\theta} \text{ vérifie l'équation \eqref{eq:existence} }\}$, et posons ~$\forall~1\leq~i~\leq~N,~\beta_i~=~\hat{\theta}_1^T~\mu_E(s_i,a_i)~-~\max_{a\in A \backslash a_i}~\hat{\theta}_1^T~\mu_E(s_i,a)~>~0~$.
+Montrons qu'il existe un $x\geq0$ tel que $\forall~1~\leq~i~\leq~N,~R_N(\hat{\theta}_x)~=~{1\over N}~\sum_{i=1}^N l(s_i,a_i)$, et cela nous assurera que ~$\hat{\theta}_x~\in~M^*$ d'après la minoration ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i),~\forall~\theta~\in~\mathbb{R}^p$. Avec les notations précédentes, on vérifie $\forall 1\leq i \leq N$ :
 \begin{align}
-&\forall 1\leq i \leq N, \hat{\theta}_x^T\mu_E(s_i,a_i)-\max_{a\in A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,) + l(s_i,a_i)-\max_{A \backslash a_i}l(s_i,a)\geq0,
-\\
-\Leftrightarrow &\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i}.
+&\hat{\theta}_x^T\mu_E(s_i,a_i)-\max_{a\in A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,a) + l(s_i,a_i)-\max_{a\in A \backslash a_i}l(s_i,a)\geq0,\\
+\Leftrightarrow&x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i}.
 \end{align}
-Or comme ~$\max_{A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,)+\max_{a\in A \backslash a_i}l(s_i,a)~\geq~\max_{A \backslash a_i}(\hat{\theta}_x^T\mu_E(s_i,)~+~l(s_i,a))$, il est clair que :
+Or comme la somme des $\max$ est supérieur au $\max$ d'une somme, il est clair que $\forall 1\leq i \leq N$:
 \begin{align}
-&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},\\
-\Leftrightarrow&\forall 1\leq i \leq N, \hat{\theta}_x^T\mu_E(s_i,a_i)-\max_{a \in A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,a) + l(s_i,a_i)-\max_{A \backslash a_i}l(s_i,a)\geq0,\\
-\Rightarrow&\forall 1\leq i \leq N, \hat{\theta}_x^T\mu_E(s_i,a_i) + l(s_i,a_i)-\max_{a \in A  \backslash a_i}(\hat{\theta}_x^T\mu_E(s_i,a)+l(s_i,a))\geq0,\\
-\Leftrightarrow&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).\\
-\end{align}
-C'est bien le résultat recherché.
-De plus on peut remarquer, que si l'on choisi la fonction de perte telle que :
-\begin{equation}
-\forall 1\leq i \leq N, \forall a \in A \backslash a_i, l(s_i,a)=c_i=\max_{a\in A \backslash a_i}l(s_i,a)>l(s_i,a_i)\geq0, \text{ où $c_i$ est une constante réelle,}
-\end{equation}
-alors on a ~$\max_{A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,)+\max_{a\in A \backslash a_i}l(s_i,a)~=~\max_{A \backslash a_i}(\hat{\theta}_x^T\mu_E(s_i,)~+~l(s_i,a))$. Et donc :
-\begin{align}
-&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},\\
+&x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},\\
+\Leftrightarrow&\hat{\theta}_x^T\mu_E(s_i,a_i)-\max_{a \in A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,a) + l(s_i,a_i)-\max_{a\in A \backslash a_i}l(s_i,a)\geq0,\\
+\Rightarrow&\hat{\theta}_x^T\mu_E(s_i,a_i) + l(s_i,a_i)-\max_{a \in A  \backslash a_i}(\hat{\theta}_x^T\mu_E(s_i,a)+l(s_i,a))\geq0,\\
 \Leftrightarrow&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).
 \end{align}
-Majorons les $\beta_i$: $\forall 1\leq i \leq N, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\leq\max_{A \backslash a_i}(\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2).$
-Donc :
+C'est bien le résultat recherché. Montrons à présent que les minimiseurs de $R_N$ vérifient bien l'équation \eqref{eq:existence}. 
+Soit ~$\theta^*\in\ M^*$.Pour ~$\hat{\theta}\in \hat{M}$, on a vu qu'il existait un ~$\x>0$ tel que $R_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $~\forall \theta\in\mathbb{R}^p, R_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i)$, $R_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$. Or on a $\forall 1\leq i \leq N$ :
 \begin{align}
-&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i),
-\Rightarrow&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},
-\Leftrightarrow&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}.
+&R_N(\theta^*)={1\over N} \sum_{i=1}^N l(s_i,a_i),\\
+\Leftrightarrow&\forall a \in A \backslash a_i,  (\theta^*)^T\mu_E(s_i,a_i)-(\theta^*)^T\mu_E(s_i,a)\geq l(s_i,a)- l(s_i,a_i)>0,\\
+\Rightarrow&(\theta^*)^T\mu_E(s_i,a_i)-\max_{a \in A \backslash a_i}(\theta^*)^T\mu_E(s_i,a)>0.
 \end{align}
-Ainsi, cela impose que la solution $\hat{\theta}_x$ soit au moins de norme $\max_{i\in\{1,\dots,N\}}\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\max_{A \backslash a_i}\|\mu_E(s_i,a_i)-\mu_E(s_i,a)\|_2}$.\\
-Minorons les $\beta_i$ :$\forall 1\leq i \leq N, \beta_i=\hat{\theta}_1^T\mu_E(s_i,a_i)-\max_{A \backslash a_i}\hat{\theta}_1^T\mu_E(s_i,a)\geq|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|.$
-Donc :
-\begin{align}
-&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|},
-\Rightarrow&\forall 1\leq i \leq N, x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i},\\
-\Leftrightarrow&R_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).\\
-\end{align}
-Ainsi cela impose que si $\hat{\theta}_x$ est de norme supérieure à $\max_{i\in\{1,\dots,N\}}\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{|\|\mu_E(s_i,a_i)\|_2-\max_{A \backslash a_i}\|\mu_E(s_i,a)\|_2|}$, alors il est un minimiseur de $R_N$.
-Revenons au premier type de fonction de perte :
-\forall 1\leq i \leq N, \forall a \in A \backslash a_i, l(s_i,a)>l(s_i,a_i)\geq0.
-
-On peut montrer à présent que $M^*\subset\hat{M}$.
-
-Soit ~$\theta^*\in\ M^*$. Sous l'existence de ~$\hat{\theta}$, on a vu qu'il existait un ~$\x>0$ tel que $R_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $~\forall \theta\in\mathbb{R}^p, R_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i)$, $R_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$.
-Or on a :
-\begin{align}
-&R_N(\theta^*)={1\over N} \sum_{i=1}^N l(s_i,a_i),
-\\
-\nonumber\Updownarrow
-\\
-&\forall 1\leq i \leq N, (\theta^*)^T\mu_E(s_i,a_i) + l(s_i,a_i)\geq\max_{a \in A \backslash a_i}((\theta^*)^T\mu_E(s_i,a)+l(s_i,a))\geq0,
-\\
-\nonumber\Updownarrow
-\\
-&\forall 1\leq i \leq N,\forall a \in A \backslash a_i,  (\theta^*)^T\mu_E(s_i,a_i)-(\theta^*)^T\mu_E(s_i,a)\geq l(s_i,a)- l(s_i,a_i)>0,
-\\
-\nonumber\Downarrow
-\\
-&\forall 1\leq i \leq N, (\theta^*)^T\mu_E(s_i,a_i)-\max_{a \in A \backslash a_i}(\theta^*)^T\mu_E(s_i,a)>0.
-\end{align}
-D'ou ~$\theta^*\in \hat{M}$. C'est bien ce que l'on recherchait.
-\end{preuve}
-Ainsi on sait que, sous l'existence de ~$\hat{\theta}$, les minimiseurs de ~$\R_N$ existent (il y en a d'ailleurs une infinité) et vérifient l'équation \ref{eq:existence}.
-On peut donc appliquer l'algorithme de descente de sous-gradient avec l'assurance de la convergence de ce dernier vers un minimiseur de la fonction de risque qui vérifie l'équation \ref{eq:existence}. L'équation \ref{eq:existence} est la formulation mathématique de ce que l'on recherche pour vecteur de récompense $\theta$. La politique optimale obtenue à partir de la récompense définie par un minimiseur $\theta^*$ de $R_N$, sous l'existence d'un ~$\hat{\theta}$, aura la même fonction de valeur sur les états $s_i,\forall 1\leq i \leq N$ que la politique de l'expert car cette dernière est optimale sur les états $s_i,\forall 1\leq i \leq N$ puisque $\theta^*$ vérifie l'équation \ref{eq:existence}.
-%%%%%
+D'ou ~$\theta^*\in\hat{M}$. C'est bien ce que l'on recherchait. Si on récapitule, on a montré dans un premier temps que $M^*\neq\emptyset$ et dans un second temps que $M^*\subset\hat{M}$.
+Finalement, montrons que l'algorithme de sous-gradient converge. Tout d'abord, il est clair que $R_N$ est une fonction convexe, fermée, propre, à valeurs finies et continue en la variable $\theta\in\mathbb{R}^p$. De plus on sait que $M^*\neq\emptyset$, on peut donc appliquer le théorème présenté en section 5 de l'article \cite{correa1993convergence} qui nous assure que la suite :
+\begin{equation}
+\theta_0\in\mathbb{R}^p, \forall t\in\mathbb{N}, \theta_{t+1}=\theta_t -\frac{1}{t+1}{\nabla_\theta R_N(\theta) \over ||\nabla_\theta R_N(\theta)||_2},
+\end{equation}
+est convergente vers un minimiseur $\theta^*$ de $R_N$. Ce minimiseur vérifiera l'équation \eqref{eq:existence} car $M^*\subset\hat{M}$ et la politique de l'expert sera optimale pour la récompense relative à $\theta^*$ car l'équation \eqref{eq:existence} implique l'optimalité de Bellman.
 \section{Travaux Connexes}
 \label{biblio.sec}
 %%%%%
