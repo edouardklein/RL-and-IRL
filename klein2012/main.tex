@@ -30,6 +30,7 @@
 \mathtoolsset{showonlyrefs=true}
 \usepackage{amssymb}
 \usepackage{natbib}
+\usepackage{caption}
 %%% francisation des algorithmes
 
 
@@ -169,18 +170,22 @@ GeorgiaTech-CNRS, France
 
 
 \begin{abstract}
-  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse ({\it Inverse Reinforcement Learning, IRL}). Dans ce contexte, un expert accomplit une tâche qu'un agent doit essayer de reproduire. L'IRL part du postulat que l'expert optimise avec succès une fonction d'utilité ; le problème consiste à deviner cette fonction (appelée récompense) à partir de  traces du comportement de l'expert. Les algorithmes d'IRL existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui du {\it Reinforcement Learning, RL}) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'IRL levant l'ensemble de ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it Markov Decision Process, MDP}) sous-jacent, nous créons un algorithme basé sur une descente de sous-gradient, possèdant une faible complexité tant en échantillons que calculatoire et ne nécessitant pas la résolution du problème direct.
+  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse. Dans ce contexte, un expert accomplit une tâche qu'un agent doit essayer de reproduire. L'IRL part du postulat que l'expert optimise avec succès une fonction d'utilité ; le problème consiste à deviner cette fonction (appelée récompense) à partir de  traces du comportement de l'expert. Les algorithmes d'IRL existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui de l'apprentissage par renforcement) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'IRL levant l'ensemble de ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it PDM}) sous-jacent, nous créons un algorithme basé sur une descente de sous-gradient, possèdant une faible complexité tant en échantillons que calculatoire et ne nécessitant pas la résolution du problème direct.
   \motscles{Apprentissage par renforcement, Apprentissage par renforcement inverse, Processus Decisionnel de Markov}
 \end{abstract}
 %%%%%
 \section{Introduction}
 %%%%%
+Le problème de l'apprentissage par renforcement inverse a pour la première fois été introduit dans \cite{russell1998learning}. Formellement défini dans \cite{ng2000algorithms}, les approches proposées restent intractables jusqu'à la publication de \cite{abbeel2004apprenticeship}, qui lança toute une vague d'algorithmes cherchant une politique par modifications successives d'une fonction de récompense, approches pour la plupart résumées dans le \emph{survey} \cite{neu2009training}.
 \begin{itemize}
 \item Introduction informelle sur les processus de décision séquentielles
 \item Intérêt de l'apprentissage par démonstration
 \item Intérêt de l'IRL pour faire de l'apprenticeship learning
 \item Rapide point sur les limitations des algos d'IRL actuels
+
+
 \begin{itemize}
+
 \item \cite{ng2000algorithms} : Probabilités de transitions devant être connues
 \item \cite{abbeel2004apprenticeship} et toutes les approches résumées dans \cite{neu2009training}: Résolution du problème direct à chaque itération
 \end{itemize}
@@ -199,12 +204,12 @@ Dans le cadre de l'apprentissage par renforcement,la résolution de ce problème
 \label{Vdef.eqn}
 V^\pi(s) = E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,\pi\right]=R(s) + \gamma E[V^\pi(s')|s,\pi]
 \end{equation}
-où $\gamma$ est un facteur d'actualisation strictement plus petit que $1$. Il est également possible de définir une fonction voisine de la fonction de valeur, la fonction de qualité :
+où $\gamma$ est un facteur d'actualisation positif strictement plus petit que $1$. Il est également possible de définir une fonction voisine de la fonction de valeur, la fonction de qualité :
 \begin{equation}
 \label{Qdef.eqn}
 Q^\pi(s,a) = E\left[\left.\sum_t\gamma^tR(s_t)\right|s_0=s,a_0=a,\pi\right] = R(s) + \gamma E[Q^\pi(s',\pi(s'))|s,a].
 \end{equation}
-  Une politique optimale est définie comme une politique dont la fonction de valeur $V^*$ (appelée fonction de valeur optimale) vérifie :
+  Une politique optimale $\pi^*$ est définie comme une politique dont la fonction de valeur $V^*$ (appelée fonction de valeur optimale) vérifie :
 \begin{equation}
 \forall \pi, \forall s, V^*(s) \geq V^\pi(s).
 \end{equation}
@@ -219,9 +224,9 @@ Parfois, définir la fonction de récompense est une tâche ardue alors qu'il es
 
 C'est la définition de l'apprentissage par renforcement inverse. Le problème est de retrouver la fonction de récompense optimisée par un expert. Usuellement l'expert est considéré comme un agent optimal dans un MDP et l'on a accès ou bien à la politique complète $\pi_E$ de l'expert ou bien à quelques trajectoires tirées selon cette politique.\\
 
-Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour lequel ce comportement est optimal (voir par exemple \cite{ng1999policy}). Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis à vis de cette récompense.
+Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour laquelle ce comportement est optimal (voir par exemple \cite{ng1999policy}). Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis à vis de cette récompense.
 %%%
-\subsection{Considérations techniques}
+\subsection{Attribut vectoriel moyen}
 \label{ConsiderationsTechniques.sec}
 %%%
 La récompense $R$ étant l'inconnue du problème, il est naturel de l'approximer grâce à un vecteur de poids $\theta$ et des attributs vectoriels $\psi : S\rightarrow \mathbb{R}^p$ servant de fonctions de base :
@@ -246,9 +251,9 @@ On peut noter que si deux politiques ont le même attribut vectoriel moyen, alor
 & \Rightarrow& V^{\pi_1} = V^{\pi_2}.
 \label{memevaleur.eqn}
 \end{eqnarray}
-L'attribut vectoriel moyen de l'expert, $\mu_E$, pouvant être calculée sans forcément avoir accès à l'intégralité de la politique $\pi_E$, certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les attributs vectoriels moyens respectifs de l'agent et de l'expert, afin d'obtenir un agent dont le comportement à la même valeur que celui de l'expert (voir \cite{neu2009training}).
+L'attribut vectoriel moyen de l'expert, $\mu_E$, peut être calculé sans forcément avoir accès à l'intégralité de la politique $\pi_E$. Certains algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les attributs vectoriels moyens respectifs de l'agent et de l'expert. Cela permet d'obtenir un agent dont le comportement a la même valeur que celui de l'expert (voir \cite{neu2009training}).
 %%%%%
-\section{Loss-augmented Feature Expectation Matching}
+\section{Classification structurée pour l'apprentissage par renforcement inverse (SCIRL)}
 %%%%%
 %%%
 \subsection{Principe}
@@ -257,70 +262,68 @@ L'un des postulats de base de l'apprentissage par renforcement inverse est que l
 \begin{equation}
 \pi_E(s) \in \arg\max_aQ^E_R(s,a).
 \end{equation}
-Nous allons utiliser cette propriété pour imaginer une fonction de risque dépendante d'une fonction $q$ qui devra partager avec la fonction inconnue $Q^E_R$ la propriété d'optimalité de l'expert que nous venons d'exprimer.\\
-Notons $(s_i,a_i)_i$ les échantillons représentant une ou plusieurs trajectoires de l'expert. Il faut que pour chacun de ces échantillons l'on ait :
+Nous allons utiliser cette propriété pour considérer un risque dépendant d'une fonction de score $q$ qui devra partager avec la fonction inconnue $Q^E_R$ la propriété d'optimalité de l'expert que nous venons d'exprimer.\\
+Notons $(s_i,a_i,s_{i+1})_{i=1..N}$ les échantillons représentant une ou plusieurs trajectoires de l'expert. Il faut que pour chacun de ces échantillons l'on ait :
 \begin{equation}
 \label{butLAFEM.eqn}
 a_i \in \arg\max_aq(s_i,a).
 \end{equation}
-Notre fonction de risque doit donc pénaliser les cas où $\exists a, q(s_i,a)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \eqref{greedy.eqn}) le choix $a_i$ de l'expert.\\
-Nous introduisons de surcroit une fonction de perte $l : S \times A \rightarrow \mathbb{R}_+$ dans notre fonction de risque qui peut alors s'assembler en :
+Notre fonction de risque doit donc pénaliser les cas où $\exists a, q(s_i,a)>q(s_i,a_i)$ car alors la fonction $q$ ne permet pas de justifier (au sens de l'équation \eqref{greedy.eqn}) le choix $a_i$ de l'expert. Nous introduisons de surcroit une fonction $l : S \times A \rightarrow \mathbb{R}_+$ ; cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système en précisant la marge qu'il souhaite obtenir entre la qualité de l'action choisie par l'expert et la qualité de la seconde meilleure action selon l'inégalité $\forall a, q(s_i,a) + l(s_i,a) \leq q(s_i,a_i)$. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Nous introduisons la fonction de risque empirique :
   \begin{equation}
-   R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right)
+   R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right).
    \end{equation}
+Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères dévelopés dans les preuves (Section \ref{proof.sec}).\\
 
-Penchons nous sur le rôle de $l$ : cette fonction permet à l'opérateur d'introduire de la connaissance \emph{a priori} dans le système. En effet, minimiser avec succès la fonction de risque avec un choix de $l$ judicieux permet d'imposer à $q$ une structure telle qu'il existe une marge entre l'action choisie par l'expert et la deuxième meilleure action. Ce type d'argument est assez commun dans la litérature (voir Section \ref{biblio.sec}). Par défaut, définir $l(s_i,a) = 1$ si $a\neq a_i$ et $l(s_i,a_i)=0$ fonctionne bien comme le montrent les expériences (Section \ref{exp.sec}) et les critères dévelopés dans les preuves (Section \ref{proof.sec}).\\
+Nous traitons le problème de l'imitation comme un problème de classification multi-classe, ce qui a déjà été envisagé (\citep{ratliff2007imitation}). Les approches existantes en prennent toutefois pas en compte la structure du PDM, notamment l'information sur les transitions entre états conditionnée par la politique de l'expert. C'est aussi pour cette raison que les approches purement supervisées ne peuvent fonctionner pour l'imitation.\\
 
-
-Comme nous l'avons vu Equation \eqref{Qmu.eqn}, en faisant l'hypothèse d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense il est possible d'exprimer la fonction de qualité d'une politique en fonction de l'attribut vectoriel moyen de cette politique. L'expert ne déroge pas à cette règle et notant $\mu_E$ l'attribut vectoriel moyen de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$, bien que présentant quelques subtilités ne pose pas de problème majeurs même lorsque les seules données auquel l'algorithme a accès consistent en une trace de l'expert (cela est expliqué en sous-section \ref{calculmu.sec}). Nous pouvons donc maintenant exprimer notre risque non plus comme une fonction de $q$ mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \eqref{hatRdef.eqn}).
-   \begin{eqnarray}
-   R_N(\theta)  &=& {1\over N} \sum_{i=1}^N\left(\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)\\
-   &=& {1\over N} \sum_{i=1}^N\left(\theta ^T \mu_E(s_i,a^*_i) + l(s_i,a^*_i) - \theta ^T \mu_E(s_i,a_i) \right)\\
-\textrm{avec } a^*_i &=& \arg\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a))
-   \end{eqnarray}
-   Il est possible de minimiser ce risque grâce à la règle d'update qui suit, comme cela est expliqué en section \ref{proof.sec} :
+Comme nous l'avons vu Equation \eqref{Qmu.eqn}, l'hypothèse faite d'une représentation linéaire selon certains attributs $\psi : S\rightarrow \mathbb{R}^p$ de la fonction de récompense impose d'exprimer la fonction de qualité d'une politique en fonction de l'attribut vectoriel moyen de cette politique. Cette paramétrisation prend en compte la dynamique imposée par $\pi_E$. L'expert ne déroge pas à cette règle et notant $\mu_E$ l'attribut vectoriel moyen de l'expert nous pouvons donc faire l'hypothèse que la fonction $q$ que nous recherchons peut s'exprimer sous la forme $q(s,a) = \theta^T\mu_E(s,a)$. Le calcul de ce terme $\mu_E$ est central à notre algorithmes et nous proposons quelques solutions en sous-section \ref{calculmu.sec}. Nous pouvons donc maintenant exprimer notre risque, non plus comme une fonction de $q$, mais comme une fonction du vecteur de paramètres $\theta$, vecteur qui définit la récompense (Equation \eqref{hatRdef.eqn}).
    \begin{equation}
-   \theta_{t+1} = \theta_t -\alpha_t{{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)\over ||{1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)||_2}.
+     \label{structure.eqn}
+   R_N(\theta)  = {1\over N} \sum_{i=1}^N\left(\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
    \end{equation}
+   Un sous-gradient de cette expression peut se calculer à l'aide notamment de trois propriétés que nous rappelons :
+\begin{itemize}
+  \item l'opérateur de sous-gradient est linéaire,
+  \item le gradient est l'unique sous-gradient d'une fonction différentiable,
+  \item la fonction convexe, différentiable par morceaux $max_y[f(x,y)]$ définie à l'aide de la fonction différentiable $f(\cdot,y)$ admet comme l'un de ses sous-gradients l'expression $\nabla_xf(x,y^*)$ avec $y^*=\arg\max_yf(x,y)$.
+\end{itemize}
+Ainsi, l'on a :
+\begin{eqnarray}
+\nabla_\theta R_N(\theta) &=& {1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)\\
+\textrm{avec } a^*_i &=& \arg\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a))
+\end{eqnarray}
+Une descente de sous-gradient sur le risque empirique produit alors la règle de mise-à-jour suivante :
+\begin{equation}
+   \theta_{t+1} \leftarrow \theta_t -\alpha_t{\nabla_\theta R_N(\theta) \over ||\nabla_\theta R_N(\theta)||_2}.
+\end{equation}
 %%%
 \subsection{Calcul de $\mu_E$}
 %%%
 \label{calculmu.sec}
-Comme signalé dans la sous-section \ref{ConsiderationsTechniques.sec}, beaucoup d'algorithmes de la littérature reposent sur un calcul de l''attribut vectoriel moyen. Notre algorithme a cependant ceci de particulier qu'il ne nécessite que le calcul de $\mu_E$, l'attribut vectoriel moyen de l'expert et non le calcul de l'attribut vectoriel moyen d'une politique arbitraire. De fait cela nous épargne le besoin d'un simulateur, d'un solveur de MDP ou d'échantillons couvrant tout l'espace d'état.\\
+Comme signalé dans la sous-section \ref{ConsiderationsTechniques.sec}, beaucoup d'algorithmes de la littérature reposent sur un calcul de l'attribut vectoriel moyen. Notre algorithme a cependant ceci de particulier qu'il ne nécessite que le calcul de $\mu_E$, l'attribut vectoriel moyen de l'expert et non le calcul répété de l'attribut vectoriel moyen d'une politique arbitraire. Une différence notable, cependant, est que nous avons besoin de connaître $\mu_E(s_i,a), \forall i= 1..N,\forall a \in A$. Cela implique d'inférer l'attribut vectoriel moyen de l'expert sur des états où celui-ci est passé, mais pour des actions qu'il n'a pas forcément choisies.\\ %Nul homme n'est jamais assez fort pour ce calcul :)
 
-Selon les informations dont on dispose, plusieurs méthodes peuvent être utilisées pour calculer $\mu_E$.\\
+Cette inférence est facilité par le fait que l'attribut vectoriel moyen obéit à l'équation de Bellman. En effet, lorsque l'on écrit sa définition pour une composante $j=1..p$, on trouve :
+\begin{equation}
+\mu_E^j(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \psi^j(s)\right|s_0 = s, a_0 = a, \pi_E\right],
+\end{equation}
+expression qui lorsqu'on la rapproche de l'équation \eqref{Qdef.eqn} permet d'affirmer que $\mu^j_E$ est en fait la fonction de qualité de la politique $\pi_E$ vis à vis de la récompense définie par la $j$-ème composante du vecteur d'attribut $\psi$.\\
 
-Dans le cas le plus facile, on peut utiliser la proximité entre la définition du vecteur $\mu$ (Equation \eqref{Qmu.eqn}) et celle de la fonction de valeur (Equation \eqref{Vdef.eqn}) pour adapter les algorithmes d'évaluation de la fonction de valeur dans le cadre de la programmation dynamique au calcul de l'attribut vectoriel moyen.\\
-En supposant un espace d'état de cardinal fini, l'équation de Bellman (Equation \eqref{Vdef.eqn}) peut s'écrire sous forme matricelle :
-\begin{equation}
-\mathbf V^\pi = \mathbf R + \gamma P_\pi\mathbf V^\pi
-\end{equation}
-Il est connu qu'une règle d'update de la forme 
-\begin{equation}
-\mathbf V^\pi_{t+1} \leftarrow \mathbf R + \gamma P_\pi\mathbf V^\pi_t
-\end{equation}
-convergera vers la valeur exacte recherchée. Ce sont les algorithmes du type \emph{value iteration} qui exploitent cette propriété. Parallèlement il est possible d'utiliser une règle d'update de la forme :
-\begin{equation}
-\mathbf \mu^\pi_{t+1} \leftarrow \mathbf\Phi + \gamma P_\pi\mathbf\mu^\pi_t
-\end{equation}
-pour obtenir la valeur exacte de l'attribut vectoriel moyen.\\
+Selon les informations disponibles, plusieurs méthodes peuvent donc être utilisées pour calculer $\mu_E$.\\
+
+Dans le cas idéal où le modèle est connu, le calcul exact de $\mu_E$ peut être effectué, les algorithmes de programmation dynamique peuvent également être utilisés.
 
 Dans le cas plus réaliste où les probabilités de transitions sont inconnues, on peut, si l'on dispose d'un simulateur et qu'il est possible d'interroger l'expert en un grand nombre d'états arbitraires, utiliser une simple approximation de Monte-Carlo où pour approximer 
 \begin{equation}
-\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]
+\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \psi(s)\right|s_0 = s, a_0 = a, \pi_E\right]
 \end{equation}
  l'on utilise
 \begin{equation}
-\hat\mu_E(s,a) = {1\over N}\sum\limits_{i=1}^{N}\sum\limits_{t}\gamma^t\phi(s), s_0=s, a_0=a, a_{t>0} = \pi_E(s_t).
+\hat\mu_E(s,a) = {1\over N}\sum\limits_{i=1}^{N}\sum\limits_{t}\gamma^t\psi(s), s_0=s, a_0=a, a_{t>0} = \pi_E(s_t).
 \end{equation}
 
-Finalement, afin d'entrer dans le cadre où les seules données qui nous sont accessibles sont des trajectoires fournies par l'expert il est possible d'utiliser l'algorithme LSTD$\mu$ (\citep{klein2011batch}) dans sa version \emph{on-policy}. Cet algorithme se base également sur la similarité entre les definitions de $\mu$ et $Q$ mais au lieu d'adapter un algorithme de programmation dynamique comme nous venons d'en donner l'exemple, il adapte l'algorithme LSTD (\cite{bradtke1996linear}) dont il conserve les caractéritiques, notamment la capacité à effectuer le calcul en mode {\it batch} et {\it offline}. Une approximation de la forme $\hat{\mu}_i^\pi(s) = (\xi_i^*)^T \psi(s)$ pour chacune des composantes $i$ de $\mu^\pi$ est obtenue grâce à la solution des moindres carrés : 
-\begin{equation}
-  \xi_i^* = \left(\sum_{t=1}^n
-  \psi(s_t)(\psi(s_t)-\gamma\psi(s_{t+1}))^T\right)^{-1}
-  \sum_{t=1}^n \psi(s_t) \phi_i(s_t).
-\end{equation}
+Ensuite, afin d'entrer dans le cadre où les seules données qui nous sont accessibles sont des trajectoires fournies par l'expert il est possible d'utiliser l'algorithme LSTD$\mu$ \citep{klein2011batch} dans sa version \emph{on-policy}. Cet algorithme adapte l'algorithme LSTD (\cite{bradtke1996linear}) dont il conserve les caractéritiques, notamment la capacité à effectuer le calcul en mode {\it batch}. C'est la méthode que nous illustrons dans la section \ref{exp.sec}\\
 
+Finalement, il est possible de travailler avec une approximation de Monte-Carlo plus fine que celle que nous venons de proposer, se basant uniquement sur les données fournies par l'expert et impliquant l'utilisation d'une heuristique pour les actions inconnues. Cela est reporté pour des travaux futurs.
 %%%%%
 \section{Preuves}\label{proof.sec}
 \subsection{Convergence de l'algorithme de sous-gradient sous réserve de l'existence d'une solution}
@@ -471,118 +474,89 @@ D'ou ~$\theta^*\in \hat{M}$. C'est bien ce que l'on recherchait.
 Ainsi on sait que, sous l'existence de ~$\hat{\theta}$, les minimiseurs de ~$\R_N$ existent (il y en a d'ailleurs une infinité) et vérifient l'équation \eqref{eq:existence}.
 On peut donc appliquer l'algorithme de descente de sous-gradient avec l'assurance de la convergence de ce dernier vers un minimiseur de la fonction de risque qui vérifie l'équation \eqref{eq:existence}. L'équation \eqref{eq:existence} est la formulation mathématique de ce que l'on recherche pour vecteur de récompense $\theta$. La politique optimale obtenue à partir de la récompense définie par un minimiseur $\theta^*$ de $R_N$, sous l'existence d'un ~$\hat{\theta}$, aura la même fonction de valeur sur les états $s_i,\forall i\in\{1,\dots,N\}$ que la politique de l'expert car cette dernière est optimale sur les états $s_i,\forall i\in\{1,\dots,N\}$ puisque $\theta^*$ vérifie l'équation \eqref{eq:existence}.
 %%%%%
-\section{Related Work}
+\section{Travaux Connexes}
 \label{biblio.sec}
 %%%%%
-Parmi les algorithmes d'apprentissage par renforcement inverse existants, certains partagent des caractéristiques communes.\\
+L'approche historique de \cite{ng2000algorithms}, ainsi que les algorithmes basés sur \cite{abbeel2004apprenticeship}, notamment \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}, approches résumées dans \cite{neu2009training} souffrent toutes de la même contrainte : la nécessité de résoudre le problème direct de manière répétée. Ces approches ont pour point commun de chercher à minimiser une métrique de la proximité entre l'attribut vectoriel moyen de l'expert et l'attribut vectoriel moyen d'une politique donnée. Par mises à jour successives du vecteur de paramètres $\theta$, la politique définie selon un critère d'optimalité dépendant de $\theta$ (c'est là qu'intervient la résolution du problème direct) va voir son attribut vectoriel moyen se rapprocher de celui de l'expert.\\
 
-Historiquement, la première approche générique est celle d'\cite{abbeel2004apprenticeship}, travail qui a servi de bases à d'autres algorithmes fonctionnant sur le même principe : \citep{syed2008apprenticeship,syed2008game, ziebart2008maximum}. L'approche consiste à imiter l'expert par le biais de l'IRL ; les attributs vectoriels moyens de l'agent et de l'expert doivent être proche (l'on a vu Equation \eqref{memevaleur.eqn} que cela impliquait des valeurs similaires). Cette proximité est atteinte en modifiant la récompense par itérations successives et en entraînant l'agent sur la nouvelle récompense.\\
+Cette résolution est très problématique, en effet trouver une politique optimisant une récompense est un sujet occupant un pan entier de la litérature. Particulièrement, l'information nécessaire à cet objectif est bien plus étendue que celle nécessaire au calcul d'uniquement l'attribut moyen de l'expert comme cela est nécessaire à notre algorithme. Comme cela est illustré en section \ref{exp.sec}, l'algorithme d'\citet{abbeel2004apprenticeship} est incapable de résoudre le problème du pendule inversé à l'aide des seuls échantillons de l'expert car ceux-ci ne couvrent qu'une partie trop petite de l'espace d'état.\\
 
-Une autre approche consiste à effectuer la recherche dans l'espace des politiques grâce à de l'inférence bayesienne sur les paires état-action fournies par l'expert, comme par exemple \cite{ramachandran2007bayesian}.\\
+Les approches bayésiennes du type de \cite{ramachandran2007bayesian} nécessitent une connaissance du modèle pour fonctionner, modèle dont nous ne disposons pas.\\
 
-Un argument revenant parfois est celui qui consiste à voir en l'expert non pas un acteur optimal mais un optimal par une certaine marge, c'est à dire que l'action choisie par l'expert doit avoir une qualité supérieure d'une certaine marge à n'importe quelle autre action. Il s'agit de maximiser cette marge. C'est l'approche de \citet{ratliff2006maximum,ratliff2007imitation, ratliff2007boosting, kolter2008hierarchical}.\\
+Un argument revenant parfois est celui qui consiste à voir en l'expert non pas un acteur optimal mais un acteur optimal par une certaine marge. C'est à dire que l'action choisie par l'expert doit avoir une qualité strictement supérieure à n'importe quelle autre action. Les approches de planification structurée comme \citet{ratliff2006maximum,ratliff2007imitation, ratliff2007boosting, kolter2008hierarchical} permettent d'influer sur cette marge.\\
 
-Particulièrement, le travail de \citet{ratliff2006maximum} partage des similarités avec le nôtre ; dans \citep{ratliff2006maximum}, les auteurs présentent une méthode d'IRL en posant le problème sous forme d'un \emph{maximum margin classification problem}. La méthode utilisée pour résoudre ce problème peut être ramenée à un algorithme itératif dans la veine de \cite{abbeel2004apprenticeship}, comme cela est expliqué dans \cite{neu2009training}. Vu à un plus haut niveau d'abstraction, la classification a lieu dans l'espace des trajectoires : à un MDP (entrée à classifier) est associée une politique (classe).
+Particulièrement, notre travail présente des similarités avec celui de \citet{ratliff2006maximum}. Les auteurs présentent une méthode d'IRL en posant le problème sous forme d'un \emph{maximum margin classification problem}. La méthode utilisée pour résoudre ce problème peut être ramenée à un algorithme itératif dans la veine de \cite{abbeel2004apprenticeship}, comme cela est expliqué dans \cite{neu2009training}. Vu à un plus haut niveau d'abstraction, la classification a lieu dans l'espace des trajectoires : à un MDP (entrée à classifier) est associée une politique (classe). Cela impose également un cadre déterministe pour les MDP, l'algorithme de résolution utilisé étant $A^*$.\\
 
-   Une seconde publication, \citep{ratliff2007boosting} vient compléter la précédente en incluant du \emph{boosting}. On y voit apparaître à nouveau une fonction de coût empirique (en omettant quelques détails comme par exemple la pondération des trajectoires) : 
-   \begin{equation}
-   \label{dix.eqn}%On l'appelle comme ça parce que dans le draft et dans le papier de Ratliff elles ont le même numéro : 10.
-   {1\over n}\sum\limits_{i=1}^n \left(\theta^T\mu^E_i - \min_\pi\left(\theta^T \mu^\pi - l(\pi)\right)\right) + {\lambda \over 2} ||\theta||^2.
-   \end{equation}
-  
-   On constate la présence d'une fonction de coût $l$ similaire à celle que nous utilisons.
-
-   La recherche a lieu dans l'espace des politiques via une méthode de descente de gradient sur les paramètres $\theta$ définissant la récompense, ce qui implique la résolution d'un MDP à chaque itération. En effet, le $\min\limits_\pi(\dots)$ présent dans la fonction de coût est analogue au $\pi^* = \arg\max\limits_\pi V^\pi$ décrivant la résolution classique d'un MDP.
-
-   Finalement, dans \citep{ratliff2007imitation} les auteurs utilisent un système de classification multi-classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque entrée pour prendre une décision de classification i.e. choisir le label $y\in Y$ à appliquer à l'entrée $x\in X$ :
-   \begin{equation}
-   \label{sdef.eqn}
-   y^* = \arg\max_{y \in Y} s(x,y)
-   \end{equation}
-   Cette fonction de score est apprise dans l'espace fonctionnel en optimisant la fonction suivante, dont celle donnée en \ref{dix.eqn} est une instanciation : 
-   \begin{equation}
-   \label{rdef.eqn}
-   r[s] = {1\over N} \sum_{i=1}^N\left(\max_{y\in Y}(s(x_i,y) + l(x_i,y)) - s(x_i,y_i) \right)
-   \end{equation}
-   Cela suppose l'accès à une base de données $\{(x_i,y_i)\}_i$; i.e. une trace de l'expert. On note dans ce papier un changement par rapport aux papiers précédent : les entrées sont maintenant les états et les classes représentent les actions.
+Finalement, dans \citep{ratliff2007imitation} les auteurs utilisent un système de classification multi-classe qui met en jeu une fonction de score. Cette fonction de score $s : X\times Y \rightarrow \mathbb{R}$ est utilisée à chaque état pour prendre une décision de classification i.e. choisir le label (correspondant à une action) $y\in Y$ à appliquer à l'entrée (correspondant à un état) $x\in X$. Notre fonction de risque est similaire à la leur, mais outre la résolution répétée du PDM liée à la manière dont ils minimisent la fonction de risque et dont nous avons déjà parlé, leur approche souffre de ne pas profiter de l'introduction de la structure dont profite la nôtre (Equation \eqref{structure.eqn}).
 
 %%%%%
-\section{Résultats expérimentaux}
+\section{Illustration expérimentale}
 \label{exp.sec}
 %%%%%
 %%%
 \subsection{Description de la tâche}
 %%%
-Le problème du pendule inversé consiste à maintenir en équilibre vertical un pendule à un degré de liberté. Il s'agit d'un problème classique en apprentissage par renforcement. Pour jouer le rôle de notre expert, nous utilisons d'ailleurs la politique trouvée par LSPI, un algorithme de RL décrit par \citet{lagoudakis2003least}. Les différents réglages utilisés, de la valeur de la masse du pendule codée dans notre simulateur jusqu'au choix des fonctions de bases $\phi : S\times A \rightarrow \mathbb{R}^k$ et $\psi : S \rightarrow \mathbb{R}^p$ sont conformes à ce qui est donné dans cette publication.\\
+Le problème du pendule inversé consiste à maintenir en équilibre vertical un pendule à un degré de liberté. Il s'agit d'un problème classique en apprentissage par renforcement. Pour jouer le rôle de notre expert, nous utilisons d'ailleurs la politique trouvée par LSPI, un algorithme de RL décrit par \citet{lagoudakis2003least}. Les différents réglages utilisés, de la valeur de la masse du pendule codée dans notre simulateur jusqu'au choix des fonctions de bases $\phi : S\times A \rightarrow \mathbb{R}^k$ et $\psi : S \rightarrow \mathbb{R}^p$ sont conformes à ce qui est donné dans cette publication. Notamment les fonctions de bases forment un réseau de gaussienne couvrant l'espace d'état à deux dimensions, la première étant la position angulaire du pendule (la verticale correspondant à un angle de valeur nulle) la seconde étant sa vitesse angulaire. On constate que cet espace d'état respecte le critère de Markov dont nous avons vu en section \ref{back.sec} qu'il était nécessaire.\\
 
-La politique ainsi trouvée parvient systématiquement à maintenir le pendule en équlibre durant 3000 pas de temps. Ces derniers ayant une valeur d'un dixième de seconde, cela signifie que nous interrompons l'expert après 5 minutes de contrôle sans chute du pendule.\\
+La politique optimisant la fonction de récompense donnée figure \ref{trueR.fig} parvient systématiquement à maintenir le pendule en équilibre durant 3000 pas de temps. Ces derniers ayant une valeur d'un dixième de seconde, cela signifie que nous interrompons l'expert après 5 minutes de contrôle sans chute du pendule.\\
 
-Le but de cette expérience est de montrer que notre algorithme est capable, à partir des seules transitions fournies par l'expert et de la définition des fonctions de bases, de retrouver une récompense telle qu'un agent entraîné sur cette récompense puisse lui aussi faire balancer le pendule durant 5 minutes sans échec. Cela n'est pas trivial étant donné que l'espace d'état est continu et que les données fournies par l'expert n'en couvrent qu'une petite partie (correspondant à la position verticale).\\
+Le but de cette expérience est de montrer que notre algorithme est capable, à partir des seules transitions fournies par l'expert et de la définition des fonctions de bases, de retrouver une récompense telle qu'un agent entraîné sur cette récompense puisse lui aussi faire balancer le pendule durant 5 minutes sans échec. Cela n'est pas trivial étant donné que l'espace d'état est continu et que les données fournies par l'expert n'en couvrent qu'une petite partie (correspondant à la position verticale et son voisinage proche).\\
 
  Ce dernier point est d'ailleur la raison pour laquelle l'algorithme d'\citet{abbeel2004apprenticeship} ne parvient pas à résoudre le problème à l'aide des seules transitions de l'expert.
-En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fournir quelques transitions aléatoires couvrant tout l'espace d'état il est impossible d'utiliser les algorithmes itératifs du type de celui d'\citet{abbeel2004apprenticeship}. Ces algorithmes procèdent par itérations à l'élaboration d'une politique $\pi$ dont l'attribut vectoriel moyen est utilisée en association à celle de l'expert. Cette politique est obtenue par optimisation d'une récompense sur le MDP dans lequel évolue l'expert ; cette résolution du problème direct à chaque itération ne peut se faire si l'on ne dispose que de données ne couvrant qu'une petite partie de l'espace d'état. Comme notre algorithme ne nécessite pas le calcul d'autre attribut vectoriel moyen que celui de l'expert, la résolution du problème direct est inutile et nous ne rencontrons pas ce problème.
+En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fournir un certain nombre de transitions aléatoires couvrant tout l'espace d'état il est impossible d'utiliser les algorithmes itératifs du type de celui d'\citet{abbeel2004apprenticeship}. Ces algorithmes procèdent par itérations à l'élaboration d'une politique $\pi$ dont l'attribut vectoriel moyen est utilisée en association à celle de l'expert. Cette politique est obtenue par optimisation d'une récompense sur le MDP dans lequel évolue l'expert ; cette résolution du problème direct à chaque itération ne peut se faire si l'on ne dispose que de données ne couvrant qu'une petite partie de l'espace d'état. Comme notre algorithme ne nécessite pas le calcul d'autre attribut vectoriel moyen que celui de l'expert, la résolution du problème direct est inutile et nous ne rencontrons pas ce problème.
 %%%
 \subsection{Illustration des résultats}
 %%%
 \begin{figure}
-  \begin{minipage}[t]{.4\linewidth}
+  \begin{minipage}[t]{.5\linewidth}
     \begin{center}
-       \includegraphics[width=1.2\textwidth]{LAFEM_Exp3_true_R.pdf}
-       \caption{Récompense sur laquelle l'expert a été entraîné}
+       \includegraphics[width=1.3\textwidth]{LAFEM_Exp3_true_R.pdf}
+       \caption{}
        \label{trueR.fig}
     \end{center}
 \end{minipage}
 \hfill
-\begin{minipage}[t]{.4\linewidth}
+\begin{minipage}[t]{.5\linewidth}
     \begin{center}
-       \includegraphics[width=1.2\textwidth]{LAFEM_Exp3_lafem_R.pdf}
-       \caption{Récompense trouvée par LAFEM, en vert les positions occupées par l'expert.}
+       \includegraphics[width=1.3\textwidth]{LAFEM_Exp3_lafem_R.pdf}
+       \caption{}
        \label{lafemR.fig}
     \end{center}
 \end{minipage}\\
-\begin{minipage}[t]{.4\linewidth}
+\begin{minipage}[t]{.5\linewidth}
     \begin{center}
-       \includegraphics[width=1.2\textwidth]{LAFEM_Exp3_Vexpert.pdf}
-       \caption{Fonction de valeur de l'expert}
+       \includegraphics[width=1.3\textwidth]{LAFEM_Exp3_Vexpert.pdf}
+       \caption{}
        \label{trueV.fig}
     \end{center}
 \end{minipage}
 \hfill
-\begin{minipage}[t]{.4\linewidth}
+\begin{minipage}[t]{.5\linewidth}
     \begin{center}
-       \includegraphics[width=1.2\textwidth]{LAFEM_Exp3_Vagent.pdf}
-       \caption{Fonction de valeur de l'agent entraîné sur la récompense trouvée par LAFEM}
+       \includegraphics[width=1.3\textwidth]{LAFEM_Exp3_Vagent.pdf}
+       \caption{}
        \label{lafemV.fig}
     \end{center}
 \end{minipage}\\
+\caption*{Illustration de l'application de notre algorithme au problème du pendule inversé. Un agent entraîné grâce à un algorithme d'apprentissage par renforcement sur la récompense de la Figure \ref{trueR.fig} parvient à maintenir le pendule en équilibre durant 5 minutes sans échec. Il joue le rôle de l'expert. La fonction de valeur de cet expert est illustrée Figure \ref{trueV.fig}. On constate la similarité avec la Figure \ref{lafemV.fig}, fonction de valeur de l'agent qui lui a été entraîné sur la récompense trouvée par notre algorithme, Figure \ref{lafemR.fig}. Bien que les échantillons fournis par l'expert (en vert sur la Figure \ref{lafemR.fig}) ne couvrent qu'une petite partie de l'espace d'état (position angulaire du pendule en abscisse, vitesse angulaire en ordonnées) notre algorithme parvient à l'aide de ces seules données à trouver une récompense justifiant le comportement de l'expert sur tout l'espace d'état.}
 \end{figure}
-Afin d'étudier le comportement de notre algorithmes, nous avons établi le protocole expérimental suivant :
-\begin{itemize}
- \item créer une base de données $D_0$ de transitions aléatoires ;
- \item entraîner un expert en utilisant LSPI nourri avec ces transitions ( definissant ainsi $\pi_E : S\rightarrow A$) ;
- \item vérifier que l'expert est en mesure de balancer le pendule durant 3000 pas de temps ;
- \item créer une base de données $D_E$ de transitions de l'expert, contenant 10 trajectoires de 300 transitions chacune ;
- \item définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$ ;
- \item définir $\alpha(t) = 0.1,\forall t$ ;
- \item définir $D$ à partir des transitions $D_E$ en enlevant l'état d'arrivée ;
- \item initialiser $\omega_0 = [-1...-1]^T$ ;
- \item fixer $T=20$ ;
- \item définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) =  \omega^T_{\pi_E}\phi(s,a), \omega_{\pi_E} = LSTD\mu(D_E)$ ;
- \item faire tourner LAFEM ;
- \item entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$ ;
- \item vérifier que l'agent parvient lui aussi à maintenir le pendule en équilibre durant 3000 pas de temps.
-\end{itemize}
+Afin d'étudier le comportement de notre algorithme, nous avons fait générer à l'expert une base de données $D_E$ de transitions contenant 10 trajectoires de 300 transitions chacune. La fonction $l$ fut définie sur les états présents dans $D_E$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon. Le pas de temps est constant à $\alpha(t) = 0.1, \forall t$ et le nombre d'itérations est de $T=20$. Le vecteur initial $\theta_0$ fut fixé à $[-1...-1]^T$, la récompense étant paramétrée à l'aide du vecteur d'attribut $\psi : S \rightarrow \mathbb{R}^p$ correspondant au mélange de gaussiennes défini dans \cite{lagoudakis2003least}. Pour l'approximation de l'attribut vectoriel moyen de l'expert, c'est l'algorithme LSTD$\mu$ qui fut employé.\\
+
 
 Si la fonction de récompense trouvée par LAFEM (figure \ref{lafemR.fig}) diffère de celle fournie à l'expert (figure \ref{trueR.fig}) on constate en revanche que les fonctions de valeurs sont très similaires (figures \ref{trueV.fig} et \ref{lafemV.fig}). Cela est une illustration du fait que le problème de l'IRL est mal posé en ceci qu'il n'y a pas qu'une seule récompense pouvant expliquer une politique.\\
 
 Avec le nombre d'échantillons fournis par l'expert (3000 en 10 trajectoires de 300 transitions chacune), l'agent parvient systématiquement à maintenir le pendule en équilibre durant 5 minutes, ce qui est rappelons le notre critère de réussite.\\
 
-Deux éléments méritent d'être notés. Tout d'abord la faible couverture de l'espace d'état offerte par les échantillons de l'expert. Ceux-ci sont portés en vert sur la Figure \ref{lafemR.fig} et l'on constate qu'ils n'occupent qu'une toute petite partie de l'espace : celle dans laquelle le pendule est proche de la verticale. En l'absence de données dans le reste de l'espace d'état il n'est pas possible de pouvoir y inférer avec certitude la récompense. Le second point à noter est que la "vraie" récompense ne se trouve pas dans l'espace d'hypothèse que notre algorithme explore, en effet les attributs proposés dans le problème du pendule inversé par \citet{lagoudakis2003least} consistent en un réseau de gaussiennes qui ne peuvent qu'approximer la fonction de récompense utilisée sans l'atteindre.\\
+Deux éléments méritent d'être notés. Tout d'abord la faible couverture de l'espace d'état offerte par les échantillons de l'expert. Ceux-ci sont portés en vert sur la Figure \ref{lafemR.fig} et l'on constate qu'ils n'occupent qu'une toute petite partie de l'espace : celle dans laquelle le pendule est proche de la verticale. En l'absence de données dans le reste de l'espace d'état il n'est pas possible de pouvoir y inférer avec certitude la récompense. Le second point à noter est que la "vraie" récompense ne se trouve pas dans l'espace d'hypothèse que notre algorithme explore, en effet les attributs proposés dans le problème du pendule inversé par \citet{lagoudakis2003least} et utilisés par nous paramétrer la récompense consistent en un maillage de gaussiennes qui ne peuvent qu'approximer la fonction de récompense utilisée sans l'atteindre.\\
 
 Malgré ces deux difficultés, notre algorithme parvient comme nous l'avons dit à extraire une récompense qui permet à un agent d'obtenir des performances similaires à celles de l'expert.\\
 
 La différence dans les amplitudes des récompenses et des fonctions de valeurs n'est pas un problème, c'est en effet un résultat connu en apprentissage par renforcement que multiplier fonction de récompense ou fonction de valeur par une constante positive n'impacte pas les politiques.
 \section{Conclusion and future work}
+
+L'algorithme présenté dans cette publication lève les problèmes les plus contraignants de l'apprentissage par renforcement inverse. En rendant la résolution du problème inverse indépendante de celle du problème direct, nous sommes en mesure d'inférer une récompense cohérente avec le comportement d'un expert en mode purement \emph{batch}.\\
+
+La complexité calculatoire de notre algorithme instancié avec LSTD$\mu$ reste sous contrôle. L'étape gourmande étant l'inversion d'une matrice de taille $p \times p$.
 \begin{itemize}
 \item On enlève les contraintes du domaine d'un seul coup,
 \item Il ne reste que la sélection ou détection de features, mais ce n'est pas hors de portée
