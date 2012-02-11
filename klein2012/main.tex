@@ -168,23 +168,26 @@ GeorgiaTech-CNRS, France
 
 
 \begin{abstract}
-  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse (\emph{ARI}). Dans ce contexte, un expert accomplit une tâche qu'un agent artificiel doit essayer de reproduire. L'ARI part du postulat que l'expert optimise avec succès une fonction d'utilité ; le problème consiste à deviner cette fonction (appelée récompense) à partir de  traces du comportement de l'expert. Les algorithmes d'ARI existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui de l'apprentissage par renforcement) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'ARI levant l'ensemble de ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it PDM}) sous-jacent, nous créons un algorithme basé sur une descente de sous-gradient, possèdant une faible complexité tant en échantillons que calculatoire et surtout ne nécessitant pas la résolution du problème direct.
+  Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse (\emph{ARI}). Dans ce contexte, un expert accomplit une tâche qu'un agent artificiel doit essayer de reproduire. L'ARI part du postulat que l'expert optimise avec succès une fonction d'utilité ; le problème consiste à deviner cette fonction à partir de  traces du comportement de l'expert. Les algorithmes d'ARI existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui de l'apprentissage par renforcement) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'ARI levant l'ensemble de ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it PDM}) sous-jacent, nous créons un algorithme basé sur une descente de sous-gradient, possèdant une faible complexité tant en échantillons que calculatoire et surtout ne nécessitant pas la résolution du problème direct.
   \motscles{Apprentissage par renforcement inverse, classification multi-classe, attribut vectoriel moyen}
 \end{abstract}
 %%%%%
 \section{Introduction}
 %%%%%
-Le problème de l'imitation se pose dans des champs variés tels la robotique, les systèmes de dialogue ou la conception d'interfaces homme-machine. Un expert effectue une tâche, le but est de parvenir à faire un sorte qu'un agent parvienne à accomplir la même tâche en observant l'expert. Dans le cadre de la prise de décisions séqueltielles, l'apprentissage par renforcement est une approche connaissant le succès. Cette approche consiste à guider un agent par le biais d'une récompense. Le mécanisme inverse peut servir de cadre au problème de l'imitation, en effet si l'on parvient à retrouver la récompense optimisée par un expert alors la résolution du problème direct donnera naissance à un comportement imitant cet expert.\\
+Dans cette contribution, nous nous plaçons dans le contexte de l'apprentissage par démonstration. Dans ce cadre, un agent artificiel apprend à reproduire une tâche grâce à l'observation d'un expert réalisant cette tâche de manière optimale. Pour trouver une solution à ce problème, nous nous proposons d'utiliser le paradigme de l'apprentissage par renforcement inverse. On suppose alors que l'expert agit de manière à être récompensé pour son comportement relativement à une fonction de récompense inconnue. Le but de l'agent est alors d'inférer cette fonction des démonstrations données par l'expert pour ensuite optimiser son comportement relativement à cette fonction lui aussi.\\
 
-Le problème de l'apprentissage par renforcement inverse a pour la première fois été introduit dans \cite{russell1998learning}. Formellement défini dans \cite{ng2000algorithms}, les approches proposées restent intractables jusqu'à la publication de \cite{abbeel2004apprenticeship}, qui lança toute une vague d'algorithmes cherchant une politique par modifications successives d'une fonction de récompense, approches pour la plupart résumées dans la vue d'ensemble fournie par \cite{neu2009training}.
-%%%%%
+La littérature sur le sujet est assez récente et trouve sa genèse dans \cite{russell1998learning}. Plusieurs directions ont depuis été explorées à partir de deux articles fondateurs \cite{ng2000algorithms} et \cite{abbeel2004apprenticeship}.\\
+Dans cette littérature (voir \cite{neu2009training} pour un bon survol), plusieurs verrous sont identifiés mais souvent ignorés pour proposer des algorithmes de résolution. Particulièrement, on suppose souvent connue la dynamique de l'environnement dans lequel évoluent l'expert et l'agent ou bien la mise à disposition de cet environnement (ou d'un simulateur) pour y tester les effets d'une politique quelconque. Ces contraintes sont souvent incompatibles avec la mise en oeuvre des algorithmes proposés sur des cas réels.\\
+
+Dans cette contribution, nous proposons une méthode de résolution du problème d'apprentissage par renforcement inverse s'affranchissant de toute connaissance additionnelle aux démonstrations fournies par l'expert. Nous proposons une preuve de convergence de cet algorithmes et fournissons une expérimentation sur le problème du pendule inversé. Le choix de cette application se justifie par la difficulté  qu'elle pose pour les méthodes de résolution de la littérature.  
+%%%%
 \section{Contexte}
 %%%%%
 \label{back.sec}
 %%%
 \subsection{Apprentissage par renforcement direct et inverse}
 %%%
-Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielles. La configuration du système à contrôler est alors complètement décrite à chaque instant discret $t$ par un état $s_t \in S$. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité markovienne $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe \footnote{On peut se restreindre au cas déterministe sans perte de généralité.} $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décisions séquentielles.\\
+Le cadre dans lequel nous plaçons notre étude est celui de la prise de décisions séquentielles. La configuration du système à contrôler est alors complètement décrite à chaque instant discret $t$ par un état $s_t \in S$. Confronté à cet état, l'agent doit prendre un décision $a_t\in A$. Le système évolue alors vers l'état suivant $s_{t+1}$ selon une certaine probabilité markovienne $p(s_{t+1}|s_t, a_t)$. Une politique de contrôle déterministe $\pi : S\rightarrow A$ définit le comportement d'un agent confronté à un tel problème de décisions séquentielles.\\
 
 Dans le cadre de l'apprentissage par renforcement,la résolution de ce problème est guidée par une fonction de récompense $R : S \rightarrow \mathbb{R}$ qui indique le degré de désirabilité de chaque état. Une des forces de l'apprentissage par renforcement réside dans le fait que l'agent ne va pas apprendre à maximiser la récompense immédiate mais au contraire un critère prenant le futur en compte, ce qui permet de spécifier uniquement le but et non la façon de l'atteindre. On définit pour ce faire la fonction de valeur $V^\pi$ :
 \begin{equation}
@@ -207,7 +210,7 @@ Parfois, définir la fonction de récompense est une tâche ardue alors qu'il es
 
 C'est la définition de l'apprentissage par renforcement inverse. Le problème est de retrouver la fonction de récompense optimisée par un expert. Usuellement l'expert est considéré comme un agent optimal dans un PDM et l'on a accès ou bien à la politique complète $\pi_E$ de l'expert ou bien à quelques trajectoires tirées selon cette politique.\\
 
-Ce problème est mal posé dans la mesure où étant donné un comportement, il n'y a pas unicité de la récompense pour laquelle ce comportement est optimal (voir par exemple \cite{ng1999policy}). Particulièrement, la récompense uniformément nulle remplit ce critère dans la mesure où tout comportement est optimal vis-à-vis de cette récompense. Il convient donc de contraindre l'espace des solutions.
+Ce problème est mal posé dans la mesure où il n'y a pas unicité de la récompense pour laquelle un comportement est optimal (voir par exemple \cite{ng1999policy}). Particulièrement, tout comportement est optimal vis-à-vis de la récompense uniformément nulle. Il convient donc de contraindre l'espace des solutions.
 %%%
 \subsection{Attribut vectoriel moyen}
 \label{ConsiderationsTechniques.sec}
@@ -226,11 +229,10 @@ Q^\pi(s,a) = \theta^T\mu^\pi(s,a) \textrm{ avec } \mu^\pi(s,a) = E[\sum_t\gamma^
 Le terme $\mu^\pi$ est appelé l'attribut vectoriel moyen ({\it feature expectation}) d'une politique. On peut voir que la paramétrisation choisie pour $R$ et la dynamique imposée par l'application de la politique $\pi$ dans le PDM fixe la paramétrisation de $Q^\pi$.\\
 
 On peut noter que si deux politiques ont le même attribut vectoriel moyen, alors ces deux politiques ont la même valeur vis-à-vis de la récompense, quel que soit le vecteur de poids $\theta$ définissant celle-ci. En effet
-\begin{eqnarray}
-\mu^{\pi_1} = \mu^{\pi_2} &\Rightarrow& \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2}\\
-& \Rightarrow& V^{\pi_1} = V^{\pi_2}.
+\begin{equation}
+\mu^{\pi_1} = \mu^{\pi_2} \Rightarrow \theta^T\mu^{\pi_1} = \theta^T\mu^{\pi_2} \Rightarrow V^{\pi_1} = V^{\pi_2}.
 \label{memevaleur.eqn}
-\end{eqnarray}
+\end{equation}
 L'attribut vectoriel moyen de l'expert, $\mu_E$, peut être calculé sans forcément avoir accès à l'intégralité de la politique $\pi_E$. La plupart des algorithmes de la litérature ont, comme nous allons le voir, pour objectif de minimiser la distance entre les attributs vectoriels moyens respectifs de l'agent et de l'expert. Cela permet d'obtenir un agent dont le comportement a la même fonction de valeur que celui de l'expert (voir par exemple \cite{neu2009training}).
 %%%%%
 \section{Classification structurée pour l'apprentissage par renforcement inverse}
@@ -238,10 +240,7 @@ L'attribut vectoriel moyen de l'expert, $\mu_E$, peut être calculé sans forcé
 %%%
 \subsection{Principe}
 %%%
-Comme nous l'avons vu Equation \eqref{greedy.eqn}, il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à la fonction de récompense inconnue :
-\begin{equation}
-\pi_E(s) \in \arg\max_aQ^E_R(s,a).
-\end{equation}
+Comme nous l'avons vu Equation \eqref{greedy.eqn}, il existe un mécanisme glouton reliant la politique de l'expert, $\pi_E$ et la fonction de qualité optimale $Q^E_R$ relative à la fonction de récompense inconnue : $\pi_E(s) \in \arg\max_aQ^E_R(s,a)$.\\
 Nous allons utiliser cette propriété pour considérer un risque dépendant d'une fonction de score $q$ qui devra partager avec la fonction inconnue $Q^E_R$ la propriété d'optimalité de l'expert que nous venons d'exprimer.\\
 Notons $(s_i,a_i,s_{i+1})_{1\geq i\geq N}$ les échantillons représentant une ou plusieurs trajectoires de l'expert. Nous cherchons donc une fonction de score qui vérifie pour chacun de ces échantillons :
 \begin{equation}
@@ -261,19 +260,12 @@ Comme nous l'avons vu Equation \eqref{Qmu.eqn}, l'hypothèse faite d'une représ
      \label{structure.eqn}
    R_N(\theta)  = {1\over N} \sum_{i=1}^N\left(\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a)) - \theta ^T \mu_E(s_i,a_i) \right)
    \end{equation}
-   Une descente de gradient devrait permettre de minimiser cette expression. Cependant, la présence de l'opérateur $\max$ rend les choses un peu plus complexes car l'expression n'est plus différentiable. Il va falloir faire appel à une généralisation plus puissante, le sous-gradient. Le sous-gradient d'une fonction convexe $f:W\rightarrow \mathbb{R}$ en $x$ est défini comme un vecteur $g$ tel que :
-\begin{equation}
-\forall x' \in W, g^T(x'-x)\leq f(x')-f(x)
-\end{equation}
-Le sous-gradient n'est pas partout unique, cependant l'unique sous-gradient d'une fonction différentiable est son gradient. Il s'agit d'un opérateur linéaire et la fonction convexe, différentiable par morceaux $max_y[f(x,y)]$ définie à l'aide de la fonction différentiable $f(\cdot,y)$ admet comme l'un de ses sous-gradients l'expression $\nabla_xf(x,y^*)$ avec $y^*=\arg\max_yf(x,y)$. En appliquant ces règles, on obtient :
+   Une descente de gradient devrait permettre de minimiser cette expression. Cependant, la présence de l'opérateur $\max$ rend les choses un peu plus complexes car l'expression n'est plus différentiable. Il va falloir faire appel à une généralisation plus puissante, le sous-gradient. Le sous-gradient d'une fonction convexe $f:W\rightarrow \mathbb{R}$ en $x$ est défini comme un vecteur $g$ tel que $\forall x' \in W, g^T(x'-x)\leq f(x')-f(x)$. Le sous-gradient n'est pas partout unique, cependant l'unique sous-gradient d'une fonction différentiable est son gradient. Il s'agit d'un opérateur linéaire et la fonction convexe, différentiable par morceaux $max_y[f(x,y)]$ définie à l'aide de la fonction différentiable $f(\cdot,y)$ admet comme l'un de ses sous-gradients l'expression $\nabla_xf(x,y^*)$ avec $y^*=\arg\max_yf(x,y)$. En appliquant ces règles, on obtient le sous gradient et la règle de mise-à-jour associée :
 \begin{eqnarray}
 \nabla_\theta R_N(\theta) &=& {1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)\\
-\textrm{avec } a^*_i &=& \arg\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a))
+a^*_i &=& \arg\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a))\\
+   \theta_{t+1} &\leftarrow& \theta_t -\alpha_t{\nabla_\theta R_N(\theta) \over ||\nabla_\theta R_N(\theta)||_2}.
 \end{eqnarray}
-Une descente de sous-gradient sur le risque empirique produit alors la règle de mise-à-jour suivante :
-\begin{equation}
-   \theta_{t+1} \leftarrow \theta_t -\alpha_t{\nabla_\theta R_N(\theta) \over ||\nabla_\theta R_N(\theta)||_2}.
-\end{equation}
 %%%
 \subsection{Calcul de $\mu_E$}
 %%%
@@ -307,7 +299,7 @@ où la notation ~$A \backslash a_i$ désigne l'ensemble $A$ privé de l'action $
 Dans ce cadre, nous allons montrer qu'il existe bien un $\theta$ vérifiant l'équation $\eqref{eq:existence}$ qui minimise $R_N$,  que les minimiseurs de $R_N$ vérifient bien l'équation \eqref{eq:existence} et que l'algorithme de sous-gradient converge vers un minimiseur.
 \subsection{Résultats}
 On va montrer, dans un premier temps, qu'il existe bien un $\hat{\theta}$ qui vérifie l'équation \eqref{eq:existence} et qui minimise $R_N$.
-On note tout d'abord ~$M^*=\{\theta\in\mathbb{R}^p:R_N(\theta)=\inf_{\theta \in \mathbb{R}^p}R_N(\theta)\}$. Désormais, on imposera que notre fonction de perte vérifie : ~$\forall~1\leq~i~\leq~N,~\forall~a~\in~A~\backslash~a_i,~l(s_i,a)~>~l(s_i,a_i)~\geq~0$. Il est facile de borner inférieurement le risque $R_N$, pour tout ~$\theta\in\mathbb{R}^p$ on a : ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i)$. Soit ~$\hat{\theta}\in\mathbb{R}^p$ vérifiant l'équation \eqref{eq:existence}, l'existence de ce dernier est assuré par l'hypothèse sur $\theta_E$. Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$,~$\hat{M}=\{\hat{\theta}\in\mathbb{R}^p:\hat{\theta} \text{ vérifie l'équation \eqref{eq:existence} }\}$, et posons ~$\forall~1\leq~i~\leq~N,~\beta_i~=~\hat{\theta}_1^T~\mu_E(s_i,a_i)~-~\max_{a\in A \backslash a_i}~\hat{\theta}_1^T~\mu_E(s_i,a)~>~0~$.
+On note tout d'abord ~$M^*=\{\theta\in\mathbb{R}^p:R_N(\theta)=\inf_{\theta \in \mathbb{R}^p}R_N(\theta)\}$. Désormais, on imposera que notre fonction de perte vérifie : ~$\forall~1\leq~i~\leq~N,~\forall~a~\in~A~\backslash~a_i,~l(s_i,a)~>~l(s_i,a_i)~\geq~0$. Il est facile de borner inférieurement le risque $R_N$, pour tout ~$\theta\in\mathbb{R}^p$ on a : ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i)$. Soit ~$\hat{\theta}\in\mathbb{R}^p$ vérifiant l'équation \eqref{eq:existence}, l'existence de ce dernier est assuré par l'hypothèse sur $\theta_E$. Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$,~$\hat{M}=\{\hat{\theta}\in\mathbb{R}^p:\hat{\theta} \text{ vérifie l'équation \eqref{eq:existence} }\}$, et posons $\forall~1\leq~i~\leq~N,$\\$\beta_i~=~\hat{\theta}_1^T~\mu_E(s_i,a_i)~-~\max_{a\in A \backslash a_i}~\hat{\theta}_1^T~\mu_E(s_i,a)~>~0~$.
 Montrons qu'il existe un $x\geq0$ tel que $~R_N(\hat{\theta}_x)~=~{1\over N}~\sum_{i=1}^N l(s_i,a_i)$, et cela nous assurera que ~$\hat{\theta}_x~\in~M^*$ d'après la minoration ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i),~\forall~\theta~\in~\mathbb{R}^p$. Avec les notations précédentes, on vérifie $\forall 1\leq i \leq N$ :
 \begin{align}
 &\hat{\theta}_x^T\mu_E(s_i,a_i)-\max_{a\in A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,a) + l(s_i,a_i)-\max_{a\in A \backslash a_i}l(s_i,a)\geq0,\\
@@ -415,11 +407,11 @@ La différence dans les amplitudes des récompenses et des fonctions de valeurs 
 
 L'algorithme présenté dans cette publication lève les problèmes les plus contraignants de l'apprentissage par renforcement inverse. En rendant la résolution du problème inverse indépendante de celle du problème direct, nous sommes en mesure d'inférer une récompense cohérente avec le comportement d'un expert en mode purement \emph{batch}.\\
 
-La complexité calculatoire de notre algorithme instancié avec LSTD$\mu$ reste sous contrôle, létape gourmande étant l'inversion d'une matrice de taille $p \times p$.\\
+La complexité calculatoire de notre algorithme instancié avec LSTD$\mu$ reste sous contrôle, l'étape gourmande étant l'inversion d'une matrice de taille $p \times p$.\\
 
 Comme nous l'avons illustré, les échantillons nécessaires à la réussite de notre algorithmes sont faciles à recueillir. Une simple trace de l'expert, même si elle ne couvre qu'une petite partie de l'espace d'état, suffit à inférer une récompense. Cette récompense, description compacte de la tâche effectuée par l'expert, peut alors être optimisée par un agent dont les capacités diffèrent de celles de l'expert. On rentre dans le cadre du \emph{transfer learning}.\\
 
-Bien que ne posant pas particulièrment problème, le point central de notre algorithme qu'est le calcul de $\mu_E$ gagnerait à être amélioré. L'axe d'étude que nous envisageons d'explorer serait de s'en passer purement et simplement en trouvant le moyen d'introduire la structure du PDM dans la démarche de classification sueprvisée.\\
+Bien que ne posant pas particulièrment problème, le point central de notre algorithme qu'est le calcul de $\mu_E$ gagnerait à être amélioré. L'axe d'étude que nous envisageons d'explorer serait de s'en passer purement et simplement en trouvant le moyen d'introduire la structure du PDM dans la démarche de classification supervisée.\\
 
 Des tests empiriques sur des problèmes plus comlpexes sont également envisagés.
 %
