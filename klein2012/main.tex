@@ -265,7 +265,7 @@ Ce risque est non linéaire et n'est pas différentiable partout, en raison du $
 \begin{eqnarray}
 \nabla_\theta J_N(\theta) &=& {1\over N}\sum\limits_{i=1}^N\left(\mu_E(s_i,a^*_i) - \mu_E(s_i,a_i)\right)\\
 a^*_i &=& \arg\max_a(\theta ^T \mu_E(s_i,a) + l(s_i,a))\\
-   \theta_{t+1} &\leftarrow& \theta_t -\alpha_t{\nabla_\theta J_N(\theta) \over ||\nabla_\theta J_N(\theta)||_2}.
+   \theta_{t+1} &\leftarrow& \theta_t -\alpha_t{\nabla_{\theta_t} J_N(\theta_t) \over ||\nabla_{\theta_t} J_N(\theta_t)||_2}.
 \end{eqnarray}
 %%%
 \subsection{Calcul de $\mu_E$}
@@ -290,16 +290,16 @@ D'autres méthodes d'approximation sont envisageables, comme par exemple une app
 %%%%%
 \section{Analyse}\label{proof.sec}
 \subsection{Hypothèses}
-Ici, nous présentons le cadre sous lequel notre algorithme de sous gradient converge vers un minimiseur de $R_N$ qui rende la politique de l'expert optimale. On supposera que la récompense $R$ s'écrive sous la forme $R(s)=\theta_E^T\psi(s)$ où $\theta_E\in\mathbb{R}^p$, que notre base d'exemples est telle que $S\subset \{s_i\}_{1\leq i \leq N}$ et que $\mu_E$ est estimée sans erreur sur $\{(s_i,a_i)\}_{1\leq i \leq N}$. Nous supposons également l'unicité de l'action optimale (cette hypothèse pouvant être relâchée au prix de notations plus complexes):
+Ici, nous présentons le cadre sous lequel notre algorithme de sous gradient converge vers un minimiseur de $J_N$ qui rende la politique de l'expert optimale. On supposera que la récompense $R$ est de la forme~$R(s)~=~\theta_E^T\psi(s)$ où $\theta_E\in\mathbb{R}^p$, que notre base d'exemples est telle que $S\subset \{s_i\}_{1\leq i \leq N}$ et que $\mu_E$ est estimée sans erreur sur $\{(s_i,a_i)\}_{1\leq i \leq N}$. Nous supposons également l'unicité de l'action optimale (cette hypothèse pouvant être relâchée au prix de notations plus complexes):
 \begin{equation}\label{eq:existence}
 \forall 1\leq i \leq N, \theta_E^T\mu_E(s_i,a_i)>\max_{a\in A \backslash a_i}\theta_E^T\mu_E(s_i,a),
 \end{equation}
-où la notation ~$A \backslash a_i$ désigne l'ensemble $A$ privé de l'action $a_i$. Ainsi tout vecteur $\theta$ vérifiant l'équation~\eqref{eq:existence} rendra la politique de l'expert optimale. Si la base d'exemples est tel que $\{s_i\}_{1\leq i \leq N}\subset S$, alors un $\theta$ vérifiant l'équation~\eqref{eq:existence} rendra la politique de l'expert optimale au moins sur $\{s_i\}_{1\leq i \leq N}$ car l'équation~\eqref{eq:existence} impliquera dans ce cas :$\forall s\in \{s_i\}_{1\leq i \leq N}, V^{\pi_E}(s)\geq\max_{a\in A}Q^{\pi_E}(s,a)$.
-Dans ce cadre, nous allons montrer qu'il existe bien un $\theta$ vérifiant l'équation~$\eqref{eq:existence}$ qui minimise $R_N$,  que les minimiseurs de $R_N$ vérifient bien l'équation~\eqref{eq:existence} et que l'algorithme de sous-gradient converge vers un minimiseur.
+où la notation ~$A \backslash a_i$ désigne l'ensemble $A$ privé de l'action $a_i$. Ainsi tout vecteur $\theta$ vérifiant l'équation~\eqref{eq:existence} rendra la politique de l'expert optimale. Si la base d'exemples est tel que $\{s_i\}_{1\leq i \leq N}\subset S$, alors un $\theta$ vérifiant l'équation~\eqref{eq:existence} rendra la politique de l'expert optimale au moins sur $\{s_i\}_{1\leq i \leq N}$ car l'équation~\eqref{eq:existence} impliquera dans ce cas : $\forall s\in \{s_i\}_{1\leq i \leq N}, V^{\pi_E}(s)\geq\max_{a\in A}Q^{\pi_E}(s,a)$.
+Dans ce cadre, nous allons montrer qu'il existe bien un $\theta$ vérifiant l'équation~$\eqref{eq:existence}$ qui minimise $J_N$,  que les minimiseurs de $J_N$ vérifient bien l'équation~\eqref{eq:existence} et que l'algorithme de sous-gradient converge vers un minimiseur.
 \subsection{Résultat}
-On va montrer, dans un premier temps, qu'il existe bien un $\hat{\theta}$ qui vérifie l'équation \eqref{eq:existence} et qui minimise $R_N$.
-On note tout d'abord ~$M^*=\{\theta\in\mathbb{R}^p:R_N(\theta)=\inf_{\theta \in \mathbb{R}^p}R_N(\theta)\}$. Désormais, on imposera que notre fonction de perte vérifie : ~$\forall~1\leq~i~\leq~N,~\forall~a~\in~A~\backslash~a_i,~l(s_i,a)~>~l(s_i,a_i)~\geq~0$. Il est facile de borner inférieurement le risque $R_N$, pour tout ~$\theta\in\mathbb{R}^p$ on a : ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i)$. Soit ~$\hat{\theta}\in\mathbb{R}^p$ vérifiant l'équation \eqref{eq:existence}, l'existence de ce dernier est assuré par l'hypothèse sur $\theta_E$. Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$,~$\hat{M}=\{\hat{\theta}\in\mathbb{R}^p:\hat{\theta} \text{ vérifie l'équation \eqref{eq:existence} }\}$, et posons ~$\forall~1\leq~i~\leq~N,~\beta_i~=~\hat{\theta}_1^T~\mu_E(s_i,a_i)~-~\max_{a\in A \backslash a_i}~\hat{\theta}_1^T~\mu_E(s_i,a)~>~0~$.
-Montrons qu'il existe un $x\geq0$ tel que $~R_N(\hat{\theta}_x)~=~{1\over N}~\sum_{i=1}^N l(s_i,a_i)$, et cela nous assurera que ~$\hat{\theta}_x~\in~M^*$ d'après la minoration ~$R_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i),~\forall~\theta~\in~\mathbb{R}^p$. Avec les notations précédentes, on vérifie $\forall 1\leq i \leq N$ :
+On va montrer, dans un premier temps, qu'il existe bien un $\hat{\theta}$ qui vérifie l'équation \eqref{eq:existence} et qui minimise $J_N$.
+On note tout d'abord ~$M^*=\{\theta\in\mathbb{R}^p:J_N(\theta)=\inf_{\theta \in \mathbb{R}^p}J_N(\theta)\}$. Désormais, on imposera que notre fonction de perte vérifie : ~$\forall~1\leq~i~\leq~N,~\forall~a~\in~A~\backslash~a_i,~l(s_i,a)~>~l(s_i,a_i)~\geq~0$. Il est facile de borner inférieurement le risque $J_N$, pour tout ~$\theta\in\mathbb{R}^p$ on a : ~$J_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i)$. Soit ~$\hat{\theta}\in\mathbb{R}^p$ vérifiant l'équation \eqref{eq:existence}, l'existence de ce dernier est assuré par l'hypothèse sur $\theta_E$. Notons ~$\hat{\theta}_x=x\frac{\hat{\theta}}{\|\hat{\theta}\|_2}\in\mathbb{R}^p$ avec $x\geq0$,~$\hat{M}=\{\hat{\theta}\in\mathbb{R}^p:\hat{\theta} \text{ vérifie l'équation \eqref{eq:existence} }\}$, et posons ~$\forall~1\leq~i~\leq~N,~\beta_i~=~\hat{\theta}_1^T~\mu_E(s_i,a_i)~-~\max_{a\in A \backslash a_i}~\hat{\theta}_1^T~\mu_E(s_i,a)~>~0~$.
+Montrons qu'il existe un $x\geq0$ tel que $~J_N(\hat{\theta}_x)~=~{1\over N}~\sum_{i=1}^N l(s_i,a_i)$, et cela nous assurera que ~$\hat{\theta}_x~\in~M^*$ d'après la minoration ~$J_N(\theta)\geq {1\over N} \sum_{i=1}^N l(s_i,a_i),~\forall~\theta~\in~\mathbb{R}^p$. Avec les notations précédentes, on vérifie $\forall 1\leq i \leq N$ :
 \begin{align}
 &\hat{\theta}_x^T\mu_E(s_i,a_i)-\max_{a\in A \backslash a_i}\hat{\theta}_x^T\mu_E(s_i,a) + l(s_i,a_i)-\max_{a\in A \backslash a_i}l(s_i,a)\geq0,\\
 \Leftrightarrow&x\geq\frac{\max_{a\in A \backslash a_i}l(s_i,a)-l(s_i,a_i)}{\beta_i}.
@@ -312,18 +312,18 @@ Or comme la somme des $\max$ est supérieure au $\max$ d'une somme, il est clair
 \Leftrightarrow&J_N(\hat{\theta}_x)={1\over N} \sum_{i=1}^N l(s_i,a_i).
 \end{align}
 C'est bien le résultat recherché. Montrons à présent que les minimiseurs de $J_N$ vérifient bien l'équation \eqref{eq:existence}.
-Soit ~$\theta^*\in\ M^*$.Pour ~$\hat{\theta}\in \hat{M}$, on a vu qu'il existait un ~$x>0$ tel que $J_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $~\forall \theta\in\mathbb{R}^p, J_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i)$, $J_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$. Or on a $\forall 1\leq i \leq N$ :
+Soit ~$\theta^*\in\ M^*$. Pour ~$\hat{\theta}\in \hat{M}$, on a vu qu'il existait un ~$x>0$ tel que $J_N(\hat{\theta}_x)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$, ainsi d'après la minoration $~\forall \theta\in\mathbb{R}^p, J_N(\theta)~\geq~{1\over N}~\sum_{i=1}^Nl(s_i,a_i)$, $J_N(\theta^*)~=~{1\over N} \sum_{i=1}^N l(s_i,a_i)$. Or on a $\forall 1\leq i \leq N$ :
 \begin{align}
 &J_N(\theta^*)={1\over N} \sum_{i=1}^N l(s_i,a_i),\\
 \Leftrightarrow&\forall a \in A \backslash a_i,  (\theta^*)^T\mu_E(s_i,a_i)-(\theta^*)^T\mu_E(s_i,a)\geq l(s_i,a)- l(s_i,a_i)>0,\\
 \Rightarrow&(\theta^*)^T\mu_E(s_i,a_i)-\max_{a \in A \backslash a_i}(\theta^*)^T\mu_E(s_i,a)>0.
 \end{align}
 Donc~$\theta^*\in\hat{M}$. C'est bien ce que l'on recherchait. Si on récapitule, on a montré dans un premier temps que $M^*\neq\emptyset$ et dans un second temps que $M^*\subset\hat{M}$.
-Finalement, montrons que l'algorithme de sous-gradient converge. Tout d'abord, il est clair que $R_N$ est une fonction convexe, fermée, propre, à valeurs finies et continue en la variable $\theta\in\mathbb{R}^p$. De plus on sait que $M^*\neq\emptyset$, on peut donc appliquer le théorème présenté en section 5 de l'article de \cite{correa1993convergence} qui nous assure que la suite :
+Finalement, montrons que l'algorithme de sous-gradient converge. Tout d'abord, il est clair que $J_N$ est une fonction convexe, fermée, propre, à valeurs finies et continue en la variable $\theta\in\mathbb{R}^p$. De plus on sait que $M^*\neq\emptyset$, on peut donc appliquer le théorème présenté en section 5 de l'article de \cite{correa1993convergence} qui nous assure que la suite :
 \begin{equation}
-\theta_0\in\mathbb{R}^p, \forall t\in\mathbb{N}, \theta_{t+1}=\theta_t -\alpha_t{\nabla_\theta R_N(\theta_t) \over ||\nabla_\theta R_N(\theta_t)||_2},
+\theta_0\in\mathbb{R}^p, \forall t\in\mathbb{N}, \theta_{t+1}=\theta_t -\alpha_t{\nabla_{\theta_t} J_N(\theta_t) \over ||\nabla_{\theta_t} J_N(\theta_t)||_2},
 \end{equation}
-est convergente vers un minimiseur $\theta^*$ de $R_N$, où $alpha_t$ est un taux d'apprentissage satisfaisant les condition usuelles ($\sum_{t>0} \alpha_t$ diverge et $\sum_{t>0}\alpha_t^2$ converge). Ce minimiseur vérifiera l'équation~\eqref{eq:existence} car $M^*\subset\hat{M}$ et la politique de l'expert sera optimale pour la récompense relative à $\theta^*$ car l'équation~\eqref{eq:existence} implique l'équation d'optimalité de Bellman.
+est convergente vers un minimiseur $\theta^*$ de $J_N$, où $\alpha_t$ est un taux d'apprentissage satisfaisant les condition usuelles ($\sum_{t>0} \alpha_t$ diverge et $\sum_{t>0}\alpha_t^2$ converge). Ce minimiseur vérifiera l'équation~\eqref{eq:existence} car $M^*\subset\hat{M}$ et la politique de l'expert sera optimale pour la récompense relative à $\theta^*$ car l'équation~\eqref{eq:existence} implique l'équation d'optimalité de Bellman.
 \section{Travaux Connexes}
 \label{biblio.sec}
 %%%%%
