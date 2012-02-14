@@ -303,7 +303,7 @@ class LAFEM:
          #+end_src
      - Effectuer la mise à jour $\omega_{t+1} = \omega_t -\alpha_t {1\over N}\Delta\omega$
        #+begin_src python :tangle LAFEM.py
-            omega = omega - (self.alpha( t )/len(self.data)) * DeltaOmega # FIXME rajouter le 1/N
+            omega = omega - (self.alpha( t )/len(self.data)) * DeltaOmega
        #+end_src
    - retourner $\omega_T$
      #+begin_src python :tangle LAFEM.py
