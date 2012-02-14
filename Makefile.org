@@ -41,14 +41,15 @@ tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
 <<a2a_code_make>>
 <<criteria_code_make>>
 <<greedy_code_make>>
+<<NA_code_make>>
   #+end_src
 ** C source to .o file
 
    C code is compiled with
   
     #+begin_src makefile :tangle Makefile
-export CFLAGS=-O3 -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
-export LFLAGS=`pkg-config --libs gsl` -lm -O3
+export CFLAGS=-g -Wall -pedantic -std=c99 `pkg-config --cflags gsl`
+export LFLAGS=`pkg-config --libs gsl` -lm -g
 c2obj=gcc $(CFLAGS) -c $1
 o2exe=gcc $(LFLAGS)
     #+end_src
@@ -64,11 +65,13 @@ o2exe=gcc $(LFLAGS)
   #+end_src
 ** Org source to PDF
     #+begin_src makefile :tangle Makefile :noweb yes
+org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.emacs && pdflatex $1.tex && bibtex $1 && pdflatex $1.tex && pdflatex $1.tex
+
 <<NA_org2pdf_make>>
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-tr
+export XARGS_OPT=-t
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -90,6 +93,30 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
 	$(MAKE) -C InvertedPendulum clean
     #+end_src
 * End results
+** LAFEM
+   - LAFEM_Exp1 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp1:
+	make -C GridWorld V_expert.pdf V_agent.pdf true_reward.pdf retrieved_reward.pdf
+    #+end_src
+   - LAFEM_Exp2 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp2:
+	make -C InvertedPendulum LAFEM_Exp2_true_R.pdf LAFEM_Exp2_lafem_R.pdf LAFEM_Exp2_Vexpert.pdf LAFEM_Exp2_Vagent.pdf
+    #+end_src
+   - LAFEM_Exp3 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp3:
+	make -C InvertedPendulum LAFEM_Exp3_true_R.pdf LAFEM_Exp3_lafem_R.pdf LAFEM_Exp3_Vexpert.pdf LAFEM_Exp3_Vagent.pdf
+    #+end_src
+   - LAFEM_Exp4 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp4:
+	make -C InvertedPendulum LAFEM_Exp4_quality.pdf
+LAFEM_Exp42:
+	make -C InvertedPendulum LAFEM_Exp4_quality_EB.pdf
+    #+end_src
+
 ** TaskTransfer
    - TT_Exp1 (GridWorld)
    - TT_Exp2

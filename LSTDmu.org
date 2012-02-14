@@ -1,9 +1,11 @@
 #+TITLE: Abbeel and Ng's IRL algorithm with LSTD estimation of the feature expectation
 
+FIXME: Il faudrait séparer le code de LSTDmu utilisable par tous les algos d'IRL et le code de l'ANIRL (qui a besoin de LSPI and co).
+
   In their paper, \cite{abbeel2004apprenticeship}, Ng and Abbeel present an IRL algorithm. This file is an implementation of this algorithm in its projection form, but using a LSTD method to estimate $\mu_E$ and $\mu$ and using LSPI to solve the MDP.
 * C implementation
 ** Externals
-  One function is offered : 
+*** ANIRL
    #+begin_src c :tangle LSTDmu.h :main no
 gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E, 
 				  gsl_matrix* D );
@@ -11,6 +13,14 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
    Most of its arguments are passed via gobal variables (see [[file:RL_Globals.org][here]] and [[file:IRL_Globals.org][here]]), the $D_E$ matrix are the trajectories from the expert, and the $D$ matrix are the transitions to be fed to LSPI.
 
    It returns the $\omega$ matrix which defines the optimal policy as found by LSPI under the reward $R = \theta^T\psi$. Note that $\omega \equiv \pi$, in other words, ou aproximation of the value function defines the greedy policy.
+*** LSTD$\mu$
+   #+begin_src c :tangle LSTDmu.h :main no
+gsl_matrix* lstd_mu_omega( gsl_matrix* D_mu, 
+			   gsl_matrix* (*pi)(gsl_matrix*) );
+   #+end_src 
+
+    This returns the $\omega_\pi$ matrix that allows for the computation of $\mu_\pi(s,a) = \omega^T_\pi\phi(s,a)$, for the policy $\pi$ given in argument, computed from the data matrix $D_\mu$ whose format is $(s,a,s',\psi(s)^T,eoe)$.
+
 ** Internals
    We use the GSL and some neighbooring code.
    #+begin_src c :tangle LSTDmu.c :main no
@@ -121,10 +131,9 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
     One other way to estimate $\mu$ is in a /off-policy/ setting, à la LSTDQ.
     
    #+begin_src c :tangle LSTDmu.c :main no
-gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
+gsl_matrix* lstd_mu_omega(  gsl_matrix* D_mu,
 		      gsl_matrix* (*pi)(gsl_matrix*)){
    #+end_src
-    
     - $\tilde A \leftarrow 0$
       #+begin_src c :tangle LSTDmu.c :main no
   gsl_matrix* A = gsl_matrix_calloc( g_iK, g_iK );
@@ -133,7 +142,7 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
       #+begin_src c :tangle LSTDmu.c :main no
   gsl_matrix* b = gsl_matrix_calloc( g_iK, g_iP );
       #+end_src
-    - for each $(s,a,s',\psi(s),eoe) \in D_\mu$
+    - for each $(s,a,s',\psi(s)^T,eoe) \in D_\mu$
       #+begin_src c :tangle LSTDmu.c :main no
   for( unsigned int i=0; i < D_mu->size1 ; i++ ){
       #+end_src
@@ -203,6 +212,18 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
   gsl_permutation_free( p );
   gsl_matrix_free( A );
   gsl_matrix_free( b );
+  return omega_pi;
+}
+      #+end_src
+
+
+   #+begin_src c :tangle LSTDmu.c :main no
+gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
+		      gsl_matrix* (*pi)(gsl_matrix*)){
+   #+end_src
+    - $\omega_\pi \leftarrow LSTD_\mu( D_\mu, \pi )$
+      #+begin_src c :tangle LSTDmu.c :main no
+  gsl_matrix* omega_pi = lstd_mu_omega( D_mu, pi );
       #+end_src
     - $\mu_\pi(s_0) \leftarrow \sum\limits_{s_0}\tilde\omega_\pi^T\phi(s_0,\pi(s_0))$
       #+begin_src c :tangle LSTDmu.c :main no

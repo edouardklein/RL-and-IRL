@@ -1,0 +1,18 @@
+#+OPTIONS: LaTeX:dvipng
+
+#+LATEX_HEADER: \usepackage{amsmath}
+#+LATEX_HEADER: \usepackage{amsthm}
+#+LaTeX_HEADER: \newtheorem{definition}{Definition}
+#+LaTeX_HEADER: \usepackage{natbib}
+#+TITLE:Grand fichier centralisé des notations
+[TABLE-OF-CONTENTS]
+
+Pour éviter les conflits de notation mathématique et les conflits dans les noms de variable, tout est regroupé dans ce fichier. Si un autre fichier est en désaccord avec celui-ci, il est convenu que c'est ce fichier qui a raison (quitte à le modifier).
+
+* Général
+
+ - $N$ : cardinal de la base d'exemple considérée
+* IRL 
+ - $l : $S\times A \rightarrow \mathbb{R}$ : fonction de perte
+ - $R_N$ : fonction de risque empirique
+ - $Q_E : S\times A \rightarrow \mathbb{R}$ : fonction de qualité de l'expert

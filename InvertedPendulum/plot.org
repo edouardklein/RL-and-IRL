@@ -20,6 +20,7 @@ We use the GSL, the LSPI algorithm, Abbeel and Ng's IRL algorithm and our LSPI v
 #include "LSTDmu.h"
 #include "criteria.h"
 #include "greedy.h"
+#include "phipsi.h"
 #+end_src
 
 We set some constants
@@ -32,7 +33,17 @@ We set some constants
 #+end_src
 
 We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
-#+begin_src c :tangle plot.c :main no
+#+begin_src c :tangle phipsi.h :main no
+gsl_matrix* phi( gsl_matrix* sa );
+gsl_matrix* psi( gsl_matrix* s );
+#+end_src
+
+#+begin_src c :tangle phipsi.c :main no
+#include <gsl/gsl_matrix.h>
+#include <RL_Globals.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+
 unsigned int g_iK = (30); /* dim(\phi) */
 unsigned int g_iP = (10); /* dim(\psi) */
 
@@ -242,6 +253,10 @@ threshold_EB.gp: plot.org
 	$(call tangle,"plot.org")
 conf.py: LSTDmu_Exp.org 
 	$(call tangle,"LSTDmu_Exp.org")
+phipsi.h: plot.org 
+	$(call tangle,"plot.org")
+phipsi.c: plot.org 
+	$(call tangle,"plot.org")
 #+end_src
 ** Parent Dir targets
        On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
@@ -301,12 +316,14 @@ conf.py: LSTDmu_Exp.org
 #+begin_src makefile
 plot.o: plot.c InvertedPendulum.h ../utils.h ../LSPI.h ../greedy.h simulator.h ../abbeel2004apprenticeship.h ../LSTDmu.h ../criteria.h ../RL_Globals.h ../IRL_Globals.h
 	$(call c2obj,"plot.c")
+phipsi.o: phipsi.c ../RL_Globals.h InvertedPendulum.h
+	$(call c2obj,"phipsi.c")
 #+end_src
 ** .o to .exe
 #+srcname: LSTDmu_Exp_o2exe_make
 #+begin_src makefile
-plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o InvertedPendulum.o
-	$(O2EXE) -o plot.exe plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o InvertedPendulum.o
+plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o InvertedPendulum.o phipsi.o
+	$(O2EXE) -o plot.exe plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../LSTDmu.o ../criteria.o InvertedPendulum.o phipsi.o
 #+end_src
    
 ** Experiment targets
@@ -318,6 +335,7 @@ plot.dat: plot.samples plot.exe
 
 plot.samples: generator.exe 
 	./generator.exe > Samples.dat && touch plot.samples
+
 #+end_src
 *** Sensitivity of the quality of the policy to the number of samples fed to LSPI (No error bars)
     #+srcname: LSTDmu_Exp_make
@@ -364,6 +382,8 @@ threshold_mc.dat-0: ErrorBars
 LSTDmu_Exp_clean:
 	find . -maxdepth 1 -iname "threshold.gp"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "threshold_EB.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.h"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "phipsi.c"   | xargs $(XARGS_OPT) rm 
 	find . -maxdepth 1 -iname "plot.c"   | xargs $(XARGS_OPT) rm 
 	find . -maxdepth 1 -iname "plot.o"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "plot.exe"   | xargs $(XARGS_OPT) rm
