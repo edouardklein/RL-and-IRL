@@ -323,7 +323,7 @@ Finalement, montrons que l'algorithme de sous-gradient converge. Tout d'abord, i
 \begin{equation}
 \theta_0\in\mathbb{R}^p, \forall t\in\mathbb{N}, \theta_{t+1}=\theta_t -\alpha_t{\nabla_{\theta_t} J_N(\theta_t) \over ||\nabla_{\theta_t} J_N(\theta_t)||_2},
 \end{equation}
-est convergente vers un minimiseur $\theta^*$ de $J_N$, où $\alpha_t$ est un taux d'apprentissage satisfaisant les condition usuelles ($\sum_{t>0} \alpha_t$ diverge et $\sum_{t>0}\alpha_t^2$ converge). Ce minimiseur vérifiera l'équation~\eqref{eq:existence} car $M^*\subset\hat{M}$ et la politique de l'expert sera optimale pour la récompense relative à $\theta^*$ car l'équation~\eqref{eq:existence} implique l'équation d'optimalité de Bellman.
+est convergente vers un minimiseur $\theta^*$ de $J_N$, où $\alpha_t$ est un taux d'apprentissage satisfaisant les conditions usuelles ($\sum_{t>0} \alpha_t$ diverge et $\sum_{t>0}\alpha_t^2$ converge). Ce minimiseur vérifiera l'équation~\eqref{eq:existence} car $M^*\subset\hat{M}$ et la politique de l'expert sera optimale pour la récompense relative à $\theta^*$ car l'équation~\eqref{eq:existence} implique l'équation d'optimalité de Bellman.
 \section{Travaux Connexes}
 \label{biblio.sec}
 %%%%%
@@ -348,7 +348,7 @@ Notre approche se place en quelque sorte à mi-chemin entre ces deux contributio
 %%%
 Le problème du pendule inversé consiste à maintenir en équilibre vertical un pendule à un degré de liberté. Il s'agit d'un problème classique en apprentissage par renforcement. Pour jouer le rôle de notre expert, nous utilisons d'ailleurs la politique trouvée par LSPI, un algorithme de RL décrit par \citet{lagoudakis2003least}. Les différents réglages utilisés, de la valeur de la masse du pendule codée dans notre simulateur jusqu'au choix des fonctions de base sont conformes à ce qui est donné dans cette publication. Notamment les fonctions de bases forment un réseau de gaussienne couvrant l'espace d'état à deux dimensions, la première étant la position angulaire du pendule (la verticale correspondant à un angle de valeur nulle) la seconde étant sa vitesse angulaire.\\
 
-La politique optimisant la fonction de récompense donnée Figure \ref{onlyFig.fig} (a) parvient systématiquement à maintenir le pendule en équilibre durant 3000 pas de temps. Ces derniers ayant une valeur d'un dixième de seconde, cela signifie que nous interrompons l'expert après 5 minutes de contrôle sans chute du pendule.\\
+La politique optimisant la fonction de récompense donnée Fig. \ref{onlyFig.fig} (a) parvient systématiquement à maintenir le pendule en équilibre durant 3000 pas de temps. Ces derniers ayant une valeur d'un dixième de seconde, cela signifie que nous interrompons l'expert après 5 minutes de contrôle sans chute du pendule.\\
 
 Le but de cette expérience est de montrer que notre algorithme est capable, à partir des seules transitions fournies par l'expert et de la définition des fonctions de bases, de retrouver une récompense telle qu'un agent entraîné sur cette récompense puisse lui aussi faire balancer le pendule durant 5 minutes sans échec. Cela n'est pas trivial étant donné que l'espace d'état est continu et que les données fournies par l'expert n'en couvrent qu'une petite partie (correspondant à la position verticale et son voisinage proche).\\
 
@@ -362,24 +362,24 @@ En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fo
 %
 \begin{minipage}[b]{.5\linewidth}
   \centering
-  \centerline{\includegraphics[width=1.2\linewidth]{LAFEM_Exp3_true_R.pdf}}
+  \centerline{\includegraphics[width=1.15\linewidth]{LAFEM_Exp3_true_R.pdf}}
   \centerline{(a) Récompense de l'expert}%\medskip
 \end{minipage}
 \hfill
 \begin{minipage}[b]{.5\linewidth}
   \centering
-  \centerline{\includegraphics[width=1.2\linewidth]{LAFEM_Exp3_lafem_R.pdf}}
+  \centerline{\includegraphics[width=1.15\linewidth]{LAFEM_Exp3_lafem_R.pdf}}
   \centerline{(b) Récompense trouvée}%\medskip
 \end{minipage}
 \begin{minipage}[b]{.5\linewidth}
   \centering
-  \centerline{\includegraphics[width=1.2\linewidth]{LAFEM_Exp3_Vexpert.pdf}}
+  \centerline{\includegraphics[width=1.15\linewidth]{LAFEM_Exp3_Vexpert.pdf}}
   \centerline{(c) Fonction de valeur de l'expert}%\medskip
 \end{minipage}
 \hfill
 \begin{minipage}[b]{.5\linewidth}
   \centering
-  \centerline{\includegraphics[width=1.2\linewidth]{LAFEM_Exp3_Vagent.pdf}}
+  \centerline{\includegraphics[width=1.15\linewidth]{LAFEM_Exp3_Vagent.pdf}}
   \centerline{(d) Fonction de valeur de l'agent}%\medskip
 \end{minipage}
 %
@@ -392,18 +392,18 @@ En effet, comme cela a été montré dans \citep{klein2011batch}, à moins de fo
 Afin d'étudier le comportement de notre algorithme, nous avons fait générer à l'expert une base de données $D_E$ de transitions contenant 10 trajectoires de 300 transitions chacune. La fonction $l$ fut définie sur les états présents dans $D_E$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon. Le pas de temps est constant à $\alpha_t = 0.1$ et le nombre d'itérations est de $T=20$. Le vecteur initial $\theta_0$ fut fixé à $[-1...-1]^T$, la récompense étant paramétrée à l'aide du vecteur d'attribut $\psi : S \rightarrow \mathbb{R}^p$ correspondant au mélange de gaussiennes défini dans \cite{lagoudakis2003least}. Pour l'approximation de l'attribut vectoriel moyen de l'expert, c'est l'algorithme LSTD$\mu$ qui fut employé.\\
 
 
-Si la fonction de récompense trouvée par LAFEM (figure \ref{onlyFig.fig} (b)) diffère de celle fournie à l'expert (figure \ref{onlyFig.fig} (a)) on constate en revanche que les fonctions de valeurs sont très similaires (figures \ref{onlyFig.fig} (c) et \ref{onlyFig.fig} (d)). Cela est une illustration du fait que le problème de l'ARI est mal posé en ceci qu'il n'y a pas qu'une seule récompense pouvant expliquer une politique.\\
+Si la fonction de récompense trouvée par LAFEM (Fig. \ref{onlyFig.fig} (b)) diffère de celle fournie à l'expert (Fig. \ref{onlyFig.fig} (a)) on constate en revanche que les fonctions de valeurs sont très similaires (Fig. \ref{onlyFig.fig} (c) et \ref{onlyFig.fig} (d)). Cela est une illustration du fait que le problème de l'ARI est mal posé en ceci qu'il n'y a pas qu'une seule récompense pouvant expliquer une politique.\\
 
 Avec le nombre d'échantillons fournis par l'expert (3000 en 10 trajectoires de 300 transitions chacune), l'agent parvient systématiquement à maintenir le pendule en équilibre durant 5 minutes, ce qui est notre critère de réussite.\\
 
-Deux éléments méritent d'être notés. Tout d'abord la faible couverture de l'espace d'état offerte par les échantillons de l'expert. Ceux-ci sont portés en vert sur la Figure \ref{onlyFig.fig} (b) et l'on constate qu'ils n'occupent qu'une toute petite partie de l'espace : celle dans laquelle le pendule est proche de la verticale. En l'absence de données dans le reste de l'espace d'état il n'est pas possible de pouvoir y inférer avec certitude la récompense. Le second point à noter est que la "vraie" récompense ne se trouve pas dans l'espace d'hypothèse que notre algorithme explore, en effet les attributs vectoriels utilisés ne peuvent qu'approximer la fonction de récompense utilisée sans l'atteindre. Malgré ces deux difficultés, notre algorithme parvient, comme nous l'avons dit, à extraire une récompense qui permet à un agent d'obtenir des performances similaires à celles de l'expert. Le lecteur attentif aura noté la différence d'amplitude des fonctions de valeur Fig. \ref{onlyFig.fig} Cela n'a aucune importance, une dilatation laissant la politique optimale invariante.
+Deux éléments méritent d'être notés. Tout d'abord la faible couverture de l'espace d'état offerte par les échantillons de l'expert. Ceux-ci sont portés en vert sur la Fig. \ref{onlyFig.fig} (b) et l'on constate qu'ils n'occupent qu'une toute petite partie de l'espace : celle dans laquelle le pendule est proche de la verticale. En l'absence de données dans le reste de l'espace d'état il n'est pas possible de pouvoir y inférer avec certitude la récompense. Le second point à noter est que la "vraie" récompense ne se trouve pas dans l'espace d'hypothèse que notre algorithme explore, en effet les attributs vectoriels utilisés ne peuvent qu'approximer la fonction de récompense utilisée sans l'atteindre. Malgré ces deux difficultés, notre algorithme parvient, comme nous l'avons dit, à extraire une récompense qui permet à un agent d'obtenir des performances similaires à celles de l'expert. Le lecteur attentif aura noté la différence d'amplitude des fonctions de valeur Fig. \ref{onlyFig.fig} Cela n'a aucune importance, une dilatation laissant la politique optimale invariante.
 \section{Conclusion}
 
 L'algorithme présenté dans cette contribution lève les problèmes les plus contraignants de l'apprentissage par renforcement inverse. En rendant la résolution du problème inverse indépendante de celle du problème direct, nous sommes en mesure d'inférer une récompense cohérente avec le comportement d'un expert en mode purement \emph{batch}.\\
 
 Comme nous l'avons illustré, les échantillons nécessaires à la réussite de notre algorithmes sont faciles à recueillir. Une simple trace de l'expert, même si elle ne couvre qu'une petite partie de l'espace d'état, suffit à inférer une récompense. Cette récompense, description compacte de la tâche effectuée par l'expert, peut alors être optimisée par un agent dont les capacités diffèrent de celles de l'expert. On rentre dans le cadre du \emph{transfer learning}.\\
 
-L'estimation de $mu_E$ est centrale dans notre approche. Nous disposons d'un algorithme efficace avec LSTD$\mu$, mais qui présente cependant les mêmes inconvénients que les algorithmes d'estimation d'une fonction de valeur. L'axe d'étude que nous envisageons d'explorer serait de ne plus passer par l'attribut vectoriel moyen en trouvant le moyen d'introduire autrment la structure du PDM dans la démarche de classification que nous avons adoptée. Des tests empiriques sur des problèmes plus comlpexes sont également envisagés.
+L'estimation de $\mu_E$ est centrale dans notre approche. Nous disposons d'un algorithme efficace avec LSTD$\mu$, mais qui présente cependant les mêmes inconvénients que les algorithmes d'estimation d'une fonction de valeur. L'axe d'étude que nous envisageons d'explorer serait de ne plus passer par l'attribut vectoriel moyen en trouvant le moyen d'introduire autrment la structure du PDM dans la démarche de classification que nous avons adoptée. Des tests empiriques sur des problèmes plus comlpexes sont également envisagés.
 %
 % Bibliographie
 %
