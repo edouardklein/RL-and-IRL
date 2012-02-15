@@ -116,6 +116,11 @@ LAFEM_Exp4:
 LAFEM_Exp42:
 	make -C InvertedPendulum LAFEM_Exp4_quality_EB.pdf
     #+end_src
+   - LAFEM_Exp5 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp5:
+	make -C InvertedPendulum LAFEM_Exp5_true_R.pdf LAFEM_Exp5_lafem_R.pdf LAFEM_Exp5_Vexpert.pdf LAFEM_Exp5_Vagent.pdf
+    #+end_src
 
 ** TaskTransfer
    - TT_Exp1 (GridWorld)
