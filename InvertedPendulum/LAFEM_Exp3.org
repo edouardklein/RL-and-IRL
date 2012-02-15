@@ -197,11 +197,13 @@ class LAFEM_Exp3( LAFEM ):
         #return (zeros((1,10)) + answer).transpose() #Ugly hack to get a column vector and not a line vector
 
     def alpha( self, t ):
-        return 10./(t+1.)
+        return 3000./(t+1.)
 
     theta_0 = zeros( (10, 1) ) - 1.
 
     Threshold = 0.1
+    T = 20
+
 #+end_src
 
 *** Running LAFEM

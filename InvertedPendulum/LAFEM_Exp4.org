@@ -36,7 +36,7 @@
 #+srcname: LAFEM_Exp4_make
 #+begin_src makefile
 #N_VALUES=300 600 900 1500 3000
-N_VALUES=2 20 200 2000
+N_VALUES=2 20 100 200 1000 3000
 D_expert_X.mat: D_expert.mat #Dummy target
 	for i in $(N_VALUES); do head -n $$i D_expert.mat > D_expert_$$i.mat; done
 	touch D_expert_X.mat
@@ -129,7 +129,7 @@ clean_LAFEM_Exp4_quality.dat:
     Then we make the configuration script for the error bars script :
   #+begin_src python :tangle LAFEM_Exp4_conf.py
 g_nlInput = ['LAFEM_Exp4_quality.dat', ['-d" " -f\'1 2\''], []]
-g_iN = 1000
+g_iN = 100
   #+end_src
     Which can be tangled using :
   #+srcname: LAFEM_Exp4_make
@@ -139,15 +139,6 @@ LAFEM_Exp4_conf.py: LAFEM_Exp4.org
   #+end_src
 
 
-    Finally the makefile rule :
-  #+srcname: LAFEM_Exp4_make
-  #+begin_src makefile
-LAFEM_Exp4_ErrorBars: LAFEM_Exp4_conf.py LAFEM_Exp4_quality.dat
-	mv LAFEM_Exp4_conf.py conf.py
-	../../Utils/ErrorBars.py
-	rm conf.py
-  #+end_src
-
 The file used to plot this with the errorbars is :
   #+begin_src gnuplot :tangle LAFEM_Exp4_quality_EB.gp
 set output "LAFEM_Exp4_quality_EB.ps"
@@ -158,7 +149,6 @@ set ylabel "Number of time steps the agent can balance the pendulum"
 plot 'LAFEM_Exp4_quality.dat-0' u 1:2 w lines ls 1 notitle, 'LAFEM_Exp4_quality.dat-0' u 1:2:3 w errorbars ls 1 notitle
 #+end_src
 
-It is activated by :
 Which are activated by the following makefile rule:
 #+srcname: LAFEM_Exp4_make
 #+begin_src makefile
@@ -181,28 +171,6 @@ LAFEM_Exp4_ErrorBars: LAFEM_Exp4_conf.py LAFEM_Exp4_quality.dat
 
   #+end_src
 
-The file used to plot this with the errorbars is :
-  #+begin_src gnuplot :tangle LAFEM_Exp4_quality_EB.gp
-set output "LAFEM_Exp4_quality_EB.ps"
-set term postscript enhanced color
-set yrange [0:3100]
-set xlabel "Number of samples from the expert"
-set ylabel "Number of time steps the agent can balance the pendulum"
-plot 'LAFEM_Exp4_quality.dat-0' u 1:2 w lines ls 1 notitle, 'LAFEM_Exp4_quality.dat-0' u 1:2:3 w errorbars ls 1 notitle
-#+end_src
-
-It is activated by :
-Which are activated by the following makefile rule:
-#+srcname: LAFEM_Exp4_make
-#+begin_src makefile
-LAFEM_Exp4_quality_EB.gp: LAFEM_Exp4.org
-	$(call tangle,"LAFEM_Exp4.org")
-
-LAFEM_Exp4_quality_EB.pdf: LAFEM_Exp4_quality_EB.gp LAFEM_Exp4_ErrorBars
-	gnuplot LAFEM_Exp4_quality_EB.gp
-	ps2pdf LAFEM_Exp4_quality_EB.ps
-	rm LAFEM_Exp4_quality_EB.ps
-#+end_src
 
 
 ** Cleaning
