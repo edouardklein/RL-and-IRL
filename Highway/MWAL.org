@@ -8,7 +8,6 @@ The goal here is to make use of this code for comparison purposes.
 * Putting an optimal policy in control of the simulator
 
 The following octave code, mimmicking what I've read in the =al_code= fodler, should be able to save an optimal policy in the file =policy.dat=.
-
 #+begin_src octave :tangle al_code/fast_policy.m
 F = make_F;
 THETA = make_THETA;
@@ -22,10 +21,30 @@ VV = sparse( VV );
 
 write_out_policy( P );
 #+end_src
+This represent the policy of a fast driver, 'drive someone you love to the hospital' mode : speed is important, collisions a bit less, and going out of the road is tolerated.
+
+We can use the same code, but for a safe driver, where speed is unimportant and avoiding collisions is as important as staying on the road :
+#+begin_src octave :tangle al_code/safe_policy.m
+F = make_F;
+THETA = make_THETA;
+GAMMA = 0.9;
+w = [0; 0.5 ; 0.5]; # Vitesse, collisions, dépassement. 
+[N, K] = size(F);
+VV = rand(N,K);
+VV = sparse( VV );
+
+[P, M, VV, ITER] = opt_policy_and_feat_exp( THETA, F, GAMMA, w, 'first', VV );
+
+write_out_policy( P );
+#+end_src
+
+
 
 #+srcname: MWAL_make
 #+begin_src makefile
 al_code/fast_policy.m: MWAL.org
+	$(call tangle,"MWAL.org")
+al_code/safe_policy.m: MWAL.org
 	$(call tangle,"MWAL.org")
 #+end_src
 
@@ -43,26 +62,31 @@ al_code/make_THETA.m: al_code/pre.pl
 It can be invoked by :
 #+srcname: MWAL_make
 #+begin_src makefile
-al_code/policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/fast_policy.m
-	pushd al_code; octave fast_policy.m ; popd
+al_code/fast_policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/fast_policy.m
+	pushd al_code; octave fast_policy.m ; mv policy.dat fast_policy.dat ; popd
+al_code/safe_policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/safe_policy.m
+	pushd al_code; octave safe_policy.m ; mv policy.dat safe_policy.dat ; popd
 #+end_src
 
 Now, the simulator can not directly use this file and it should be transformed using a perl script from the =al_code= directory.
 
 #+srcname: MWAL_make
 #+begin_src makefile
-al_code/policy.txt: al_code/policy.dat
-	pushd al_code; perl post.pl ; popd
+al_code/fast_policy.txt: al_code/fast_policy.dat
+	pushd al_code; mv fast_policy.dat policy.dat; perl post.pl ;mv policy.txt fast_policy.txt; mv policy.dat fast_policy.dat ; popd
+al_code/safe_policy.txt: al_code/safe_policy.dat
+	pushd al_code; mv safe_policy.dat policy.dat; perl post.pl ;mv policy.txt safe_policy.txt; mv policy.dat safe_policy.dat ; popd
 #+end_src
 
 Once the transformation is done, one can play with the policy in the simulator. We us our modified version which can stop after a certain number of transitions. We instantiate it with :
    #+begin_src python :tangle PolicyPlay.py
 from App import *
+import sys
 
 root = Tk()
 app = App(root)
 app.autopilot = 'original'
-app.read_policy( 'al_code/policy.txt' )
+app.read_policy( sys.argv[1] )
 app.max_t=200
 root.mainloop()
 
@@ -70,6 +94,10 @@ root.mainloop()
 
 #+srcname: MWAL_make
 #+begin_src makefile
-Play: al_code/policy.txt PolicyPlay.py App.py
-	python PolicyPlay.py
+PlayFast: al_code/fast_policy.txt PolicyPlay.py App.py
+	python PolicyPlay.py al_code/fast_policy.txt
+
+PlaySafe: al_code/safe_policy.txt PolicyPlay.py App.py
+	python PolicyPlay.py al_code/safe_policy.txt
 #+end_src
+
