@@ -68,7 +68,7 @@ We use a code very similar to what was used to train the expert in the LSTD$\mu$
 #define TRANS_WIDTH 7
 #define ACTION_FILE "actions.mat"
 
-//FIXME : those are not useful here, but it won't compile without
+//FIXME : those two are not useful here, but it won't compile without
 double g_dGamma_lafem = 0;
 unsigned int g_iNb_episodes = -1;
 
@@ -101,8 +101,8 @@ int main( void ){
   }
   gsl_matrix_free( D_expert );
   
-  g_iMax_episode_len = 1000;
-  D_expert = inverted_pendulum_simulator( 3 );
+  g_iMax_episode_len = 100;
+  D_expert = inverted_pendulum_simulator( 30 );
   FILE* f = fopen("D_expert.mat","w");
   for( int i = 0; i < D_expert->size1 ; i++ ){
     for( int j = 0; j < TRANS_WIDTH; j++){
