@@ -58,6 +58,8 @@ class App:
         # Variables
         self.collisions = 0
         self.offroads = 0
+        self.old_offroads = 0
+        self.old_collisions = 0
 
         # Draw field of play
         h, w = self.h, self.w
@@ -115,7 +117,16 @@ class App:
         state = []
         state.append(int(round(self.c.coords(self.my_car)[2])))
         state = state + [[int(round(x)) for x in self.c.coords(car)[2:4]] for car in self.c.find_withtag("other_cars")]
-        state = state + [self.collisions, self.offroads]
+        if self.old_collisions == self.collisions:
+            state = state + [0]
+        else:
+            state = state + [1]
+        self.old_collisions = self.collisions
+        if self.old_offroads == self.offroads:
+            state = state + [0]
+        else:
+            state = state + [1]
+        self.old_offroads = self.offroads
         for x in flatten( state ):
             print( "%lf"% x),
         print #We print it twice, once for s', once for s
@@ -210,7 +221,7 @@ class App:
 
   #+srcname: App_make
 #+begin_src makefile
-App.py: Main.org
-	$(call tangle,"Main.org")
+App.py: Simulator.org
+	$(call tangle,"Simulator.org")
 
 #+end_src

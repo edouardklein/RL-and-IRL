@@ -120,8 +120,8 @@ gsl_matrix* psi( gsl_matrix* s );
 #include <RL_Globals.h>
 #include <math.h>
 
-unsigned int g_iK = (48); /* dim(\phi) */
-unsigned int g_iP = (16); /* dim(\psi) */
+unsigned int g_iK = (27); /* dim(\phi) */
+unsigned int g_iP = (9); /* dim(\psi) */
 
 gsl_matrix* psi( gsl_matrix* s ){
   gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
@@ -136,14 +136,14 @@ gsl_matrix* psi( gsl_matrix* s ){
 		    exp( - pow(blue_x - x, 2) / (2.*20.*20.) ) );
     index++;
   }
-  for( double x = 140. ; x < 181. ; x+=20. ){
-    for( double y = 60 ; y <= 181. ; y += 60. ){
-      gsl_matrix_set( answer, index, 0,
-		      exp(-(pow(red_x-x,2) + 
-			    pow(red_y-y,2))/(2.*20.*20.)) );
-      index++;
-    }
+  gsl_matrix_set( answer, index, 0, red_y - 160 ); //Position relative de notre voiture et de l'autre, verticalement
+  index++;
+  if( -20. < red_x -blue_x || red_x - blue_x < 20. ){ //Position horizontale relative des deux voitures
+    gsl_matrix_set( answer, index, 0, 1);
+  }else{
+    gsl_matrix_set( answer, index, 0, -1);
   }
+  index++;
   gsl_matrix_set( answer, index, 0, collisions );
   index++;
   gsl_matrix_set( answer, index, 0, offroads );
@@ -154,7 +154,7 @@ gsl_matrix* phi( gsl_matrix* sa ){
   gsl_matrix* answer = gsl_matrix_calloc( g_iK, 1 );
   gsl_matrix_view s = gsl_matrix_submatrix( sa, 0,0, 1, 5 );
   unsigned int action = (unsigned int)gsl_matrix_get( sa, 0, 5 );
-  unsigned int index = action*16;
+  unsigned int index = action*g_iP;
   gsl_matrix_view v_psi_s = gsl_matrix_submatrix( answer, index, 0, g_iP, 1 );
   gsl_matrix* psi_s =  psi( &(s.matrix) );
   gsl_matrix_memcpy( &(v_psi_s.matrix), psi_s );
@@ -181,7 +181,7 @@ phipsi.o: phipsi.c phipsi.h
 from numpy import *
 
 def psi( s ):
-    answer = zeros((16,1))
+    answer = zeros((9,1))
     blue_x = s[0]
     red_x = s[1]
     red_y = s[2]
@@ -191,20 +191,22 @@ def psi( s ):
     for x in [120.,140.,160.,180.,200.]:
         answer[index] = exp( - pow(blue_x - x, 2) / (2.*20.*20.) )
         index+=1
-    for x in [140.,160.,180.]:
-        for y in [60.,120.,180.]:
-            answer[index] = exp(-(pow(red_x-x,2) + 
-                                  pow(red_y-y,2))/(2.*20.*20.))
-            index +=1
+    answer[index] = red_y - 160.
+    index+=1
+    if( -20.<red_x-blue_x or red_x - blue_x < 20. ):
+        answer[index] = 1
+    else:
+        answer[index] = -1
+    index+=1
     answer[index] = collisions
     index+=1
     answer[index] = offroads
     return answer
 
 def phi( s, a ):
-    answer = zeros((48,1))
-    index = a*16
-    answer[index:index+16] = psi( s )
+    answer = zeros((27,1))
+    index = a*9
+    answer[index:index+9] = psi( s )
     return answer
 
         

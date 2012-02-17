@@ -30,7 +30,7 @@ RandomSamples.dat: RandomSamples.py App.py
    Les samples générés ont la forme $s,a,s'$, or l'implémentation de LSPI que nous utilisons a besoin en entrée d'échantillons de la forme $s,a,s',r,e$ avec $r$ la récompense et $e$ le flag de fin d'épisode, qui vaut 0 en fin d'épisode et 1 sinon. Pour notre premier test, nous pénalisons les sorties de routes et les collisions d'un point chacune. L'épisode est éternel. Le petit bout de awk qui suit implémente ceci :
    #+srcname: RandomSamples_make
 #+begin_src makefile
-	cat tata | awk '{print $$0" "($$4+$$5)*-1" "1}' > RandomSamples.dat
+	cat tata | awk '{printf $$0" "($$4+$$5)*-1" ";if( $$9 == 10) print 0 ;else print 1}'> RandomSamples.dat
 	rm toto tata
 #+end_src
 
