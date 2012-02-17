@@ -124,6 +124,7 @@ clean_LAFEM_Exp4_quality.dat:
 	find . -maxdepth 1 -iname "omega_mu_E_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "theta_lafem_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "LAFEM_Exp4_quality.*"   | xargs $(XARGS_OPT) rm
+
   #+end_src
 
     Then we make the configuration script for the error bars script :

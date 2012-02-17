@@ -176,7 +176,7 @@ test: TT_test0 TT_test1 TT_test2 TT_test3
 Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tangle your makefile so you can tangle while you make.
 
   #+begin_src makefile :tangle Makefile :noweb yes
-SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality Highway
+SUB_DIRS=ChainWalk GridWorld InvertedPendulum  Highway
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 

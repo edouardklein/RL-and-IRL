@@ -278,6 +278,7 @@ omega_lspi.mat: Highway_lspi.exe RandomSamples.dat actions.mat
 
 actions.mat:
 	printf "0\n1\n2\n">actions.mat 
+
 #+end_src
    On peut instancier l'application pour qu'elle joue avec la politique gloutonne
    #+begin_src python :tangle GreedyPlay.py
@@ -296,6 +297,7 @@ root.mainloop()
 #+begin_src makefile
 LAFEM_Exp6: omega_lspi.mat GreedyPlay.py
 	python GreedyPlay.py
+
 #+end_src
 
 

@@ -46,6 +46,7 @@ al_code/fast_policy.m: MWAL.org
 	$(call tangle,"MWAL.org")
 al_code/safe_policy.m: MWAL.org
 	$(call tangle,"MWAL.org")
+
 #+end_src
 
 
@@ -57,6 +58,7 @@ al_code/make_F.m: al_code/pre.pl
 
 al_code/make_THETA.m: al_code/pre.pl
 	pushd al_code; perl pre.pl ; popd
+
 #+end_src
 
 It can be invoked by :
@@ -66,6 +68,7 @@ al_code/fast_policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/fast_poli
 	pushd al_code; octave fast_policy.m ; mv policy.dat fast_policy.dat ; popd
 al_code/safe_policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/safe_policy.m
 	pushd al_code; octave safe_policy.m ; mv policy.dat safe_policy.dat ; popd
+
 #+end_src
 
 Now, the simulator can not directly use this file and it should be transformed using a perl script from the =al_code= directory.
@@ -76,6 +79,7 @@ al_code/fast_policy.txt: al_code/fast_policy.dat
 	pushd al_code; mv fast_policy.dat policy.dat; perl post.pl ;mv policy.txt fast_policy.txt; mv policy.dat fast_policy.dat ; popd
 al_code/safe_policy.txt: al_code/safe_policy.dat
 	pushd al_code; mv safe_policy.dat policy.dat; perl post.pl ;mv policy.txt safe_policy.txt; mv policy.dat safe_policy.dat ; popd
+
 #+end_src
 
 Once the transformation is done, one can play with the policy in the simulator. We us our modified version which can stop after a certain number of transitions. We instantiate it with :
@@ -99,5 +103,6 @@ PlayFast: al_code/fast_policy.txt PolicyPlay.py App.py
 
 PlaySafe: al_code/safe_policy.txt PolicyPlay.py App.py
 	python PolicyPlay.py al_code/safe_policy.txt
+
 #+end_src
 
