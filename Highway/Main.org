@@ -1,0 +1,354 @@
+#+TITLE:Setup for the Highway driving experiment
+
+* Espace d'état, espace d'action
+  Chaque vecteur d'état contient les informations suivantes : 
+  - position horizontale de la voiture bleue (celle conduite par le joueur)
+  - position horitontale et verticale de la voiture rouge (celle que le joueur doit éviter)
+  - nombre de collisions et de sorties de route
+
+  On se limite à la vitesse la plus basse car le jeu est injouable pour un humain aux vitesses plus importantes. On verra si on peut faire du task transfer plus tard.
+
+  Les actions sont aux nombre de trois : gauche, rien et droite, représentées respectivement par les entiers 0, 1 et 2.
+
+  L'espace d'état est ainsi de dimension 5 : 
+  \begin{equation}
+  \begin{pmatrix}
+  x_b\\
+  x_r\\
+  y_r\\
+  c\\
+  o
+  \end{pmatrix}
+  \end{equation}
+
+  L'espace d'action de dimension 1.
+* Feature space
+  Afin de pouvoir utiliser une approximation linéaire de la fonction de valeur, on va définir deux fonctions de base vectorielles $\phi: S\times A \rightarrow \mathbb{R}^k$ and $\phi: S\rightarrow \mathbb{R}^p$.
+
+  La définition de ces fonctions utilise un classique maillage de gaussiennes pour la partie de l'état correspondant aux positions des voitures. Pour l'espace joint états actions, on démultiplie l'espace d'état comme cela est fait pour le pendule inversé.
+
+  La dimension horizontale pour la voiture du joueur est divisée en 5, les centre des gaussiennes est positionné sur le milieu de chaque voie ainsi qu'aux coordonnées correspondant aux bas côtés droit gauche. Du bas-côté gauche au bas côté droit en passant successivment par les trois voies, les coordonnées correspondantes sont : 120, 140, 160, 180 et 200.
+
+  En ce qui concerne les voitures que le joueur doit éviter, la dimension horizontale sera divisée en 3, avec une gaussienne pour chaque voie, de centres 140, 160 et 180. La dimension verticale, bien que plus étendue, ne sera divisée qu'en 3 également, avec le centre des gaussiennes en 60, 120 et 180
+
+  Les deux dernières composantes de l'espace d'état, à savoir le nombre de collisions $c$ et le nombre de sorties de route $o$ ne sont pas projetées sur des gaussiennes. Elles sont laissées telles quelles afin de permettre une expression de la récompense linéaire par rapport à ces quantités.
+
+  Concrètement, l'on obtient les fonctions vectorielle :
+\begin{eqnarray}
+\psi  \begin{pmatrix}
+  x_b\\
+  x_r\\
+  y_r\\
+  c\\
+  o
+  \end{pmatrix} &=& 
+  \begin{pmatrix}
+  exp({- (x_b-120)^2\over 2\cdot 20^2})\\
+  exp({- (x_b-140)^2\over 2\cdot 20^2})\\
+  exp({- (x_b-160)^2\over 2\cdot 20^2})\\
+  exp({- (x_b-180)^2\over 2\cdot 20^2})\\
+  exp({- (x_b-200)^2\over 2\cdot 20^2})\\
+  exp({- ((x_r-140)^2 + (y_r - 60)^2)\over 2\cdot 20^2})\\  
+  exp({- ((x_r-140)^2 + (y_r - 120)^2)\over 2\cdot 20^2})\\  
+  exp({- ((x_r-140)^2 + (y_r - 180)^2)\over 2\cdot 20^2})\\  
+  exp({- ((x_r-160)^2 + (y_r - 60)^2)\over 2\cdot 20^2})\\  
+  exp({- ((x_r-160)^2 + (y_r - 120)^2)\over 2\cdot 20^2})\\  
+  exp({- ((x_r-160)^2 + (y_r - 180)^2)\over 2\cdot 20^2})\\  
+  exp({- ((x_r-180)^2 + (y_r - 60)^2)\over 2\cdot 20^2})\\  
+  exp({- ((x_r-180)^2 + (y_r - 120)^2)\over 2\cdot 20^2})\\  
+  exp({- ((x_r-180)^2 + (y_r - 180)^2)\over 2\cdot 20^2})\\  
+  c\\
+  o
+  \end{pmatrix}\\
+\phi  \begin{pmatrix}
+  x_b~~\\
+  x_r~~\\
+  y_r,a\\
+  c~~~\\
+  o~~~
+  \end{pmatrix} &=& 
+  \begin{pmatrix}
+  \psi(s)\\
+  0\\
+  \vdots\\
+  0
+  \end{pmatrix}\textrm{si }a = 0\\
+\phi  \begin{pmatrix}
+  x_b~~\\
+  x_r~~\\
+  y_r,a\\
+  c~~~\\
+  o~~~
+  \end{pmatrix} &=& 
+  \begin{pmatrix}
+  0\\
+  \vdots\\
+  0\\
+  \psi(s)\\
+  0\\
+  \vdots\\
+  0
+  \end{pmatrix}\textrm{si }a = 1\\
+\phi  \begin{pmatrix}
+  x_b~~\\
+  x_r~~\\
+  y_r,a\\
+  c~~~\\
+  o~~~
+  \end{pmatrix} &=& 
+  \begin{pmatrix}
+  0\\
+  \vdots\\
+  0\\
+  \psi(s)
+  \end{pmatrix}\textrm{si }a = 2\\
+\end{eqnarray}
+
+
+  Ces fonction vectorielles $\phi$ et $\psi$ sont codées d'une part en C car LSPI et STD$\mu$ en ont besoin pour fonctionner et en python pour $\phi$ d'autre part car SCIRL/LAFEM en a besoin pour utiliser les informations données par LSTD$\mu$, et le jeu en a besoin pour évaluer les différentes actions afin de choisir la meilleure.
+
+** Implémentation en C
+   Une fois les notations mathématiques correctement établies comme ci dessus, l'implémentation à l'aide de la GSL est assez directe. Une des petites subtilités est que le vecteur, écrit en colonne dans les notation matheuses sera passé en ligne car lu dans les transitions.
+   
+#+begin_src c :tangle phipsi.h :main no
+gsl_matrix* phi( gsl_matrix* sa );
+gsl_matrix* psi( gsl_matrix* s );
+#+end_src
+
+#+begin_src c :tangle phipsi.c :main no
+#include <gsl/gsl_matrix.h>
+#include <RL_Globals.h>
+#include <math.h>
+
+unsigned int g_iK = (27); /* dim(\phi) */
+unsigned int g_iP = (9); /* dim(\psi) */
+
+gsl_matrix* psi( gsl_matrix* s ){
+  gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
+  double blue_x = gsl_matrix_get( s, 0, 0 );
+  double red_x = gsl_matrix_get( s, 0, 1 );
+  double red_y = gsl_matrix_get( s, 0, 2 );
+  double collisions = gsl_matrix_get( s, 0, 3 );
+  double offroads = gsl_matrix_get( s, 0, 4 );
+  unsigned int index = 0;
+  for( double x = 120.; x <201.; x+=20. ){
+    gsl_matrix_set( answer, index, 0, 
+		    exp( - pow(blue_x - x, 2) / (2.*20.*20.) ) );
+    index++;
+  }
+  gsl_matrix_set( answer, index, 0, red_y - 160 ); //Position relative de notre voiture et de l'autre, verticalement
+  index++;
+  if( -20. < red_x -blue_x || red_x - blue_x < 20. ){ //Position horizontale relative des deux voitures
+    gsl_matrix_set( answer, index, 0, 1);
+  }else{
+    gsl_matrix_set( answer, index, 0, -1);
+  }
+  index++;
+  gsl_matrix_set( answer, index, 0, collisions );
+  index++;
+  gsl_matrix_set( answer, index, 0, offroads );
+  return answer;
+}
+
+gsl_matrix* phi( gsl_matrix* sa ){
+  gsl_matrix* answer = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix_view s = gsl_matrix_submatrix( sa, 0,0, 1, 5 );
+  unsigned int action = (unsigned int)gsl_matrix_get( sa, 0, 5 );
+  unsigned int index = action*g_iP;
+  gsl_matrix_view v_psi_s = gsl_matrix_submatrix( answer, index, 0, g_iP, 1 );
+  gsl_matrix* psi_s =  psi( &(s.matrix) );
+  gsl_matrix_memcpy( &(v_psi_s.matrix), psi_s );
+  gsl_matrix_free( psi_s );
+  return answer;
+}
+
+#+end_src
+
+#+srcname: phipsi_make
+#+begin_src makefile
+phipsi.h: Main.org
+	$(call tangle,"Main.org")
+phipsi.c: Main.org
+	$(call tangle,"Main.org")
+
+phipsi.o: phipsi.c phipsi.h
+	$(call c2obj,"phipsi.c")
+#+end_src
+
+
+** Implémentation en python
+#+begin_src python :tangle phi.py
+from numpy import *
+
+def psi( s ):
+    answer = zeros((9,1))
+    blue_x = s[0]
+    red_x = s[1]
+    red_y = s[2]
+    collisions = s[3]
+    offroads = s[4]
+    index = 0
+    for x in [120.,140.,160.,180.,200.]:
+        answer[index] = exp( - pow(blue_x - x, 2) / (2.*20.*20.) )
+        index+=1
+    answer[index] = red_y - 160.
+    index+=1
+    if( -20.<red_x-blue_x or red_x - blue_x < 20. ):
+        answer[index] = 1
+    else:
+        answer[index] = -1
+    index+=1
+    answer[index] = collisions
+    index+=1
+    answer[index] = offroads
+    return answer
+
+def phi( s, a ):
+    answer = zeros((27,1))
+    index = a*9
+    answer[index:index+9] = psi( s )
+    return answer
+
+        
+
+#+end_src
+
+* Reinforcement learning
+** Running LSPI
+On fait tourner LSPI sur ces transitions dans l'espoir d'obtenir une politique qui tient la route (haha).
+
+
+
+#+begin_src c :tangle Highway_lspi.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "RandomSamples.dat"
+#define TRANS_WIDTH 13
+#define ACTION_FILE "actions.mat"
+
+//FIXME : those two are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+unsigned int g_iS = 5;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+
+int main( void ){
+  fprintf(stderr,"Training the expert...");
+  fflush( NULL );
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_expert = lspi( D, omega_0 );
+  g_mOmega = omega_expert;
+  fprintf(stderr,"done\n");
+  gsl_matrix_fprintf( stdout, omega_expert, "%e" );
+  return 0;
+}
+
+#+end_src
+
+#+srcname: LSPI_make
+#+begin_src makefile
+Highway_lspi.exe: Highway_lspi.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o 
+	$(O2EXE) -o Highway_lspi.exe Highway_lspi.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o 
+
+Highway_lspi.o: Highway_lspi.c ../utils.h ../LSPI.h ../greedy.h ../RL_Globals.h phipsi.h
+	$(call c2obj,"Highway_lspi.c")
+
+Highway_lspi.c: Main.org
+	$(call tangle,"Main.org")
+
+omega_lspi.mat: Highway_lspi.exe RandomSamples.dat actions.mat
+	./Highway_lspi.exe > omega_lspi.mat
+
+actions.mat:
+	printf "0\n1\n2\n">actions.mat 
+#+end_src
+   On peut instancier l'application pour qu'elle joue avec la politique gloutonne
+   #+begin_src python :tangle GreedyPlay.py
+from App import *
+
+root = Tk()
+app = App(root)
+app.autopilot = 'greedy'
+app.read_omega( 'omega_lspi.mat' )
+app.max_t=200
+root.mainloop()
+
+   #+end_src
+
+#+srcname: LSPI_make
+#+begin_src makefile
+LAFEM_Exp6: omega_lspi.mat GreedyPlay.py
+	python GreedyPlay.py
+#+end_src
+
+
+*** Parent Dir targets
+       On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
+#+srcname: LSPI_make
+#+begin_src makefile
+../utils.o:
+	make -C .. utils.o
+
+../greedy.o:
+	make -C .. greedy.o
+
+../LSTDQ.o:
+	make -C .. LSTDQ.o
+
+../abbeel2004apprenticeship.o:
+	make -C .. abbeel2004apprenticeship.o
+
+../LSTDmu.o:
+	make -C .. LSTDmu.o
+
+../criteria.o:
+	make -C .. criteria.o
+
+../LSPI.o:
+	make -C .. LSPI.o
+
+../utils.h:
+	make -C .. utils.h
+
+../greedy.h:
+	make -C .. greedy.h
+
+../LSTDQ.h:
+	make -C .. LSTDQ.h
+
+../abbeel2004apprenticeship.h:
+	make -C .. abbeel2004apprenticeship.h
+
+../LSTDmu.h:
+	make -C .. LSTDmu.h
+
+../criteria.h:
+	make -C .. criteria.h
+
+../LSPI.h:
+	make -C .. LSPI.h
+
+../RL_Globals.h:
+	make -C .. RL_Globals.h
+
+../IRL_Globals.h:
+	make -C .. IRL_Globals.h
+
+#+end_src

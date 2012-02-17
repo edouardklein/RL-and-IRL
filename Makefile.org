@@ -71,7 +71,7 @@ org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.em
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-t
+export XARGS_OPT=-tr
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -116,7 +116,17 @@ LAFEM_Exp4:
 LAFEM_Exp42:
 	make -C InvertedPendulum LAFEM_Exp4_quality_EB.pdf
     #+end_src
-
+   - LAFEM_Exp5 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp5:
+	make -C InvertedPendulum LAFEM_Exp5_true_R.pdf LAFEM_Exp5_lafem_R.pdf LAFEM_Exp5_Vexpert.pdf LAFEM_Exp5_Vagent.pdf
+    #+end_src
+   - LAFEM_Exp6 (Highway)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp6:
+	make -C Highway LAFEM_Exp6
+    #+end_src
+     
 ** TaskTransfer
    - TT_Exp1 (GridWorld)
    - TT_Exp2
@@ -166,7 +176,7 @@ test: TT_test0 TT_test1 TT_test2 TT_test3
 Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tangle your makefile so you can tangle while you make.
 
   #+begin_src makefile :tangle Makefile :noweb yes
-SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality
+SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality Highway
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 

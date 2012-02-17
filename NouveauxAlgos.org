@@ -265,6 +265,10 @@ class LAFEM:
      #+begin_src python :tangle LAFEM.py
    Threshold = 'a'
      #+end_src
+   - un nombre d'itérations maximum
+     #+begin_src python :tangle LAFEM.py
+   T = -1
+     #+end_src
    - une description de l'espace d'action $A$, ce membre doit être itérable
      #+begin_src python :tangle LAFEM.py
    A=[]
@@ -310,9 +314,10 @@ class LAFEM:
      - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t {1\over N}\Delta\theta$
        #+begin_src python :tangle LAFEM.py
          DeltaTheta = DeltaTheta / len(self.data) #1/N
-         theta = theta - self.alpha( t ) * DeltaTheta / scipy.linalg.norm(DeltaTheta)
-         sys.stderr.write("Norme du gradient : "+str(scipy.linalg.norm(DeltaTheta))+"\n")
-         if scipy.linalg.norm( DeltaTheta ) < self.Threshold:
+         norm = scipy.linalg.norm(DeltaTheta)
+         theta = theta - self.alpha( t ) * DeltaTheta 
+         sys.stderr.write("Norme du gradient : "+str(norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)+"\n")
+         if norm < self.Threshold or (self.T != -1 and t >= self.T):
              break
        #+end_src
    - retourner $\theta_T$

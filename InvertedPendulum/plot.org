@@ -32,7 +32,7 @@ We set some constants
 #define ACTION_FILE "actions.mat"
 #+end_src
 
-We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
+We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^k$ and $\psi: S\rightarrow \mathbb{R}^p$.
 #+begin_src c :tangle phipsi.h :main no
 gsl_matrix* phi( gsl_matrix* sa );
 gsl_matrix* psi( gsl_matrix* s );

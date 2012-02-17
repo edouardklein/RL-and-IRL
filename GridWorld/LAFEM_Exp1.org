@@ -116,15 +116,15 @@ class LAFEM_Exp1( LAFEM ):
     On définit $\alpha(t) = 0.1,\forall t$ (pifomètre)
       #+begin_src python :tangle LAFEM_Exp1.py
     def alpha( self, t ):
-        return 0.1
+        return 10./(t+1.)
       #+end_src
     On initialise $\omega_0 = [0...0]^T$
       #+begin_src python :tangle LAFEM_Exp1.py
-    omega_0 = zeros( (25, 1) )
+    theta_0 = zeros( (25, 1) )
       #+end_src
     - Fixer $T=20$ (pifomètre)
       #+begin_src python :tangle LAFEM_Exp1.py
-    T = 20
+    Threshold = 0.1
       #+end_src
 *** Affichage de la politique
      On crée une fonction permettant un joli affichage de la politique, pour comparer celle de l'expert et celle de l'agent, ainsi qu'une fonction changeant le format de la politique, nécessaire pour notre implémentation : d'une matrice de probabilités de transition, elle devient un dictionnaire qui à une chaîne représentant un état associe un mot réprésentant une action. 
