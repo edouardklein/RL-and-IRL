@@ -47,7 +47,7 @@ class App:
 	self.step = 5
         self.speeds_list = [20, 40, 80]
 	self.speeds_names = ["Slow", "Med.", "Fast"]
-        self.autopilot = "no"
+        self.autopilot = "yes"
 	self.policy_fname = "policy.txt"
         
         # Control
