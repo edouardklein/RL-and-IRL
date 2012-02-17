@@ -1,0 +1,216 @@
+#+TITLE:Highway driving simulator
+  Le code du petit jeu de conduite a été téléchargé depuis la page d'Umar Syed : http://www.cs.princeton.edu/~usyed/
+
+  Il a été modifié pour que l'espace d'état corresponde à ce qui est écrit dans ce document et que les transitions s'affichent dans la sortie standard sous la forme $s,a,s'$.
+  
+  Le code de l'application peut-être trouvé ci dessous :
+  #+begin_src python :tangle App.py
+from Tkinter import *
+from numpy import *
+from phi import *
+import random
+
+
+#Code copied from http://kogs-www.informatik.uni-hamburg.de/~meine/python_tricks
+def flatten(x):
+    """flatten(sequence) -> list
+
+    Returns a single, flat list which contains all elements retrieved
+    from the sequence and all recursively contained sub-sequences
+    (iterables).
+
+    Examples:
+    >>> [1, 2, [3,4], (5,6)]
+    [1, 2, [3, 4], (5, 6)]
+    >>> flatten([[[1,2,3], (42,None)], [4,5], [6], 7, MyVector(8,9,10)])
+    [1, 2, 3, 42, None, 4, 5, 6, 7, 8, 9, 10]"""
+
+    result = []
+    for el in x:
+        #if isinstance(el, (list, tuple)):
+        if hasattr(el, "__iter__") and not isinstance(el, basestring):
+            result.extend(flatten(el))
+        else:
+            result.append(el)
+    return result
+
+class App:
+    def __init__(self, master):
+
+        frame = Frame(master)
+        frame.pack()
+
+        # Parameters
+        self.h = 160 + 20
+        self.w = 300
+        self.interval = 100
+	self.step = 10
+        self.speeds_list = [20, 40, 80]
+	self.speeds_names = ["Slow", "Med.", "Fast"]
+        self.autopilot = "random" 
+	self.policy_fname = "policy.txt"
+        
+        # Control
+        self.speed = 0
+        self.action = "none"
+        self.omega = array([])
+
+        # Variables
+        self.collisions = 0
+        self.offroads = 0
+
+        # Draw field of play
+        h, w = self.h, self.w
+        master.title("Car Game")
+        master.geometry(str(w) + "x" + str(h) + "+100+100")        
+        self.c = Canvas(frame, width=w, height=h, bg="#646464")
+        self.left_grass = self.c.create_rectangle(0, 0, 2*w/5, h, fill="green")
+        self.right_grass = self.c.create_rectangle(3*w/5, 0, w, h, fill="green")
+
+        # Draw info area
+        self.info_str = StringVar()
+        self.update_info()
+        info_label = Label(frame, textvariable=self.info_str, font=("Helvetica", "12"))
+        self.c.create_window(w-5, 5, anchor=NE, window=info_label)
+
+        # Draw my car
+        self.my_car = self.c.create_rectangle((w/2)-10, h - 50, (w/2)+10, h - 10, fill="blue")
+
+        # Bind event listeners
+        self.c.bind("<KeyPress-Up>", self.on_up)
+        self.c.bind("<KeyPress-Down>", self.on_down)
+        self.c.bind("<KeyPress-Left>", self.on_left)
+        self.c.bind("<KeyPress-Right>", self.on_right)
+
+        self.c.focus_force()
+        self.c.pack()
+
+        # Stopping the game
+        self.max_t = 90
+        self.t = 0
+
+	# Call the main function
+	self.c.after(0, self.update_cars)
+
+    # Event listeners
+    def on_up(self, event):
+        self.action = "up"
+        
+    def on_down(self, event):
+        self.action = "down"
+        
+    def on_left(self, event):
+        self.action = "left"
+        
+    def on_right(self, event):
+        self.action = "right"
+
+    # This function does most of the work  
+    def update_cars(self):
+        h, w = self.h, self.w
+        speed = self.speeds_list[self.speed]
+        x0 = self.c.coords(self.my_car)[0]        
+
+        # Determine the current state
+        state = []
+        state.append(int(round(self.c.coords(self.my_car)[2])))
+        state = state + [[int(round(x)) for x in self.c.coords(car)[2:4]] for car in self.c.find_withtag("other_cars")]
+        state = state + [self.collisions, self.offroads]
+        for x in flatten( state ):
+            print( "%lf"% x),
+        print #We print it twice, once for s', once for s
+        for x in flatten( state ):
+            print( "%lf"% x),
+        
+
+        # Have auto-pilot choose action
+        if (self.autopilot == "random" ):
+            self.action = random.choice(['left','right','none'])
+        elif (self.autopilot == "greedy" and len(flatten(state)) == 5):
+            self.action = self.greedy( array( [x for x in flatten( state )] ) )
+
+        # Move the other cars
+        self.c.move("other_cars", 0, speed)
+
+        # Handle the current action
+        if (self.action == "left"):
+            print ("%d"%0),
+            if (x0 > (2*self.w/5 - 20)):
+                self.c.move(self.my_car, -self.step, 0)
+        elif (self.action == "right"):
+            print ("%d"%2),
+            if (x0 < 3*self.w/5):        
+                self.c.move(self.my_car, +self.step, 0)
+        elif (self.action == "up"):
+            if (self.speed < 2):
+                self.speed = self.speed + 1
+        elif (self.action == "down"):
+            if (self.speed > 0):
+                self.speed = self.speed - 1
+        else:
+            print("%d"%1),
+
+        self.action = "none"
+        self.update_info()
+        
+        # Delete any cars that have moved below my car 
+        [self.c.delete(car) for car in self.c.find_withtag("other_cars") if self.c.coords(car)[1] >= self.h - 10]
+
+        # Generate a new car if not enough other cars 
+        if (len(self.c.find_withtag("other_cars")) == 0):
+            r = random.randrange(2*w/5, 3*w/5, 20)
+            self.c.create_rectangle(r, -30, r+20, 10, fill="red", tags=("other_cars"))
+
+        # Detect collisions and off-roads
+        (w, x, y, z) = self.c.coords(self.my_car)
+        w, x, y, z = w+1, x+1, y-1, z-1
+        colliders = set(self.c.find_overlapping(w, x, y, z))
+        if ((self.left_grass in colliders) | (self.right_grass in colliders)):
+            self.offroads = self.offroads + 1
+        colliders = colliders - set([self.my_car, self.left_grass, self.right_grass])
+        if (len(colliders) > 0):
+            self.collisions = self.collisions + 1
+        self.update_info()
+
+        # Reset the timer
+        if self.t < self.max_t:
+            self.t+=1
+            self.c.after(self.interval, self.update_cars)
+        else:
+            exit( 0 )
+
+    # Update the info panel
+    def update_info(self):
+        speed = self.speeds_list[self.speed]
+        self.info_str.set("Collisions = " + str(self.collisions) + "\nOff-roads = " + str(self.offroads) + "\n\nSpeed = " + str(self.speeds_names[self.speed]))
+
+    def read_omega( self, fname ):
+        self.omega = genfromtxt( fname )
+
+    def greedy( self, state ):
+        Actions = [0.,1.,2.]
+        q_max = dot( self.omega, phi(state, 0. ) )[0]
+        action = 0
+        for a in Actions:
+            q = dot( self.omega, phi(state, a ) )[0]
+            if q > q_max:
+                action = a
+                q_max = q
+        answer = 'bug'
+        if( action == 0.):
+            answer = 'left'
+        elif( action == 1. ):
+            answer = 'none'
+        elif( action == 2.):
+            answer = 'right'
+        return answer
+        
+
+  #+end_src
+
+  #+srcname: App_make
+#+begin_src makefile
+App.py: Main.org
+	$(call tangle,"Main.org")
+
+#+end_src
