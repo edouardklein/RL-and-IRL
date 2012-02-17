@@ -4,6 +4,7 @@
 ** Misc.
 Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
   #+begin_src makefile :tangle Makefile :noweb yes
+<<MWAL_make>>
 <<App_make>>
 <<RandomSamples_make>>
 <<LSPI_make>>

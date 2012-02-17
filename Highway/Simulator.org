@@ -5,6 +5,40 @@
   
   Le code de l'application peut-être trouvé ci dessous :
   #+begin_src python :tangle App.py
+# Car driving simulator
+# 
+# The main parameter controlling this simulator is self.autopilot.
+#
+# If self.autopilot = "no", then the user can drive the blue car with the arrow keys:
+# 	Up = Speed up
+# 	Down = Slow down
+# 	Left = Move left
+# 	Right = Move right
+#
+# If self.autopilot = "yes", then the blue car is driven by the policy specified in self.policy_fname.
+#
+# Each line of self.policy_fname specifies the action distribution for one state.
+# Each line is a string that has the following form:
+# 	st;p1,p2,p3
+# where st is the state, and pi is the probability of taking action i in state st.
+#
+# The state of the simulator is a string describing the positions of all the cars, and the speed of the blue car.
+# Each state has the following form:
+# 	[speed, blue_car_x, [red_car_x, red_car_y]]
+# Where:
+# 	speed = Speed of the blue car.
+# 	blue_car_x = X-axis displacement of the blue car.
+# 	red_car_x = X-axis displacement of the red car.
+# 	red_car_y = Y-axis displacement of the red car.
+# The initial state is "[1, 160]". It is the only state in which the red car does not appear.
+#
+# In autopilot mode, only three actions are allowed at any given time:
+# 	In the initial state, the three actions correspond to selecting one of the three possible speeds.
+# 	In all non-initial states, the three actions correspond to staying put, moving left, and moving right.
+# So a policy can use just a single speed during a simulation. This simplification is convenient, and does not exclude any optimal policies.
+#
+
+
 from Tkinter import *
 from numpy import *
 from phi import *
@@ -44,15 +78,18 @@ class App:
         self.h = 160 + 20
         self.w = 300
         self.interval = 100
-	self.step = 10
+	self.step = 5
+
         self.speeds_list = [20, 40, 80]
 	self.speeds_names = ["Slow", "Med.", "Fast"]
         self.autopilot = "random" 
-	self.policy_fname = "policy.txt"
         
         # Control
-        self.speed = 0
+        self.speed = 1
+
         self.action = "none"
+        self.policy = dict([])
+
         self.omega = array([])
 
         # Variables
@@ -115,27 +152,21 @@ class App:
 
         # Determine the current state
         state = []
+        state.append(self.speed)
+
         state.append(int(round(self.c.coords(self.my_car)[2])))
         state = state + [[int(round(x)) for x in self.c.coords(car)[2:4]] for car in self.c.find_withtag("other_cars")]
-        if self.old_collisions == self.collisions:
-            state = state + [0]
-        else:
-            state = state + [1]
-        self.old_collisions = self.collisions
-        if self.old_offroads == self.offroads:
-            state = state + [0]
-        else:
-            state = state + [1]
-        self.old_offroads = self.offroads
-        for x in flatten( state ):
-            print( "%lf"% x),
-        print #We print it twice, once for s', once for s
-        for x in flatten( state ):
-            print( "%lf"% x),
-        
+        print str(state)
+
 
         # Have auto-pilot choose action
-        if (self.autopilot == "random" ):
+        if (self.autopilot == "original"):
+            if (str(state) in self.policy):
+                self.action = self.select_action(state)
+            else:
+                self.action = "none"            
+            print str(state), self.action
+        elif (self.autopilot == "random" ):
             self.action = random.choice(['left','right','none'])
         elif (self.autopilot == "greedy" and len(flatten(state)) == 5):
             self.action = self.greedy( array( [x for x in flatten( state )] ) )
@@ -145,11 +176,9 @@ class App:
 
         # Handle the current action
         if (self.action == "left"):
-            print ("%d"%0),
             if (x0 > (2*self.w/5 - 20)):
                 self.c.move(self.my_car, -self.step, 0)
         elif (self.action == "right"):
-            print ("%d"%2),
             if (x0 < 3*self.w/5):        
                 self.c.move(self.my_car, +self.step, 0)
         elif (self.action == "up"):
@@ -158,8 +187,6 @@ class App:
         elif (self.action == "down"):
             if (self.speed > 0):
                 self.speed = self.speed - 1
-        else:
-            print("%d"%1),
 
         self.action = "none"
         self.update_info()
@@ -195,6 +222,15 @@ class App:
         speed = self.speeds_list[self.speed]
         self.info_str.set("Collisions = " + str(self.collisions) + "\nOff-roads = " + str(self.offroads) + "\n\nSpeed = " + str(self.speeds_names[self.speed]))
 
+    # Read in the policy from a text file
+
+    def read_policy(self, fname):
+        f = open(fname, 'r')
+        for line in f:
+            line = line.strip()
+            [state, probs_string] = line.split(';')
+            self.policy[state] = probs_string
+
     def read_omega( self, fname ):
         self.omega = genfromtxt( fname )
 
@@ -216,6 +252,21 @@ class App:
             answer = 'right'
         return answer
         
+    # Given a state, draw an action from the distribution specified by the policy
+    # Note that the initial state "[1, 160]" is treated differently than the others
+    def select_action(self, state):
+        probs = [float(s) for s in self.policy[str(state)].split(',')]
+	if (str(state) == "[1, 160]"):
+		action_list = ["none", "down", "up"]
+	else:
+        	action_list = ["none", "left", "right"]
+        cum_probs = [reduce(lambda a, b: a+b, probs[0:i]) for i in range(1, 4)]
+        r = random.random()
+        indices = filter(lambda i: r < cum_probs[i], range(0, 3))
+        return action_list[indices[0]]
+
+
+
 
   #+end_src
 
