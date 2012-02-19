@@ -4,7 +4,10 @@
 ** Misc.
 Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
   #+begin_src makefile :tangle Makefile :noweb yes
+<<phipsi_make>>
 <<MWAL_make>>
+<<SCIRL_make>>
+<<Comparison_make>>
 <<App_make>>
 <<RandomSamples_make>>
 <<LSPI_make>>
@@ -26,7 +29,9 @@ O2EXE=gcc $(LFLAGS)
 
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-clean: 
+<<SCIRL_clean_make>>
+
+clean: SCIRL_clean
 
     #+end_src
 

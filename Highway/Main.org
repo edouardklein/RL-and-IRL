@@ -126,40 +126,59 @@ gsl_matrix* psi( gsl_matrix* s );
 #include <RL_Globals.h>
 #include <math.h>
 
-unsigned int g_iK = (27); /* dim(\phi) */
-unsigned int g_iP = (9); /* dim(\psi) */
+unsigned int g_iK = (9); /* dim(\phi) */
+unsigned int g_iP = (3); /* dim(\psi) */
 
 gsl_matrix* psi( gsl_matrix* s ){
   gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
-  double blue_x = gsl_matrix_get( s, 0, 0 );
-  double red_x = gsl_matrix_get( s, 0, 1 );
-  double red_y = gsl_matrix_get( s, 0, 2 );
-  double collisions = gsl_matrix_get( s, 0, 3 );
-  double offroads = gsl_matrix_get( s, 0, 4 );
-  unsigned int index = 0;
-  for( double x = 120.; x <201.; x+=20. ){
-    gsl_matrix_set( answer, index, 0, 
-		    exp( - pow(blue_x - x, 2) / (2.*20.*20.) ) );
-    index++;
+  double speed = gsl_matrix_get( s, 0, 0 );
+  double blue_x = gsl_matrix_get( s, 0, 1 );
+  double red_x = gsl_matrix_get( s, 0, 2 );
+  double red_y = gsl_matrix_get( s, 0, 3 );
+  
+  if( red_x == 0. && red_y == 0.){
+    gsl_matrix_set( answer, 0, 0, 0.75 );
+    gsl_matrix_set( answer, 1, 0, 0.5 );
+    gsl_matrix_set( answer, 2, 0, 0.5 );
+    return answer;
   }
-  gsl_matrix_set( answer, index, 0, red_y - 160 ); //Position relative de notre voiture et de l'autre, verticalement
-  index++;
-  if( -20. < red_x -blue_x || red_x - blue_x < 20. ){ //Position horizontale relative des deux voitures
-    gsl_matrix_set( answer, index, 0, 1);
+
+  gsl_matrix_set( answer, 0, 0, (speed/2. + 1.)/2. );
+
+  double blue_x1 = blue_x - 20. + 1.;
+  double blue_x2 = blue_x - 1.;
+  double blue_y1 = ((160+20) - 10.) - 40. +1.;
+  double blue_y2 = (160.+20.) - 10. - 1.;
+
+  double red_x1 = red_x - 20.;
+  double red_x2 = red_x;
+  double red_y1 = red_y - 40.;
+  double red_y2 = red_y;
+
+  double eastmost_x1 = ( blue_x1 > red_x1 ? blue_x1 : red_x1 );
+  double westmost_x2 = ( blue_x2 < red_x2 ? blue_x2 :  red_x2 );
+  double southmost_y1 = ( blue_y1 > red_y1 ? blue_y1 : red_y1 );
+  double northmost_y2 = ( blue_y2 < red_y2 ?  blue_y2 : red_y2 );
+
+  if( eastmost_x1 > westmost_x2 || southmost_y1 > northmost_y2){
+    gsl_matrix_set( answer, 1, 0, 0.5 );
   }else{
-    gsl_matrix_set( answer, index, 0, -1);
+    gsl_matrix_set( answer, 1, 0, 0 );
   }
-  index++;
-  gsl_matrix_set( answer, index, 0, collisions );
-  index++;
-  gsl_matrix_set( answer, index, 0, offroads );
+  
+  if(blue_x < 120.+20. || blue_x > 200.-20.){
+    gsl_matrix_set( answer, 2, 0, 0 );
+  }else{
+    gsl_matrix_set( answer, 2, 0, 0.5 );
+  }
+
   return answer;
 }
 
 gsl_matrix* phi( gsl_matrix* sa ){
   gsl_matrix* answer = gsl_matrix_calloc( g_iK, 1 );
-  gsl_matrix_view s = gsl_matrix_submatrix( sa, 0,0, 1, 5 );
-  unsigned int action = (unsigned int)gsl_matrix_get( sa, 0, 5 );
+  gsl_matrix_view s = gsl_matrix_submatrix( sa, 0,0, 1, 4 );
+  unsigned int action = (unsigned int)gsl_matrix_get( sa, 0, 4 );
   unsigned int index = action*g_iP;
   gsl_matrix_view v_psi_s = gsl_matrix_submatrix( answer, index, 0, g_iP, 1 );
   gsl_matrix* psi_s =  psi( &(s.matrix) );

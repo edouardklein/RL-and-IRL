@@ -124,7 +124,12 @@ LAFEM_Exp5:
    - LAFEM_Exp6 (Highway)
     #+begin_src makefile :tangle Makefile
 LAFEM_Exp6:
-	make -C Highway LAFEM_Exp6
+	make -C Highway FastResults.mat SafeResults.mat
+    #+end_src
+   - LAFEM_Exp6_EB (Highway)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp6_EB:
+	make -C Highway FastResults_EB.pdf SafeResults_EB.pdf
     #+end_src
      
 ** TaskTransfer

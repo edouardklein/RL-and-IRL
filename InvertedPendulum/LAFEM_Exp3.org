@@ -207,6 +207,8 @@ class LAFEM_Exp3( LAFEM ):
 #+end_src
 
 *** Running LAFEM
+    FIXME: s/omega/theta/avec discernement
+
  #+begin_src python :tangle LAFEM_Exp3.py
 lafem = LAFEM_Exp3()
 omega_lafem = lafem.run()
