@@ -36,12 +36,13 @@ savetxt( sys.argv[2], new_tr, "%f", ' ' )
 sa2saspsie.py: SCIRL.org
 	$(call tangle, "SCIRL.org")
 
-PlayFast_saspsie.mat : PlayFast_stripped.dat sa2saspsie.py phipsi.py
-	python sa2saspsie.py PlayFast_stripped.dat PlayFast_saspsie.mat
+PlayFast_saspsie_X.mat : PlayFast_X.dat sa2saspsie.py phipsi.py
+	for i in $(N_VALUES); do python sa2saspsie.py PlayFast_$$i.dat PlayFast_saspsie_$$i.mat ; done
+	touch PlayFast_saspsie_X.mat
 
-PlaySafe_saspsie.mat : PlaySafe_stripped.dat sa2saspsie.py phipsi.py
-	python sa2saspsie.py PlaySafe_stripped.dat PlaySafe_saspsie.mat
-
+PlaySafe_saspsie_X.mat : PlaySafe_X.dat sa2saspsie.py phipsi.py
+	for i in $(N_VALUES); do python sa2saspsie.py PlaySafe_$$i.dat PlaySafe_saspsie_$$i.mat ; done
+	touch PlaySafe_saspsie_X.mat
 #+end_src
 
 Now, using the C function for $\phi$ defined in [[file:Main.org]], it is possible to run the LSTD$\mu$ algorithm.
@@ -120,11 +121,13 @@ SCIRL_LSTDmu.o: SCIRL_LSTDmu.c ../LSTDmu.h ../utils.h ../RL_Globals.h ../IRL_Glo
 SCIRL_LSTDmu.c: SCIRL.org
 	$(call tangle,"SCIRL.org")
 
-omega_mu_E_Fast.mat: SCIRL_LSTDmu.exe PlayFast_saspsie.mat
-	./SCIRL_LSTDmu.exe PlayFast_saspsie.mat > omega_mu_E_Fast.mat
+omega_mu_E_Fast_X.mat: SCIRL_LSTDmu.exe PlayFast_saspsie_X.mat
+	for i in $(N_VALUES); do ./SCIRL_LSTDmu.exe PlayFast_saspsie_$$i.mat > omega_mu_E_Fast_$$i.mat; done
+	touch omega_mu_E_Fast_X.mat
 
-omega_mu_E_Safe.mat: SCIRL_LSTDmu.exe PlaySafe_saspsie.mat
-	./SCIRL_LSTDmu.exe PlaySafe_saspsie.mat > omega_mu_E_Safe.mat
+omega_mu_E_Safe_X.mat: SCIRL_LSTDmu.exe PlaySafe_saspsie_X.mat
+	for i in $(N_VALUES); do ./SCIRL_LSTDmu.exe PlaySafe_saspsie_$$i.mat > omega_mu_E_Safe_$$i.mat; done
+	touch omega_mu_E_Safe_X.mat
 
 #+end_src
 
@@ -210,11 +213,13 @@ print a2str(theta_lafem)
 SCIRL_Exp6.py: SCIRL.org
 	$(call tangle,"SCIRL.org")
 
-theta_lafem_Fast.mat: SCIRL_Exp6.py ../a2str.py ../LAFEM.py omega_mu_E_Fast.mat phipsi.py PlayFast_stripped.dat
-	python SCIRL_Exp6.py PlayFast_stripped.dat omega_mu_E_Fast.mat > theta_lafem_Fast.mat
+theta_lafem_Fast_X.mat: SCIRL_Exp6.py ../a2str.py ../LAFEM.py omega_mu_E_Fast_X.mat phipsi.py PlayFast_X.dat
+	for i in $(N_VALUES); do python SCIRL_Exp6.py PlayFast_$$i.dat omega_mu_E_Fast_$$i.mat > theta_lafem_Fast_$$i.mat; done
+	touch theta_lafem_Fast_X.mat
 
-theta_lafem_Safe.mat: SCIRL_Exp6.py ../a2str.py ../LAFEM.py omega_mu_E_Safe.mat phipsi.py PlaySafe_stripped.dat
-	python SCIRL_Exp6.py PlaySafe_stripped.dat omega_mu_E_Safe.mat > theta_lafem_Safe.mat
+theta_lafem_Safe_X.mat: SCIRL_Exp6.py ../a2str.py ../LAFEM.py omega_mu_E_Safe_X.mat phipsi.py PlaySafe_X.dat
+	for i in $(N_VALUES); do python SCIRL_Exp6.py PlaySafe_$$i.dat omega_mu_E_Safe_$$i.mat > theta_lafem_Safe_$$i.mat; done
+	touch theta_lafem_Safe_X.mat
 
 #+end_src
 
@@ -259,27 +264,18 @@ al_code/make_THETA.m: al_code/pre.pl
 
 FIXME:normaliser les .dat ou les .mat. Expliquer les notations mathématiques comme prgrammationatiques dans un fichier à part (Notations.org?)
 
-It can be invoked by :
+This code is invoked in the following makefile rules which also use a perl script from the =al_code= directory that transform the policy file so that it can be used by the simulator.
 #+srcname: SCIRL_make
 #+begin_src makefile
-al_code/scirl_fast_policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m theta_lafem_Fast.mat
-	pushd al_code; octave optimal_policy.m ../theta_lafem_Fast.mat ; mv policy.dat scirl_fast_policy.dat ; popd
+al_code/scirl_fast_policy_X.txt: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m theta_lafem_Fast_X.mat
+	for i in $(N_VALUES); do pushd al_code; octave optimal_policy.m ../theta_lafem_Fast_$$i.mat ; perl post.pl ; mv policy.txt scirl_fast_policy_$$i.txt ; popd; done
+	touch al_code/scirl_fast_policy_X.txt
 
-al_code/scirl_safe_policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m theta_lafem_Safe.mat
-	pushd al_code; octave optimal_policy.m ../theta_lafem_Safe.mat; mv policy.dat scirl_safe_policy.dat ; popd
-
+al_code/scirl_safe_policy_X.txt: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m theta_lafem_Safe_X.mat
+	for i in $(N_VALUES); do pushd al_code; octave optimal_policy.m ../theta_lafem_Safe_$$i.mat ; perl post.pl ; mv policy.txt scirl_safe_policy_$$i.txt ; popd; done
+	touch al_code/scirl_safe_policy_X.txt
 #+end_src
 
-Now, the simulator can not directly use this file and it should be transformed using a perl script from the =al_code= directory.
-
-#+srcname: SCIRL_make
-#+begin_src makefile
-al_code/scirl_fast_policy.txt: al_code/scirl_fast_policy.dat
-	pushd al_code; mv scirl_fast_policy.dat policy.dat; perl post.pl ;mv policy.txt scirl_fast_policy.txt; mv policy.dat scirl_fast_policy.dat ; popd
-al_code/scirl_safe_policy.txt: al_code/scirl_safe_policy.dat
-	pushd al_code; mv scirl_safe_policy.dat policy.dat; perl post.pl ;mv policy.txt scirl_safe_policy.txt; mv policy.dat scirl_safe_policy.dat ; popd
-
-#+end_src
 
 Once the transformation is done, one can play with the policy in the simulator. We use our modified version which can stop after a certain number of transitions.
 
@@ -287,11 +283,13 @@ Transitions are stored for later use.
 
 #+srcname: SCIRL_make
 #+begin_src makefile
-PlayFast_scirl.dat : al_code/scirl_fast_policy.txt PolicyPlay.py App.py
-	python PolicyPlay.py al_code/scirl_fast_policy.txt > PlayFast_scirl.dat
+PlayFast_scirl_X.dat : al_code/scirl_fast_policy_X.txt PolicyPlay.py App.py
+	for i in $(N_VALUES); do python PolicyPlay.py al_code/scirl_fast_policy_$$i.txt > PlayFast_scirl_$$i.dat; done
+	touch PlayFast_scirl_X.dat
 
-PlaySafe_scirl.dat: al_code/scirl_safe_policy.txt PolicyPlay.py App.py
-	python PolicyPlay.py al_code/scirl_safe_policy.txt > PlaySafe_scirl.dat
+PlaySafe_scirl_X.dat : al_code/scirl_safe_policy_X.txt PolicyPlay.py App.py
+	for i in $(N_VALUES); do python PolicyPlay.py al_code/scirl_safe_policy_$$i.txt > PlaySafe_scirl_$$i.dat; done
+	touch PlaySafe_scirl_X.dat
 
 #+end_src
 
@@ -300,13 +298,17 @@ PlaySafe_scirl.dat: al_code/scirl_safe_policy.txt PolicyPlay.py App.py
 
   #+srcname: SCIRL_make
 #+begin_src makefile
-PlayFast_scirl_mu.mat : PlayFast_scirl.dat tr2mu.py
-	cat PlayFast_scirl.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_scirl_stripped.dat
-	python tr2mu.py PlayFast_scirl_stripped.dat | tr -d '[' | tr -d ']' > PlayFast_scirl_mu.mat
+PlayFast_scirl_mu_X.mat : PlayFast_scirl_X.dat tr2mu.py
+	for i in $(N_VALUES); do \
+	cat PlayFast_scirl_$$i.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_scirl_stripped_$$i.dat;\
+	python tr2mu.py PlayFast_scirl_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlayFast_scirl_mu_$$i.mat; done
+	touch PlayFast_scirl_mu_X.mat
 
-PlaySafe_scirl_mu.mat : PlaySafe_scirl.dat tr2mu.py
-	cat PlaySafe_scirl.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_scirl_stripped.dat
-	python tr2mu.py PlaySafe_scirl_stripped.dat | tr -d '[' | tr -d ']' > PlaySafe_scirl_mu.mat
+PlaySafe_scirl_mu_X.mat : PlaySafe_scirl_X.dat tr2mu.py
+	for i in $(N_VALUES); do \
+	cat PlaySafe_scirl_$$i.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_scirl_stripped_$$i.dat;\
+	python tr2mu.py PlaySafe_scirl_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlaySafe_scirl_mu_$$i.mat; done
+	touch PlaySafe_scirl_mu_X.mat
 
 #+end_src
 

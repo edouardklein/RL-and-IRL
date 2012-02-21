@@ -6,18 +6,20 @@ La valeur qui nous importe est celle de la fonction de valeur dans l'état initi
 
 #+begin_src python :tangle ComparativeResults.py
 from numpy import*
+import sys
+
 
 Fast_R = genfromtxt( "al_code/fast_reward.mat" )
 Safe_R = genfromtxt( "al_code/safe_reward.mat" )
 
-Fast_mu = genfromtxt( "PlayFast_mu.mat" )
-Safe_mu = genfromtxt( "PlaySafe_mu.mat" )
+Fast_mu = genfromtxt( "PlayFast_mu_"+sys.argv[1]+".mat" )
+Safe_mu = genfromtxt( "PlaySafe_mu_"+sys.argv[1]+".mat" )
 
-Fast_mu_mwal = genfromtxt( "PlayFast_mwal_mu.mat" )
-Safe_mu_mwal = genfromtxt( "PlaySafe_mwal_mu.mat" )
+Fast_mu_mwal = genfromtxt( "PlayFast_mwal_mu_"+sys.argv[1]+".mat" )
+Safe_mu_mwal = genfromtxt( "PlaySafe_mwal_mu_"+sys.argv[1]+".mat" )
 
-Fast_mu_scirl = genfromtxt( "PlayFast_scirl_mu.mat" )
-Safe_mu_scirl = genfromtxt( "PlaySafe_scirl_mu.mat" )
+Fast_mu_scirl = genfromtxt( "PlayFast_scirl_mu_"+sys.argv[1]+".mat" )
+Safe_mu_scirl = genfromtxt( "PlaySafe_scirl_mu_"+sys.argv[1]+".mat" )
 
 Fast_true_V = dot(Fast_R, Fast_mu)
 Fast_mwal_V = dot(Fast_R, Fast_mu_mwal)
@@ -39,14 +41,27 @@ print "True V(s_0) : " + str( Safe_true_V )
 print "MWAL V(s_0) : " + str( Safe_mwal_V )
 print "SCIRL V(s_0) : " + str( Safe_scirl_V )
 
-f_Fast = open( "FastResults.mat", "w" )
-f_Safe = open( "SafeResults.mat", "w" )
+f_Fast_true = open( "FastResults_true.mat", "w" ) #The last to be written i.e. the one with
+f_Safe_true = open( "SafeResults_true.mat", "w" ) #the most samples will overwrite the others (see the makefile rules)
+f_Fast_true.write("%e\n"% Fast_true_V ) #No abscissa we want a flat line
+f_Safe_true.write("%e\n"% Safe_true_V )
+f_Fast_true.close()
+f_Safe_true.close()
 
-f_Fast.write("1 %e\n2 %e\n3 %e\n"% (Fast_true_V, Fast_mwal_V, Fast_scirl_V) )
-f_Safe.write("1 %e\n2 %e\n3 %e\n"% (Safe_true_V, Safe_mwal_V, Safe_scirl_V) )
+f_Fast_scirl = open( "FastResults_scirl.mat", "a" )
+f_Fast_mwal = open( "FastResults_mwal.mat", "a" )
+f_Safe_scirl = open( "SafeResults_scirl.mat", "a" )
+f_Safe_mwal = open( "SafeResults_mwal.mat", "a" )
 
-f_Fast.close()
-f_Safe.close()
+f_Fast_scirl.write(sys.argv[1]+" %e\n"% Fast_scirl_V )
+f_Fast_mwal.write(sys.argv[1]+" %e\n"% Fast_mwal_V )
+f_Safe_scirl.write(sys.argv[1]+" %e\n"% Safe_scirl_V )
+f_Safe_mwal.write(sys.argv[1]+" %e\n"% Safe_mwal_V )
+
+f_Fast_scirl.close()
+f_Fast_mwal.close()
+f_Safe_scirl.close()
+f_Safe_mwal.close()
 #+end_src
 
 #+srcname: Comparison_make
@@ -54,11 +69,26 @@ f_Safe.close()
 ComparativeResults.py: Comparison.org
 	$(call tangle,"Comparison.org")
 
-FastResults.mat: ComparativeResults.py PlayFast_scirl_mu.mat PlaySafe_scirl_mu.mat PlayFast_mwal_mu.mat PlaySafe_mwal_mu.mat PlayFast_mu.mat PlaySafe_mu.mat al_code/fast_reward.mat al_code/safe_reward.mat
-	python ComparativeResults.py
+FastResults_scirl.mat: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
+	touch FastResults_scirl.mat
+	rm FastResults_scirl.mat
+	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
 
-SafeResults.mat: ComparativeResults.py PlayFast_scirl_mu.mat PlaySafe_scirl_mu.mat PlayFast_mwal_mu.mat PlaySafe_mwal_mu.mat PlayFast_mu.mat PlaySafe_mu.mat al_code/fast_reward.mat al_code/safe_reward.mat
-	python ComparativeResults.py
+FastResults_mwal.mat: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
+	touch FastResults_mwal.mat
+	rm FastResults_mwal.mat
+	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
+
+SafeResults_scirl.mat: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
+	touch SafeResults_scirl.mat
+	rm SafeResults_scirl.mat
+	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
+
+SafeResults_mwal.mat: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
+	touch SafeResults_mwal.mat
+	rm SafeResults_mwal.mat
+	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
+
 
 #+end_src
 
@@ -69,30 +99,37 @@ Nous allons calculer plusieurs fois l'estimation de Monte-Carlo de la valeur afi
 The first thing to do is to define a clean rule to remove the file to plot and all the other files that have been used to create it, so that making it again will be a statistically independant experiment.
   #+srcname: Comparison_make
   #+begin_src makefile
-clean_FastResults.mat: 
-	find . -maxdepth 1 -iname "PlayFast_SCIRL.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_SCIRL_stripped.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_scirl_mu.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_mwal.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_mwal_stripped.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_mwal_mu.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "FastResults.mat" | xargs $(XARGS_OPT) rm
+clean_EB:
+	find . -maxdepth 1 -iname "PlayFast_SCIRL_*.dat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlayFast_SCIRL_stripped_*.dat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlayFast_scirl_mu_*.mat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlayFast_mwal_*.dat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlayFast_mwal_stripped_*.dat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlayFast_mwal_mu_*.mat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "FastResults_*.mat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_SCIRL_*.dat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_SCIRL_stripped_*.dat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_scirl_mu_*.mat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_mwal_*.dat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_mwal_stripped_*.dat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_mwal_mu_*.mat" | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SafeResults_*.mat" | xargs $(XARGS_OPT) rm
+
+clean_FastResults_scirl.mat: clean_EB
+clean_FastResults_mwal.mat: clean_EB
+clean_SafeResults_scirl.mat: clean_EB
+clean_SafeResults_mwal.mat: clean_EB
 
 clean_SafeResults.mat: 
-	find . -maxdepth 1 -iname "PlaySafe_SCIRL.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_SCIRL_stripped.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_scirl_mu.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_mwal.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_mwal_stripped.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_mwal_mu.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SafeResults.mat" | xargs $(XARGS_OPT) rm
 
   #+end_src
 
   #+begin_src python :tangle Comparison_conf.py
-g_nlInput = ['FastResults.mat', ['-d" " -f\'1 2\''], [],
-             'SafeResults.mat', ['-d" " -f\'1 2\''], []]
-g_iN = 10
+g_nlInput = ['FastResults_scirl.mat', ['-d" " -f\'1 2\''], [],
+             'FastResults_mwal.mat', ['-d" " -f\'1 2\''], [],
+             'SafeResults_scirl.mat', ['-d" " -f\'1 2\''], [],
+             'SafeResults_mwal.mat', ['-d" " -f\'1 2\''], []]
+g_iN = 2
 
   #+end_src
 
@@ -101,59 +138,36 @@ g_iN = 10
 Comparison_conf.py: Comparison.org 
 	$(call tangle,"Comparison.org")
 
-Comparison_ErrorBars: Comparison_conf.py FastResults.mat
+Comparison_ErrorBars: Comparison_conf.py FastResults_scirl.mat
 	mv Comparison_conf.py conf.py
 	../../Utils/ErrorBars.py
 	rm conf.py
 
   #+end_src
 
-Les fichiers ainsi obtenu, =FastResults.mat-0= et =SafeResults.mat-0= permettent de tracer un joli histogramme.
-
-  #+begin_src text :tangle Legend.txt
- True
- MWAL
- SCIRL
-  #+end_src
-
-  #+srcname: Comparison_make
-  #+begin_src makefile
-Legend.txt: Comparison.org 
-	$(call tangle,"Comparison.org")
-	cat Legend.txt > toto
-	tail -n 3 toto > Legend.txt #Je sais pas pourquoi il met une lign vide au début di fichier
-
-#+end_src
-
-  #+srcname: Comparison_make
-  #+begin_src makefile
-FastResults_EB.mat: Comparison_ErrorBars Legend.txt
-	paste FastResults.mat-0 Legend.txt > FastResults_EB.mat
-
-SafeResults_EB.mat: Comparison_ErrorBars Legend.txt
-	paste SafeResults.mat-0 Legend.txt > SafeResults_EB.mat
-
-  #+end_src
+Les fichiers ainsi obtenus, =[Fast|Safe]Results_[scirl|mwal}.mat-0= permettent de tracer deux jolies courbes comparatives.
 
 
   #+begin_src gnuplot :tangle FastResults_EB.gp
 set output "FastResults_EB.ps"
 set term postscript enhanced color
-unset xtics
-set boxwidth 0.5
-set xrange [0.5:3.5]
+set xrange [0:330]
 set yrange [0.02:0.04]
-plot "./FastResults_EB.mat" u 1:2:3 w boxerrorbars notitle, "./FastResults_EB.mat" u 1:2:4 w labels center offset 3,1 notitle
+set ylabel "Performance"
+set ylabel "Number of samples from the expert"
+plot "./FastResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./FastResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./FastResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./FastResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "FastResults_true.mat" w lines ls 3 title "Expert"
+
 #+end_src
 
 #+begin_src gnuplot :tangle SafeResults_EB.gp
 set output "SafeResults_EB.ps"
 set term postscript enhanced color
-unset xtics
-set boxwidth 0.5
-set xrange [0.5:3.5]
+set xrange [0:330]
 set yrange [0.01:0.03]
-plot "./SafeResults_EB.mat" u 1:2:3 w boxerrorbars notitle, "./SafeResults_EB.mat" u 1:2:4 w labels center offset 3,1 notitle
+set ylabel "Performance"
+set ylabel "Number of samples from the expert"
+plot "./SafeResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./SafeResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./SafeResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./SafeResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "SafeResults_true.mat" w lines ls 3 title "Expert"
+
 #+end_src
 
   #+srcname: Comparison_make
@@ -161,7 +175,7 @@ plot "./SafeResults_EB.mat" u 1:2:3 w boxerrorbars notitle, "./SafeResults_EB.ma
 FastResults_EB.gp: Comparison.org
 	$(call tangle,"Comparison.org")
 
-FastResults_EB.pdf: FastResults_EB.gp FastResults_EB.mat
+FastResults_EB.pdf: FastResults_EB.gp Comparison_ErrorBars
 	gnuplot FastResults_EB.gp
 	ps2pdf FastResults_EB.ps
 	rm FastResults_EB.ps
@@ -169,7 +183,7 @@ FastResults_EB.pdf: FastResults_EB.gp FastResults_EB.mat
 SafeResults_EB.gp: Comparison.org
 	$(call tangle,"Comparison.org")
 
-SafeResults_EB.pdf: SafeResults_EB.gp SafeResults_EB.mat
+SafeResults_EB.pdf: SafeResults_EB.gp Comparison_ErrorBars
 	gnuplot SafeResults_EB.gp
 	ps2pdf SafeResults_EB.ps
 	rm SafeResults_EB.ps

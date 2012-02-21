@@ -61,14 +61,13 @@ root = Tk()
 app = App(root)
 app.autopilot = 'original'
 app.read_policy( sys.argv[1] )
-app.max_t=200
+app.max_t=300
 root.mainloop()
 
    #+end_src
 
-Transitions are stored for later use.
-
-#+srcname: MWAL_make
+Transitions are stored for later use ; the files =Play[Fast|Safe].dat= contain all the transitions. We strip the transitions of the [] characters, and put one sample $s,a$ per line.
+  #+srcname: MWAL_make
 #+begin_src makefile
 PlayFast.dat : al_code/fast_policy.txt PolicyPlay.py App.py
 	python PolicyPlay.py al_code/fast_policy.txt > PlayFast.dat
@@ -76,26 +75,35 @@ PlayFast.dat : al_code/fast_policy.txt PolicyPlay.py App.py
 PlaySafe.dat: al_code/safe_policy.txt PolicyPlay.py App.py
 	python PolicyPlay.py al_code/safe_policy.txt > PlaySafe.dat
 
-#+end_src
-
-* Running MWAL to imitate the optimal control
-  In order to run MWAL, we need to know the feature expectation of the expert.
-
-  We strip the transitions of the [] characters, and put one sample $s,a$ per line.
-  #+srcname: MWAL_make
-#+begin_src makefile
 PlayFast_stripped.dat : PlayFast.dat
 	cat PlayFast.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_stripped.dat
 
 PlaySafe_stripped.dat : PlaySafe.dat
 	cat PlaySafe.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_stripped.dat
 
-
 #+end_src
-  
 The first filter takes care of the first transition which is not in the same format as the others (see Syed's code) and put it in the same $[s, bx, [rx, ry]] a$ format as the others. Then we remove the [] characters, remove one line out of two (states are repated twice, once without the action, once with). Finally we substitute the text description of the action by a number.
 
-The next step is to estimate the policies' feature expectation by computing the feature of each state and averaging the whole thing.
+ We also make a bunch of files of varying length to test the sensibility of MWAL and [[file:SCIRL.org][SCIRL]] to the number of samples from the expert.
+
+#+srcname: MWAL_make
+#+begin_src makefile
+N_VALUES=30 100 150 300
+
+PlayFast_X.dat: PlayFast_stripped.dat #Dummy target
+	for i in $(N_VALUES); do head -n $$i PlayFast_stripped.dat > PlayFast_$$i.dat; done
+	touch PlayFast_X.dat
+
+PlaySafe_X.dat: PlaySafe_stripped.dat #Dummy target
+	for i in $(N_VALUES); do head -n $$i PlaySafe_stripped.dat > PlaySafe_$$i.dat; done
+	touch PlaySafe_X.dat
+
+#+end_src
+
+* Running MWAL to imitate the optimal control
+  In order to run MWAL, we need to know the feature expectation of the expert.
+
+  We estimate the policies' feature expectation by computing the feature of each state and averaging the whole thing.
 
    #+begin_src python :tangle tr2mu.py
 from numpy import *
@@ -118,11 +126,13 @@ print str( mu )
 
   #+srcname: MWAL_make
 #+begin_src makefile
-PlayFast_mu.mat : PlayFast_stripped.dat tr2mu.py phipsi.py
-	python tr2mu.py PlayFast_stripped.dat | tr -d '[' | tr -d ']' > PlayFast_mu.mat
+PlayFast_mu_X.mat : PlayFast_X.dat tr2mu.py phipsi.py
+	for i in $(N_VALUES); do python tr2mu.py PlayFast_$$i.dat | tr -d '[' | tr -d ']' > PlayFast_mu_$$i.mat; done
+	touch PlayFast_mu_X.mat
 
-PlaySafe_mu.mat : PlaySafe_stripped.dat tr2mu.py phipsi.py
-	python tr2mu.py PlaySafe_stripped.dat | tr -d '[' | tr -d ']' > PlaySafe_mu.mat
+PlaySafe_mu_X.mat : PlaySafe_X.dat tr2mu.py phipsi.py
+	for i in $(N_VALUES); do python tr2mu.py PlaySafe_$$i.dat | tr -d '[' | tr -d ']' > PlaySafe_mu_$$i.mat; done
+	touch PlaySafe_mu_X.mat
 
 #+end_src
 
@@ -159,17 +169,22 @@ write_out_policy(PP(i, :));
 
   #+srcname: MWAL_make
 #+begin_src makefile
-PlayFast_mwal_mu.mat : PlayFast_mu.mat al_code/my_MWAL.m
-	pushd al_code; octave my_MWAL.m ../PlayFast_mu.mat; perl post.pl ; mv policy.txt policy_mwal_fast.txt ; popd
-	python PolicyPlay.py al_code/policy_mwal_fast.txt > PlayFast_mwal.dat
-	cat PlayFast_mwal.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_mwal_stripped.dat
-	python tr2mu.py PlayFast_mwal_stripped.dat | tr -d '[' | tr -d ']' > PlayFast_mwal_mu.mat
+PlayFast_mwal_mu_X.mat : PlayFast_mu_X.mat al_code/my_MWAL.m
+	for i in $(N_VALUES); do \
+	pushd al_code; octave my_MWAL.m ../PlayFast_mu_$$i.mat; perl post.pl ; mv policy.txt policy_mwal_fast_$$i.txt ; popd;\
+	python PolicyPlay.py al_code/policy_mwal_fast_$$i.txt > PlayFast_mwal_$$i.dat;\
+	cat PlayFast_mwal_$$i.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_mwal_stripped_$$i.dat;\
+	python tr2mu.py PlayFast_mwal_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlayFast_mwal_mu_$$i.mat; done
+	touch PlayFast_mwal_mu_X.mat
 
-PlaySafe_mwal_mu.mat : PlaySafe_mu.mat al_code/my_MWAL.m
-	pushd al_code; octave my_MWAL.m ../PlaySafe_mu.mat; perl post.pl ; mv policy.txt policy_mwal_safe.txt ; popd
-	python PolicyPlay.py al_code/policy_mwal_safe.txt > PlaySafe_mwal.dat
-	cat PlaySafe_mwal.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_mwal_stripped.dat
-	python tr2mu.py PlaySafe_mwal_stripped.dat | tr -d '[' | tr -d ']' > PlaySafe_mwal_mu.mat
+PlaySafe_mwal_mu_X.mat : PlaySafe_mu_X.mat al_code/my_MWAL.m
+	for i in $(N_VALUES); do \
+	pushd al_code; octave my_MWAL.m ../PlaySafe_mu_$$i.mat; perl post.pl ; mv policy.txt policy_mwal_safe_$$i.txt ; popd;\
+	python PolicyPlay.py al_code/policy_mwal_safe_$$i.txt > PlaySafe_mwal_$$i.dat;\
+	cat PlaySafe_mwal_$$i.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_mwal_stripped_$$i.dat;\
+	python tr2mu.py PlaySafe_mwal_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlaySafe_mwal_mu_$$i.mat; done
+	touch PlaySafe_mwal_mu_X.mat
+
 #+end_src
 
 
