@@ -19,7 +19,7 @@
   - [ ] Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$.
   - [ ] Définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
   - [ ] Définir $D$ à partir des transitions $D_E$ en enlevant l'état d'arrivée
-  - [ ] Initialiser $\omega_0 = [-1...-1]^T$
+  - [ ] Initialiser $\theta_0 = [-1...-1]^T$
   - [ ] Fixer $T=20$ (pifomètre)
   - [ ] Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) =  \omega^T_{\pi_E}\phi(s,a), \omega_{\pi_E} = LSTD\mu(D_E)$
   - [ ] Faire tourner LAFEM
@@ -197,14 +197,18 @@ class LAFEM_Exp3( LAFEM ):
         #return (zeros((1,10)) + answer).transpose() #Ugly hack to get a column vector and not a line vector
 
     def alpha( self, t ):
-        return 0.1
+        return 3000./(t+1.)
 
-    omega_0 = zeros( (10, 1) ) - 1.
+    theta_0 = zeros( (10, 1) ) - 1.
 
+    Threshold = 0.1
     T = 20
+
 #+end_src
 
 *** Running LAFEM
+    FIXME: s/omega/theta/avec discernement
+
  #+begin_src python :tangle LAFEM_Exp3.py
 lafem = LAFEM_Exp3()
 omega_lafem = lafem.run()

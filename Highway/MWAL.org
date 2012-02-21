@@ -1,0 +1,175 @@
+#+TITLE:Using the code from Umar Syed
+
+The code in the al_code directory was downloaded from :
+http://www.cs.princeton.edu/~usyed/
+
+The goal here is to make use of this code for comparison purposes.
+
+* Putting an optimal policy in control of the simulator
+
+We define two different rewards.
+#+begin_src text :tangle al_code/fast_reward.mat
+0.5 0.4 0.1
+#+end_src
+This represent the policy of a fast driver, 'drive someone you love to the hospital' mode : speed is important, collisions a bit less, and going out of the road is tolerated.
+
+Safe driving : where speed is unimportant and avoiding collisions is as important as staying on the road :
+#+begin_src text :tangle al_code/safe_reward.mat
+0 0.5 0.5
+#+end_src
+
+
+
+#+srcname: MWAL_make
+#+begin_src makefile
+al_code/fast_reward.mat: MWAL.org
+	$(call tangle,"MWAL.org")
+al_code/safe_reward.mat: MWAL.org
+	$(call tangle,"MWAL.org")
+
+#+end_src
+
+
+
+It can be invoked by :
+#+srcname: MWAL_make
+#+begin_src makefile
+al_code/fast_policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m al_code/fast_reward.mat
+	pushd al_code; octave optimal_policy.m fast_reward.mat ; mv policy.dat fast_policy.dat ; popd
+al_code/safe_policy.dat: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m al_code/safe_reward.mat
+	pushd al_code; octave optimal_policy.m safe_reward.mat ; mv policy.dat safe_policy.dat ; popd
+
+#+end_src
+
+Now, the simulator can not directly use this file and it should be transformed using a perl script from the =al_code= directory.
+
+#+srcname: MWAL_make
+#+begin_src makefile
+al_code/fast_policy.txt: al_code/fast_policy.dat
+	pushd al_code; mv fast_policy.dat policy.dat; perl post.pl ;mv policy.txt fast_policy.txt; mv policy.dat fast_policy.dat ; popd
+al_code/safe_policy.txt: al_code/safe_policy.dat
+	pushd al_code; mv safe_policy.dat policy.dat; perl post.pl ;mv policy.txt safe_policy.txt; mv policy.dat safe_policy.dat ; popd
+
+#+end_src
+
+Once the transformation is done, one can play with the policy in the simulator. We use our modified version which can stop after a certain number of transitions. We instantiate it with :
+   #+begin_src python :tangle PolicyPlay.py
+from App import *
+import sys
+
+root = Tk()
+app = App(root)
+app.autopilot = 'original'
+app.read_policy( sys.argv[1] )
+app.max_t=200
+root.mainloop()
+
+   #+end_src
+
+Transitions are stored for later use.
+
+#+srcname: MWAL_make
+#+begin_src makefile
+PlayFast.dat : al_code/fast_policy.txt PolicyPlay.py App.py
+	python PolicyPlay.py al_code/fast_policy.txt > PlayFast.dat
+
+PlaySafe.dat: al_code/safe_policy.txt PolicyPlay.py App.py
+	python PolicyPlay.py al_code/safe_policy.txt > PlaySafe.dat
+
+#+end_src
+
+* Running MWAL to imitate the optimal control
+  In order to run MWAL, we need to know the feature expectation of the expert.
+
+  We strip the transitions of the [] characters, and put one sample $s,a$ per line.
+  #+srcname: MWAL_make
+#+begin_src makefile
+PlayFast_stripped.dat : PlayFast.dat
+	cat PlayFast.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_stripped.dat
+
+PlaySafe_stripped.dat : PlaySafe.dat
+	cat PlaySafe.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_stripped.dat
+
+
+#+end_src
+  
+The first filter takes care of the first transition which is not in the same format as the others (see Syed's code) and put it in the same $[s, bx, [rx, ry]] a$ format as the others. Then we remove the [] characters, remove one line out of two (states are repated twice, once without the action, once with). Finally we substitute the text description of the action by a number.
+
+The next step is to estimate the policies' feature expectation by computing the feature of each state and averaging the whole thing.
+
+   #+begin_src python :tangle tr2mu.py
+from numpy import *
+from phipsi import *
+import sys
+
+transitions = genfromtxt( sys.argv[1] )
+
+Psi = zeros( (transitions.shape[0], 3) )
+
+gamma = 0.9
+
+for i in range( 0, transitions.shape[0] ):
+    Psi[i,:] = pow(gamma,i) * psi( transitions[i,0:4] ).transpose() #We only compute psi(s) and transitions[i,:] is [s,a]
+
+mu = mean(Psi,0)
+
+print str( mu )
+   #+end_src
+
+  #+srcname: MWAL_make
+#+begin_src makefile
+PlayFast_mu.mat : PlayFast_stripped.dat tr2mu.py phipsi.py
+	python tr2mu.py PlayFast_stripped.dat | tr -d '[' | tr -d ']' > PlayFast_mu.mat
+
+PlaySafe_mu.mat : PlaySafe_stripped.dat tr2mu.py phipsi.py
+	python tr2mu.py PlaySafe_stripped.dat | tr -d '[' | tr -d ']' > PlaySafe_mu.mat
+
+#+end_src
+
+Finally, we take inspiration from the =al_code/run_MWAL.m= file and use the following Octave code to run MWAL on the /feature expectation/ we just computed. We play the resulting policy and compute its feature expectation using the same method we just used.
+
+
+   #+begin_src octave :tangle al_code/my_MWAL.m
+% Make the feature value matrix and the transition matrix 
+F = make_F;
+THETA = make_THETA;
+
+% Setup the other parameters
+GAMMA = 0.9;
+T = 500;
+E = load(argv(){1});
+
+% Run the MWAL algorithm
+[PP, MM, ITER, TT] = MWAL(THETA, F, GAMMA, T, E, 'first');
+
+% Determine the mixing coefficients (trivial)
+c = ones(T, 1) ./ T;
+
+% Choose a policy at random according to the mixing coefficients
+C(1) = c(1);
+for i=2:T
+	C(i) = C(i-1) + c(i);
+end
+r = rand;
+i = find(r <= C, 1);
+
+% Write out that policy
+write_out_policy(PP(i, :));
+   #+end_src
+
+  #+srcname: MWAL_make
+#+begin_src makefile
+PlayFast_mwal_mu.mat : PlayFast_mu.mat al_code/my_MWAL.m
+	pushd al_code; octave my_MWAL.m ../PlayFast_mu.mat; perl post.pl ; mv policy.txt policy_mwal_fast.txt ; popd
+	python PolicyPlay.py al_code/policy_mwal_fast.txt > PlayFast_mwal.dat
+	cat PlayFast_mwal.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_mwal_stripped.dat
+	python tr2mu.py PlayFast_mwal_stripped.dat | tr -d '[' | tr -d ']' > PlayFast_mwal_mu.mat
+
+PlaySafe_mwal_mu.mat : PlaySafe_mu.mat al_code/my_MWAL.m
+	pushd al_code; octave my_MWAL.m ../PlaySafe_mu.mat; perl post.pl ; mv policy.txt policy_mwal_safe.txt ; popd
+	python PolicyPlay.py al_code/policy_mwal_safe.txt > PlaySafe_mwal.dat
+	cat PlaySafe_mwal.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_mwal_stripped.dat
+	python tr2mu.py PlaySafe_mwal_stripped.dat | tr -d '[' | tr -d ']' > PlaySafe_mwal_mu.mat
+#+end_src
+
+

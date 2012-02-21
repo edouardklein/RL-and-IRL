@@ -6,7 +6,13 @@ The Makefile.org file contains a small summary of the content of each other file
 
 The source code in this directory is managed by git [3]. It i also uploaded on GitHub [4]. Any bug fixes or suggestion are welcome.
 
-I used the GSL [5] throughout the whole thing. Hence, the license under which this work is distributed is the GPL [6].
+
+DEPENDENCIES
+ - I used the GSL [5] throughout the whole thing. Hence, the license under which this work is distributed is the GPL [6].
+ - Part of the code (i.e. the part from Umar Syed's driving simulator) requires the CVX package for solving convex optimization problems. It can be found here:
+
+http://www.stanford.edu/~boyd/cvx/
+
 
 Contact and copyright owner : edouard.klein at supelec.fr
 

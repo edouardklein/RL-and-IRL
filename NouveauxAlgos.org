@@ -220,7 +220,7 @@ Cela signifie qu'en choisissant les bonnes fonctions de base l'on arrive directe
 \bibliographystyle{plainnat}
 \bibliography{../Biblio/Biblio}
 
-* Implémentation python de LAFEM :code:
+* Implémentation python de LAFEM 				       :code:
   :PROPERTIES:
   :ID:       879A40A3-5890-4665-86C0-826ABD3BC1BC
   :END:
@@ -228,7 +228,9 @@ Cela signifie qu'en choisissant les bonnes fonctions de base l'on arrive directe
 
 #+begin_src python :tangle LAFEM.py
 from numpy import *
+import scipy.linalg
 import os
+import sys
 class LAFEM:
    def __init__( self ):
       if self.__class__ == LAFEM:
@@ -255,13 +257,17 @@ class LAFEM:
      #+begin_src python :tangle LAFEM.py
    data=[]
      #+end_src
-   - un vecteur de paramètres initial $\omega_0$
+   - un vecteur de paramètres initial $\theta_0$
      #+begin_src python :tangle LAFEM.py
-   omega_0=array([])
+   theta_0=array([])
      #+end_src
-   - un nombre maximum d'itérations $T\in \mathbb N$
+   - une valeur pour la norme du grandient en dessous de laquelle on stoppe l'algorithme
      #+begin_src python :tangle LAFEM.py
-   T=-1
+   Threshold = 'a'
+     #+end_src
+   - un nombre d'itérations maximum
+     #+begin_src python :tangle LAFEM.py
+   T = -1
      #+end_src
    - une description de l'espace d'action $A$, ce membre doit être itérable
      #+begin_src python :tangle LAFEM.py
@@ -272,42 +278,51 @@ class LAFEM:
    L'algorithme se déroule comme suit : 
    #+begin_src python :tangle LAFEM.py
    def run( self ):
-      omega = self.omega_0.copy()
+      theta = self.theta_0.copy()
    #+end_src
    - Pour le nombre d'itérations prévues :
      #+begin_src python :tangle LAFEM.py
-      for t in range(0,self.T):
+      #for t in range(0,self.T):
+      t=-1
+      while True:#Do...while loop
+         t += 1
      #+end_src
-     - Initialiser $\Delta\omega \leftarrow [0...0]^T$
+     - Initialiser $\Delta\theta \leftarrow [0...0]^T$
        #+begin_src python :tangle LAFEM.py
-         DeltaOmega = zeros(( self.omega_0.size, 1 ))
+         DeltaTheta = zeros(( self.theta_0.size, 1 ))
        #+end_src
      - Pour chacun des points de données
        #+begin_src python :tangle LAFEM.py
          for sa in self.data:
        #+end_src
-       - Déterminer $a^* = \arg\max\limits_{a} = \omega_t ^T \mu_E(s_i,a) + l(s_i,a)$
+       - Déterminer $a^* = \arg\max\limits_{a} = \theta_t ^T \mu_E(s_i,a) + l(s_i,a)$
          #+begin_src python :tangle LAFEM.py
             val = -Inf
             a_star = array([])
             for a in self.A:
-               newval = dot( omega.transpose(), self.mu_E( sa[0], a ) ) + self.l( sa[0], a )
+               newval = dot( theta.transpose(), self.mu_E( sa[0], a ) ) + self.l( sa[0], a )
                assert(newval.size == 1)
                if newval[0] > val:
                   val = newval
                   a_star = a
+
          #+end_src
-       - $\Delta\omega \leftarrow \Delta\omega + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$	 
+       - $\Delta\theta \leftarrow \Delta\theta + \mu_E(s_i,a^*) - \mu_E(s_i,a_i)$	 
          #+begin_src python :tangle LAFEM.py
-            DeltaOmega = DeltaOmega + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
+            DeltaTheta = DeltaTheta + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
          #+end_src
-     - Effectuer la mise à jour $\omega_{t+1} = \omega_t -\alpha_t {1\over N}\Delta\omega$
+     - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t {1\over N}\Delta\theta$
        #+begin_src python :tangle LAFEM.py
-            omega = omega - (self.alpha( t )/len(self.data)) * DeltaOmega # FIXME rajouter le 1/N
+         DeltaTheta = DeltaTheta / len(self.data) #1/N
+         norm = scipy.linalg.norm(DeltaTheta)
+         theta = theta - self.alpha( t ) * DeltaTheta 
+         sys.stderr.write("Norme du gradient : "+str(norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)+"\n")
+         if norm < self.Threshold or (self.T != -1 and t >= self.T):
+             break
        #+end_src
-   - retourner $\omega_T$
+   - retourner $\theta_T$
      #+begin_src python :tangle LAFEM.py
-      return omega
+      return theta
      #+end_src
      
 * Making this document :code:
