@@ -1,6 +1,8 @@
 #+TITLE: Inverted Pendulum
   The Inverted Pendulum is a classical toy problem, used and described for example in \cite{lagoudakis2003least}.
 
+//FIXME Virer LAFEM_Exp5 qui manifestement n'existe pas
+
 * Miscellaneaous
 
 ** Org files
@@ -75,6 +77,7 @@ Those who do not fit in the others categories (because they fit in more than one
 <<LAFEM_Exp3_make>>
 <<LAFEM_Exp4_make>>
 <<LAFEM_Exp5_make>>
+<<LAFEM_Exp7_make>>
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes

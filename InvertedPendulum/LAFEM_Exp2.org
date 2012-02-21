@@ -418,6 +418,8 @@ LAFEM_Exp2_Results.c: LAFEM_Exp2.org
 *** Plotting
 A piece of code to output the value in a correct format.
 
+FIXME:Virer ce rand qui ne sert à rien
+
 #+begin_src c :tangle LAFEM_Exp2_Plot.c
 #define _POSIX_C_SOURCE 1
 #include <time.h>
@@ -500,7 +502,7 @@ int main (int argc, char *argv[]){
     }
   }
 
-  gsl_matrix* sa = gsl_matrix_alloc( 1,3 );    
+  gsl_matrix* sa = gsl_matrix_alloc( 1,3 ); //FIXME: Free sa, state, Q et eventuellement d'autres
   gsl_matrix* omega_expert = file2matrix( EXPERT_Q_FILE, 1 );
   g_mOmega = omega_expert;
   gsl_matrix* Q = gsl_matrix_alloc( 1, 1 );
@@ -539,6 +541,7 @@ int main (int argc, char *argv[]){
   }
 
 
+//FIXME:Mettre partout .dat quand c'est pas une matrice (typiquement un fichier destiné à être splotter en 3D par GNUplot) et .mat quand c'est une matrice (y compris les fichiers destinés à être plottés par GNUplot).
 
   char* true_R_fn = malloc( strlen(prefix) + strlen("true_R.dat") + 1 );
   char* lafem_R_fn = malloc( strlen(prefix) + strlen("lafem_R.dat") + 1 );
@@ -571,23 +574,25 @@ int main (int argc, char *argv[]){
   }
   return 0;
 }
-
+//FIXME: fclose()er tous les fichiers.
 #+end_src
+
+
 
 The relevant makefile rules.
 
 #+srcname: LAFEM_Exp2_make
 #+begin_src makefile
-LAFEM_Exp2_true_R.mat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat
+LAFEM_Exp2_true_R.dat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat
 	./LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat LAFEM_Exp2
 
-LAFEM_Exp2_lafem_R.mat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat 
+LAFEM_Exp2_lafem_R.dat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat 
 	./LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat LAFEM_Exp2
 
-LAFEM_Exp2_Vexpert.mat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat
+LAFEM_Exp2_Vexpert.dat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat
 	./LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat LAFEM_Exp2
 
-LAFEM_Exp2_Vagent.mat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat 
+LAFEM_Exp2_Vagent.dat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat 
 	./LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat LAFEM_Exp2
 
 LAFEM_Exp2_Plot.exe: LAFEM_Exp2_Plot.o phipsi.o ../utils.o ../greedy.o phipsi.o
@@ -619,7 +624,7 @@ splot "LAFEM_Exp2_true_R.dat" notitle
 LAFEM_Exp2_true_R.gp: LAFEM_Exp2.org
 	$(call tangle,"LAFEM_Exp2.org")
 
-LAFEM_Exp2_true_R.pdf: LAFEM_Exp2_true_R.gp LAFEM_Exp2_true_R.mat
+LAFEM_Exp2_true_R.pdf: LAFEM_Exp2_true_R.gp LAFEM_Exp2_true_R.dat
 	gnuplot LAFEM_Exp2_true_R.gp
 	ps2pdf LAFEM_Exp2_true_R.ps
 	rm LAFEM_Exp2_true_R.ps
@@ -643,7 +648,7 @@ splot "LAFEM_Exp2_lafem_R.dat" notitle
 LAFEM_Exp2_lafem_R.gp: LAFEM_Exp2.org
 	$(call tangle,"LAFEM_Exp2.org")
 
-LAFEM_Exp2_lafem_R.pdf: LAFEM_Exp2_lafem_R.gp LAFEM_Exp2_lafem_R.mat
+LAFEM_Exp2_lafem_R.pdf: LAFEM_Exp2_lafem_R.gp LAFEM_Exp2_lafem_R.dat
 	gnuplot LAFEM_Exp2_lafem_R.gp
 	ps2pdf LAFEM_Exp2_lafem_R.ps
 	rm LAFEM_Exp2_lafem_R.ps
@@ -668,7 +673,7 @@ splot "LAFEM_Exp2_Vexpert.dat" notitle
 LAFEM_Exp2_Vexpert.gp: LAFEM_Exp2.org
 	$(call tangle,"LAFEM_Exp2.org")
 
-LAFEM_Exp2_Vexpert.pdf: LAFEM_Exp2_Vexpert.gp LAFEM_Exp2_Vexpert.mat
+LAFEM_Exp2_Vexpert.pdf: LAFEM_Exp2_Vexpert.gp LAFEM_Exp2_Vexpert.dat
 	gnuplot LAFEM_Exp2_Vexpert.gp
 	ps2pdf LAFEM_Exp2_Vexpert.ps
 	rm LAFEM_Exp2_Vexpert.ps
@@ -692,7 +697,7 @@ splot "LAFEM_Exp2_Vagent.dat" notitle
 LAFEM_Exp2_Vagent.gp: LAFEM_Exp2.org
 	$(call tangle,"LAFEM_Exp2.org")
 
-LAFEM_Exp2_Vagent.pdf: LAFEM_Exp2_Vagent.gp LAFEM_Exp2_Vagent.mat
+LAFEM_Exp2_Vagent.pdf: LAFEM_Exp2_Vagent.gp LAFEM_Exp2_Vagent.dat
 	gnuplot LAFEM_Exp2_Vagent.gp
 	ps2pdf LAFEM_Exp2_Vagent.ps
 	rm LAFEM_Exp2_Vagent.ps

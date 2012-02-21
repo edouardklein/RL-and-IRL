@@ -315,7 +315,7 @@ class LAFEM:
        #+begin_src python :tangle LAFEM.py
          DeltaTheta = DeltaTheta / len(self.data) #1/N
          norm = scipy.linalg.norm(DeltaTheta)
-         theta = theta - self.alpha( t ) * DeltaTheta 
+         theta = theta - self.alpha( t ) * DeltaTheta / norm
          sys.stderr.write("Norme du gradient : "+str(norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)+"\n")
          if norm < self.Threshold or (self.T != -1 and t >= self.T):
              break
