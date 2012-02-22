@@ -276,3 +276,10 @@ App.py: Simulator.org
 	$(call tangle,"Simulator.org")
 
 #+end_src
+
+
+  #+srcname: Simulator_clean_make
+  #+begin_src makefile
+Simulator_clean:
+	find . -maxdepth 1 -iname "App.py"   | xargs $(XARGS_OPT) rm
+  #+end_src

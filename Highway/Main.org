@@ -288,7 +288,7 @@ LAFEM_Exp6: omega_lspi.mat GreedyPlay.py
 
 #+end_src
 
-
+   
 *** Parent Dir targets
        On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
 #+srcname: LSPI_make
@@ -342,3 +342,12 @@ LAFEM_Exp6: omega_lspi.mat GreedyPlay.py
 	make -C .. IRL_Globals.h
 
 #+end_src
+  #+srcname: Main_clean_make
+  #+begin_src makefile
+Main_clean:
+	find . -maxdepth 1 -iname "GreedyPlay.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Highway_lspi.c"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.c"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.py"   | xargs $(XARGS_OPT) rm
+  #+end_src

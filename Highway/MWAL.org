@@ -188,3 +188,17 @@ PlaySafe_mwal_mu_X.mat : PlaySafe_mu_X.mat al_code/my_MWAL.m
 #+end_src
 
 
+* Cleaning
+
+  #+srcname: MWAL_clean_make
+  #+begin_src makefile
+MWAL_clean:
+	find . -maxdepth 1 -iname "PolicyPlay.py"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "fast_policy.dat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "fast_policy.txt"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "fast_reward.mat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "safe_reward.mat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "my_MWAL.m"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "tr2mu.py"   | xargs $(XARGS_OPT) rm
+
+  #+end_src

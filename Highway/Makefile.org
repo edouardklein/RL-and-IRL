@@ -30,8 +30,13 @@ O2EXE=gcc $(LFLAGS)
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
 <<SCIRL_clean_make>>
+<<Simulator_clean_make>>
+<<Comparison_clean_make>>
+<<MWAL_clean_make>>
+<<Main_clean_make>>
+<<RandomSamples_clean_make>>
 
-clean: SCIRL_clean
+clean: SCIRL_clean Comparison_clean Simulator_clean MWAL_clean Main_clean RandomSamples_clean
 
     #+end_src
 

@@ -34,3 +34,9 @@ RandomSamples.dat: RandomSamples.py App.py
 	rm toto tata
 #+end_src
 
+  #+srcname: RandomSamples_clean_make
+  #+begin_src makefile
+RandomSamples_clean:
+	find . -maxdepth 1 -iname "RandomSamples.py"   | xargs $(XARGS_OPT) rm
+
+  #+end_src

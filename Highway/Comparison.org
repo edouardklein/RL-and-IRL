@@ -64,32 +64,31 @@ f_Safe_scirl.close()
 f_Safe_mwal.close()
 #+end_src
 
+FIXME: Enlever les Results_true de ce script et les mettre à part, ça n'a pas de sens de les calculer pour différentes longueurs
+
+
 #+srcname: Comparison_make
 #+begin_src makefile
 ComparativeResults.py: Comparison.org
 	$(call tangle,"Comparison.org")
 
-FastResults_scirl.mat: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
+Comparison: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
 	touch FastResults_scirl.mat
 	rm FastResults_scirl.mat
-	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
-
-FastResults_mwal.mat: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
 	touch FastResults_mwal.mat
 	rm FastResults_mwal.mat
-	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
-
-SafeResults_scirl.mat: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
 	touch SafeResults_scirl.mat
 	rm SafeResults_scirl.mat
-	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
-
-SafeResults_mwal.mat: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
 	touch SafeResults_mwal.mat
 	rm SafeResults_mwal.mat
 	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
 
-
+FastResults_scirl.mat: Comparison
+FastResults_mwal.mat: Comparison
+SafeResults_scirl.mat:Comparison
+SafeResults_mwal.mat:Comparison
+FastResults_true.mat:Comparison
+SafeResults_true.mat:Comparison
 #+end_src
 
 
@@ -97,6 +96,7 @@ Une fois cette valeur calculée, il est possible de la plotter.
 
 Nous allons calculer plusieurs fois l'estimation de Monte-Carlo de la valeur afin d'obtenir des barres d'erreur.
 The first thing to do is to define a clean rule to remove the file to plot and all the other files that have been used to create it, so that making it again will be a statistically independant experiment.
+
   #+srcname: Comparison_make
   #+begin_src makefile
 clean_EB:
@@ -129,9 +129,11 @@ g_nlInput = ['FastResults_scirl.mat', ['-d" " -f\'1 2\''], [],
              'FastResults_mwal.mat', ['-d" " -f\'1 2\''], [],
              'SafeResults_scirl.mat', ['-d" " -f\'1 2\''], [],
              'SafeResults_mwal.mat', ['-d" " -f\'1 2\''], []]
-g_iN = 2
+g_iN = 10
 
   #+end_src
+
+FIXME: Dans tous les ErrorBars, on devrait pas avoir à make-er la cible à blanc une fois avant.
 
   #+srcname: Comparison_make
   #+begin_src makefile
@@ -152,10 +154,12 @@ Les fichiers ainsi obtenus, =[Fast|Safe]Results_[scirl|mwal}.mat-0= permettent d
 set output "FastResults_EB.ps"
 set term postscript enhanced color
 set xrange [0:330]
-set yrange [0.02:0.04]
+set yrange [0.02:0.025]
 set ylabel "Performance"
-set ylabel "Number of samples from the expert"
-plot "./FastResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./FastResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./FastResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./FastResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "FastResults_true.mat" w lines ls 3 title "Expert"
+set key bottom right
+set xlabel "Number of samples from the expert"
+set grid
+plot "./FastResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./FastResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./FastResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./FastResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "FastResults_true.mat" u (20):($1):(290):(0) w vector nohead ls 3 title "Expert"
 
 #+end_src
 
@@ -163,10 +167,12 @@ plot "./FastResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./FastResults_scir
 set output "SafeResults_EB.ps"
 set term postscript enhanced color
 set xrange [0:330]
-set yrange [0.01:0.03]
+set yrange [0.01:0.018]
 set ylabel "Performance"
-set ylabel "Number of samples from the expert"
-plot "./SafeResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./SafeResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./SafeResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./SafeResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "SafeResults_true.mat" w lines ls 3 title "Expert"
+set xlabel "Number of samples from the expert"
+set key bottom right
+set grid
+plot "./SafeResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./SafeResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./SafeResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./SafeResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "SafeResults_true.mat" u (20):($1):(290):(0) w vector nohead ls 3 title "Expert"
 
 #+end_src
 
@@ -175,7 +181,7 @@ plot "./SafeResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./SafeResults_scir
 FastResults_EB.gp: Comparison.org
 	$(call tangle,"Comparison.org")
 
-FastResults_EB.pdf: FastResults_EB.gp Comparison_ErrorBars
+FastResults_EB.pdf: FastResults_EB.gp Comparison_ErrorBars Comparison
 	gnuplot FastResults_EB.gp
 	ps2pdf FastResults_EB.ps
 	rm FastResults_EB.ps
@@ -183,7 +189,7 @@ FastResults_EB.pdf: FastResults_EB.gp Comparison_ErrorBars
 SafeResults_EB.gp: Comparison.org
 	$(call tangle,"Comparison.org")
 
-SafeResults_EB.pdf: SafeResults_EB.gp Comparison_ErrorBars
+SafeResults_EB.pdf: SafeResults_EB.gp Comparison_ErrorBars Comparison
 	gnuplot SafeResults_EB.gp
 	ps2pdf SafeResults_EB.ps
 	rm SafeResults_EB.ps
@@ -191,3 +197,11 @@ SafeResults_EB.pdf: SafeResults_EB.gp Comparison_ErrorBars
   #+end_src
 
 
+  #+srcname: Comparison_clean_make
+  #+begin_src makefile
+Comparison_clean:
+	find . -maxdepth 1 -iname "ComparativeResults.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Comparison_conf.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "FastResults_EB.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SafeResults_EB.gp"   | xargs $(XARGS_OPT) rm
+  #+end_src
