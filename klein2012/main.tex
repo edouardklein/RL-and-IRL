@@ -177,7 +177,7 @@
 
 
 \begin{abstract}
-
+  In this paper we tackle the problem of apprenticeship learning in the Inverse Reinforcement Learning (\emph{IRL}) framework. An expert fulfils a task to be imitated by an artificial agent. The IRL framework assumes that the expert is acting optimally with respect to a reward function ; the goal is to guess this function from trajectories drawn by the expert. Existing IRL algorithms need one or more of the following items : complete trajectories from the expert, a generative model of the environment for Monte-Carlo estimations, the knowledge of the transition probabilities, the ability to repeatedly solve the forward problem (the Reinforcement Learning (\empgh{RL}) problem), the access to the expert's strategy anywhere in the state space, or at the very least random samples covering a large part of it. Our contribution consists in a new IRL algorithm lifting all these constraints. Using a supervised technique in which the structure of the underlying Markov Decision Process (\emph{MDP}) is implicitely injected, we give rise to a subgradient descent-based algorithm whose computational and sample complexities are low. The sample base from the expert is the only data we need. A formal analysis of the algorithm as well as empirical demonstrations on two classic but challenging problems are provided.
 \end{abstract}
 %%%%%
 \section{Introduction}
