@@ -61,7 +61,8 @@ root = Tk()
 app = App(root)
 app.autopilot = 'original'
 app.read_policy( sys.argv[1] )
-app.max_t=300
+app.transitions=30
+app.trajectories=10
 root.mainloop()
 
    #+end_src
@@ -200,5 +201,6 @@ MWAL_clean:
 	find al_code -maxdepth 1 -iname "safe_reward.mat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "my_MWAL.m"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "tr2mu.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlayFast.dat"   | xargs $(XARGS_OPT) rm
 
   #+end_src

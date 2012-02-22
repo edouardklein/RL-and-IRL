@@ -37,6 +37,7 @@ O2EXE=gcc $(LFLAGS)
 <<RandomSamples_clean_make>>
 
 clean: SCIRL_clean Comparison_clean Simulator_clean MWAL_clean Main_clean RandomSamples_clean
+	find . -maxdepth 1 -iname "*~"   | xargs $(XARGS_OPT) rm
 
     #+end_src
 
