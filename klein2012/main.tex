@@ -231,7 +231,7 @@ This problem is ill-posed in the sense that there is not uniqueness of the rewar
 \label{ConsiderationsTechniques.sec}
 %%%
 %La récompense $R$ est l'inconnue du problème. Nous supposons que l'utilisateur est en mesure de fournir $p$ fonctions de base $\psi_{1\leq i \leq N}$  telles que
-The reward function $R$ is the unknown of the problem. We can suppose that it is possible to dispose of $p$ features $\psi_{1\leq i \leq p}$, which are functions from $S$ to $\mathbb{R}$, such  that:
+The reward function $R$ is the unknown of the problem. We can suppose that it is possible to dispose of $p$ features via $\psi: S\rightarrow \mathbb{R}^p$, which is a functions from $S$ to $\mathbb{R}^p$ and each of the components of $\psi$: $\{\psi_i\}_{1\leq i \leq p}$ is one feature, such that:
 \begin{equation}
 \label{hatRdef.eqn}
 \exists \theta | R(s) = \theta^T\psi(s) = \sum_{i=1}^p\theta_i\psi_i(s).
@@ -289,9 +289,10 @@ This risk function is non linear and non differentiable everywhere because of th
 \begin{eqnarray}
 \label{algorithm}
 g_{\theta} &=& {1\over N}\sum\limits_{i=1}^N\left(\mu^E(s_i,a^*_i) - \mu^E(s_i,a_i)\right),\\
-a^*_i &=& \arg\max_{a\in A}(\theta ^T \mu^E(s_i,a) + l(s_i,a)),\\
+a^*_i &\in& \arg\max_{a\in A}(\theta ^T \mu^E(s_i,a) + l(s_i,a)),\\
 g_{\theta} &\in& \partial_\theta J_N,\\
-\theta_{t+1} &\leftarrow& \theta_t -\alpha_t\frac{g_{\theta}}{\|g_{\theta}\|_2}.
+\theta_{0}&=&0,\theta_{t+1}=\theta_t -\alpha_t\frac{g_{\theta}}{\|g_{\theta}\|_2},\forall t\in\mathbb{N}^*,\\
+\sum_{t\geq0}\alpha_t&>&+\infty,\text{ }\sum_{t\geq0}\alpha_t^2<+\infty.
 \end{eqnarray}
 %%%
 \subsection{Estimation of $\mu^E$}
@@ -309,25 +310,46 @@ This inference is made easier by the fact that the feature expectation obeys the
 When we compare this expression to the equation \eqref{Qdef.eqn}, it allows us to affirm that $\mu_j^E$ can be seen as the action-value function for the policy $\pi_E$ with respect to the reward function defined by the $j$-th component of the features $\psi$. Depending on the prior information, several methods can be used in order to estimate $\mu^E$.\\
 
 %Dans le cas idéal où le modèle est connu, le calcul exact de $\mu^E$ peut être effectué grâce aux algorithmes de programmation dynamique. Dans le cas plus réaliste où les probabilités de transitions sont inconnues, on peut, si l'on dispose d'un simulateur et qu'il est possible d'interroger l'expert en un grand nombre d'états arbitraires, utiliser une simple approximation de Monte-Carlo où pour approximer $\mu^E(s,a)$ (définition Eq. \eqref{Qmu.eqn}) l'on utilise
-In the ideal case where a model of the environnement is known (\textit{id est} the transition probabilities are given), the exact calculus of $\mu^E$ can be executed thanks to dynamic programmation algorithms. In a more realistic case, we can use a simple Monte-Carlo estimation if we dispose of a simulator and if it is possible to ask the expert what action has to be chosen in an important number of arbitrary states.The estimation of $\mu^E(s,a)$ (definition Eq. \eqref{Qmu.eqn}) is done over $N$ trajectories of length $\{2k_i+1\}_{1\leq i \leq N}$, $\{s^i_0,a^i_0,\dots,s^i_{k_i-1},a^i_{k_i-1},s^i_{k_i}\}_{1\leq i \leq N}$, by the following formula: \begin{equation}
+In the ideal case where a model of the environnement is known (\textit{id est} the transition probabilities are given), the exact calculus of $\mu^E$ can be executed thanks to dynamic programmation algorithms. In a more realistic case, we can use a simple Monte-Carlo estimation if we dispose of a simulator and if it is possible to ask the expert what action has to be chosen in an important number of arbitrary states.The estimation of $\mu^E(s,a)$ (definition Eq. \eqref{Qmu.eqn}) is done over $N$ trajectories of length $\{2k_i+1\}_{1\leq i \leq N}$, $\{s^i_0,a^i_0,\dots,s^i_{k_i-1},a^i_{k_i-1},s^i_{k_i}\}_{1\leq i \leq N}$, by the following formula:
+\begin{equation}
 \hat\mu^E(s,a) = {1\over N}\sum_{i=1}^{N}\sum^{k_i}_{t=0}\gamma^t\psi(s^i_t),
 \end{equation}
 where $s^i_0=s, a^i_0=a$ and $s^i_{t+1}$ is distributed according to $P_{s^i_t\pi_E(s^i_t)}$.
-
 %Ensuite, afin d'entrer dans le cadre où les seules données qui nous sont accessibles sont des trajectoires fournies par l'expert, il est possible d'utiliser l'algorithme LSTD$\mu$ \citep{klein2011batch} dans sa version \emph{on-policy}. Cet algorithme adapte l'algorithme LSTD (\cite{bradtke1996linear}) dont il conserve les caractéritiques, notamment la capacité à effectuer le calcul en mode {\it batch}. C'est la méthode que nous illustrons dans la section \ref{exp.sec} Le principe est d'estimer chacun des composantes de $\mu^E$ en utilisant LSTD. Certains calculs sont factorisables, donnant ainsi à LSTD$\mu$ un coût du même ordre de grandeur que celui de LSTD.\\
 Finally, if we are in the framework where only the data at our disposition are the trajectories samples given by the expert, it is possible to use the LSTD$\mu$ algorithm \citep{klein2011batch} in its \emph{on-policy} version. This algorithm adapts the LSTD algorithm (\cite{bradtke1996linear}) keeping its characteristics, in particular its ability to execute the calculus in  {\it batch}-mode. This is the method that we show in the section \ref{exp.sec}. The principle is to estimate each component of $\mu^E$ using LSTD. Some calculus can be aggregated, giving to LSTD$\mu$ a cost of calculus which is of the same order of magnitude as LSTD.
 %D'autres méthodes d'approximation sont envisageables, comme par exemple une approximation de Monte-Carlo moins coûteuse et moins contraignante que celle que nous venons de proposer, se basant uniquement sur les données fournies par l'expert et impliquant l'utilisation d'une heuristique pour les actions inconnues. Cela est reporté pour des travaux futurs.
 %%%%%
 Other estimation methods are possible, as for instance a Monte-Carlo estimation, less calculus-expensive and constraining than the first one, which would be based solely on the data given by the expert and would imply the use of an heuristic on the unknown actions. This estimation would be consider on future works.
 \section{Analysis}\label{proof.sec}
-In this section we are going to prove that our algorithm (see \eqref{algorithm}) is convergent which means that $\tilde{\theta}=\lim_{t\rightarrow+\infty}\theta_t$ is well defined and that $\inf_{\theta\in\mathbb{R}^p}J_N(\theta)=J_N(\tilde{\theta})$ which means that the algorithm reaches the goal of minimizing $J_N$. Moreover we will determine the quality of our algorithm by giving an upper bound to the term $E_{s\sim\nu}[V^{\pi_E}(s)-Q^{\pi_E}(s,\pi_A(s))]$ where $E_{s\sim\nu}$ is the expectation over the stationary probability distribution of states $\nu$ and $\pi_A$ is the policy of the apprentice.
+In this section we are going to prove that our algorithm (see \eqref{algorithm}) is convergent, when we suppose the existence of a minimum of $J_N$,  which means that $\tilde{\theta}=\lim_{t\rightarrow+\infty}\theta_t$
+is well defined and that $\inf_{\theta\in\mathbb{R}^p}J_N(\theta)=J_N(\tilde{\theta})$ which means that the algorithm reaches the goal of minimizing $J_N$.
+Moreover we will determine the quality of our algorithm by giving an upper bound to the term $E_{s\sim\nu}[V^{\pi_E}(s)-Q^{\pi_E}(s,\pi_A(s))]$ where $E_{s\sim\nu}$ is the expectation
+over the stationary probability distribution of states $\nu$ and $\pi_A$ is the policy of the apprentice when a specific condition is fulfilled.
 \subsection{Convergence of the sub-gradient algorithm}
-Let $N\in\mathbb{N}^*$ and $A$ a finite set of cardinal $\card{A}$.
-Let $\{f_{i,a}\}_{1\leq i \leq N,a\in A}$ and $\{l_{i,a}\}_{1\leq i \leq N,a\in A}$ be finite sets of cardinal $N\card{A}$ which respectively each element $f_{i,a}\in\mathbb{R}^p$ and $l_{i,a}\in\mathbb{R_+}$  where $p\in\mathbb{N}^*$. $\mathbb{R}^p$ is an euclidian space with the scalar product $<.,.>$ and the associate euclidian norm $\|\|_2$. 
-We define then the function $f_N$ from $\mathbb{R}^p$ to $\mathbb{R}$ such that $\forall \theta\in\mathbb{R}^p, f_N(\theta)=\frac{1}{N}\sum_{i=1}^{i=N}\max_{a\in A}(\theta^Tf_{i,a}+l_{i,a})$. It is clear, as $A$ is finite, that $f_N$ is convex, proper, closed, continuous and with finite values.
-Moreover one of its sub-gradient in $\theta\in\mathbb{R}^p$ is $g_{\theta}=\frac{1}{N}\sum_{i=1}^{i=N}f_{i,a_i^*}$ where $a_i^*\in\argmax_{a \in A}(\theta^Tf_{i,a}+l_{i,a})$. We also have $g_{\theta}\in\{\frac{1}{N}\sum_{i=1}^{i=N}f_{i,a}\}_{1\leq i \leq N,a\in A}=G$, $G$ is a finite set . Let note $g_{min}$ one element of $\argmin_{G\backslash{0}}(\frac{1}{N}\|\sum_{i=1}^{i=N}f_{i,a}\|_2)$, and
-$\overline{f}_N=\inf_{\theta\in\mathbb{R}^p}f_N(\theta)$. Finally, we suppose $f_N(0)\geq \overline{f}_N\geq0$. 
+$\mathbb{R}^p$ is an euclidian space with the canonical scalar product $<.,.>$ and the euclidian norm $\|\|_2$.
+Let $N\in\mathbb{N}^*$ and $A$ the finite set of actions of cardinal $\card{A}$. We dispose of the estimations  $\{\hat{\mu}^E_{ia}\}_{1\leq i \leq N,a\in A}$ where $\forall 1\leq i \leq N, \forall a\in A,\hat{\mu}^E_{ia}\in\mathbb{R}^p$.
+We define the loss function such that: $\forall 1\leq i \leq N,\forall a\in A\backslash{a_i}, l(s_i,a)>l(s_i,a_i)\geq0$. We have already defined the empirical risk function which is a function from $\mathbb{R}^p$ to $\mathbb{R}$:
+$\forall \theta\in\mathbb{R}^p, J_N(\theta)= {1\over N} \sum_{i=1}^N\left(\max_{a\in A}(\theta ^T \hat{\mu}^E_{s_ia} + l(s_i,a)) - \theta ^T \hat{\mu}^E_{s_ia_i} \right)$. It is clear, as $A$ is finite, that it is a convex, proper, closed and continuous function
+with finite values. Moreover one sub-gradient of $J_N$ in $\theta\in\mathbb{R}^p$ is $g_{\theta}={1\over N}\sum_{i=1}^N\left(\hat{\mu}^E_{s_ia^*_i} - \hat{\mu}^E_{s_ia_i}\right)$, where $a^*_i\in\arg\max_{a\in A}(\theta ^T \hat{\mu}^E_{s_ia} + l(s_i,a))$.
+We can then use the result from the article \cite{correa1993convergence} section 5 which allows to say, with our notations, that the sequence $\theta_0=0,\forall t\in \mathbb{N}^*,\theta_{t+1}=\theta_t-\alpha_t\frac{g_{\theta_t}}{\|g_{\theta_t}\|_2}$ is convergent
+if there exists a minimum to $J_N$, and that $\liminf_{t\rightarrow +\infty}J_N(\theta_t)=\inf_{\theta\in\mathbb{R}^p}J_N(\theta)$ under the conditions: $\sum_{t\geq0}\alpha_t>+\infty,\text{ }\sum_{t\geq0}\alpha_t^2<+\infty$. For a discussion on the existence
+of the minimum, one can report to the article \cite{kaufmann1988existence}. Finally, one can show that if there exists $\theta\in\mathbb{R}^p$ such that $\forall 1\leq i \leq N, \theta^T\mu^E_{s_ia_i}>\max_{a\in A \backslash a_i}\theta^T\mu^E_{s_i,a}$, then there exists a minimum of $J_N$ and that all the
+minimums: $\{\tilde{\theta}: \inf_{\theta\in\mathbb{R}^p}J_N(\theta)=J_N(\tilde{\theta})\}$ verify $\forall 1\leq i \leq N, \tilde{\theta}^T\mu^E_{s_ia_i}>\max_{a\in A \backslash a_i}\tilde{\theta}^T\mu^E_{s_i,a}$.
 \subsection{Quality of the solution found by the sub-gradient algorithm}
+Here we are going to bound the term $E_{s\sim\nu}[V^{\pi_E}(s)-Q^{\pi_E}(s,\pi_A(s))]$. First of all let us introduce the estimation errors $\{\epsilon^{\mu}_{s_ia_i}=\hat{\mu}^E_{s_ia_i}-\mu^E_{s_ia_i}\}_{1\leq i \leq N,a\in A}$ and the
+approximation error $\epsilon^R$ which results from the fact that the unknown and bounded reward function $R\in\mathbb{R}^S$ may not be a linear combination of the features $\psi_{1\leq i \leq p}$. Formally, let $T$ be the tuple $\{S,A,\{P_{sa}\}_{s\in S,a\in A},\gamma\}$ which is
+an MDP without reward and $T(\tilde{R})=\{S,A,\{P_{sa}\}_{s\in S,a\in A},\gamma,\tilde{R}\}$ where $\tilde{R}\in\mathbb{R}^S$. We note $C_R$ the reward-equivalence class of $R$: $C_R=\{\tilde{R}\in\mathbb{R}^S: \Pi(T(R))=\Pi(T(\tilde{R}))\}$ where $\Pi(T(\tilde{R}))$ is the set of optimal deterministic policies
+of $T(\tilde{R})$. We can now give a formal definition of $\epsilon^R$: $\epsilon^R=\|R^*-\theta^{*T}\psi\|_\infty=\max_{s\in S}|R^*(s)-\theta^{*T}\psi(s)|$ where $(R^*,\theta^*)\in\argmin_{\tilde{R}\in C_R, \theta\in\mathbb{R}^p}{\|\theta^T\psi-R\|_2}$.
+Now we suppose that our sub-gradient converges to $\tilde{\theta}$ and that $g_{\tilde{\theta}}={1\over N}\sum_{i=1}^N\left(\hat{\mu}^E_{s_ia^*_i} - \hat{\mu}^E_{s_ia_i}\right)=0$, where $a^*_i\in\arg\max_{a\in A}(\tilde{\theta}^T \hat{\mu}^E_{s_ia} + l(s_i,a))$.
+This case happen for instance when there exists $\theta\in\mathbb{R}^p$ such that $\forall 1\leq i \leq N, \theta^T\mu^E_{s_ia_i}>\max_{a\in A \backslash a_i}\theta^T\mu^E_{s_i,a}$. The apprentice policy $\pi_A$ is an optimal deterministic policy
+for the MDP $T(\tilde{\theta}\psi)$ and we can show that: $\forall 1\leq i\leq N, \pi_A(s_i)=a_i^*$. So we have: ${1\over N}\sum_{i=1}^N\left(\hat{\mu}^E_{s_i\pi_A(s_i)} - \hat{\mu}^E_{s_i\pi_E(s_i)}\right)=0$ which implies: ${1\over N}\sum_{i=1}^N(<\mu^E_{s_i\pi_A(s_i)},\theta^*>-<\mu^E_{s_i\pi_E(s_i)},\theta^*>+<\epsilon^{\mu}_{s_i\pi_A(s_i)}-\epsilon^{\mu}_{s_i\pi_E(s_i)},\theta^*>)=0$.
+Here $Q^{\pi_E}$ and $V^{\pi_E}$ are defined in function of $R^*$ and not in function of $R$, we should use the notations $Q^{\pi_E}_{R^*}$ and $V^{\pi_E}_{R^*}$.
+Let note the action-value errors $\{\epsilon^Q_{s_ia_i}=Q^{\pi_E}(s_i,a_i)-<\theta^*,\mu^E_{s_ia_i}>\}_{1\leq i \leq N,a\in A}$, we have $\forall 1\leq i\leq N, |\epsilon^Q_{s_ia_i}|=|E^{\pi_E}_{s_ia_i}[\sum_{t\geq0}\gamma^t(R^*(s_t)-<\theta^*,\psi(s_t)>)]|\leq\frac{\epsilon^R}{1-\gamma}$. So we have:
+${1\over N}\sum_{i=1}^N(Q^{\pi_E}(s_i,\pi_E(s_i))-\Q^{\pi_E}(s_i,\pi_A(s_i))+<\epsilon^{\mu}_{s_i\pi_E(s_i)}-\epsilon^{\mu}_{s_i\pi_A(s_i)},\theta^*>-\epsilon^{Q}_{s_i\pi_E(s_i)}+\epsilon^{Q}_{s_i\pi_A(s_i)})=0$. Finally, let us define $\epsilon^V$, $V$ as Vapnick, the Vapnick-error term:
+$\epsilon^V=E_{s\sim\nu}[V^{\pi_E}(s)-Q^{\pi_E}(s,\pi_A(s))]-[{1\over N}\sum_{i=1}^NQ^{\pi_E}(s_i,\pi_E(s_i))-\Q^{\pi_E}(s_i,\pi_A(s_i))]$. Here we suppose that the samples$\{s_i,a_i\}_{1\leq i \leq N,a\in A}$ are i.i.d and distributed over $\nu$. We know that the $\pi_A$ we find depends only on $\tilde{\theta}$ which depends on the samples
+but as $\tilde{\theta}$ is a linear combination of $p$ parameters it implies that the space of possible $\pi_A$ has a VC-dimension $h$ such that: $h\leq p$. So, we can use a Vapnick-bound for $\epsilon^V$ with probability $1-\eta$ because $\forall s\in S, 0\leq|Q^{\pi_E}(s,\pi_E(s))-\Q^{\pi_E}(s,\pi_A(s))|\leq\frac{R^*_{max}}{1-\gamma}$, where $R^*_{max}=\max_{s\in S}R^*(s)$. 
+$|\epsilon_V|\leq\frac{R^*_{max}}{1-\gamma}\epsilon(N)$ where $\epsilon(N)=\sqrt{\frac{h}{N}[\ln(\frac{2N}{h})+1]-\frac{1}{N}\ln(\frac{\eta}{4})}$. Finally by Cauchy-Schwartz, we have the final upper-bound with probability $1-\eta$:
+$E_{s\sim\nu}[V^{\pi_E}(s)-Q^{\pi_E}(s,\pi_A(s))]\leq\frac{\epsilon^R}{1-\gamma}+2\|\theta^*\|_2\|\epsilon^{\mu}\|_{\infty}+\epsilon(N)$, where $\|\epsilon^{\mu}\|_{\infty}=\max_{1\leq i\leq N,a\in A}\|\epsilon^{\mu}_{s_ia}\|_2$. 
 \section{Related work}
 \label{biblio.sec}
 %%%%%
