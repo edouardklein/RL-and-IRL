@@ -1,6 +1,6 @@
 #+TITLE:Benchmarking SCIRL,LSTD$\mu$ on the Highway Driving
 
-Sur les traces de ce que l'on a fait pour [[file:MWAL.org][MWAL]], on va essayer ici de faire tourner SCIRL instancier avec LSTD$\mu$ sur le problème du Highway driving. Une partie du code est redondante avec ce qui s'est fait pour MWAL.
+Sur les traces de ce que l'on a fait pour [[file:MWAL.org][MWAL]], on va essayer ici de faire tourner SCIRL instancié avec LSTD$\mu$ sur le problème du Highway driving. Une partie du code est redondante avec ce qui s'est fait pour MWAL.
 
 * Obtenir une estimation de $\mu_E(s,a)$
 
