@@ -89,7 +89,7 @@ The first filter takes care of the first transition which is not in the same for
 
 #+srcname: MWAL_make
 #+begin_src makefile
-N_VALUES=30 100 150 300
+N_VALUES=30 90 150 300
 
 PlayFast_X.dat: PlayFast_stripped.dat #Dummy target
 	for i in $(N_VALUES); do head -n $$i PlayFast_stripped.dat > PlayFast_$$i.dat; done
@@ -117,16 +117,29 @@ Psi = zeros( (transitions.shape[0], 3) )
 
 gamma = 0.9
 
-for i in range( 0, transitions.shape[0] ):
-    Psi[i,:] = pow(gamma,i) * psi( transitions[i,0:4] ).transpose() #We only compute psi(s) and transitions[i,:] is [s,a]
+power = 0
+i = 0
+nb_traj=0.
+for trans in transitions:
+    if all( trans[0:4] == [1.,160., 0.,0.] ):
+        power = 0
+        nb_traj+=1.
+    Psi[i,:] = pow(gamma,power) * psi( trans[0:4] ).transpose() #We only compute psi(s) and transitions[i,:] is [s,a]
+    power += 1
+    i+=1
 
-mu = mean(Psi,0)
+
+mu = sum(Psi,0)/nb_traj
 
 print str( mu )
+
    #+end_src
 
   #+srcname: MWAL_make
 #+begin_src makefile
+tr2mu.py: MWAL.org
+	$(call tangle,"MWAL.org")
+
 PlayFast_mu_X.mat : PlayFast_X.dat tr2mu.py phipsi.py
 	for i in $(N_VALUES); do python tr2mu.py PlayFast_$$i.dat | tr -d '[' | tr -d ']' > PlayFast_mu_$$i.mat; done
 	touch PlayFast_mu_X.mat
@@ -202,5 +215,6 @@ MWAL_clean:
 	find al_code -maxdepth 1 -iname "my_MWAL.m"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "tr2mu.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "PlayFast.dat"   | xargs $(XARGS_OPT) rm
-
+	find . -maxdepth 1 -iname "PlayFast_*.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlayFast_*.mat"   | xargs $(XARGS_OPT) rm
   #+end_src

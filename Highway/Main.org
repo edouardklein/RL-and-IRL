@@ -113,6 +113,14 @@ def phi( s, a ):
 
 #+end_src
 
+#+srcname: phipsi_make
+#+begin_src makefile
+phipsi.py: Main.org
+	$(call tangle,"Main.org")
+
+#+end_src
+
+
 ** Implémentation en C
    Une fois les notations mathématiques correctement établies comme ci dessus, l'implémentation à l'aide de la GSL est assez directe. Une des petites subtilités est que le vecteur, écrit en colonne dans les notation matheuses sera passé en ligne car lu dans les transitions.
    
@@ -350,4 +358,5 @@ Main_clean:
 	find . -maxdepth 1 -iname "phipsi.c"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "phipsi.h"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "phipsi.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.pyc"   | xargs $(XARGS_OPT) rm
   #+end_src
