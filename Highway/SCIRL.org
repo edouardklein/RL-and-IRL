@@ -289,8 +289,9 @@ PlayFast_scirl_mu_X.mat :al_code/scirl_fast_policy_X.txt tr2mu.py
 	python tr2mu.py PlayFast_scirl_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlayFast_scirl_mu_$$i.mat; done
 	touch PlayFast_scirl_mu_X.mat
 
-PlaySafe_scirl_mu_X.mat : PlaySafe_scirl_X.dat tr2mu.py
+PlaySafe_scirl_mu_X.mat :al_code/scirl_safe_policy_X.txt tr2mu.py
 	for i in $(N_VALUES); do \
+	python PolicyPlay.py al_code/scirl_safe_policy_$$i.txt > PlaySafe_scirl_$$i.dat;\
 	cat PlaySafe_scirl_$$i.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_scirl_stripped_$$i.dat;\
 	python tr2mu.py PlaySafe_scirl_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlaySafe_scirl_mu_$$i.mat; done
 	touch PlaySafe_scirl_mu_X.mat
@@ -309,15 +310,15 @@ SCIRL_clean:
 	find . -maxdepth 1 -iname "SCIRL_LSTDmu.o"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "SCIRL_LSTDmu.exe"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "omega_mu_E_Fast_*.mat"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "omega_mu_E_Safe.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_mu_E_Safe_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "SCIRL_Exp6.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "theta_lafem_Fast_*.mat"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "theta_lafem_Safe.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "theta_lafem_Safe_*.mat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "optimal_policy.m"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "make_F.m"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "make_THETA.m"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "scirl_fast_policy_*.txt"   | xargs $(XARGS_OPT) rm
-	find al_code -maxdepth 1 -iname "scirl_safe_policy.txt"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "scirl_safe_policy_*.txt"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "PlayFast_scirl.dat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "PlaySafe_scirl.dat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "PlayFast_scirl_stripped.dat"   | xargs $(XARGS_OPT) rm

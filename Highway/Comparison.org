@@ -66,8 +66,8 @@ import sys
 
 Fast_R = genfromtxt( "al_code/fast_reward.mat" )
 Safe_R = genfromtxt( "al_code/safe_reward.mat" )
-Fast_mu = genfromtxt( "PlayFast_mu_"+sys.argv[1]+".mat" )
-Safe_mu = genfromtxt( "PlaySafe_mu_"+sys.argv[1]+".mat" )
+Fast_mu = genfromtxt( "PlayFast_mu_300.mat" ) #FIXME on devrait pas avoir a specifier 300 ici, c'est redondant avec N_VALUES
+Safe_mu = genfromtxt( "PlaySafe_mu_300.mat" )
 Fast_true_V = dot(Fast_R, Fast_mu)
 Safe_true_V = dot(Safe_R, Safe_mu)
 f_Fast_true = open( "FastResults_true.mat", "w" ) #The last to be written i.e. the one with
@@ -83,6 +83,14 @@ f_Safe_true.close()
 #+srcname: Comparison_make
 #+begin_src makefile
 FastResults_scirl.py: Comparison.org
+	$(call tangle,"Comparison.org")
+FastResults_mwal.py: Comparison.org
+	$(call tangle,"Comparison.org")
+SafeResults_scirl.py: Comparison.org
+	$(call tangle,"Comparison.org")
+SafeResults_mwal.py: Comparison.org
+	$(call tangle,"Comparison.org")
+ExpertsResults.py: Comparison.org
 	$(call tangle,"Comparison.org")
 
 FastResults_scirl.mat: FastResults_scirl.py PlayFast_scirl_mu_X.mat al_code/fast_reward.mat
@@ -105,6 +113,13 @@ SafeResults_mwal.mat: SafeResults_mwal.py PlaySafe_mwal_mu_X.mat al_code/safe_re
 	rm SafeResults_mwal.mat
 	for i in $(N_VALUES); do (echo -n "$$i " && python SafeResults_mwal.py $$i) >> SafeResults_mwal.mat; done
 
+#FIXME:On devrauit pas avoir à spécifier 300 ici, si on change N_VALUES, on est potentiellement marrons
+SafeResults_true.mat: PlaySafe_mu_300.mat al_code/safe_reward.mat
+	python ExpertsResults.py 
+
+FastResults_true.mat: PlayFast_mu_300.mat al_code/fast_reward.mat
+	python ExpertsResults.py 
+
 #+end_src
 
 
@@ -126,7 +141,7 @@ g_nlInput = ['FastResults_scirl.mat', ['-d" " -f\'1 2\''], [],
              'FastResults_mwal.mat', ['-d" " -f\'1 2\''], [],
              'SafeResults_scirl.mat', ['-d" " -f\'1 2\''], [],
              'SafeResults_mwal.mat', ['-d" " -f\'1 2\''], []]
-g_iN = 10
+g_iN = 2
 
   #+end_src
 
@@ -141,6 +156,11 @@ Comparison_ErrorBars: Comparison_conf.py FastResults_scirl.mat FastResults_mwal.
 	mv Comparison_conf.py conf.py
 	../../Utils/ErrorBars.py
 	rm conf.py
+
+FastResults_mwal.mat-0: Comparison_ErrorBars
+FastResults_scirl.mat-0: Comparison_ErrorBars
+SafeResults_mwal.mat-0: Comparison_ErrorBars
+SafeResults_scirl.mat-0: Comparison_ErrorBars
 
   #+end_src
 
@@ -178,7 +198,7 @@ plot "./SafeResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./SafeResults_scir
 FastResults_EB.gp: Comparison.org
 	$(call tangle,"Comparison.org")
 
-FastResults_EB.pdf: FastResults_EB.gp Comparison_ErrorBars Comparison
+FastResults_EB.pdf: FastResults_EB.gp FastResults_mwal.mat-0 SafeResults_scirl.mat-0 FastResults_true.mat 
 	gnuplot FastResults_EB.gp
 	ps2pdf FastResults_EB.ps
 	rm FastResults_EB.ps
@@ -186,7 +206,7 @@ FastResults_EB.pdf: FastResults_EB.gp Comparison_ErrorBars Comparison
 SafeResults_EB.gp: Comparison.org
 	$(call tangle,"Comparison.org")
 
-SafeResults_EB.pdf: SafeResults_EB.gp Comparison_ErrorBars Comparison
+SafeResults_EB.pdf: SafeResults_EB.gp SafeResults_mwal.mat-0 SafeResults_scirl.mat-0 SafeResults_true.mat 
 	gnuplot SafeResults_EB.gp
 	ps2pdf SafeResults_EB.ps
 	rm SafeResults_EB.ps
@@ -197,8 +217,8 @@ SafeResults_EB.pdf: SafeResults_EB.gp Comparison_ErrorBars Comparison
   #+srcname: Comparison_clean_make
   #+begin_src makefile
 Comparison_clean:
-	find . -maxdepth 1 -iname "ComparativeResults.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ExpertsResults.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "Comparison_conf.py"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "FastResults_EB.gp"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SafeResults_EB.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "FastResults_*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SafeResults_*"   | xargs $(XARGS_OPT) rm
   #+end_src

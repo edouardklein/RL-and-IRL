@@ -210,13 +210,18 @@ MWAL_clean:
 	find . -maxdepth 1 -iname "PolicyPlay.py"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "fast_policy.dat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "fast_policy.txt"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "safe_policy.dat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "safe_policy.txt"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "fast_reward.mat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "safe_reward.mat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "my_MWAL.m"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "tr2mu.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "PlayFast.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe.dat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "PlayFast_*.dat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "PlayFast_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_*.dat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_*.mat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "policy.dat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "policy_mwal_*"   | xargs $(XARGS_OPT) rm
   #+end_src
