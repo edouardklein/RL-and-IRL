@@ -4,43 +4,72 @@ Utilisons ici les résultats obtenus dans [[file:MWAL.org]] et [[file:SCIRL.org]
 
 La valeur qui nous importe est celle de la fonction de valeur dans l'état initial, $V(s_0)$, relativement à la vraie fonction de récompense. Nous effectuons ce calcul grâce à la formule : $V(s_0) = \theta^T\mu(s_0)$, et nous estimons $\mu(s_0)$ grâce à une estimation de Monte-Carlo.
 
-#+begin_src python :tangle ComparativeResults.py
+#+begin_src python :tangle FastResults_scirl.py
+from numpy import*
+import sys
+
+
+Fast_R = genfromtxt( "al_code/fast_reward.mat" )
+
+Fast_mu_scirl = genfromtxt( "PlayFast_scirl_mu_"+sys.argv[1]+".mat" )
+Fast_scirl_V = dot(Fast_R, Fast_mu_scirl)
+
+print Fast_scirl_V
+#+end_src
+
+#+begin_src python :tangle FastResults_mwal.py
+from numpy import*
+import sys
+
+
+Fast_R = genfromtxt( "al_code/fast_reward.mat" )
+
+Fast_mu_mwal = genfromtxt( "PlayFast_mwal_mu_"+sys.argv[1]+".mat" )
+
+Fast_mwal_V = dot(Fast_R, Fast_mu_mwal)
+ 
+print Fast_mwal_V
+#+end_src
+
+#+begin_src python :tangle SafeResults_scirl.py
+from numpy import*
+import sys
+
+
+Safe_R = genfromtxt( "al_code/safe_reward.mat" )
+
+Safe_mu_scirl = genfromtxt( "PlaySafe_scirl_mu_"+sys.argv[1]+".mat" )
+Safe_scirl_V = dot(Safe_R, Safe_mu_scirl)
+
+print Safe_scirl_V
+#+end_src
+
+#+begin_src python :tangle SafeResults_mwal.py
+from numpy import*
+import sys
+
+
+Safe_R = genfromtxt( "al_code/safe_reward.mat" )
+
+Safe_mu_mwal = genfromtxt( "PlaySafe_mwal_mu_"+sys.argv[1]+".mat" )
+
+Safe_mwal_V = dot(Safe_R, Safe_mu_mwal)
+ 
+print Safe_mwal_V
+#+end_src
+
+
+#+begin_src python :tangle ExpertsResults.py
 from numpy import*
 import sys
 
 
 Fast_R = genfromtxt( "al_code/fast_reward.mat" )
 Safe_R = genfromtxt( "al_code/safe_reward.mat" )
-
 Fast_mu = genfromtxt( "PlayFast_mu_"+sys.argv[1]+".mat" )
 Safe_mu = genfromtxt( "PlaySafe_mu_"+sys.argv[1]+".mat" )
-
-Fast_mu_mwal = genfromtxt( "PlayFast_mwal_mu_"+sys.argv[1]+".mat" )
-Safe_mu_mwal = genfromtxt( "PlaySafe_mwal_mu_"+sys.argv[1]+".mat" )
-
-Fast_mu_scirl = genfromtxt( "PlayFast_scirl_mu_"+sys.argv[1]+".mat" )
-Safe_mu_scirl = genfromtxt( "PlaySafe_scirl_mu_"+sys.argv[1]+".mat" )
-
 Fast_true_V = dot(Fast_R, Fast_mu)
-Fast_mwal_V = dot(Fast_R, Fast_mu_mwal)
-Fast_scirl_V = dot(Fast_R, Fast_mu_scirl)
-
 Safe_true_V = dot(Safe_R, Safe_mu)
-Safe_mwal_V = dot(Safe_R, Safe_mu_mwal)
-Safe_scirl_V = dot(Safe_R, Safe_mu_scirl)
-
-
-
-print "Fast driving :"
-print "True V(s_0) : " + str( Fast_true_V )
-print "MWAL V(s_0) : " + str( Fast_mwal_V )
-print "SCIRL V(s_0) : " + str( Fast_scirl_V )
-print
-print "Safe driving :"
-print "True V(s_0) : " + str( Safe_true_V )
-print "MWAL V(s_0) : " + str( Safe_mwal_V )
-print "SCIRL V(s_0) : " + str( Safe_scirl_V )
-
 f_Fast_true = open( "FastResults_true.mat", "w" ) #The last to be written i.e. the one with
 f_Safe_true = open( "SafeResults_true.mat", "w" ) #the most samples will overwrite the others (see the makefile rules)
 f_Fast_true.write("%e\n"% Fast_true_V ) #No abscissa we want a flat line
@@ -48,47 +77,34 @@ f_Safe_true.write("%e\n"% Safe_true_V )
 f_Fast_true.close()
 f_Safe_true.close()
 
-f_Fast_scirl = open( "FastResults_scirl.mat", "a" )
-f_Fast_mwal = open( "FastResults_mwal.mat", "a" )
-f_Safe_scirl = open( "SafeResults_scirl.mat", "a" )
-f_Safe_mwal = open( "SafeResults_mwal.mat", "a" )
-
-f_Fast_scirl.write(sys.argv[1]+" %e\n"% Fast_scirl_V )
-f_Fast_mwal.write(sys.argv[1]+" %e\n"% Fast_mwal_V )
-f_Safe_scirl.write(sys.argv[1]+" %e\n"% Safe_scirl_V )
-f_Safe_mwal.write(sys.argv[1]+" %e\n"% Safe_mwal_V )
-
-f_Fast_scirl.close()
-f_Fast_mwal.close()
-f_Safe_scirl.close()
-f_Safe_mwal.close()
 #+end_src
-
-FIXME: Enlever les Results_true de ce script et les mettre à part, ça n'a pas de sens de les calculer pour différentes longueurs
 
 
 #+srcname: Comparison_make
 #+begin_src makefile
-ComparativeResults.py: Comparison.org
+FastResults_scirl.py: Comparison.org
 	$(call tangle,"Comparison.org")
 
-Comparison: ComparativeResults.py PlayFast_scirl_mu_X.mat PlaySafe_scirl_mu_X.mat PlayFast_mwal_mu_X.mat PlaySafe_mwal_mu_X.mat PlayFast_mu_X.mat PlaySafe_mu_X.mat al_code/fast_reward.mat al_code/safe_reward.mat
+FastResults_scirl.mat: FastResults_scirl.py PlayFast_scirl_mu_X.mat al_code/fast_reward.mat
 	touch FastResults_scirl.mat
 	rm FastResults_scirl.mat
+	for i in $(N_VALUES); do (echo -n "$$i " && python FastResults_scirl.py $$i) >> FastResults_scirl.mat; done
+
+FastResults_mwal.mat: FastResults_mwal.py PlayFast_mwal_mu_X.mat al_code/fast_reward.mat
 	touch FastResults_mwal.mat
 	rm FastResults_mwal.mat
+	for i in $(N_VALUES); do (echo -n "$$i " && python FastResults_mwal.py $$i) >> FastResults_mwal.mat; done
+
+SafeResults_scirl.mat: SafeResults_scirl.py PlaySafe_scirl_mu_X.mat al_code/safe_reward.mat
 	touch SafeResults_scirl.mat
 	rm SafeResults_scirl.mat
+	for i in $(N_VALUES); do (echo -n "$$i " && python SafeResults_scirl.py $$i) >> SafeResults_scirl.mat; done
+
+SafeResults_mwal.mat: SafeResults_mwal.py PlaySafe_mwal_mu_X.mat al_code/safe_reward.mat
 	touch SafeResults_mwal.mat
 	rm SafeResults_mwal.mat
-	for i in $(N_VALUES); do python ComparativeResults.py $$i; done
+	for i in $(N_VALUES); do (echo -n "$$i " && python SafeResults_mwal.py $$i) >> SafeResults_mwal.mat; done
 
-FastResults_scirl.mat: Comparison
-FastResults_mwal.mat: Comparison
-SafeResults_scirl.mat:Comparison
-SafeResults_mwal.mat:Comparison
-FastResults_true.mat:Comparison
-SafeResults_true.mat:Comparison
 #+end_src
 
 
@@ -99,29 +115,10 @@ The first thing to do is to define a clean rule to remove the file to plot and a
 
   #+srcname: Comparison_make
   #+begin_src makefile
-clean_EB:
-	find . -maxdepth 1 -iname "PlayFast_SCIRL_*.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_SCIRL_stripped_*.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_scirl_mu_*.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_mwal_*.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_mwal_stripped_*.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlayFast_mwal_mu_*.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "FastResults_*.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_SCIRL_*.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_SCIRL_stripped_*.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_scirl_mu_*.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_mwal_*.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_mwal_stripped_*.dat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "PlaySafe_mwal_mu_*.mat" | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SafeResults_*.mat" | xargs $(XARGS_OPT) rm
-
-clean_FastResults_scirl.mat: clean_EB
-clean_FastResults_mwal.mat: clean_EB
-clean_SafeResults_scirl.mat: clean_EB
-clean_SafeResults_mwal.mat: clean_EB
-
-clean_SafeResults.mat: 
-
+clean_FastResults_scirl.mat: clean
+clean_FastResults_mwal.mat: clean
+clean_SafeResults_scirl.mat: clean
+clean_SafeResults_mwal.mat: clean
   #+end_src
 
   #+begin_src python :tangle Comparison_conf.py
@@ -140,7 +137,7 @@ FIXME: Dans tous les ErrorBars, on devrait pas avoir à make-er la cible à blan
 Comparison_conf.py: Comparison.org 
 	$(call tangle,"Comparison.org")
 
-Comparison_ErrorBars: Comparison_conf.py FastResults_scirl.mat
+Comparison_ErrorBars: Comparison_conf.py FastResults_scirl.mat FastResults_mwal.mat SafeResults_scirl.mat SafeResults_mwal.mat
 	mv Comparison_conf.py conf.py
 	../../Utils/ErrorBars.py
 	rm conf.py
@@ -154,7 +151,7 @@ Les fichiers ainsi obtenus, =[Fast|Safe]Results_[scirl|mwal}.mat-0= permettent d
 set output "FastResults_EB.ps"
 set term postscript enhanced color
 set xrange [0:330]
-set yrange [0.02:0.025]
+#set yrange [0.02:0.025]
 set ylabel "Performance"
 set key bottom right
 set xlabel "Number of samples from the expert"
@@ -167,7 +164,7 @@ plot "./FastResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./FastResults_scir
 set output "SafeResults_EB.ps"
 set term postscript enhanced color
 set xrange [0:330]
-set yrange [0.01:0.018]
+#set yrange [0.01:0.018]
 set ylabel "Performance"
 set xlabel "Number of samples from the expert"
 set key bottom right
