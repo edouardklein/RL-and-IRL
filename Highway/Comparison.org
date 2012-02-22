@@ -114,10 +114,12 @@ SafeResults_mwal.mat: SafeResults_mwal.py PlaySafe_mwal_mu_X.mat al_code/safe_re
 	for i in $(N_VALUES); do (echo -n "$$i " && python SafeResults_mwal.py $$i) >> SafeResults_mwal.mat; done
 
 #FIXME:On devrauit pas avoir à spécifier 300 ici, si on change N_VALUES, on est potentiellement marrons
-SafeResults_true.mat: PlaySafe_mu_300.mat al_code/safe_reward.mat
+SafeResults_true.mat: PlaySafe_mu_X.mat al_code/safe_reward.mat PlayFast_mu_X.mat
+	$(call tangle,"Comparison.org")
 	python ExpertsResults.py 
 
-FastResults_true.mat: PlayFast_mu_300.mat al_code/fast_reward.mat
+FastResults_true.mat: PlayFast_mu_X.mat al_code/fast_reward.mat PlaySafe_mu_X.mat
+	$(call tangle,"Comparison.org")
 	python ExpertsResults.py 
 
 #+end_src
@@ -141,7 +143,7 @@ g_nlInput = ['FastResults_scirl.mat', ['-d" " -f\'1 2\''], [],
              'FastResults_mwal.mat', ['-d" " -f\'1 2\''], [],
              'SafeResults_scirl.mat', ['-d" " -f\'1 2\''], [],
              'SafeResults_mwal.mat', ['-d" " -f\'1 2\''], []]
-g_iN = 2
+g_iN = 10
 
   #+end_src
 
@@ -152,7 +154,7 @@ FIXME: Dans tous les ErrorBars, on devrait pas avoir à make-er la cible à blan
 Comparison_conf.py: Comparison.org 
 	$(call tangle,"Comparison.org")
 
-Comparison_ErrorBars: Comparison_conf.py FastResults_scirl.mat FastResults_mwal.mat SafeResults_scirl.mat SafeResults_mwal.mat
+Comparison_ErrorBars: Comparison_conf.py #FastResults_scirl.mat FastResults_mwal.mat SafeResults_scirl.mat SafeResults_mwal.mat
 	mv Comparison_conf.py conf.py
 	../../Utils/ErrorBars.py
 	rm conf.py
