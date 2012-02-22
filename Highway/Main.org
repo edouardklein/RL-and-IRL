@@ -357,6 +357,7 @@ Main_clean:
 	find . -maxdepth 1 -iname "Highway_lspi.c"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "phipsi.c"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "phipsi.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.o"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "phipsi.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "phipsi.pyc"   | xargs $(XARGS_OPT) rm
   #+end_src

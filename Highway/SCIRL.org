@@ -277,29 +277,14 @@ al_code/scirl_safe_policy_X.txt: al_code/make_THETA.m al_code/make_F.m al_code/o
 #+end_src
 
 
-Once the transformation is done, one can play with the policy in the simulator. We use our modified version which can stop after a certain number of transitions.
-
-Transitions are stored for later use.
-
-#+srcname: SCIRL_make
-#+begin_src makefile
-PlayFast_scirl_X.dat : al_code/scirl_fast_policy_X.txt PolicyPlay.py App.py
-	for i in $(N_VALUES); do python PolicyPlay.py al_code/scirl_fast_policy_$$i.txt > PlayFast_scirl_$$i.dat; done
-	touch PlayFast_scirl_X.dat
-
-PlaySafe_scirl_X.dat : al_code/scirl_safe_policy_X.txt PolicyPlay.py App.py
-	for i in $(N_VALUES); do python PolicyPlay.py al_code/scirl_safe_policy_$$i.txt > PlaySafe_scirl_$$i.dat; done
-	touch PlaySafe_scirl_X.dat
-
-#+end_src
-
 * Calculer la /feature expectation/ des agents entraînés sur les récompenses trouvées par SCIRL
   La /feature expectation/ des agents est calculée de la même manière que dans [[file:MWAL.org]].
 
   #+srcname: SCIRL_make
 #+begin_src makefile
-PlayFast_scirl_mu_X.mat : PlayFast_scirl_X.dat tr2mu.py
+PlayFast_scirl_mu_X.mat :al_code/scirl_fast_policy_X.txt tr2mu.py
 	for i in $(N_VALUES); do \
+	python PolicyPlay.py al_code/scirl_fast_policy_$$i.txt > PlayFast_scirl_$$i.dat;\
 	cat PlayFast_scirl_$$i.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_scirl_stripped_$$i.dat;\
 	python tr2mu.py PlayFast_scirl_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlayFast_scirl_mu_$$i.mat; done
 	touch PlayFast_scirl_mu_X.mat
@@ -323,17 +308,15 @@ SCIRL_clean:
 	find . -maxdepth 1 -iname "SCIRL_LSTDmu.c"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "SCIRL_LSTDmu.o"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "SCIRL_LSTDmu.exe"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "omega_mu_E_Fast.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_mu_E_Fast_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "omega_mu_E_Safe.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "SCIRL_Exp6.py"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "theta_lafem_Fast.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "theta_lafem_Fast_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "theta_lafem_Safe.mat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "optimal_policy.m"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "make_F.m"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "make_THETA.m"   | xargs $(XARGS_OPT) rm
-	find al_code -maxdepth 1 -iname "scirl_fast_policy.dat"   | xargs $(XARGS_OPT) rm
-	find al_code -maxdepth 1 -iname "scirl_safe_policy.dat"   | xargs $(XARGS_OPT) rm
-	find al_code -maxdepth 1 -iname "scirl_fast_policy.txt"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "scirl_fast_policy_*.txt"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "scirl_safe_policy.txt"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "PlayFast_scirl.dat"   | xargs $(XARGS_OPT) rm
 	find al_code -maxdepth 1 -iname "PlaySafe_scirl.dat"   | xargs $(XARGS_OPT) rm
