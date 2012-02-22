@@ -217,4 +217,6 @@ MWAL_clean:
 	find . -maxdepth 1 -iname "PlayFast.dat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "PlayFast_*.dat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "PlayFast_*.mat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "policy.dat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "policy_mwal_*"   | xargs $(XARGS_OPT) rm
   #+end_src

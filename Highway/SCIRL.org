@@ -25,7 +25,7 @@ for i in range( 0, transitions.shape[0] - 1):
     new_tr[i,4:5] = a
     new_tr[i,5:9] = sdash
     new_tr[i,9:12] = psi(s).transpose()
-    new_tr[i,12:13] = (1 if i < transitions.shape[0] - 1 else 0) #eoe is 0 at the end of episode
+    new_tr[i,12:13] = (1 if any( sdash != [1., 160., 0., 0.] ) else 0) #eoe is 0 at the end of episode
 
 savetxt( sys.argv[2], new_tr, "%f", ' ' )
 
