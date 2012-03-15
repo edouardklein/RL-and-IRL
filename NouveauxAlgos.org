@@ -276,9 +276,14 @@ class LAFEM:
 
      
    L'algorithme se déroule comme suit : 
+   - Initialiser $\theta_{t=0} \leftarrow \theta_0$, $\theta_T\leftarrow \theta_{t=0}$
    #+begin_src python :tangle LAFEM.py
    def run( self ):
       theta = self.theta_0.copy()
+      best_theta = theta.copy()
+      best_norm = 1000000.#FIXME:Il faudrait mettre plus l'infini
+      best_iter = 0
+
    #+end_src
    - Pour le nombre d'itérations prévues :
      #+begin_src python :tangle LAFEM.py
@@ -311,18 +316,27 @@ class LAFEM:
          #+begin_src python :tangle LAFEM.py
             DeltaTheta = DeltaTheta + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
          #+end_src
-     - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t {1\over N}\Delta\theta$
+     - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t {1\Delta\theta\over N ||\Delta\theta||_2}$
        #+begin_src python :tangle LAFEM.py
          DeltaTheta = DeltaTheta / len(self.data) #1/N
          norm = scipy.linalg.norm(DeltaTheta)
          theta = theta - self.alpha( t ) * DeltaTheta / norm
          sys.stderr.write("Norme du gradient : "+str(norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)+"\n")
+       #+end_src
+     - Si $||\theta_{t+1}||_2 < ||\theta_T||_2$, effectuer $\theta_T \leftarrow\theta_{t+1}$
+       #+begin_src python :tangle LAFEM.py
+         if norm < best_norm:
+             best_norm = norm
+             best_theta = theta.copy()
+             best_iter = t
          if norm < self.Threshold or (self.T != -1 and t >= self.T):
              break
        #+end_src
+       
    - retourner $\theta_T$
      #+begin_src python :tangle LAFEM.py
-      return theta
+      sys.stderr.write("Gradient de norme : "+str(best_norm)+", a l'iteration : "+str(best_iter)+"\n")
+      return best_theta
      #+end_src
      
 * Making this document :code:

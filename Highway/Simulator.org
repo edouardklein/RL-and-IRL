@@ -168,7 +168,13 @@ class App:
                 self.action = "none"            
             print str(state), self.action
         elif (self.autopilot == "random" ):
-            self.action = random.choice(['left','right','none'])
+            action_list = []
+            if (str(state) == "[1, 160]"):
+		action_list = ["none", "down", "up"]
+            else:
+        	action_list = ["none", "left", "right"]
+            self.action = random.choice(action_list)
+            print str(state), self.action
         elif (self.autopilot == "greedy" and len(flatten(state)) == 5):
             self.action = self.greedy( array( [x for x in flatten( state )] ) )
 
