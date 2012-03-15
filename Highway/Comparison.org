@@ -96,22 +96,22 @@ ExpertsResults.py: Comparison.org
 FastResults_scirl.mat: FastResults_scirl.py PlayFast_scirl_mu_X.mat al_code/fast_reward.mat
 	touch FastResults_scirl.mat
 	rm FastResults_scirl.mat
-	for i in $(N_VALUES); do (echo -n "$$i " && python FastResults_scirl.py $$i) >> FastResults_scirl.mat; done
+	for i in $(N_VALUES); do (/bin/echo -n "$$i " && python FastResults_scirl.py $$i) >> FastResults_scirl.mat; done
 
 FastResults_mwal.mat: FastResults_mwal.py PlayFast_mwal_mu_X.mat al_code/fast_reward.mat
 	touch FastResults_mwal.mat
 	rm FastResults_mwal.mat
-	for i in $(N_VALUES); do (echo -n "$$i " && python FastResults_mwal.py $$i) >> FastResults_mwal.mat; done
+	for i in $(N_VALUES); do (/bin/echo -n "$$i " && python FastResults_mwal.py $$i) >> FastResults_mwal.mat; done
 
 SafeResults_scirl.mat: SafeResults_scirl.py PlaySafe_scirl_mu_X.mat al_code/safe_reward.mat
 	touch SafeResults_scirl.mat
 	rm SafeResults_scirl.mat
-	for i in $(N_VALUES); do (echo -n "$$i " && python SafeResults_scirl.py $$i) >> SafeResults_scirl.mat; done
+	for i in $(N_VALUES); do (/bin/echo -n "$$i " && python SafeResults_scirl.py $$i) >> SafeResults_scirl.mat; done
 
 SafeResults_mwal.mat: SafeResults_mwal.py PlaySafe_mwal_mu_X.mat al_code/safe_reward.mat
 	touch SafeResults_mwal.mat
 	rm SafeResults_mwal.mat
-	for i in $(N_VALUES); do (echo -n "$$i " && python SafeResults_mwal.py $$i) >> SafeResults_mwal.mat; done
+	for i in $(N_VALUES); do (/bin/echo -n "$$i " && python SafeResults_mwal.py $$i) >> SafeResults_mwal.mat; done
 
 #FIXME:On devrauit pas avoir à spécifier 300 ici, si on change N_VALUES, on est potentiellement marrons
 SafeResults_true.mat: PlaySafe_mu_X.mat al_code/safe_reward.mat PlayFast_mu_X.mat
@@ -136,6 +136,7 @@ clean_FastResults_scirl.mat: clean
 clean_FastResults_mwal.mat: clean
 clean_SafeResults_scirl.mat: clean
 clean_SafeResults_mwal.mat: clean
+
   #+end_src
 
   #+begin_src python :tangle Comparison_conf.py
@@ -172,26 +173,26 @@ Les fichiers ainsi obtenus, =[Fast|Safe]Results_[scirl|mwal}.mat-0= permettent d
   #+begin_src gnuplot :tangle FastResults_EB.gp
 set output "FastResults_EB.ps"
 set term postscript enhanced color
-set xrange [0:330]
+#set xrange [0:330]
 #set yrange [0.02:0.025]
 set ylabel "Performance"
 set key bottom right
 set xlabel "Number of samples from the expert"
 set grid
-plot "./FastResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./FastResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./FastResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./FastResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "FastResults_true.mat" u (20):($1):(290):(0) w vector nohead ls 3 title "Expert"
+plot "./FastResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./FastResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./FastResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./FastResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "FastResults_true.mat" u (20):($1):(290):(0) w vector nohead ls 3 title "Expert", "SafeResults_random.mat" u (20):($1):(290):(0) w vector nohead ls 4 title "Random"
 
 #+end_src
 
 #+begin_src gnuplot :tangle SafeResults_EB.gp
 set output "SafeResults_EB.ps"
 set term postscript enhanced color
-set xrange [0:330]
+#set xrange [0:330]
 #set yrange [0.01:0.018]
 set ylabel "Performance"
 set xlabel "Number of samples from the expert"
 set key bottom right
 set grid
-plot "./SafeResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./SafeResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./SafeResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./SafeResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "SafeResults_true.mat" u (20):($1):(290):(0) w vector nohead ls 3 title "Expert"
+plot "./SafeResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./SafeResults_scirl.mat-0" u 1:2:3 w errorbars ls 1 title "SCIRL", "./SafeResults_mwal.mat-0" u 1:2 w lines ls 2 notitle, "./SafeResults_mwal.mat-0" u 1:2:3 w errorbars ls 2 title "MWAL", "SafeResults_true.mat" u (20):($1):(290):(0) w vector nohead ls 3 title "Expert", "SafeResults_random.mat" u (20):($1):(290):(0) w vector nohead ls 4 title "Random"
 
 #+end_src
 
@@ -200,7 +201,7 @@ plot "./SafeResults_scirl.mat-0" u 1:2 w lines ls 1 notitle, "./SafeResults_scir
 FastResults_EB.gp: Comparison.org
 	$(call tangle,"Comparison.org")
 
-FastResults_EB.pdf: FastResults_EB.gp FastResults_mwal.mat-0 SafeResults_scirl.mat-0 FastResults_true.mat 
+FastResults_EB.pdf: FastResults_EB.gp FastResults_mwal.mat-0 SafeResults_scirl.mat-0 FastResults_true.mat FastResults_random.mat
 	gnuplot FastResults_EB.gp
 	ps2pdf FastResults_EB.ps
 	rm FastResults_EB.ps
@@ -208,7 +209,7 @@ FastResults_EB.pdf: FastResults_EB.gp FastResults_mwal.mat-0 SafeResults_scirl.m
 SafeResults_EB.gp: Comparison.org
 	$(call tangle,"Comparison.org")
 
-SafeResults_EB.pdf: SafeResults_EB.gp SafeResults_mwal.mat-0 SafeResults_scirl.mat-0 SafeResults_true.mat 
+SafeResults_EB.pdf: SafeResults_EB.gp SafeResults_mwal.mat-0 SafeResults_scirl.mat-0 SafeResults_true.mat SafeResults_random.mat
 	gnuplot SafeResults_EB.gp
 	ps2pdf SafeResults_EB.ps
 	rm SafeResults_EB.ps
@@ -224,3 +225,65 @@ Comparison_clean:
 	find . -maxdepth 1 -iname "FastResults_*"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "SafeResults_*"   | xargs $(XARGS_OPT) rm
   #+end_src
+
+* Arrache
+  Ici je met en vrac le code pour obtenir la baseline. Je trierai plus tard (24/02/2012).
+
+  Il faut obtenir le fichier de données de longueur 300 (hardcoded mais on s'en fout) venant d'une politique aléatoire.
+
+  Le Player est supposé supporter une politique aléatoire depuis que je l'ai bidouillé. On l'instancie :
+
+   #+begin_src python :tangle RandomPlay.py
+from App import *
+import sys
+
+root = Tk()
+app = App(root)
+app.autopilot = 'random'
+app.transitions=300
+app.trajectories=1
+root.mainloop()
+
+   #+end_src
+
+En supposant qu'on a les transitions sous la bonne forme, on met la valeur dans un fichier comme ça :
+
+#+begin_src python :tangle RandomResults.py
+from numpy import*
+import sys
+
+
+Fast_R = genfromtxt( "al_code/fast_reward.mat" )
+Safe_R = genfromtxt( "al_code/safe_reward.mat" )
+mu = genfromtxt( "PlayRandom_mu.mat" ) 
+Fast_random_V = dot(Fast_R, mu)
+Safe_random_V = dot(Safe_R, mu)
+f_Fast_random = open( "FastResults_random.mat", "w" ) 
+f_Safe_random = open( "SafeResults_random.mat", "w" )
+f_Fast_random.write("%e\n"% Fast_random_V )
+f_Safe_random.write("%e\n"% Safe_random_V )
+f_Fast_random.close()
+f_Safe_random.close()
+
+#+end_src
+
+On ne met qu'une seule règle Makefile pour le tout, parce que bon.
+
+
+#+srcname: Comparison_make
+#+begin_src makefile
+RandomResults.py: Comparison.org
+	$(call tangle,"Comparison.org")
+
+SafeResults_random.mat: al_code/safe_reward.mat al_code/fast_reward.mat
+	$(call tangle,"Comparison.org")
+	$(call tangle,"MWAL.org")
+	$(call tangle,"Main.org")
+	python RandomPlay.py  > PlayRandom.dat
+	cat PlayRandom.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayRandom_stripped.dat
+	python tr2mu.py PlayRandom_stripped.dat | tr -d '[' | tr -d ']' > PlayRandom_mu.mat
+	python RandomResults.py 
+
+FastResults_random.mat: SafeResults_random.mat
+
+#+end_src

@@ -71,7 +71,7 @@ org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.em
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-tr
+export XARGS_OPT=-t
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -91,6 +91,7 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
+	$(MAKE) -C Highway clean
     #+end_src
 * End results
 ** LAFEM
