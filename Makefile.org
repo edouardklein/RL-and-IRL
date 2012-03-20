@@ -71,7 +71,7 @@ org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.em
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-t
+export XARGS_OPT=-tr
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
