@@ -1,0 +1,142 @@
+#+TITLE:Protocoles expérimentaux pour comparer les différents algos d'IRL
+#+LATEX_HEADER:\usepackage[plain,cm]{fullpage}
+* Sur le GridWorld
+  - Entraîner l'expert à l'aide d'un algorithme de programmation dynamique sur la récompense 1 en haut à droite, 0 partout ailleurs, $\gamma = 0.9$
+  - Générer un set de données $D_E$ contenant $\pi_E$, c'est à dire une fois chaque état du Gridworld et l'action choisie par l'expert pour cet état
+  - Générer un set de données $D_1$ ne contenant qu'une seule trajectoire de l'expert
+  - Générer un set de données $D$ contenant des trajectoires crées par une politique aléatoire (choisit aléatoirement une action à chaque état) sur 300 trajectoires de longueur max 20, départ d'un état aléatoire n'étant pas l'état terminal.
+  - La représentation de la fonction de récompense, de la fonction de valeur et de la fonction de qualité sont tabulaires.
+  - Les paramètres choisis se rapprochent de ceux utilisés lors de [[file:GridWorld/LSTDmu_Exp.org][l'expérience pour tester LSTD$\mu$]].
+  - Définir une récompense $\theta_{A1}$ issue de ANIRL (transitions connues) avec :
+    - $D_E$ en entrée
+    - 40 itérations max
+    - $\epsilon = 0.1$ (critère d'arrêt d'ANIRL)
+    - $\gamma = 0.9$
+    - calcul exact de $\mu$
+    - calcul exact de la politique courante
+  - Définir une récompense $\theta_{A2}$ issue de ANIRL (transitions inconnues, simulateur disponible) avec
+    - $D_E$ en entrée
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul de $\mu$ par un *monte carlo* (300 trajectoires, 20 transitions max)
+    - calcul de la politique optimale par *LSPI* auquel on fournit les transitions aléatoires $D$
+      - $\epsilon = 0.1$
+      - 20 itérations max
+      - $\lambda = 0.1$, régularisation dans LSTD$Q$ où $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+  - Définir une récompense $\theta_{A3}$ issue de ANIRL (transitions inconnues, simulateur disponible, expert coûteux) avec
+    - *$D_1$ en entrée*
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul de $\mu$ par un monte carlo (300 trajectoires, 20 transitions max)
+    - calcul de la politique optimale par LSPI auquel on fournit les transitions aléatoires $D$
+      - $\epsilon = 0.1$
+      - 20 itérations max
+      - $\lambda = 0.1$
+  - Définir une récompense $\theta_{A4}$ issue de ANIRL (transitions inconnues, simulateur indisponible, expert coûteux) avec
+    - $D_1$ en entrée
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul de $\mu$ par *LSTD* $\mu$ auquel sont fournies les transitions $D_1$
+      - $\lambda = 0.1$
+    - calcul de la politique optimale par LSPI auquel on ne fournit *que les transitions* $D_1$
+      - $\epsilon = 0.1$
+      - 20 itérations max
+      - $\lambda = 0.1$
+  - Définir une récompense $\theta_S$ issue de *SCIRL* avec pour seule entrée les trajectoires $D_1$, 
+    - $\alpha = 0.1$
+    - 20 itérations max
+  - Entrainer autant d'agent que l'on a de récompenses en utilisant le solveur exact, et calculer $V(s_0)$ vis à vis de la vraie récompense pour chacun de ces agents. Normalement $\theta_{A1}$ n'évolue pas, les autres en revanche sont dépendant de $D_1$ qui peut changer (le gridworld est stochastique). On retente 100 fois l'expérience pour tout le monde et on regarde la moyenne et la variance de ces valeurs que l'on compare à celles obtenues par l'expert et par une politique aléatoire.
+
+   
+  Résultats attendus : Tous les algos devraient arriver avec peu de variance à un score comparable à celui de l'expert.
+
+* Sur le pendule inversé
+  - Générer un set de données $D$ de 500 trajectoires de longeur max 3000, générées en choisissant une action aléatoirement à chaque pas, l'état de départ est aléatoirement peu éloigné de la position d'équilibre
+  - On utilise les features de Lagoudakis
+  - Entraîner l'expert sur la récompense de lagoudakis avec LSPI nourri avec $D$, $\gamma = 0.9$
+  - Générer un set de données $D_1$ ne contenant qu'une seule trajectoire de l'expert
+  - Définir une récompense $\theta_{A3}$ issue de ANIRL (transitions inconnues, simulateur disponible, expert coûteux) avec
+    - $D_1$ en entrée
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul de $\mu$ par un monte carlo long (500 trajectoires)
+    - calcul de la politique optimale par lspi auquel on fournit les transitions aléatoires $D$
+      - $\epsilon = 0.1$
+      - 20 itérations max
+      - $\lambda = 0.1$
+  - Définir une récompense $\theta_{A4}$ issue de ANIRL (transitions inconnues, simulateur indisponible, expert coûteux) avec
+    - $D_1$ en entrée
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul de $\mu$ par *LSTD* $\mu$ auquel sont fournies les transitions $D_1$
+      - $\lambda = 0.1$
+    - calcul de la politique optimale par lspi auquel on ne fournit *que les transitions* $D_1$
+      - $\epsilon = 0.1$
+      - 20 itérations max
+      - $\lambda = 0.1$
+  - Définir une récompense $\theta_S$ issue de *SCIRL* avec pour seule entrée les trajectoires $D_1$, 
+    - $\alpha = 0.1$
+    - 20 itérations max
+  - Entrainer autant d'agent que l'on a de récompenses en utilisant LSPI nouri avec $D$, et calculer $V(s_0)$ vis à vis de la vraie récompense pour chacun de ces agents à l'aide d'un monte-carlo de 300 trajectoires. On retente 100 fois l'expérience pour tout le monde et on regarde la moyenne et la variance de ces valeurs que l'on compare à celles obtenues par l'expert et par une politique aléatoire.
+
+   
+  Résultats attendus : L'algo d'Abeel ne devrait pas pouvoir fonctionner sans les transitions aléatoires. Avec, les résultats devraient être comparables à ceux de SCIRL, c'est à dire proches de l'expert.
+
+
+* Sur le Highway
+  - Entraîner l'expert de manière exacte sur la récompense correspondant à "aller vite"
+  - Définir un set de features sur l'espace d'état incluant les 3 features de Syed plus un réseau de RBF sur la position des deux voitures.
+  - Les features sur l'espace d'état action sont les features sur l'espace d'état avec des 0 au bon endroit selon l'action
+  - Générer un set de données $D_E$ contenant une fois chaque état du Highway et l'action choisie par l'expert pour cet état
+  - Générer un set de données $D_1$ ne contenant qu'une seule trajectoire de longueur 50 de l'expert
+  - Générer un set de données $D$ contenant des trajectoires crées par une politique aléatoire (choisit aléatoirement une action à chaque état) sur 300 trajectoires de longueur max 50
+  - Définir une récompense $\theta_{A1}$ issue de ANIRL (transitions connues) avec
+    - $D_E$ en entrée
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul exact de mu
+    - calcul exact de la politique courante
+  - Définir une récompense $\theta_{A2}$ issue de ANIRL (transitions inconnues, simulateur disponible) avec
+    - $D_E$ en entrée
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul de $\mu$ par un *monte carlo long* (300 trajectoires)
+    - calcul de la politique optimale par *LSPI* auquel on fournit les transitions aléatoires $D$
+      - $\epsilon = 0.1$
+      - 20 itérations max
+      - $\lambda = 0.1$
+  - Définir une récompense $\theta_{A3}$ issue de ANIRL (transitions inconnues, simulateur disponible, expert coûteux) avec
+    - *$D_1$ en entrée*
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul de $\mu$ par un monte carlo long (300 trajectoires)
+    - calcul de la politique optimale par LSPI auquel on fournit les transitions aléatoires $D$
+      - $\epsilon = 0.1$
+      - 20 itérations max
+      - $\lambda = 0.1$
+  - Définir une récompense $\theta_{A4}$ issue de ANIRL (transitions inconnues, simulateur indisponible, expert coûteux) avec
+    - $D_1$ en entrée
+    - 20 itérations max
+    - $\epsilon = 0.1$
+    - $\gamma = 0.9$
+    - calcul de $\mu$ par *LSTD* $\mu$ auquel sont fournies les transitions $D_1$
+      - $\lambda = 0.1$
+    - calcul de la politique optimale par LSPI auquel on ne fournit *que les transitions* $D_1$
+      - $\epsilon = 0.1$
+      - 20 itérations max
+      - $\lambda = 0.1$
+  - Définir une récompense $\theta_S$ issue de *SCIRL* avec pour seule entrée les trajectoires $D_1$, 
+    - $\alpha = 0.1$
+    - 20 itérations max
+  - Entrainer autant d'agent que l'on a de récompenses en utilisant le solveur exact, et calculer $V(s_0)$ vis à vis de la vraie récompense pour chacun de ces agents. Normalement $\theta_{A1}$ n'évolue pas, les autres en revanche sont dépendant de $D_1$ qui peut changer (le highway est stochastique). On retente 100 fois l'expérience pour tout le monde et on regarde la moyenne et la variance de ces valeurs que l'on compare à celles obtenues par l'expert et par une politique aléatoire.
+
+   
+  Résultats attendus : Moins on a d'information, plus les performances devraient se dégrader, la moyenne devrait baisser et la variance augmenter. SCIRL devait être plus performant que l'algo d'Abbeel
