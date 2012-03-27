@@ -15,6 +15,8 @@ Pour éviter les conflits de notation mathématique et les conflits dans les nom
  - $|.|$ : cardinal de l'ensemble $.$
 * RL
   - $S$ : Espace d'état
+  - $\psi : S \rightarrow \mathbb{R}^p$ : features sur l'espace d'état
+  - $\phi : S \times A \rightarrow \mathbb{R}^k$ : features sur l'espace d'état-action
 * IRL 
  - $l : S\times A \rightarrow \mathbb{R}$ : fonction de perte
  - $R_N$ : fonction de risque empirique
