@@ -22,12 +22,37 @@ gsl_matrix* mu_s0 = lstd_mu_op(  gsl_matrix* D_mu );
 *** Entrées
     - =D_mu= : Matrice dont chaque ligne a la forme  $(s,a,s',\psi(s)^T,eoe)$
 *** Sorties
-    - Une estimation de $E[\mu(s_0)]$
+    - Une estimation de $E[\mu(s_0)]$ pour la politique ayant créé les données fournies en entrée
 *** Paramètres
     - =g_fPsi= : fonction de feature de $S$ dans $\mathbf{R}^p$
     - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
     - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
     - =g_fS_0= : Fonction renvoyant la matrice des états initiaux (un par ligne) sur lesquels l'estimation de monte carlo de l'espérance sera caclculée.
+
+** On policy estimation of $\mu(s,a)$
+*** Détails techniques
+#+begin_src C
+#include "LSTDmu.h"
+
+unsigned int g_iP = -1;
+unsigned int g_iK = -1;
+unsigned int g_iA = -1;
+unsigned int g_iS = -1;
+gsl_matrix* (g_fPhi)(gsl_matrix*) = NULL;
+double g_dGamma_anirl = -1;
+double g_dLambda_lstdmu = -1;
+
+gsl_matrix* omega_mu = lstd_mu_op_omega(  gsl_matrix* D_mu );
+#+end_src
+*** Entrées
+    - =D_mu= : Matrice dont chaque ligne a la forme  $(s,a,s',\psi(s)^T,eoe)$
+*** Sorties
+    - Une matrice $\omega_\mu$ telle que $\hat \mu(s,a) = \omega_\mu^T\phi(s,a)$
+*** Paramètres
+    - =g_fPhi= : fonction de feature de $S\times A$ dans $\mathbf{R}^p$
+    - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
+    - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+
 
 * C implementation
 ** Externals
