@@ -12,7 +12,10 @@ Pour éviter les conflits de notation mathématique et les conflits dans les nom
 * Général
 
  - $N$ : cardinal de la base d'exemple considérée
+ - $|.|$ : cardinal de l'ensemble $.$
+* RL
+  - $S$ : Espace d'état
 * IRL 
- - $l : $S\times A \rightarrow \mathbb{R}$ : fonction de perte
+ - $l : S\times A \rightarrow \mathbb{R}$ : fonction de perte
  - $R_N$ : fonction de risque empirique
  - $Q_E : S\times A \rightarrow \mathbb{R}$ : fonction de qualité de l'expert

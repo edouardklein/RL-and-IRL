@@ -1,4 +1,16 @@
 #+TITLE: Calcul exact de la /feature expectation/
+* Dynamic programming computation of $\mu$ header
+** Détails techniques
+   Python :
+   #+begin_src python
+from DP_mu import *
+
+DP_mu( pi, Phi )
+   #+end_src
+** Entrées
+   - =pi= : Matrice de taille $|S|\times |S|$ représentant la politique
+   - =Phi= : Matrice de ta
+** Sorties
 * Principe
 De la même manière qu'il est possible d'écrire l'equation de Bellman sous forme matricielle : 
 \begin{equation}
