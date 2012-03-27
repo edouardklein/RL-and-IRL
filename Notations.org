@@ -17,6 +17,9 @@ Pour éviter les conflits de notation mathématique et les conflits dans les nom
   - $S$ : Espace d'état
   - $\psi : S \rightarrow \mathbb{R}^p$ : features sur l'espace d'état
   - $\phi : S \times A \rightarrow \mathbb{R}^k$ : features sur l'espace d'état-action
+  - $\omega$ : Matrice de taille $k\times 1$ permettant l'approximation d'une fonction de qualité selon la formule $Q(s,a) = \omega^T\phi(s,a)$
+  - $\epsilon_{LSPI}$ : seuil servant de critère d'arrêt à LSPI, qui s'arrête après que la norme 2 entre deux valeurs consécutives de $\omega$ passe en dessous de ce seuil.
+  - $T_{LSPI}$ : Nombre maximum d'itérations effectuées par LSPI avant de s'arrêter si le seuil n'a pas été atteint
 * IRL 
  - $l : S\times A \rightarrow \mathbb{R}$ : fonction de perte
  - $R_N$ : fonction de risque empirique
