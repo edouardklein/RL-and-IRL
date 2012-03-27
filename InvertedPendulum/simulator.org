@@ -179,7 +179,7 @@ simulator.h: simulator.org
    A rule to create the object file :
   #+srcname: Simulator_c2o_make
   #+begin_src makefile
-simulator.o: simulator.c simulator.h InvertedPendulum.h ../utils.h
+simulator.o: simulator.c simulator.h InvertedPendulum.h ../utils.h ../IRL_Globals.h
 	$(call c2obj,"simulator.c")
   #+end_src
 

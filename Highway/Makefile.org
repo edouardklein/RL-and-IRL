@@ -1,0 +1,50 @@
+#+TITLE: Highway Driving
+* Makefiles rules
+  The rules are written in the file they work with. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
+** Misc.
+Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
+  #+begin_src makefile :tangle Makefile :noweb yes
+<<phipsi_make>>
+<<MWAL_make>>
+<<SCIRL_make>>
+<<Comparison_make>>
+<<App_make>>
+<<RandomSamples_make>>
+<<LSPI_make>>
+  #+end_src
+** Code extraction
+  #+begin_src makefile :tangle Makefile :noweb yes
+tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
+  #+end_src
+** C source to .o file
+  #+begin_src make :tangle Makefile :noweb yes
+  CFLAGS+= -I..
+c2obj=gcc $(CFLAGS) -c $1
+   #+end_src
+
+** .o to .exe
+  #+begin_src makefile :tangle Makefile :noweb yes
+O2EXE=gcc $(LFLAGS)
+  #+end_src
+
+** Cleaning
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<SCIRL_clean_make>>
+<<Simulator_clean_make>>
+<<Comparison_clean_make>>
+<<MWAL_clean_make>>
+<<Main_clean_make>>
+<<RandomSamples_clean_make>>
+
+clean: SCIRL_clean Comparison_clean Simulator_clean MWAL_clean Main_clean RandomSamples_clean
+	find . -maxdepth 1 -iname "*~"   | xargs $(XARGS_OPT) rm
+
+    #+end_src
+
+
+** Inception
+
+   #+begin_src makefile :tangle Makefile :noweb yes
+Makefile:
+	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
+   #+end_src

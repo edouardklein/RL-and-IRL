@@ -28,6 +28,7 @@ On peut faire le parallèle (en notant $\mu^\pi(s,\cdot) = \mu^\pi_a(s)$) :
 
 Pour résumer, il est possible de calculer la matrice $\mathbf \mu^\pi$ grâce à une adaptation des algorithmes de programmation dynamique, et à partir de celle ci de déduire les matrices $\mu^\pi_a$, qui sont celles dont nous avons besoin.
 * Code
+FIXME: Essayer de transformer ça en algo exact
 #+begin_src python :tangle DP_mu.py
 from numpy import *
 import scipy
