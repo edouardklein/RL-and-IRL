@@ -65,11 +65,13 @@ o2exe=gcc $(LFLAGS)
   #+end_src
 ** Org source to PDF
     #+begin_src makefile :tangle Makefile :noweb yes
+org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.emacs && pdflatex $1.tex && bibtex $1 && pdflatex $1.tex && pdflatex $1.tex
+
 <<NA_org2pdf_make>>
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-tr
+export XARGS_OPT=-t
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -89,6 +91,7 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
+	$(MAKE) -C Highway clean
     #+end_src
 * End results
 ** LAFEM
@@ -102,7 +105,39 @@ LAFEM_Exp1:
 LAFEM_Exp2:
 	make -C InvertedPendulum LAFEM_Exp2_true_R.pdf LAFEM_Exp2_lafem_R.pdf LAFEM_Exp2_Vexpert.pdf LAFEM_Exp2_Vagent.pdf
     #+end_src
-
+   - LAFEM_Exp3 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp3:
+	make -C InvertedPendulum LAFEM_Exp3_true_R.pdf LAFEM_Exp3_lafem_R.pdf LAFEM_Exp3_Vexpert.pdf LAFEM_Exp3_Vagent.pdf
+    #+end_src
+   - LAFEM_Exp4 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp4:
+	make -C InvertedPendulum LAFEM_Exp4_quality.pdf
+LAFEM_Exp42:
+	make -C InvertedPendulum LAFEM_Exp4_quality_EB.pdf
+    #+end_src
+   - LAFEM_Exp5 (InvertedPendulum) //FIXME:Le virer, manifesteent il n'existe pas.
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp5:
+	make -C InvertedPendulum LAFEM_Exp5_true_R.pdf LAFEM_Exp5_lafem_R.pdf LAFEM_Exp5_Vexpert.pdf LAFEM_Exp5_Vagent.pdf
+    #+end_src
+   - LAFEM_Exp6 (Highway)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp6:
+	make -C Highway FastResults.mat SafeResults.mat
+    #+end_src
+   - LAFEM_Exp6_EB (Highway)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp6_EB:
+	make -C Highway FastResults_EB.pdf SafeResults_EB.pdf
+    #+end_src
+   - LAFEM_Exp7 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+LAFEM_Exp7:
+	make -C InvertedPendulum LAFEM_Exp7_Vphi.pdf LAFEM_Exp7_Vmu.pdf
+    #+end_src
+     
 ** TaskTransfer
    - TT_Exp1 (GridWorld)
    - TT_Exp2
@@ -152,7 +187,7 @@ test: TT_test0 TT_test1 TT_test2 TT_test3
 Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tangle your makefile so you can tangle while you make.
 
   #+begin_src makefile :tangle Makefile :noweb yes
-SUB_DIRS=ChainWalk GridWorld InvertedPendulum klein2011dimensionality
+SUB_DIRS=ChainWalk GridWorld InvertedPendulum  Highway
 Makefile:
 	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 

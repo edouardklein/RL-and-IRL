@@ -1,0 +1,363 @@
+#+TITLE:Setup for the Highway driving experiment
+
+* Espace d'état, espace d'action
+  Nous utilisons la paramétrisation fournie par Syed. A savoir :
+
+  Chaque vecteur d'état contient les informations suivantes : 
+  - vitesse
+  - position horizontale de la voiture bleue (celle conduite par le joueur)
+  - position horitontale et verticale de la voiture rouge (celle que le joueur doit éviter)
+
+  Les actions sont aux nombre de cinq, correspondant sémantiquement à /aller à droite/, /aller à gauche/, /aralentir/, /accélérer/ et /ne rien changer/. Toutefois, une fois la vitesse choisie lors de la première transition où les actions sont /ralentir/, /accélérer/ ou /ne rien changer/, l'agent ne peut changer à nouveau sa vitesse et les seules actions qui lui sont accessibles sont /aller à gauche/, /aller à droite/ et /ne rien changer/. Tout cela ne correspond pas au cadre habituel dans lequel nous évoluons. Je ne sais pas encore comment on va bidouiller ça, mais il va falloir le prendre en compte.
+
+* Feature space
+  Afin de pouvoir utiliser une approximation linéaire de la fonction de valeur, on va définir deux fonctions de base vectorielles $\phi: S\times A \rightarrow \mathbb{R}^k$ and $\phi: S\rightarrow \mathbb{R}^p$.
+
+  On utilise comme features sur l'espace d'état : 
+\begin{eqnarray}
+\psi &:& S\rightarrow \mathbb{R}^3\\
+\psi(s) &=& \begin{pmatrix}
+v\\c\\o
+\end{pmatrix} \in \{0,0.75,1\}\times \{0,0.5\}\times\{0,0.5\}
+\end{eqnarray}
+Telle que définie dans =al_code/features.pl=. Une lecture du code perl de Syed livre l'analyse suivante : 
+- $v$ est la vitesse normalisée, qui vaut $0$ pour la vitesse la plus basse, $0.75$ pour la vitesse médiane et $1$ pour la vitesse la plus haute
+- $c$ est le détecteur de collisions, qui vaut $0.5$ lorsqu'il n'y a /pas/ de collisions, $0$ lorsqu'il y en a.
+- $o$ est le détecteur de sorties de route, qui vaut $0.5$ lorsqu'il y a une sortie de route et $0$ lorsque l'on reste sur la route.
+
+
+Sur l'espace joit état-action, nous utilisons la factorisation des features. Nous considérons pour résoudre la difficulté mentionnée plus haut que seule trois actions (numérotées $0,1$ et $2$) sont disponibles pour chaque état. Leur signification change selon que l'on soit dans l'état initial ou non, mais cela ne devrait pas poser de problèmes car les algorithmes que nous utilisons sont agnistiques à la signification des symboles manipulés.
+
+  \begin{eqnarray}
+\phi(s,a ) &=& 
+  \begin{pmatrix}
+  \psi(s)\\
+  0\\
+  \vdots\\
+  0
+  \end{pmatrix}\textrm{si }a = 0\\
+\phi(s,a) &=& 
+  \begin{pmatrix}
+  0\\
+  0\\
+  0\\
+  \psi(s)\\
+  0\\
+  0\\
+  0
+  \end{pmatrix}\textrm{si }a = 1\\
+\phi(s,a)&=& 
+  \begin{pmatrix}
+  0\\
+  \vdots\\
+  0\\
+  \psi(s)
+  \end{pmatrix}\textrm{si }a = 2\\
+\end{eqnarray}
+
+Ces fonctions de base sont recodées en python afin de pouvoir calculer la /feature expectation/ à partir de transitions. /Feature expectation/ qui sera fournie en entrée à MWAL.
+
+
+** Implémentation en python
+#+begin_src python :tangle phipsi.py
+from numpy import *
+
+def psi( s ): #See al_code/features.pl and al_code/my_constants.pl to see where all this is from
+    answer = zeros((3,1))
+    speed = s[0]
+    blue_x = s[1]
+    red_x = s[2]
+    red_y = s[3]
+
+    #Special case of the first transition, see al_code/features.pl:4 for what Syed does and MWAL.org about the Play*_stripped.dat Makefile rule. Basically we detect the first transition for which the red car coordinates are 0,0 and associate it with the feature 0.75,0.5,0.5 as Syed does.
+    if red_x == 0 and red_y == 0:
+        answer[0] = 0.75
+        answer[1] = 0.5
+        answer[2] = 0.5
+        return answer
+
+    answer[0] = (speed /2. + 1.)/2.
+
+    blue_x1 = blue_x - 20 + 1
+    blue_x2 = blue_x - 1
+    blue_y1 = ((160+20) - 10) - 40 +1
+    blue_y2 = (160+20) - 10 - 1
+
+    red_x1 = red_x - 20
+    red_x2 = red_x
+    red_y1 = red_y - 40
+    red_y2 = red_y
+    
+    eastmost_x1 = ( blue_x1 if blue_x1 > red_x1 else red_x1 )
+    westmost_x2 = ( blue_x2 if blue_x2 < red_x2 else red_x2 )
+    southmost_y1 = ( blue_y1 if blue_y1 > red_y1 else red_y1 )
+    northmost_y2 = ( blue_y2 if blue_y2 < red_y2 else red_y2 )
+
+    if eastmost_x1 > westmost_x2 or southmost_y1 > northmost_y2 :
+        answer[1] = 0.5
+    else:
+        answer[1] = 0
+
+    if blue_x < 120+20 or blue_x > 200-20:
+        answer[2] = 0
+    else:
+        answer[2] = 0.5
+
+    return answer
+
+def phi( s, a ):
+    answer = zeros((9,1))
+    index = a*3
+    answer[index:index+3] = psi( s )
+    return answer
+
+#+end_src
+
+#+srcname: phipsi_make
+#+begin_src makefile
+phipsi.py: Main.org
+	$(call tangle,"Main.org")
+
+#+end_src
+
+
+** Implémentation en C
+   Une fois les notations mathématiques correctement établies comme ci dessus, l'implémentation à l'aide de la GSL est assez directe. Une des petites subtilités est que le vecteur, écrit en colonne dans les notation matheuses sera passé en ligne car lu dans les transitions.
+   
+#+begin_src c :tangle phipsi.h :main no
+gsl_matrix* phi( gsl_matrix* sa );
+gsl_matrix* psi( gsl_matrix* s );
+#+end_src
+
+#+begin_src c :tangle phipsi.c :main no
+#include <gsl/gsl_matrix.h>
+#include <RL_Globals.h>
+#include <math.h>
+
+unsigned int g_iK = (9); /* dim(\phi) */
+unsigned int g_iP = (3); /* dim(\psi) */
+
+gsl_matrix* psi( gsl_matrix* s ){
+  gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
+  double speed = gsl_matrix_get( s, 0, 0 );
+  double blue_x = gsl_matrix_get( s, 0, 1 );
+  double red_x = gsl_matrix_get( s, 0, 2 );
+  double red_y = gsl_matrix_get( s, 0, 3 );
+  
+  if( red_x == 0. && red_y == 0.){
+    gsl_matrix_set( answer, 0, 0, 0.75 );
+    gsl_matrix_set( answer, 1, 0, 0.5 );
+    gsl_matrix_set( answer, 2, 0, 0.5 );
+    return answer;
+  }
+
+  gsl_matrix_set( answer, 0, 0, (speed/2. + 1.)/2. );
+
+  double blue_x1 = blue_x - 20. + 1.;
+  double blue_x2 = blue_x - 1.;
+  double blue_y1 = ((160+20) - 10.) - 40. +1.;
+  double blue_y2 = (160.+20.) - 10. - 1.;
+
+  double red_x1 = red_x - 20.;
+  double red_x2 = red_x;
+  double red_y1 = red_y - 40.;
+  double red_y2 = red_y;
+
+  double eastmost_x1 = ( blue_x1 > red_x1 ? blue_x1 : red_x1 );
+  double westmost_x2 = ( blue_x2 < red_x2 ? blue_x2 :  red_x2 );
+  double southmost_y1 = ( blue_y1 > red_y1 ? blue_y1 : red_y1 );
+  double northmost_y2 = ( blue_y2 < red_y2 ?  blue_y2 : red_y2 );
+
+  if( eastmost_x1 > westmost_x2 || southmost_y1 > northmost_y2){
+    gsl_matrix_set( answer, 1, 0, 0.5 );
+  }else{
+    gsl_matrix_set( answer, 1, 0, 0 );
+  }
+  
+  if(blue_x < 120.+20. || blue_x > 200.-20.){
+    gsl_matrix_set( answer, 2, 0, 0 );
+  }else{
+    gsl_matrix_set( answer, 2, 0, 0.5 );
+  }
+
+  return answer;
+}
+
+gsl_matrix* phi( gsl_matrix* sa ){
+  gsl_matrix* answer = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix_view s = gsl_matrix_submatrix( sa, 0,0, 1, 4 );
+  unsigned int action = (unsigned int)gsl_matrix_get( sa, 0, 4 );
+  unsigned int index = action*g_iP;
+  gsl_matrix_view v_psi_s = gsl_matrix_submatrix( answer, index, 0, g_iP, 1 );
+  gsl_matrix* psi_s =  psi( &(s.matrix) );
+  gsl_matrix_memcpy( &(v_psi_s.matrix), psi_s );
+  gsl_matrix_free( psi_s );
+  return answer;
+}
+
+#+end_src
+
+#+srcname: phipsi_make
+#+begin_src makefile
+phipsi.h: Main.org
+	$(call tangle,"Main.org")
+phipsi.c: Main.org
+	$(call tangle,"Main.org")
+
+phipsi.o: phipsi.c phipsi.h
+	$(call c2obj,"phipsi.c")
+#+end_src
+
+
+* Reinforcement learning
+** Running LSPI
+On fait tourner LSPI sur ces transitions dans l'espoir d'obtenir une politique qui tient la route (haha).
+
+
+
+#+begin_src c :tangle Highway_lspi.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "RandomSamples.dat"
+#define TRANS_WIDTH 13
+#define ACTION_FILE "actions.mat"
+
+//FIXME : those two are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+unsigned int g_iS = 5;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+
+int main( void ){
+  fprintf(stderr,"Training the expert...");
+  fflush( NULL );
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_expert = lspi( D, omega_0 );
+  g_mOmega = omega_expert;
+  fprintf(stderr,"done\n");
+  gsl_matrix_fprintf( stdout, omega_expert, "%e" );
+  return 0;
+}
+
+#+end_src
+
+#+srcname: LSPI_make
+#+begin_src makefile
+Highway_lspi.exe: Highway_lspi.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o 
+	$(O2EXE) -o Highway_lspi.exe Highway_lspi.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o 
+
+Highway_lspi.o: Highway_lspi.c ../utils.h ../LSPI.h ../greedy.h ../RL_Globals.h phipsi.h
+	$(call c2obj,"Highway_lspi.c")
+
+Highway_lspi.c: Main.org
+	$(call tangle,"Main.org")
+
+omega_lspi.mat: Highway_lspi.exe RandomSamples.dat actions.mat
+	./Highway_lspi.exe > omega_lspi.mat
+
+actions.mat:
+	printf "0\n1\n2\n">actions.mat 
+
+#+end_src
+   On peut instancier l'application pour qu'elle joue avec la politique gloutonne
+   #+begin_src python :tangle GreedyPlay.py
+from App import *
+
+root = Tk()
+app = App(root)
+app.autopilot = 'greedy'
+app.read_omega( 'omega_lspi.mat' )
+app.max_t=200
+root.mainloop()
+
+   #+end_src
+
+#+srcname: LSPI_make
+#+begin_src makefile
+LAFEM_Exp6: omega_lspi.mat GreedyPlay.py
+	python GreedyPlay.py
+
+#+end_src
+
+   
+*** Parent Dir targets
+       On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
+#+srcname: LSPI_make
+#+begin_src makefile
+../utils.o:
+	make -C .. utils.o
+
+../greedy.o:
+	make -C .. greedy.o
+
+../LSTDQ.o:
+	make -C .. LSTDQ.o
+
+../abbeel2004apprenticeship.o:
+	make -C .. abbeel2004apprenticeship.o
+
+../LSTDmu.o:
+	make -C .. LSTDmu.o
+
+../criteria.o:
+	make -C .. criteria.o
+
+../LSPI.o:
+	make -C .. LSPI.o
+
+../utils.h:
+	make -C .. utils.h
+
+../greedy.h:
+	make -C .. greedy.h
+
+../LSTDQ.h:
+	make -C .. LSTDQ.h
+
+../abbeel2004apprenticeship.h:
+	make -C .. abbeel2004apprenticeship.h
+
+../LSTDmu.h:
+	make -C .. LSTDmu.h
+
+../criteria.h:
+	make -C .. criteria.h
+
+../LSPI.h:
+	make -C .. LSPI.h
+
+../RL_Globals.h:
+	make -C .. RL_Globals.h
+
+../IRL_Globals.h:
+	make -C .. IRL_Globals.h
+
+#+end_src
+  #+srcname: Main_clean_make
+  #+begin_src makefile
+Main_clean:
+	find . -maxdepth 1 -iname "GreedyPlay.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Highway_lspi.c"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.c"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.pyc"   | xargs $(XARGS_OPT) rm
+  #+end_src
