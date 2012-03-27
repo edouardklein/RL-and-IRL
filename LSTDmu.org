@@ -53,6 +53,33 @@ gsl_matrix* omega_mu = lstd_mu_op_omega(  gsl_matrix* D_mu );
     - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
     - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
 
+** Off policy estimation of $\mu(s,a)$
+*** Détails techniques
+#+begin_src C
+#include "LSTDmu.h"
+
+unsigned int g_iP = -1;
+unsigned int g_iK = -1;
+unsigned int g_iA = -1;
+unsigned int g_iS = -1;
+gsl_matrix* (g_fPhi)(gsl_matrix*) = NULL;
+double g_dGamma_anirl = -1;
+double g_dLambda_lstdmu = -1;
+
+gsl_matrix* omega_mu = lstd_mu_omega(  gsl_matrix* D_mu, 
+ 		      gsl_matrix* (*pi)(gsl_matrix*));
+
+#+end_src
+*** Entrées
+    - =D_mu= : Matrice dont chaque ligne a la forme  $(s,a,s',\psi(s)^T,eoe)$
+    - =pi= : Politique associant une action à un état
+*** Sorties
+    - Une matrice $\omega_\mu$ telle que $\hat \mu(s,a) = \omega_\mu^T\phi(s,a)$ pour la politique fournie en argument
+*** Paramètres
+    - =g_fPhi= : fonction de feature de $S\times A$ dans $\mathbf{R}^p$
+    - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
+    - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+
 
 * C implementation
 ** Externals
@@ -270,7 +297,6 @@ gsl_matrix* lstd_mu_op_omega(  gsl_matrix* D_mu ){
   return omega_pi;
 }
       #+end_src
-
    
 *** Off-policy estimation of $\mu$
 
