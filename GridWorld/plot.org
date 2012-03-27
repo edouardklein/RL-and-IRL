@@ -23,7 +23,7 @@ We set some constants
 #define ACTION_FILE "actions.mat"
 #+end_src
 
-We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
+We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$. FIXME: deux fois p, il devrait y avoir une fois p une fois k
 #+begin_src c :tangle plot.c :main no
 unsigned int g_iK = (GRID_HEIGHT*GRID_WIDTH*4); /* dim(\phi) */
 unsigned int g_iP = (GRID_HEIGHT*GRID_WIDTH); /* dim(\psi) */
