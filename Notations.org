@@ -8,7 +8,7 @@
 [TABLE-OF-CONTENTS]
 
 Pour éviter les conflits de notation mathématique et les conflits dans les noms de variable, tout est regroupé dans ce fichier. Si un autre fichier est en désaccord avec celui-ci, il est convenu que c'est ce fichier qui a raison (quitte à le modifier).
-
+FIXME: Trouver un moyen de lier les notations mathématiques au code correspondant.
 * Général
 
  - $N$ : cardinal de la base d'exemple considérée
@@ -20,6 +20,8 @@ Pour éviter les conflits de notation mathématique et les conflits dans les nom
   - $\omega$ : Matrice de taille $k\times 1$ permettant l'approximation d'une fonction de qualité selon la formule $Q(s,a) = \omega^T\phi(s,a)$
   - $\epsilon_{LSPI}$ : seuil servant de critère d'arrêt à LSPI, qui s'arrête après que la norme 2 entre deux valeurs consécutives de $\omega$ passe en dessous de ce seuil.
   - $T_{LSPI}$ : Nombre maximum d'itérations effectuées par LSPI avant de s'arrêter si le seuil n'a pas été atteint
+  - $\lambda_{LSTDQ}$ : Coefficient de régularisation pour LSTD$Q$ utilisé dans l'expression  $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$.
+  - $\gamma_{LSTDQ}$ : Coefficient d'amortissement lors de l'estimation de $Q$ par LSTD$Q$.
 * IRL 
  - $l : S\times A \rightarrow \mathbb{R}$ : fonction de perte
  - $R_N$ : fonction de risque empirique
