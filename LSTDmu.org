@@ -479,6 +479,8 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
 }
       #+end_src
 *** Actual algorithm
+    FIXME: Il faut que le code d'ANIRL existe en un seul endroit et qu'à l'aide de pointeurs de fonctions on choisisse les sous routines. Il ne faut pas qu'il y aie les deux versions comme c'est le cas à l'heure actuelle.
+
 
     We followed the same logic as in [[file:abbeel2004apprenticeshiporg]] : We do not follow the way things are exposed in the paper, but use a simpler (implementation wise) way. Mainly, the value referenced as $\bar\mu^i$ in the paper is now $\bar\mu$, a value constructed by a successive addition of terms. The variable $i$ is no more needed.
 
