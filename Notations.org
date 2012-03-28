@@ -13,6 +13,7 @@ FIXME: Trouver un moyen de lier les notations mathématiques au code corresponda
 
  - $N$ : cardinal de la base d'exemple considérée
  - $|.|$ : cardinal de l'ensemble $.$
+ - $dim(.)$ : dimension de l'espace $.$
 * RL
   - $S$ : Espace d'état
   - $\psi : S \rightarrow \mathbb{R}^p$ : features sur l'espace d'état
