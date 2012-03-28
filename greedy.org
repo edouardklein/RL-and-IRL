@@ -23,6 +23,28 @@ gsl_matrix* a = greedy_policy( s );
    - =g_mActions= : matrice représentant les actions, une action par ligne
    - =g_fPhi= : feature function pour $S\times A$
    - =g_mOmega= : vecteur $\omega$ représentant la fonction de qualité vis à vis de laquelle on veut l'action gloutonne
+* Greedy value function header
+** Détails techniques
+#+begin_src C
+#include "greedy.h"
+
+unsigned int g_iA;
+unsigned int g_iS;
+gsl_matrix* g_mActions = NULL;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = NULL;
+gsl_matrix* g_mOmega = NULL;
+
+double v = greedy_value_function( s );
+#+end_src
+** Entrées
+   - =s= : Une matrice représentant un état
+** Sorties
+   - =a= : Une matrice représentant une action
+** Paramètres
+   - =g_mActions= : matrice représentant les actions, une action par ligne
+   - =g_fPhi= : feature function pour $S\times A$
+   - =g_mOmega= : vecteur $\omega$ représentant la fonction de qualité vis à vis de laquelle on veut l'action gloutonne
+
 * C implementation
 ** Externals
     Some aspects are controlled by [[file:RL_Globals][global variables]].
