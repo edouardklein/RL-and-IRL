@@ -32,3 +32,7 @@ FIXME: Trouver un moyen de lier les notations mathématiques au code corresponda
  - $\omega_\mu$ : Matrice de taille $k \times p$ permettant l'estimation de $\mu(s,a)$ selon la formule $\hat\mu(s,a) = \omega_\mu^T\phi(s,a)$
  - $\epsilon_{ANIRL}$ : Seuil pour l'arrêt d'ANIRL, il faut que $t$ pass en dessous de ce seuil
  - $T_{ANIRL}$ : Nombre maximum d'itérations effectuées par ANIRL si $t$ ne passe pas sous le seuil
+ - $\theta$ : Vecteur de récompense tel que $R(s) = \theta^T\psi(s)$
+ - $\epsilon_{SCIRL}$ : Seuil d'arrêt de SCIRL, il faut que la norme du sous-gradient passe en dessous
+ - $\T_{SCIRL}$ : Nombre maximum d'itérations effectuées par SCIRL
+ - $\alpha(t)$ : Pas d'apprentissage (utilisé par SCIRL)
