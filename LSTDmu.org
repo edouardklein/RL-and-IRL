@@ -105,6 +105,30 @@ gsl_matrix* mu_s0 = lstd_mu_op(  gsl_matrix* D_mu );
     - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
     - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
     - =g_fS_0= : Fonction renvoyant la matrice des états initiaux (un par ligne) sur lesquels l'estimation de monte carlo de l'espérance sera caclculée.
+* ANIRL header
+** Détails techniques
+#+begin_src C
+#include "LSTDmu.h"
+
+unsigned int g_iK = -1;
+unsigned int g_iP = -1;
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = NULL;
+double g_dEpsilon_anirl = -1;
+unsigned int g_iIt_max_anirl = -1;
+
+gsl_matrix* omega = proj_lstd_lspi_ANIRL( gsl_matrix* D_E, 
+				  gsl_matrix* D )
+#+end_src
+** Entrées
+   - =D_E= : données provenant de l'expert
+   - =D= : données arbitraires permettant l'évaluation /off-policy/ à l'aide de LSTD$\mu$
+** Sorties
+   - =omega= : matrice correspondant à la fonction de qualité de la politique la plus proche de celle de l'expert rencontrée par l'algorithme
+** Paramètres
+   - =g_dEpsilon_anirl= : Seuil pour l'arrêt
+   - =g_iIt_max_anirl= : Nombre maximum d'itérations
+
+   Il faut également régler les paramètres de [[file:LSPI.org][LSPI]] et ceux de LSTD$\mu$.
 * C implementation
 ** Externals
 *** ANIRL

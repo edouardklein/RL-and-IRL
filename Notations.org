@@ -30,3 +30,5 @@ FIXME: Trouver un moyen de lier les notations mathématiques au code corresponda
  - $\lambda_{\mu}$ : Coefficient de régularisation lors du calcul de $\mu$ par LSTD$\mu$.
  - $s_0$ : Etat initial dans un MDP ou par abus de notation distribution sur les états initiaux
  - $\omega_\mu$ : Matrice de taille $k \times p$ permettant l'estimation de $\mu(s,a)$ selon la formule $\hat\mu(s,a) = \omega_\mu^T\phi(s,a)$
+ - $\epsilon_{ANIRL}$ : Seuil pour l'arrêt d'ANIRL, il faut que $t$ pass en dessous de ce seuil
+ - $T_{ANIRL}$ : Nombre maximum d'itérations effectuées par ANIRL si $t$ ne passe pas sous le seuil
