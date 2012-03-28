@@ -7,6 +7,7 @@
 #+LaTeX_HEADER: \usepackage{natbib}
 #+TITLE:Deux nouveaux algos d'IRL
 [TABLE-OF-CONTENTS]
+FIXME: Harmoniser les notations pour que tout s'appelle SCIRL et non LAFEM
 * SCIRL Header
 ** Détails techniques
 #+begin_src python
