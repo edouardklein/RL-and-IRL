@@ -122,7 +122,7 @@ class LAFEM_Exp1( LAFEM ):
       #+begin_src python :tangle LAFEM_Exp1.py
     theta_0 = zeros( (25, 1) )
       #+end_src
-    - Fixer $T=20$ (pifomètre)
+    - Fixer $T=20$ (pifomètre) FIXME:J'arrive pas à trouver T
       #+begin_src python :tangle LAFEM_Exp1.py
     Threshold = 0.1
       #+end_src
