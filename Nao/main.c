@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include <stdlib.h>
 
 #include <gsl/gsl_matrix.h>
@@ -8,13 +9,14 @@
 #include "greedy.h"
 #include "LSPI.h"
 #include "RL_Globals.h"
+#include "phipsi.h"
 
-#define SAS     "../resources/sas.txt"
-#define OMEG0   "../resources/omeg0.txt"
-#define OMEG   "../resources/omeg.txt"
-#define S     "../resources/s.txt"
-#define S0     "../resources/s0.txt"
-#define A   "../resources/a.txt"
+#define SAS     "sas.txt"
+#define OMEG0   "omeg0.txt"
+#define OMEG   "omeg.txt"
+#define S     "s.txt"
+#define S0     "s0.txt"
+#define A   "a.txt"
 
 #define DIM 3   //nb d'articulations consideree
 #define LONG    10  //longueur d'une trajectoire
@@ -24,8 +26,39 @@
 
 gsl_matrix* g_mActions = NULL;
 
+gsl_matrix* initial_state( void );
+
+unsigned int g_iS = 3;
+unsigned int g_iA = 3;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+double g_dLambda_lstdmu = 0.1;
+double g_dGamma_anirl = 0.9;
+double g_dEpsilon_anirl = 0.01;
+unsigned int g_iIt_max_anirl = 2;
+//gsl_matrix* g_mActions = NULL;
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
+gsl_matrix* (*g_fSimulator)(int) = NULL;
+gsl_matrix* (*g_fS_0)(void) = &initial_state;
+unsigned int g_iMax_episode_len = 20; //Shorter episodes are
+
+
+
+gsl_matrix* initial_state( void ){
+  gsl_matrix* answer = file2matrix("s0.txt",3);
+
+  return answer;
+}
+
+
 int main()
+
 {
+
     int i=0,j=0;
 
     printf("Hello world!\n");
@@ -51,4 +84,6 @@ for(i=0;i<mat_lstd->size1;i++)
 
 
     return 0;
+
 }
+

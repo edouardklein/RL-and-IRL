@@ -1,7 +1,10 @@
 #include <gsl/gsl_matrix.h>
 #include "RL_Globals.h"
 #include <math.h>
-#include "InvertedPendulum.h"
+#ifndef M_PI
+#define M_PI           3.14159265358979323846
+#endif
+
 
 
 unsigned int g_iK = (10*15); /* dim(\phi) */
@@ -10,46 +13,43 @@ unsigned int g_iP = (15); /* dim(\psi) */
 int sigma_map=2000;
 
 
-int centroids[15][3]=
-{0,-276,254,\
-0,-276,1300,\
-0,-828,777,\
-0,-1380,254,\
-0,-1380,1300,\
--695,-276,254,\
--695,-276,1300,\
--695,-828,777,\
--695,-1380,254,\
--695,-1380,1300,\
-695,-276,254,\
-695,-276,1300,\
-695,-828,777,\
-695,-1380,254,\
-695,-1380,1300};
+int centroids[15][3]= {0,-276,254,
+		       0,-276,1300,
+		       0,-828,777,
+		       0,-1380,254,
+		       0,-1380,1300,
+		       -695,-276,254,
+		       -695,-276,1300,
+		       -695,-828,777,
+		       -695,-1380,254,
+		       -695,-1380,1300,
+		       695,-276,254,
+		       695,-276,1300,
+		       695,-828,777,
+		       695,-1380,254,
+		       695,-1380,1300};
 
 
 
 gsl_matrix* psi( gsl_matrix* s ){
   gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
-  double x;
-
-  unsigned int index = 0;
-
-double temp[g_iS];
-double  res=0;
-
-    for (int k=0;k<g_iP;k++)
-    {
-        for (int j = 0;j<g_iS;j++)
-        {
-            x= gsl_matrix_get( s, 0, j );
-
-                //calcul avec la gaussienne pour chaque dim
-                temp[j]=exp(- (x-centroids[k][j])*((x-centroids[k][j])) / (2*sigma_map*sigma_map) ) / (sigma_map * sqrt(2*PI));
-                temp[j]=pow(temp[j],2);
-        }
-
-        for (int j = 0;j<g_iS;j++)
+  double x;  
+  double temp[g_iS];
+  double  res=0;
+  
+  for (int k=0;k<g_iP;k++){
+    for (int j = 0;j<g_iS;j++){
+      x= gsl_matrix_get( s, 0, j );
+      
+      //calcul avec la gaussienne pour chaque dim
+      //FIXME: la formule de la gaussienne en 3D :
+      // BLAH\cdot exp( {(x-\bar x)^2 + (y-\bar y)^2 + (z-\bar z)^2\over(2\sigma^2)})
+      temp[j]=exp(- (x-centroids[k][j])*((x-centroids[k][j])) / (2*sigma_map*sigma_map) ) 
+	/ (sigma_map * sqrt(2*M_PI));
+      temp[j]=pow(temp[j],2);
+    }
+    
+    for (int j = 0;j<g_iS;j++)
         {
             res+=temp[j];
         }
@@ -83,8 +83,8 @@ gsl_matrix* phi( gsl_matrix* sa ){
 
     for(i =0;i<(g_iK/g_iP);i++)//on cherche quel action a été lue
     {
-        if(gsl_matrix_get( a, 0, 0 )==gsl_matrix_get(g_mActions,i,0)\
-           &&gsl_matrix_get( a, 0, 1 )==gsl_matrix_get(g_mActions,i,1)\
+        if(gsl_matrix_get( a, 0, 0 )==gsl_matrix_get(g_mActions,i,0)
+           &&gsl_matrix_get( a, 0, 1 )==gsl_matrix_get(g_mActions,i,1)
            &&gsl_matrix_get( a, 0, 2 )==gsl_matrix_get(g_mActions,i,2))
             break;
     }
