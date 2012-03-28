@@ -47,6 +47,8 @@ We use the GSL.
 The code should be easy to grasp. We iterate over every possible action, compute the Q value and store
 the infomation corresponding the best one.
 
+FIXME: Factoriser le code de ces deux fonctions
+
 #+begin_src c :tangle greedy.c :main no
 gsl_matrix* greedy_policy( gsl_matrix* state ){
   gsl_matrix* sa = gsl_matrix_alloc( 1, g_iS + g_iA );
