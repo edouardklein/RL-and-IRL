@@ -70,7 +70,7 @@ gsl_matrix* monte_carlo_mu( gsl_matrix* D ){
    #+end_src
    
    The implementation of Abbeel and Ng's algorithm is not as simple. We do not follow the way things are exposed in the paper, but use a simpler (implementation wise) way. Mainly, the value referenced as $\bar\mu^i$ in the paper is now $\bar\mu$, a value constructed by a successive addition of terms. The variable $i$ is no more needed.
-
+   FIXME: Réunir cette implémentation avec celle de LSTDmu.org en paramétrant le choix des routines
    The implementation goes as follow :
    #+begin_src c :tangle abbeel2004apprenticeship.c :main no
 gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,
