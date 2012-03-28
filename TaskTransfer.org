@@ -8,7 +8,22 @@
 #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
 #+LaTeX_HEADER: \newtheorem{definition}{Definition}
 #+LaTeX_HEADER: \newtheorem{lemma}{Lemma}
+* Dynamic programming header
+** Détails techniques
+#+begin_src python
+from DP import *
 
+pi = DP( Reward, Actions )
+#ou
+pi = DP_txt( Reward, Actions, "Pi.mat" )
+#+end_src
+** Entrées
+   - =Reward= : Vecteur de taille $|S|$ donnant la récompense $R(s)$
+   - =Actions= : Tableau de matrices, la matrice à l'index $i$ étant la matrice de probabilité de transitions pour l'action $a_i$.
+** Sorties
+   - =pi= : Politique optimale pour la récompense et les actions fournies. Se présente sous la forme d'une matrice de probabilité de transitions
+** Paramètres
+   Non.
 * Context
 
   In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that maximizes a cumulative reward in the long run. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\

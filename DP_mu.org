@@ -1,5 +1,26 @@
 #+TITLE: Calcul exact de la /feature expectation/
+* Dynamic programming computation of $\mu$ header
+** Détails techniques
+   Python :
+   #+begin_src python
+from DP_mu import *
+
+DP_mu( pi, Psi )
+   #+end_src
+** Calcul de $\mu(s)$
+*** Entrées
+    - =pi= : Matrice de taille $|S|\times |S|$ représentant la politique
+    - =Psi= : Matrice de taille $|S| \times p$ représentant les features sur l'espace d'état
+*** Sorties
+    - Matrice de taille $|S|\times p$ représentant $\mu^\pi(s)$
+** Calcul de $\mu(s,a)$
+*** Entrées
+    - =pi= : Matrice de taille $|S|\times |S|$ représentant les probabilités de transition si l'on suit l'action $a$
+    - =Psi= : Matrice de taille $|S| \times p$ représentant les features sur l'expace d'état
+*** Sorties
+    - Matrice de taille $|S|\times p$ repésentant $\mu^\pi(.,a)$
 * Principe
+  FIXME: dans l'explication, on a phi à la place de psi.
 De la même manière qu'il est possible d'écrire l'equation de Bellman sous forme matricielle : 
 \begin{equation}
 V^\pi = R + \gamma P_\pi V^\pi 
@@ -28,6 +49,8 @@ On peut faire le parallèle (en notant $\mu^\pi(s,\cdot) = \mu^\pi_a(s)$) :
 
 Pour résumer, il est possible de calculer la matrice $\mathbf \mu^\pi$ grâce à une adaptation des algorithmes de programmation dynamique, et à partir de celle ci de déduire les matrices $\mu^\pi_a$, qui sont celles dont nous avons besoin.
 * Code
+FIXME: Essayer de transformer ça en algo exact
+FIXME: Mettre le code en adéquation avec le header
 #+begin_src python :tangle DP_mu.py
 from numpy import *
 import scipy

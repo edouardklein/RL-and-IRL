@@ -2,6 +2,30 @@
   LSPI is a reinforcement learning algorithm introduced in \cite{lagoudakis2003least}.
   
   It uses [[file:LSTDQ.org][LSTDQ]] and a [[file:greedy.org][greedy]] mechanism.
+* LSPI header
+** Détails techniques
+   C :
+   #+begin_src C
+#include LSPI.h
+
+unsigned int g_iK = -1;
+gsl_matrix* g_mOmega = NULL;
+double g_dEpsilon_lspi = -1;
+unsigned int g_iIt_max_lspi = -1;
+
+gsl_matrix* omega = lspi( D, omega_0 );
+   #+end_src
+** Entrées
+   - =D= : Matrice de transitions dont chaque ligne est de la forme $s,a,s',r,eoe$ ($eoe$ vaut 0 en fin d'épisode, 1 sinon).
+   - =omega_0= : Matrice de taille $k\times 1$ donnant la fonction de qualité initiale
+** Sorties
+   - Matrice $\omega$ de taille $k \times 1$ telle que la fonction de qualité optimale peut être approximée par $\hat Q(s,a) = \omega^T\phi(s,a)$
+** Paramètres
+   - =g_dEpsilon_lspi= : critère d'arrêt pour LSPI, seuil que doit passer la norme 2 entre deux valeurs consécutives de $\omega$.
+   - =g_iIt_max_lspi= : critère d'arrêt pour LSPI, nombre maximum d'itération après lequel LSPI s'arrête s'il n'a pas passé le seuil
+
+     
+   Il faut également régler les paramètres de [[file:LSTDQ.org][LSTD$Q$]] et de [[file:greedy.org][la greedy policy]].
 * C implementation
 ** Externals
     The C implementation follows quite closely the pseudo code given in \cite{lagoudakis2003least}.
