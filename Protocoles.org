@@ -32,7 +32,7 @@ Pour augmenter la pertinence de la démarche dans le cas dégradé, il faudra as
 
   En ce qui concerne le set de features permettant le travail sur le highway dans le cas dégradé, un bon indicateur pourrait être la bonne résolution du problème par LSPI. Aussi une des expériences qui devra être tentée est la résolution du highway par LSPI, en comparant la qualité des politiques trouvées avec celles trouvées par les algos de programmation dynamique.\\
 
-  Le choix du paramètre de SCIRL $alpha(t)$ se fera en fixant $T_S$ à une valeur réellement énorme (correspondant à plusieurs heures de calcul) et en regardant l'évolution du gradient en fonction de la valeur choisie pour le paramètre $\alpha(t)$ parmis un set de départ. Un tatonnement manuel guidé par des observations telles que "Quelle est la velur minimale du gradient ?", "Au bout de combien d'itération est-elle atteinte ?" sur le set prédéfini devrait au final amener à trouver un jeu de paramètres pour chacun des benchmarks.\\
+  Le choix du paramètre de SCIRL $\alpha(t)$ se fera en fixant $T_S$ à une valeur réellement énorme (correspondant à plusieurs heures de calcul) et en regardant l'évolution du gradient en fonction de la valeur choisie pour le paramètre $\alpha(t)$ parmis un set de départ. Un tatonnement manuel guidé par des observations telles que "Quelle est la valeur minimale du gradient ?", "Au bout de combien d'itération est-elle atteinte ?" sur le set prédéfini devrait au final amener à trouver un jeu de paramètres pour chacun des benchmarks.\\
 * Expériences
   On a deux algos à tester, sur 3 benchmarks, dans deux types de conditions. En tout et pour tout cela donne 12 expériences à faire tourner. Il y a des points communs entre les différentes expériences\\
 
