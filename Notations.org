@@ -23,6 +23,8 @@ FIXME: Trouver un moyen de lier les notations mathématiques au code corresponda
   - $T_{LSPI}$ : Nombre maximum d'itérations effectuées par LSPI avant de s'arrêter si le seuil n'a pas été atteint
   - $\lambda_{LSTDQ}$ : Coefficient de régularisation pour LSTD$Q$ utilisé dans l'expression  $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$.
   - $\gamma_{LSTDQ}$ : Coefficient d'amortissement lors de l'estimation de $Q$ par LSTD$Q$.
+  - $L_{MCip}$ : Longueur max d'une trajectoire lors d'une estimation de Monte-Carlo sur le pendule inversé
+  - $M_{MCip}$ : Nombre de trajectoires lors d'une estimation de Monte-Carlo sur le pendule inversé
 * IRL 
  - $l : S\times A \rightarrow \mathbb{R}$ : fonction de perte
  - $R_N$ : fonction de risque empirique

@@ -1,0 +1,121 @@
+#+TITLE: Détermination de la longueur du Monte-Carlo
+
+Afin de satisfaire aux contraintes exprimées dans [[file:../Protocoles.org]], nous allons réaliser une petite expérience où par tatonnement nous déterminerons la longueur du Monte-Carlo permettant de satisfaire :
+\begin{equation}
+{1\over 100}\sum_{i=1}^{100}\left|\left|\hat \mu^i_E(s_0)-\bar \mu_E(s_0)\right|\right|_2 < 0.01||\bar \mu_E(s_0)||_2 .\\
+\end{equation}
+
+Le principe est très simple, il suffit d'entraîner un expert sur le problème du pendule :
+#+begin_src c :tangle MCLength.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "abbeel2004apprenticeship.h"
+#include "criteria.h"
+#include "greedy.h"
+#include "phipsi.h"
+
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+#define D_FILE_NAME "Samples.dat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+double g_dLambda_lstdmu = 0.1;
+double g_dGamma_anirl = 0.9;
+double g_dEpsilon_anirl = 0.01;
+unsigned int g_iIt_max_anirl = 2;
+gsl_matrix* g_mActions = NULL; 
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
+gsl_matrix* (*g_fSimulator)(int) = &inverted_pendulum_simulator;
+gsl_matrix* (*g_fS_0)(void) = NULL;
+//L_{MCip}
+unsigned int g_iMax_episode_len = 30;
+//FIXME: Useless but defined anyway in order to compile
+double g_dGamma_lafem = -1;
+unsigned int g_iNb_episodes = -1;
+int main( void ){
+  fprintf(stderr,"Training the expert...");
+  fflush( NULL );
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_expert = lspi( D, omega_0 );
+  g_mOmega = omega_expert;
+  fprintf(stderr,"done\n");
+#+end_src
+
+Il faut ensuite générer 100 fois des données d'une certaine longueur $(L_{MCip},M_{MCip})$, $L_{MCip}$ étant la longueur max d'une trajectoire et $M_{MCip}$ le nombre de trajectoires. La valeur moyenne $\bar \mu_E(s_0)$ des estimations de Monte-Carlo sur ces sets de données et calculée :
+\begin{equation}
+\bar \mu_E(s_0) = {1\over 100} \sum_{i=1}^{100} {1\over M_{MCip}}\sum_{j=1}^{M_{MCip}}\sum_{k=1}^{L_{MCip}} \gamma^{k-1}\psi(s^j_k). 
+\end{equation}
+#+begin_src c :tangle MCLength.c :main no
+  unsigned int M = 1; //M_{MCip}
+  gsl_matrix* mu_E[100];
+  gsl_matrix* bar_mu = gsl_matrix_calloc( g_iP, 1 );
+  for( int i = 0; i<100; i++ ){
+    gsl_matrix* D_E = inverted_pendulum_simulator( M );
+    mu_E[i] = monte_carlo_mu( D_E );
+    gsl_matrix_free( D_E );
+    gsl_matrix_add( bar_mu, mu_E[i] );
+  }
+  gsl_matrix_scale(bar_mu,1./100.);
+  
+
+#+end_src
+ Enfin on regarde la norme de l'écart moyen à la moyenne de chacune des estimations $\hat \mu^i_E(s_0)$ sur le set de données numéro $i$ et on compare sa norme à celle de la moyenne.
+
+#+begin_src c :tangle MCLength.c :main no
+  double mean_ecart = 0;
+  gsl_matrix* ecart = gsl_matrix_alloc( g_iP, 1 );
+  for( int i = 0; i<100; i++ ){
+    gsl_matrix_memcpy( ecart, mu_E[i] );
+    gsl_matrix_sub( ecart, bar_mu );
+    gsl_vector_view v = gsl_matrix_column( ecart, 0 );
+    mean_ecart += gsl_blas_dnrm2( &v.vector );
+  }
+  mean_ecart /= 100.;
+  gsl_vector_view v = gsl_matrix_column( bar_mu, 0 );
+  printf("(M_MCip, L_MCip) : (%d,%d)\nEcart moyen à la moyenne : %f\nNorme de la moyenne : %f\n", M, g_iMax_episode_len, mean_ecart, gsl_blas_dnrm2( &v.vector ));
+}  
+
+#+end_src
+
+
+Tout cela se compile de la sorte :
+#+srcname: MCLength_make
+#+begin_src makefile
+MCLength.c: MCLength.org InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../abbeel2004apprenticeship.h ../criteria.h ../greedy.h phipsi.h ../RL_Globals.h ../IRL_Globals.h
+	$(call tangle,"MCLength.org")
+MCLength.o: MCLength.c
+	$(call c2obj,"MCLength.c")
+MCLength.exe: MCLength.o ../LSPI.o phipsi.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o simulator.o ../utils.o ../criteria.o InvertedPendulum.o
+	$(O2EXE) -o MCLength.exe MCLength.o ../LSPI.o phipsi.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../utils.o simulator.o ../criteria.o InvertedPendulum.o
+
+MCLength: MCLength.exe Samples.dat
+	./MCLength.exe
+#+end_src
+
+  #+srcname: MCLength_clean_make
+  #+begin_src makefile
+MCLength_clean:
+	find . -maxdepth 1 -iname "MCLength.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "MCLength.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "MCLength.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "MCLength.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "MCLength.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "MCLength.pdf"   | xargs $(XARGS_OPT) rm
+  #+end_src
