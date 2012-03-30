@@ -44,7 +44,6 @@ double v = greedy_value_function( s );
    - =g_mActions= : matrice représentant les actions, une action par ligne
    - =g_fPhi= : feature function pour $S\times A$
    - =g_mOmega= : vecteur $\omega$ représentant la fonction de qualité vis à vis de laquelle on veut l'action gloutonne
-
 * C implementation
 ** Externals
     Some aspects are controlled by [[file:RL_Globals][global variables]].

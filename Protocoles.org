@@ -1,428 +1,99 @@
 #+TITLE:Protocoles expérimentaux pour l'IRL
 #+LATEX_HEADER:\usepackage[plain,cm]{fullpage} 
 #+LATEX_HEADER:\usepackage{algorithm}
-#+LATEX_HEADER:\usepackage{algpseudocode}
-* Algos à tester
-  L'[[file:abbeel2004apprenticeship.org][algo d'Abbeel]] sert de baseline, puisqu'il est déjà implémenté et bien connu dans la littérature. Il renvoie une politique, c'est cette politique que l'on teste.
+* Les Benchmarks
+  On dispose de trois tests pour nos algorithmes, par ordre de difficulté on a le GridWorld, le pendule inversé et le highway. Le GridWorld est très simple à analyser, toutes les fonctions sont représentées sous forme tabulaire, les probabilités de transitions sont connues. On peut visualiser de la récompense et la fonction de valeur et interpréter cette visualisation.\\
 
-  [[file:NouveauxAlgos.org][SCIRL]] est un des algos à tester. On vend le fait qu'il fonctionne avec uniquement les données de l'expert.
+  Le pendule est un peu plus complexe. Les probabilités de transitions sont inconnues, mais grâce à \cite{lagoudakis2003least}, on dispose d'outils d'analyse (LSPI et les features associées sur ce problème) qui alliés au simulateur que l'on a codé permettent des calculs à une précision arbitrairement grande. Les actions sont discrètes mais les états sont continus. La visualisation de la récompense et de la fonction de valeur, bien qu'elle soit plus dure à interpréter que sur le GridWorld apporte de la valeur à la discussion.\\
 
-  A tester également dans un futur proche (quand ils seront implémentés) :
-  - Relative Entropy de Boularias
-  - Classif + regression de nous
-** Paramètres des algorithmes
-*** ANIRL
-    Sans se soucier du choix des routines, les paramètres de cet algorithme concernent le critère d'arrêt. La valeur $t = ||\mu_E - \bar\mu||_2$ doit pouvoir passer en dessous d'une certaine valeur $\epsilon_A$. Dans le cas où cela est impossible (à cause d'erreurs dans ce que retournent les routines, par exemple), l'algorithme s'arrête après $T$ itérations.
-*** SCIRL
-    En laissant également de côté le choix des routines, on trouve comme paramètres pour cet algorithme la fonction $l$, le pas d'apprentissage $\alpha$, le nombre maximum d'itérations $T$, un threshold sur la norme du gradient $\epsilon_S$ et le vecteur récompense initial $\theta_0$.
-* Routines disponibles
-** Calcul d'une politique
-   Nous avons implémenté un algorithme de [[file:TaskTransfer.org::*Dynamic%20programming][programmation dynamique]] pour les cas où les probabilités de transition sont connues. Il est également possible d'utiliser [[file:LSPI.org][LSPI]] pour les autres cas.
-** Calcul de $\mu$
-   Si les probabilités de transitions et la politique sont connues, alors $E[\mu(s_0)]$ et $\mu(s,a)$ peuvent être calculés grâce à une [[file:DP_mu.org][adaptation]] des algorithmes de programmation dynamique.\\
+  Le highway, une fois qu'il sera modifié pour compenser les défauts de celui de Syed, est un problème ambivalant. Bien qu'il soit formellement discret et puisse être vu sous cet aspect comme le GridWorld, on le traitera dans certaines expériences comme continu (il faudra alors définir un set de features qui fonctionne, problème qui n'est pas sans soulever quelques difficultés). Il a ceci de plus que le GridWorld qu'il permet de chouettes démos, puisqu'il est assez visuel dans sa représentation : l'ordi conduit la voiture, évite les collisions, etc.\\
 
-   Si les probabilités de transition sont inconnues, mais qu'un simulateur est disponible, on peut obtenir une très bonne approximation de $E[\mu(s_0)]$ et $\mu(s,a)$ grâce à un Monte-Carlo simple.
+* Les algorithmes
+  Dans un premier temps, on ne va tester que deux algorithmes, ANIRL d'Abbeel \cite{abbeel2004apprenticeship} et SCIRL de nous. Cela parce qu'ils sont déjà implémentés. ANIRL est un algo reconnu dans la littérature et beaucoup de papier l'utilisent comme comparaison, il est donc légitime que nous nous comparions également à lui. SCIRL est notre petit nouveau dont nous allons essayer d'exhiber une preuve empirique du fait qu'il fonctionne.\\
 
-   Enfin, dans le cas où seules les données de l'expert sont disponibles, on utilisera LSTD$\mu$ en mode /off-/ ou /on-policy/. Il existe deux versions, en effet ANIRL a besoin de $E[\mu(s_0)]$ alors que SCIRL a besoin de $\mu(s,a),\forall s \in D_E, \forall a \in A$.
+  On va réutiliser les implémentations d'ANIRL utilisées lors du travail sur LSTD$\mu$. Il faudra adapter un brin pour permettre une résolution exacte dans les cas qui l'exigent, mais de manière générale l'algo reste le même, à savoir la variante décrite comme la méthode par projection, dont les seuls paramètres propres (c'est à dire qui ne sont pas liés à une sous routine particulière) sont liés au critère d'arrêt. La valeur $t = ||\mu_E - \bar\mu||_2$ doit pouvoir passer en dessous d'une certaine valeur $\epsilon_A$. Dans le cas où cela est impossible (à cause d'erreurs dans ce que retournent les routines, par exemple), l'algorithme s'arrête après $T_A$ itérations.\\
+
+  L'implémentation de SCIRL est la dernière en date, à savoir celle où la descente de sous-gradient est normalisée (l'update est $\theta_{t+1} = \theta_t -\alpha_t {\Delta\theta\over N ||\Delta\theta||_2}$) et où l'on retourne le meilleur résultat obtenu (celui avec le plus petit gradient) et non le dernier. Les paramètres propres de cet algorithmes sont la fonction $l$, le pas d'apprentissage $\alpha$, le nombre maximum d'itérations $T_S$, un seuil sur la norme du gradient $\epsilon_S$ et le vecteur récompense initial $\theta_0$. On prévoit à priori d'utiliser partout la fonction $l$ classique qui consiste à renvoyer $1$ en cas de désaccord avec l'expert et à renvoyer $0$ en cas d'accord. De la même manière on prévoit à priori d'initialiser le vecteur récompense $\theta$ à 0.
+
+* Considérations philosophiques sur le plan d'expériences proposé
+  
+  Dans un premier temps, les deux algorithmes considérés vont être testés sur les trois benchmarks dans le cas "parfait" où ils disposent de toute l'information nécessaire. Cela signifie pour le GridWorld et le highway l'exploitation des probabilités de transition par des algorithmes de programmation dynamique exacts et pour le pendule l'utilisation de données du simulateur en nombre suffisant pour permettre une grande précision.\\
+
+  Un des buts de cet démarche est de faire une démonstration de la pertinence de SCIRL en le comparant ses résultats à ceux d'un algo reconnu de la litérature à savoir ANIRL. Cela confirmerait les résultats théoriques obtenus par Bilal et Matthieu.\\
+
+  L'autre but, beaucoup plus pragmatique, est de pouvoir trouver les paramètres propres des algorithmes en s'affranchissant des doutes sur les sous routines pusique celles-ci sont des sous routines exactes ou approchées mais très bonnes et ayant fait leurs preuves par ailleurs dans le cas du pendule.\\
+
+  Dans un second temps, on passera en conditions complètement dégradées, où seules sont accessibles les données de l'expert. Sur les deux benchmarks les plus durs, ANIRL ne devrait pas être en mesure de fournir de résultats. Il faudra alors comparer les résultats fournis par SCIRL à une ou plusieurs baselines aléatoires afin de montrer qu'ils sont meilleurs. Ce round d'expériences a pour but de montrer que notre algo réussit là où les autres échouent, c'est à dire dans les cas qui se rapprochent des cas d'application rééls.\\
+
+Pour augmenter la pertinence de la démarche dans le cas dégradé, il faudra assez rapidement introduire d'autres algorithmes, notamment \cite{boularias2011relative} qui ont des prétentions relativement similaires aux nôtres. On pourra alors comparer les résultats et se positionner. Si même Relative Entropy ne permet pas d'obtenir des résultats dans ces conditions, alors il faudra introduire de l'information petit à petit (on pourra faire de même pour ANIRL) jusqu'à ce que l'algo fonctionne au même niveau que SCIRL dans le cas entièrement dégradé. On pourra alors dire "tel et tel algo ont besoin d'exactement tant de données en plus que nous pour arriver au même résultat". Ca a déjà en partie été fait sur ANIRL lors du travail sur LSTD$\mu$.
+
+* Choix des paramètres
+  Certains paramètres propres des algos devront être réglés, les valeurs qui fonctionnent n'étant pas encore connues. Il faut également mener une réflexion sur la valeur des paramètres des sous routines utilisées.\\
+
+  En ce qui concerne le set de features permettant le travail sur le highway dans le cas dégradé, un bon indicateur pourrait être la bonne résolution du problème par LSPI. Aussi une des expériences qui devra être tentée est la résolution du highway par LSPI, en comparant la qualité des politiques trouvées avec celles trouvées par les algos de programmation dynamique.\\
+
+  Le choix du paramètre de SCIRL $\alpha(t)$ se fera en fixant $T_S$ à une valeur réellement énorme (correspondant à plusieurs heures de calcul) et en regardant l'évolution du gradient en fonction de la valeur choisie pour le paramètre $\alpha(t)$ parmis un set de départ. Un tatonnement manuel guidé par des observations telles que "Quelle est la valeur minimale du gradient ?", "Au bout de combien d'itération est-elle atteinte ?" sur le set prédéfini devrait au final amener à trouver un jeu de paramètres pour chacun des benchmarks.\\
 * Expériences
-** Là où tout marche
-   Pour montrer qu'en théorie notre algorithme n'est pas fondamentalement hors de propos, on va le comparer à celui d'Abbeel dans le cas merveilleux où l'on a autant d'information que nécessaire. Le but est de montrer que les arguments développés de manière théorique portent du sens car en pratique les résultats sont similaires à (espérons, meilleurs que) ceux d'un algo central de la littérature.\\
+  On a deux algos à tester, sur 3 benchmarks, dans deux types de conditions. En tout et pour tout cela donne 12 expériences à faire tourner. Il y a des points communs entre les différentes expériences\\
 
-   Sur le GridWorld, le setting est décrit algo \ref{GridParfait.algo}, l'application d'ANIRL est donnée algo \ref{AnirlGridParfait.algo} et celle de SCIRL algo \ref{ScirlGridParfait.algo}.\\
-    
-\begin{algorithm}
-\caption{Réglages du GridWorld dans le cas parfait}
-\label{GridParfait.algo}
-\begin{algorithmic}
-\State Définir la vraie récompense $R$ comme $R(s)=0$ sauf en haut à droite où $R(s)=1$.
-\State Entraîner l'expert sur $R$ grâce à l'algorithme de programmation dynamique.
-\State Créer $D_E$ la base de données contenant chaque état et l'action de l'expert associée
-\State Tracer la vraie récompense
-\State Tracer la fonction de valeur associée
-\end{algorithmic}
-\end{algorithm}
+** Définition des experts et données dans le cas dégradé
+*** GridWorld
+    Récompense 1 en haut à droite, 0 partout. L'expert est entrâiné par programmaton dynamique. On fournit une trajectoire de l'expert, sachant qu'il part du bas à gauche.
+*** Pendule inversé
+    Récompense définie dans \cite{lagoudakis2003least}. On fournit une trajectoire tronquée au bout de 3000 pas de temps. L'expert est entraîné par LSPI.
+*** Highway
+    Récompense correspondant au "Fast driving" des expériences précédentes, à savoir $\theta = [0.5~0.25~0.25]$, avec les composantes correspondant respectivement à la feature de vitesse, de non collision et de non sortie de route définie par Syed. L'expert est entraîné par programmation dynamique. On fournit une trajectoire d'une longueur correspondant au passage de trois voitures rouges.
+** Baselines aléatoires et barres d'erreur
+   Pour tous les problèmes, deux types de baselines aléatoires sont étudiées, celle consistant à entraîner un expert sur une récompense choisie aléatoirement et celle consistant à choisir aléatoirement à chaque pas une action.
 
+   Dans les cas dégradés, on présentera la moyenne et la variance des résultats sur 100 runs. Un run s'entend comme une reprise à zéro de l'expérience, génération des données par l'expert comprise.
+** Généralités sur le réglage de paramètres
+  De manière générale, les algorithmes de programmation dynamique ne nécessitent pas de réglage de paramètres, dans les cas parfait sur le GridWorld et le Highway on aura donc uniquement à régler les paramètres propres de SCIRL et ANIRL.\\
 
-\begin{algorithm}
-\caption{Utilisation d'Abbeel sur le GridWorld dans le cas parfait}
-\label{AnirlGridParfait.algo}
-\begin{algorithmic}
-\State Instancier l'algorithme d'Abbeel avec :
-\Procedure{$\pi$}{$\theta$}
-\State Utiliser l'algorithme de programmation dynamique exact, vis à vis de la récompense $R(s) = \theta^T\psi(s)$.
-\EndProcedure
-\Procedure{$\mu$}{$\pi$}
-\State Utiliser l'algorithme de programmation dynamique exact.
-\EndProcedure
-\Procedure{$\mu_E$}{}
-\State Utiliser l'algorithme de programmation dynamique exact.
-\EndProcedure
-\State Fixer $\epsilon_A = 0.01$
-\State Fixer $T$ suffisament grand pour que l'algorithme s'arrête avant $T$ itérations
-\State Faire tourner ANIRL
-\State Comparer la politique obtenue avec celle de l'expert
-\State Tracer la récompense ayant donné cette politique
-\State Tracer la fonction de valeur associée
-\end{algorithmic}
-\end{algorithm}
+  Dans tous les cas parfait, on fixera les seuil d'arrêt des algorithmes à $1\%$ de la valeur de $||\mu_E(s_0)||_2$ et on règlera le nombre maximum d'itérations à 10 fois la valeur nécessaire au passage sous le seuil. On diminuera le seuil d'un facteur 10 autant de fois que nécessaire pour obtenir des performances de l'agent similaires à celles de l'expert. Dans le cas de SCIRL, on utilisera un $\alpha(t)$ tel que $\alpha(t) = A/t$. On testera pour quelques valeurs de $A$ de 0.1 à 10000 et en observant le comportement de la norme du gradient on en déduira à la main un $\alpha(t)$ de la forme $\alpha(t) = {A\over Bt}$ qui permet l'arrêt de l'algorithme en moins d'un millier d'itérations.\\
 
-   
-\begin{algorithm}
-\caption{Utilisation de SCIRL sur le GridWorld dans le cas parfait}
-\label{ScirlGridParfait.algo}
-\begin{algorithmic}
-\State Instancier SCIRL avec :
-\Procedure{$\mu_E$}{s,a}
-\State Utiliser l'algorithme de programmation dynamique exact.
-\EndProcedure
-\State Fixer $\epsilon_S=0.01$
-\State Fixer $T$ suffisament grand pour que l'algorithme s'arrête avant $T$ itérations
-\State Trouver un $\alpha(t)$ qui fonctionne avec une gridsearch.
-\State Initialiser $\theta_0 = {\mathbf 0}$
-\State Faire tourner SCIRL sur $D_E$
-\State Tracer la récompense 
-\State Entraîner un agent sur la récompense obtenue
-\State Comparer la politique de l'agent avec celle de l'expert
-\State Tracer la fonction de valeur associée
-\end{algorithmic}
-\end{algorithm}
+  Dans tous les cas pour SCIRL, on utilisera $\theta_0 = \mathbf{0}$ et $l(s,a)$ telle que $l(s,a)=1$ si $a\neq \pi_E(s)$ et $0$ sinon.\\
 
-Pour le pendule inversé, les probabilités de transition ne sont plus disponibles. Le setting est donc un peu différent (algo \ref{InvertedParfait.algo}), l'application d'ANIRL (algo \ref{AnirlInvertedParfait.algo}) et de SCIRL (algo \ref{ScirlInvertedParfait.algo}) également. Notamment, si dans le cas précédent il n'y avait pas de place pour l'aléatoire, une variance existe dans ce cas ci. Répéter l'expérience plusieurs fois montrera que cette variance est minime.\\
+  Sur le GridWorld et le Highway, on nourrit SCIRL avec une base de données comprenant chaque état et l'action de l'expert associée (dans le cas parfait). Sur le Pendule on lui donne la même chose qu'à ANIRL (qui sur les deux autres problème a accès à la politique en tant que fonction).\\
+** LSPI dans les cas dégradés
+  Dans tous les cas dégradés, ANIRL sera instancié avec LSPI comme solveur de MDP et LSTD$\mu$ dans ses versions /on/ et /off-policy/ pour $\mu_E$ et $\mu$. Pour chacun des becnhmarks, une sous expérience sera menée afin de déterminer les paramètres de LSPI permettant de résoudre le MDP /à condition de disposer d'une quantité de données suffisante/.\\
 
+  Ces paramètres sont $\phi$ la fonction de feature et $\lambda$ le coefficient de régularisation. Le seul exemple pouvant poser problème est le highway. On essaiera avec un réseau de RBF et $\lambda$ à $0.1$. En cas d'échec on denséifira le réseau et testera plusieurs valeurs de $\lambda$ entre $0.01$ et $0.5$.
 
-\begin{algorithm}
-\caption{Settings sur le pendule inversé dans le cas parfait}
-\label{InvertedParfait.algo}
-\begin{algorithmic}
-\State Créer $D$ une base de données de $M_D$ trajectoires débutant dans un état choisi aléatoirement, en suivant une politique aléatoire.
-\State Entraîner l'expert grâce à LSPI comme décrit dans le papier de Lagoudakis
-\State Créer $N$ matrices $D_E$ contenant chacune $M_E$ trajectoires de l'expert de longueur maximum $L_{ip}$
-\State Tracer la vraie récompense
-\State Tracer la fonction de valeur associée
-\end{algorithmic}
-\end{algorithm}
+  Une fois ces paramètres obtenus, on observera le comportement de LSPI lorsqu'il ne dispose plus, pour résoudre le MDP, que des données fournies par l'expert. On sait déjà que ça ne fonctionne pas dans le cas du pendule et que cela fonctionne dans le cas du GridWorld.\\
 
-\begin{algorithm}
-\caption{Utilisation d'Abbeel sur le pendule inversé dans le cas parfait}
-\label{AnirlInvertedParfait.algo}
-\begin{algorithmic}
-\State Instancier l'algorithme d'Abbeel avec :
-\Procedure{$\pi$}{$\theta$}
-\State Utiliser LSPI, vis à vis de la récompense $R(s) = \theta^T\psi(s)$.
-\EndProcedure
-\Procedure{$\mu$}{$\pi$}
-\State Utiliser un Monte-Carlo de $M_{mcip}$ trajectoires de longueur maximum $L_{mcip}$
-\EndProcedure
-\Procedure{$\mu_E$}{}
-\State Utiliser un Monte-Carlo sur $D_E$
-\EndProcedure
-\State Fixer $\epsilon_A = 0.01$
-\State Fixer $T$ suffisament grand pour que l'algorithme s'arrête avant $T$ itérations
-\ForAll{$D_E$}
-\State Faire tourner ANIRL
-\EndFor
-\State Comparer les performances moyenne des politiques obtenues avec celles de l'expert
-\State Tracer la récompense ayant donné une des politiques
-\State Tracer la fonction de valeur associée
-\end{algorithmic}
-\end{algorithm}
+  Un échec à ce stade étant rédhibitoire pour ANIRL, on n'essaiera pas de le faire tourner si LSPI n'est pas en mesure de mener sa tâche à bien.\\
+** Estimation de $\mu_E(s,a)$ dans les cas dégradés
+   Par défaut, SCIRL sera instancié avec LSTD$\mu$ pour estimer $\mu_E(s,a)$. On cherchera le paramètre $\lambda$ de LSTD$\mu$ comme pour LSPI, en comparant la valeur obtenue par LSTD$\mu$ à celle obtenue par programmation dynamique ou par Monte-Carlo selon le problème.\\
 
-   
-\begin{algorithm}
-\caption{Utilisation de SCIRL sur le pendule inversé dans le cas parfait}
-\label{ScirlInvertedParfait.algo}
-\begin{algorithmic}
-\State Instancier SCIRL avec :
-\Procedure{$\mu_E$}{s,a}
-\State Utiliser un Monte-Carlo de $M_{mcip}$ trajectoires de longueur maximum $L_{mcip}$
-\EndProcedure
-\State Fixer $\epsilon_S=0.01$
-\State Fixer $T$ suffisament grand pour que l'algorithme s'arrête avant $T$ itérations
-\State Trouver un $\alpha(t)$ qui fonctionne avec une gridsearch.
-\State Initialiser $\theta_0 = {\mathbf 0}$
-\ForAll{$D_E$}
-\State faire tourner SCIRL sur $D_E$
-\State Entraîner un agent sur la récompense obtenue
-\EndFor
-\State Tracer une des récompense 
-\State Tracer la fonction de valeur associée
-\State Comparer les performances moyenne des agents avec celles de l'expert
-\end{algorithmic}
-\end{algorithm}
+En cas d'échec (à craindre dans le cas du highway) en présence des seules données de l'expert, il faudra envisager d'employer les autres méthodes trouvées par Matthieu.
+** Expérience : ANIRL, GridWorld, Parfait
+   On instancie ANIRL avec les algos de programmation dynamique. On lui donne $\pi_E$, la politique de l'expert, en argument.
+** Expérience : ANIRL, Pendule, Parfait
+   On instancie ANIRL avec LSPI en tant que solveur de MDP et Monte-Carlo pour calculer les différentes /feature expectations/. Les paramètres de LSPI sont directement repris de \cite{lagoudakis2003least}. La longueur du Monte-Carlo est telle que l'écart moyen en norme 2 à la moyenne sur 100 runs est de moins de $1$\% de la norme 2 de la moyenne. càd :
+\begin{equation}
+{1\over 100}\sum_{i=1}^{100}\left|\left|\hat \mu^i_E(s_0)-\bar \mu_E(s_0)\right|\right|_2 < 0.01||\bar \mu_E(s_0)||_2 
+\end{equation}
+** Expérience : ANIRL, Highway, Parfait
+   On instancie ANIRL avec les algos de programmation dynamique. On lui donne $\pi_E$, la politique de l'expert, en argument.
+** Expérience : SCIRL, GridWorld, Parfait
+   SCIRL est instancié avec un algo de programmation dynamique pour calculer $\mu_E(s,a)$.
+** Expérience : SCIRL, Pendule, Parfait
+   SCIRL est instancié avec un Monte-Carlo aussi long que celui utilisé pour ANIRL afin de calculer $\mu_E(s,a)$.
+** Expérience : SCIRL, Highway, Parfait
+   SCIRL est instancié avec un algo de programmation dynamique pour calculer $\mu_E(s,a)$.
+** Expérience : ANIRL, GridWorld, Dégradé
+   On reprend les paramètres propres trouvés dans le cas parfait.
+** Expérience : ANIRL, Pendule, Dégradé
+   Ne sera pas tentée, LSPI ne peut résoudre le problème.
+** Expérience : ANIRL, Highway, Dégradé
+   Subordonné à la réussite de LSPI sur les seules données de l'expert. Si on tente, on utilisera les paramètres du cas parfait.
+** Expérience : SCIRL, GridWorld, Dégradé
+   On reprend les paramètres propres trouvés dans le cas parfait.
+** Expérience : SCIRL, Pendule, Dégradé
+   On reprend les paramètres propres trouvés dans le cas parfait
+** Expérience : SCIRL, Highway, Dégradé
+   Subordonné à la réussite de LSPI sur les seules données de l'expert. Si on tente, on utilisera les paramètres propres du cas parfait.
 
-Le problème du Highway n'est pas exploitable à l'heure actuelle, mais avec un peu de travail il est possible de le changer en un problème discret un peu plus difficile que le GridWorld. Cela a pour avantage de nous fournir les probabilités de transitions. Le protocole est quasiment le même que pour le GridWorld, avec le setting décrit dans l'algo \ref{HighwayParfait.algo}, l'application d'ANIRL décrite algo \ref{AnirlHighwayParfait.algo} et celle de SCIRL décrite algo \ref{ScirlHighwayParfait.algo}.\\
-
-    
-\begin{algorithm}
-\caption{Réglages du Highway dans le cas parfait}
-\label{HighwayParfait.algo}
-\begin{algorithmic}
-\State Définir la vraie récompense $R$ comme récompensant la vitesse et pénalisant les collisions et sortie de route (aka /fast driving/) : $R = [0.5~0.25~0.25]$.
-\State Entraîner l'expert sur $R$ grâce à l'algorithme de programmation dynamique.
-\State Créer $D_E$ la base de données contenant chaque état et l'action de l'expert associée
-\State Evaluer les performances de l'expert
-\State Enregistrer une courte démo de l'expert qui conduit
-\end{algorithmic}
-\end{algorithm}
-
-
-\begin{algorithm}
-\caption{Utilisation d'Abbeel sur le Highway dans le cas parfait}
-\label{AnirlHighwayParfait.algo}
-\begin{algorithmic}
-\State Instancier l'algorithme d'Abbeel avec :
-\Procedure{$\pi$}{$\theta$}
-\State Utiliser l'algorithme de programmation dynamique exact, vis à vis de la récompense $R(s) = \theta^T\psi(s)$.
-\EndProcedure
-\Procedure{$\mu$}{$\pi$}
-\State Utiliser l'algorithme de programmation dynamique exact.
-\EndProcedure
-\Procedure{$\mu_E$}{}
-\State Utiliser l'algorithme de programmation dynamique exact.
-\EndProcedure
-\State Fixer $\epsilon_A = 0.01$
-\State Fixer $T$ suffisament grand pour que l'algorithme s'arrête avant $T$ itérations
-\State Faire tourner ANIRL
-\State Comparer la politique obtenue avec celle de l'expert
-\State Enregistrer une courte démo de l'agent qui conduit
-\end{algorithmic}
-\end{algorithm}
-
-   
-\begin{algorithm}
-\caption{Utilisation de SCIRL sur le Highway dans le cas parfait}
-\label{ScirlHighwayParfait.algo}
-\begin{algorithmic}
-\State Instancier SCIRL avec :
-\Procedure{$\mu_E$}{s,a}
-\State Utiliser l'algorithme de programmation dynamique exact.
-\EndProcedure
-\State Fixer $\epsilon_S=0.01$
-\State Fixer $T$ suffisament grand pour que l'algorithme s'arrête avant $T$ itérations
-\State Trouver un $\alpha(t)$ qui fonctionne avec une gridsearch.
-\State Initialiser $\theta_0 = {\mathbf 0}$
-\State Faire tourner SCIRL sur $D_E$
-\State Entraîner un agent sur la récompense obtenue
-\State Comparer la politique de l'agent avec celle de l'expert
-\State Enregistrer une courte démo de l'agent qui conduit
-\end{algorithmic}
-\end{algorithm}
-
-Ces quelques expériences devraient montrer que les algorithmes mis en jeu sont en mesure de résoudre le problème qui leur est posé /s'ils disposent de toute l'information nécessaire/. La difficulté réside dans l'exploitation de la (faible) quantité d'information disponible dans le cas réel.
-
-
-
-** Cas extrême où seules les données de l'expert sont disponibles
-   Après avoir prouvé que les algos considérés fonctionnent correctement lorsque les conditions sont idéales, on va se pencher sur le cas le plus proche de la réalité, à savoir le cas où seules les données de l'expert sont disponibles.\\
-    
-   Pour les trois benchmark (GridWorld, pendule et Highway), le setting est le même à ceci près qu'on testera également différentes formes de politiques aléatoires afin d'avoir une vision un peu objective de la qualité de la sortie d'un algo. La méthodologie pour obtenir ces baselines aléatoire est expliqué algo \ref{RandomGrid.algo} pour le GridWorld, algo \ref{RandomInverted.algo} pour le pendule inversé et algo \ref{RandomHighway.algo} pour le Highway.\\
-
-   Dans les trois cas, les données de l'expert correspondent /à une unique trajectoire de l'expert/. Plusieurs de ces trajectoires seront utilisées les unes après les autres afin de faire des statistiques sur les résultats.\\
-
-   Dans le cas du Gridworld, ANIRL (algo \ref{AnirlGridXtreme.algo}) et SCIRL (algo \ref{ScirlGridXtreme.algo}) devraient s'en sortir avec des performances similaires.\\
-
-   Dans le cas du pendule, on a déjà vu en testant LSTD$\mu$ et l'expérience devrait le montrer à nouveau que ANIRL (algo \ref{AnirlInvertedXtreme.algo}) ne parvient pas à résoudre le problème inverse car LSPI n'est pas en mesure de résoudre le problème direct. Il faut à ce moment là introduire Boularias pour comparer avec SCIRL (algo \ref{ScirlInvertedXtreme}) qui, lui, devrait réussir.\\
-
-
-   Enfin dans le cas du Highway remasterisé (i.e. pas la version de Syed), on devrait arriver à quelque chose avec LSTD$\mu$ et SCIRL (algo \ref{ScirlHighwayXtreme.algo}), sans avoir besoin d'implémenter d'autres méthodes d'approximation de $\mu$. Il se peut qu'il faille bidouiller les fonctions de base. Je pars sur un réseau de RBF, je ne vois pas /a priori/ pourquoi ça ne marcherait pas. J'ai de gros doutes sur la capacité de LSPI à résoudre le problème à partir des seules données de l'expert, aussi je pense qu'on arrivera au même type de résultats que pour le pendule, c'est à dire qu'ANIRL (algo \ref{AnirlHighwayXtreme.algo}) ne devrait pas arriver à grand chose.\\
-\begin{algorithm}
-\caption{Baseline aléatoire sur le GridWorld}
-\label{RandomGrid.algo}
-\begin{algorithmic}
-\For{$N_{rg}$ fois}
-\State Définir une récompense $R_r$ telle que pour chaque état $s$, $R_r(s)$ est une variable aléatoire tirée selon une loi uniforme dans $[-1,1]$.
-\State Entraîner un agent sur $R_r$ grâce à l'algorithme de programmation dynamique.
-\State Faire agir l'agent
-\State Donner le contrôle à la politique choisissant aléatoirement une action à chaque pas
-\EndFor
-\State Evaluer les performances moyennes de l'agent et de la politique aléatoire vis à vis de la vraie récompense $R$.
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-\caption{Baseline aléatoire sur le pendule inversé}
-\label{RandomInverted.algo}
-\begin{algorithmic}
-\State Créer $D$ une base de données de $M_D$ trajectoires débutant dans un état choisi aléatoirement, en suivant une politique aléatoire.
-\For{$N_{rp}$ fois}
-\State Définir une récompense $R_r = \theta_r^T\phi(s)$ telle que pour chaque composante $i$ de $\theta_r$, $\theta_r^i$ est une variable aléatoire tirée selon une loi uniforme dans $[-1,1]$.
-\State Entraîner un agent sur $R_r$ grâce à LSPI ayant accès à $D$
-\State Faire agir l'agent
-\State Donner le contrôle à la politique choisissant aléatoirement une action à chaque pas
-\EndFor
-\State Evaluer les performances moyennes de l'agent et de la politique aléatoire vis à vis de la vraie récompense $R$.
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-\caption{Baseline aléatoire sur le Highway}
-\label{RandomHighway.algo}
-\begin{algorithmic}
-\For{$N_{rh}$ fois}
-\State Définir une récompense $R_r$ telle que pour chaque état $s$, $R_r(s)$ est une variable aléatoire tirée selon une loi uniforme dans $[-1,1]$.
-\State Entraîner un agent sur $R_r$ grâce à l'algorithme de programmation dynamique.
-\State Faire agir l'agent
-\State Donner le contrôle à la politique choisissant aléatoirement une action à chaque pas
-\EndFor
-\State Evaluer les performances moyennes de l'agent et de la politique aléatoire vis à vis de la vraie récompense $R$.
-\State Enregistrer une courte démo d'un agent et d'un run de la politique aléatoire
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-\caption{Utilisation d'Abbeel sur le GridWorld dans le cas extrême}
-\label{AnirlGridXtreme.algo}
-\begin{algorithmic}
-\State Instancier l'algorithme d'Abbeel avec :
-\Procedure{$\pi$}{$\theta$}
-\State Utiliser LSPI nourri uniquement avec les transitions de l'expert.
-\EndProcedure
-\Procedure{$\mu$}{$\pi$}
-\State Utiliser LSTD$\mu$ /off-policy/ nourri uniquement avec les données de l'expert.
-\EndProcedure
-\Procedure{$\mu_E$}{}
-\State Utiliser LSTD$\mu$ /on-policy/.
-\EndProcedure
-\State Fixer $\epsilon_A = 0.01$
-\State Fixer $T$ à la valeur utilisée dans le cas parfait.
-\For{$N_{xg}$ fois}
-\State Faire tourner ANIRL
-\State Comparer la politique obtenue avec celle de l'expert
-\EndFor
-\State Tracer la récompense ayant donné une des politiques
-\State Tracer la fonction de valeur associée
-\State Comparer les performances moyennes des politiques obtenues avec celles de l'expert et les baselines aléatoires.
-\end{algorithmic}
-\end{algorithm}
-
-
-\begin{algorithm}
-\caption{Utilisation de SCIRL sur le GridWorld dans le cas extrême}
-\label{ScirlGridXtreme.algo}
-\begin{algorithmic}
-\State Instancier SCIRL avec :
-\Procedure{$\mu_E$}{s,a}
-\State Utiliser LSTD$\mu(s,a)$ /on-policy/
-\EndProcedure
-\State Fixer $\epsilon_S=0.01$
-\State Fixer $T$ de la même manière que cans le cas parfait
-\State Fixer $\alpha(t)$ de la même manière que cans le cas parfait
-\State Initialiser $\theta_0 = {\mathbf 0}$
-\For{$N_{xg}$ fois}
-\State Faire tourner SCIRL sur $D_E$
-\State Entraîner un agent sur la récompense obtenue
-\State Comparer la politique de l'agent avec celle de l'expert
-\EndFor
-\State Tracer une des  récompenses
-\State Tracer la fonction de valeur associée
-\State Comparer les performances moyennes des politiques obtenues avec celles de l'expert et les baselines aléatoires.
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-\caption{Utilisation d'Abbeel sur le pendule inversé dans le cas extrême}
-\label{AnirlInvertedXtreme.algo}
-\begin{algorithmic}
-\State Instancier l'algorithme d'Abbeel avec :
-\Procedure{$\pi$}{$\theta$}
-\State Utiliser LSPI, vis à vis de la récompense $R(s) = \theta^T\psi(s)$, nourri avec les données de l'expert.
-\EndProcedure
-\Procedure{$\mu$}{$\pi$}
-\State Utiliser LSTD$\mu$ /off-policy/ nourri uniquement avec les données de l'expert.
-\EndProcedure
-\Procedure{$\mu_E$}{}
-\State Utiliser LSTD$\mu$ /on-policy/.
-\EndProcedure
-\State Fixer $\epsilon_A = 0.01$
-\State Fixer $T$ à la valeur utilisée dans le cas parfait.
-\For{$N_{xp}$ fois}
-\State Faire tourner ANIRL
-\EndFor
-\State Comparer les performances moyennes des politiques obtenues avec celles de l'expert et les baselines aléatoires.
-\State Tracer la récompense ayant donné une des politiques
-\State Tracer la fonction de valeur associée
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}
-\caption{Utilisation de SCIRL sur le pendule inversé dans le cas extrême}
-\label{ScirlInvertedXtreme.algo}
-\begin{algorithmic}
-\State Instancier SCIRL avec :
-\Procedure{$\mu_E$}{s,a}
-\State Utiliser LSTD$\mu(s,a)$ /on-policy/
-\EndProcedure
-\State Fixer $\epsilon_S=0.01$
-\State Fixer $T$ de la même manière que cans le cas parfait
-\State Fixer $\alpha(t)$ de la même manière que cans le cas parfait
-\State Initialiser $\theta_0 = {\mathbf 0}$
-\For{$N_{xp}$ fois}
-\State faire tourner SCIRL sur les données de l'expert
-\State Entraîner un agent sur la récompense obtenue
-\EndFor
-\State Tracer une des récompense 
-\State Tracer la fonction de valeur associée
-\State Comparer les performances moyenne des agents avec celles de l'expert et des baselines aléatoires.
-\end{algorithmic}
-\end{algorithm}
-
-
-\begin{algorithm}
-\caption{Utilisation de SCIRL sur le Highway dans le cas extrême}
-\label{ScirlHighwayXtreme.algo}
-\begin{algorithmic}
-\State Instancier SCIRL avec :
-\Procedure{$\mu_E$}{s,a}
-\State Utiliser LSTD$\mu(s,a)$ /on-policy/
-\EndProcedure
-\State Fixer $\epsilon_S=0.01$
-\State Fixer $T$ de la même manière que cans le cas parfait
-\State Trouver un $\alpha(t)$ qui fonctionne avec une gridsearch.
-\State Initialiser $\theta_0 = {\mathbf 0}$
-\For{$N_{xh}$ fois}
-\State Faire tourner SCIRL sur $D_E$
-\State Entraîner un agent sur la récompense obtenue
-\EndFor
-\State Comparer les performances moyennes des politiques obtenues avec celles de l'expert et les baselines aléatoires.
-\State Enregistrer une courte démo d'un agent qui conduit
-\end{algorithmic}
-\end{algorithm}
-
-
-\begin{algorithm}
-\caption{Utilisation d'Abbeel sur le Highway dans le cas extrême}
-\label{AnirlHighwayXtreme.algo}
-\begin{algorithmic}
-\State Instancier l'algorithme d'Abbeel avec :
-\Procedure{$\pi$}{$\theta$}
-\State Utiliser LSPI, vis à vis de la récompense $R(s) = \theta^T\psi(s)$, nourri avec les données de l'expert.
-\EndProcedure
-\Procedure{$\mu$}{$\pi$}
-\State Utiliser LSTD$\mu$ /off-policy/ nourri uniquement avec les données de l'expert.
-\EndProcedure
-\Procedure{$\mu_E$}{}
-\State Utiliser LSTD$\mu$ /on-policy/.
-\EndProcedure
-\State Fixer $\epsilon_A = 0.01$
-\State Fixer $T$ à la valeur utilisée dans le cas parfait.
-\For{$N_{xh}$ fois}
-\State Faire tourner ANIRL
-\EndFor
-\State Comparer les performances moyennes des politiques obtenues avec celles de l'expert et les baselines aléatoires.
-\State Tracer la récompense ayant donné une des politiques
-\State Tracer la fonction de valeur associée
-\end{algorithmic}
-\end{algorithm}
-
-
-
-* Conclusion
-  
-  L'étude dans le cas extrême devrait fournir une preuve empirique de la validité de SCIRL. Une fois qu'on aura augmenté cette étude en y injectant le Relative Entropy on aura une image plus claire, car ANIRL n'est pas assez puissant pour jouer sur le même terrain que nous.\\
-  
-  L'étude dans le cas parfait montre le bien fondé de l'IRL sur les problèmes que l'on attaque.\\
-
-  L'étude dans le cas parfait sert aussi à obtenir un jeu de paramètres propres aux algos (par opposition au paramètres des routines) (genre $\alpha(t)$) qui fonctionnent.\\
-
-  Si rien n'est précisé, les paramètres des routines sont obtenus par une recherche manuelle vers ce qui fonctionne le mieux. De tête le seul cas où cela aura lieu est le Highway, puisque les autres expériences sont très similaires à celles déjà effectuées, on a donc déjà une idée des paramètres qui fonctionnent.
-
+\bibliographystyle{plain}
+\bibliography{../Biblio/Biblio}

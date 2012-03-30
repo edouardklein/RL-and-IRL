@@ -235,7 +235,7 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
   gsl_matrix_free( A );
   gsl_matrix_free( b );
      #+end_src
-   - $\mu_\pi(s_0) \leftarrow \sum\limits_{s_0}\tilde\omega_\pi^T\psi(s_0)$
+   - $\mu_\pi(s_0) \leftarrow \sum\limits_{s_0}\tilde\omega_\pi^T\psi(s_0)$ FIXME:dire que c'est une espérance et mettre un 1/N dans la somme
      #+begin_src c :tangle LSTDmu.c :main no
   gsl_matrix* s_0 = g_fS_0();
   gsl_matrix* mu = gsl_matrix_calloc( g_iP, 1 );
@@ -579,7 +579,7 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
       #+begin_src c :tangle LSTDmu.c :main no
   double t = diff_norm( mu_E, bar_mu );
   unsigned int nb_it = 0;
-  g_dBest_error = diff_norm( mu_E, mu );
+  g_dBest_error = diff_norm( mu_E, mu ); //FIXME: ces trois lignes font appel à g_fSimulator, ce qui est génant puisqu'on peut ne pas en avoir.
   g_dBest_true_error = true_diff_norm( omega );
   g_dBest_diff = true_V_diff( omega );
   g_dBest_t = t;
