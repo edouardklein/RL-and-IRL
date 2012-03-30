@@ -70,9 +70,9 @@ En cas d'échec (à craindre dans le cas du highway) en présence des seules don
 ** Expérience : ANIRL, GridWorld, Parfait
    On instancie ANIRL avec les algos de programmation dynamique. On lui donne $\pi_E$, la politique de l'expert, en argument.
 ** Expérience : ANIRL, Pendule, Parfait
-   On instancie ANIRL avec LSPI en tant que solveur de MDP et Monte-Carlo pour calculer les différentes /feature expectations/. Les paramètres de LSPI sont directement repris de \cite{lagoudakis2003least}. La longueur du Monte-Carlo est telle que la norme 2 de l'écart moyen à la moyenne sur 100 runs est de moins de $1$\% de la norme 2 de la moyenne. càd :
+   On instancie ANIRL avec LSPI en tant que solveur de MDP et Monte-Carlo pour calculer les différentes /feature expectations/. Les paramètres de LSPI sont directement repris de \cite{lagoudakis2003least}. La longueur du Monte-Carlo est telle que l'écart moyen en norme 2 à la moyenne sur 100 runs est de moins de $1$\% de la norme 2 de la moyenne. càd :
 \begin{equation}
-{1\over 100}\left|\left|\sum_{i=1}^{100}\hat \mu^i_E(s_0)-\bar \mu_E(s_0)\right|\right|_2 < 0.01||\bar \mu_E(s_0)||_2 
+{1\over 100}\sum_{i=1}^{100}\left|\left|\hat \mu^i_E(s_0)-\bar \mu_E(s_0)\right|\right|_2 < 0.01||\bar \mu_E(s_0)||_2 
 \end{equation}
 ** Expérience : ANIRL, Highway, Parfait
    On instancie ANIRL avec les algos de programmation dynamique. On lui donne $\pi_E$, la politique de l'expert, en argument.
