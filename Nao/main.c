@@ -72,15 +72,17 @@ gsl_matrix* mat_sas = file2matrix(SAS, (2*g_iS+g_iA + 1 + 1)); //DIM-s DIM-a DIM
 gsl_matrix* mat_lstd =proj_lstd_lspi_ANIRL(mat_sas,mat_sas);
 //gsl_matrix* mat_omega = file2matrix(OMEG, g_iK);
 
-for(i=0;i<mat_lstd->size1;i++)
-    {
-     for(j=0;j<mat_lstd->size2;j++)
-     {
-         printf("%f ",gsl_matrix_get(mat_lstd, i, j));
+ gsl_matrix_fprintf(stdout,mat_lstd,"%e ");
 
-     }
-     printf("\n");
-    }
+/* for(i=0;i<mat_lstd->size1;i++) */
+/*     { */
+/*      for(j=0;j<mat_lstd->size2;j++) */
+/*      { */
+/*          printf("%f ",gsl_matrix_get(mat_lstd, i, j)); */
+
+/*      } */
+/*      printf("\n"); */
+/*     } */
 
 
     return 0;
