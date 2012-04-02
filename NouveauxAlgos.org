@@ -346,6 +346,7 @@ class LAFEM:
          #+begin_src python :tangle LAFEM.py
             DeltaTheta = DeltaTheta + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
          #+end_src
+	 FIXME: Corriger le pseudo code
      - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t {\Delta\theta\over N ||\Delta\theta||_2}$
        #+begin_src python :tangle LAFEM.py
          DeltaTheta = DeltaTheta / len(self.data) #1/N
