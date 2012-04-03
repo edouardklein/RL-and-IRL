@@ -39,6 +39,7 @@ tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
 <<TT_Test1_code_make>>
 <<TT_Test23_code_make>>
 <<a2a_code_make>>
+<<ANIRL_code_make>>
 <<criteria_code_make>>
 <<greedy_code_make>>
 <<NA_code_make>>
@@ -60,6 +61,7 @@ o2exe=gcc $(LFLAGS)
 <<LSTDmu_c2o_make>>
 <<utils_c2o_make>>
 <<a2a_c2o_make>>
+<<ANIRL_c2o_make>>
 <<criteria_c2o_make>>
 <<greedy_c2o_make>>
   #+end_src
@@ -84,10 +86,11 @@ export XARGS_OPT=-t
 <<TT_Test23_clean_make>>
 <<TT_clean_make>>
 <<a2a_clean_make>>
+<<ANIRL_clean_make>>
 <<criteria_clean_make>>
 <<greedy_clean_make>>
 
-clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean
+clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean ANIRL_clean
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
