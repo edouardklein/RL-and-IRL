@@ -14,8 +14,9 @@ unsigned int g_iP = -1;
 double g_dEpsilon_anirl = -1;
 unsigned int g_iIt_max_anirl = -1;
 
-gsl_matrix* (g_fMu_pi)(gsl_matrix*) = NULL;
-gsl_matrix* (g_fMu_E)() = NULL;
+gsl_matrix* (*g_fMu_pi)(gsl_matrix*) = NULL;
+gsl_matrix* (*g_fMu_E)() = NULL;
+gsl_matrix* (*g_fMDP_solver)(gsl_matrix*) = NULL;
 
 gsl_matrix* omega = proj_ANIRL();
 #+end_src
@@ -34,6 +35,15 @@ gsl_matrix* omega = proj_ANIRL();
 
 * Implémentation
 ** C
+      #+begin_src c :tangle ANIRL.h :main no
+gsl_matrix* proj_ANIRL( );
+
+extern gsl_matrix* (*g_fMu_pi)(gsl_matrix*);
+extern gsl_matrix* (*g_fMu_E)();
+extern gsl_matrix* (*g_fMDP_solver)(gsl_matrix*);
+   #+end_src
+
+
    We use the GSL, its BLAS interface and the rest of our code
    #+begin_src c :tangle ANIRL.c :main no
 #include <gsl/gsl_matrix.h>
@@ -42,6 +52,7 @@ gsl_matrix* omega = proj_ANIRL();
 #include "RL_Globals.h"
 #include "IRL_Globals.h"
 #include "utils.h"
+#include "ANIRL.h"
    #+end_src
 
 
@@ -99,7 +110,7 @@ gsl_matrix* proj_ANIRL(){
      #+end_src
      - Output of the halt criterion
        #+begin_src c :tangle ANIRL.c :main no
-    printf( "%d %d %lf\n", m, nb_it, t );
+    printf( "%d %lf\n", nb_it, t );
     if( t <= g_dBest_t ){
       g_dBest_t = t;
       gsl_matrix_memcpy( g_mBest_omega, omega );
@@ -159,7 +170,7 @@ gsl_matrix* proj_ANIRL(){
        #+end_src
    -  Last Output of the different criteria
      #+begin_src c :tangle ANIRL.c :main no
-  printf( "%d %d %lf %lf %lf %lf\n", m, nb_it, t );
+  printf( "%d %lf %lf %lf %lf\n", nb_it, t );
   if( t <= g_dBest_t ){
     g_dBest_t = t;
     gsl_matrix_memcpy( g_mBest_omega, omega );
