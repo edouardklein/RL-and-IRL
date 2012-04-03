@@ -6,9 +6,15 @@ Grâce à l'expérience ayant permi de fixer la longueur du Monte-Carlo ([[file:
 
 L'expérience est un succès puisque l'agent parvient systématiquement à balancer le pendule 3000 pas de temps. Pour lancer l'expérience : make ANIRL_Exp1 dans le dossier racine.\\
 
-FIXME: Factoriser ce code
+Les données de l'expert sont tirées du code d'une autre expérience ([[file:LAFEM_Exp2.org]]) :
+#+srcname: ANIRL_Exp1_make
+#+begin_src makefile
+L_MCip=30
+ANIRL_Exp1_D_expert.mat: D_expert.mat
+	head -n $(L_MCip) D_expert.mat > ANIRL_Exp1_D_expert.mat
+#+end_src
 
-On entraîne l'expert :
+Début du code C pour cette expérience :
 #+begin_src c :tangle ANIRL_Exp1.c :main no
 #define _POSIX_C_SOURCE 1
 #include <gsl/gsl_matrix.h>
@@ -19,7 +25,7 @@ On entraîne l'expert :
 #include "utils.h"
 #include "LSPI.h"
 #include "abbeel2004apprenticeship.h"
-#include "criteria.h"
+#include "ANIRL.h"
 #include "greedy.h"
 #include "phipsi.h"
 
@@ -28,6 +34,7 @@ On entraîne l'expert :
 #define D_FILE_NAME "Samples.dat"
 #define TRANS_WIDTH 7
 #define ACTION_FILE "actions.mat"
+#define EXPERT_FILE "ANIRL_Exp1_D_expert.mat"
 
 unsigned int g_iS = 2;
 unsigned int g_iA = 1;
@@ -47,33 +54,71 @@ gsl_matrix* (*g_fSimulator)(int) = &inverted_pendulum_simulator;
 gsl_matrix* (*g_fS_0)(void) = NULL;
 //L_{MCip}
 unsigned int g_iMax_episode_len = 30;
+gsl_matrix* D_E = NULL;
+gsl_matrix* D = NULL;
 unsigned int M = 1; //M_{MCip}
 
 //FIXME: Useless but defined anyway in order to compile
 double g_dGamma_lafem = -1;
 unsigned int g_iNb_episodes = -1;
-int main( void ){
-  fprintf(stderr,"Training the expert...");
-  fflush( NULL );
-  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
-  g_mActions = file2matrix( ACTION_FILE, g_iA );
+#+end_src
+
+Les sous routines utilisées pour ANIRL sont :
+ - Monte-Carlo pour le calcul des /feature expectations/ :
+   #+begin_src c :tangle ANIRL_Exp1.c :main no
+gsl_matrix* mu_pi(gsl_matrix* omega){
+  g_mOmega = omega;
+  gsl_matrix* trans = g_fSimulator( M );
+  gsl_matrix* mu = monte_carlo_mu( trans ); //FIXME: bouger cette fonction dans un truc genre Mu.org, qui contiendrait les différentes manières de calculer mu. Peut-être pas la meilleure idée, mais tuojours mieux que abbeel2004apprenticeship.org comme c'est le cas à l'heure actuelle
+  gsl_matrix_free( trans );
+  return mu;
+}
+
+gsl_matrix* mu_E(){
+  return monte_carlo_mu( D_E );
+}
+
+gsl_matrix* (*g_fMu_pi)(gsl_matrix*) = &mu_pi;
+gsl_matrix* (*g_fMu_E)() = &mu_E;
+
+   #+end_src
+ - LSPI en tant que solveur de MDP :
+   #+begin_src c :tangle ANIRL_Exp1.c :main no
+gsl_matrix* lspi_wrapper(gsl_matrix* theta){
+  for( unsigned int i = 0 ; i < D->size1 ; i++ ){
+    gsl_matrix_view state = 
+      gsl_matrix_submatrix( D, i, 0, 1, g_iS );
+    gsl_matrix* psi_s = g_fPsi( &state.matrix );
+    gsl_matrix_view r = 
+      gsl_matrix_submatrix( D, i, 2*g_iS+g_iA, 1, 1 );
+    gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, 
+		    theta, psi_s, 0.0, &r.matrix );
+    gsl_matrix_free( psi_s );
+    }
   gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
-  gsl_matrix* omega_expert = lspi( D, omega_0 );
-  g_mOmega = omega_expert;
-  g_mOmega_E = omega_expert;
-  expert_just_set();
-  fprintf(stderr,"done\n");
+  gsl_matrix* omega = lspi( D, omega_0 );
+  gsl_matrix_free( omega_0 );
+  return omega;
+}
+
+gsl_matrix* (*g_fMDP_solver)(gsl_matrix*) = &lspi_wrapper;
+   #+end_src
+
+
+
+#+begin_src c :tangle ANIRL_Exp1.c :main no
+int main( void ){
+  D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  D_E = file2matrix( EXPERT_FILE, TRANS_WIDTH );
+  //There must be at least one trajectory for monte_carlo_mu() to work. We have a truncated trajectory, but we mark it as complete.
+  gsl_matrix_set( D_E, D_E->size1-1, g_iS+g_iA+g_iS+1, 0. );
+
 #+end_src
 
-On génère les données de l'expert :
+On lance ANIRL :
 #+begin_src c :tangle ANIRL_Exp1.c :main no
-    gsl_matrix* D_E = inverted_pendulum_simulator( M );
-#+end_src
-
-On lance ANIRL dans sa version Monte-Carlo :
-#+begin_src c :tangle ANIRL_Exp1.c :main no
-    gsl_matrix* omega_mc =
-      proj_mc_lspi_ANIRL( D_E, D, 1 );
+    gsl_matrix* omega_mc =proj_ANIRL();
 #+end_src
 
 Puis on vérifie que le contrôle obtenu tient la route :
@@ -92,15 +137,22 @@ Puis on vérifie que le contrôle obtenu tient la route :
 Tout cela se compile de la sorte :
 #+srcname: ANIRL_Exp1_make
 #+begin_src makefile
-ANIRL_Exp1.c: ANIRL_Exp1.org InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../abbeel2004apprenticeship.h ../criteria.h ../greedy.h phipsi.h ../RL_Globals.h ../IRL_Globals.h
+ANIRL_Exp1.c: ANIRL_Exp1.org InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../abbeel2004apprenticeship.h ../criteria.h ../greedy.h phipsi.h ../RL_Globals.h ../IRL_Globals.h ../ANIRL.h
 	$(call tangle,"ANIRL_Exp1.org")
 ANIRL_Exp1.o: ANIRL_Exp1.c
 	$(call c2obj,"ANIRL_Exp1.c")
-ANIRL_Exp1.exe: ANIRL_Exp1.o ../LSPI.o phipsi.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o simulator.o ../utils.o ../criteria.o InvertedPendulum.o
-	$(O2EXE) -o ANIRL_Exp1.exe ANIRL_Exp1.o ../LSPI.o phipsi.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../utils.o simulator.o ../criteria.o InvertedPendulum.o
+ANIRL_Exp1.exe: ANIRL_Exp1.o ../LSPI.o phipsi.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o simulator.o ../utils.o ../criteria.o InvertedPendulum.o ../ANIRL.o
+	$(O2EXE) -o ANIRL_Exp1.exe ANIRL_Exp1.o ../LSPI.o phipsi.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../utils.o simulator.o ../criteria.o InvertedPendulum.o ../ANIRL.o
 
-ANIRL_Exp1: ANIRL_Exp1.exe Samples.dat
+ANIRL_Exp1: ANIRL_Exp1.exe Samples.dat ANIRL_Exp1_D_expert.mat
 	./ANIRL_Exp1.exe
+
+../ANIRL.h:
+	make -C .. ANIRL.h
+
+../ANIRL.o:
+	make -C .. ANIRL.o
+
 #+end_src
 
   #+srcname: ANIRL_Exp1_clean_make
