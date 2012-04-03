@@ -73,7 +73,7 @@ org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.em
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-t
+export XARGS_OPT=-tr
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -140,6 +140,11 @@ LAFEM_Exp6_EB:
 LAFEM_Exp7:
 	make -C InvertedPendulum LAFEM_Exp7_Vphi.pdf LAFEM_Exp7_Vmu.pdf
     #+end_src
+   - MCLength (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+MCLength:
+	make -C InvertedPendulum MCLength
+    #+end_src
      
 ** TaskTransfer
    - TT_Exp1 (GridWorld)
@@ -173,6 +178,11 @@ threshold.tex:
 	make -C InvertedPendulum threshold.tex
     #+end_src
    - threshold_EB.tex (InvertedPendulum)
+   - ANIRL_Exp1 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp1:
+	make -C InvertedPendulum ANIRL_Exp1
+    #+end_src
 ** Previous results
    - lagoudakis2003least_figure10.pdf (ChainWalk)
     #+begin_src makefile :tangle Makefile
