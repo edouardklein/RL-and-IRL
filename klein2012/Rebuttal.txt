@@ -1,0 +1,22 @@
+We would like to thank the reviewers for their torough reading and their remarks.
+We wish to raise the following points to somewhat clarify aspects of our work the reviewers showed concern about :
+- LSTDmu is one of many choices for a subroutine to compute \mu_E(s,a). In its on-olicy form (the one used in our paper) it only needs some transitions from the expert to approximate mu_E(s,a) the same way LSTDQ approximate Q^\pi(s,a) for all s and a given some transitions drawn from a policy \pi.
+  It can be replaced by a problem dependant more appropriate solution, such as a heuristic on the value of mu_E(s,a) when a \neq \pi_E(s).
+  In (Klein et al. 2011) it was used in its off-policy form because of the requirement of the algorithm of (Abbeel et al. 2004) to compute \mu for an arbitrary policy. In problems where the state space exhibits a spatial coherence (e.g. the pendulum) it provides a very good approximation. Less so in some other spaces (e.g. the highway).
+
+- With the pendulum experiment, we show that our method works (quantitative results given line 657) in conditions where state of the art algorithms fail due to lack of information. Quantitatively, (klein et al. 2011) have shown that the algorithm of (Abbeel and Ng 2004) needs 2000 to 3000 more arbitrary samples (not the expert's) in order to work. We lift this requirement with SCIRL.
+
+- We show that our algorithm stands comparison when put in competition with MWAL. The latter has access to every bit of information about the problem whereas our algorithm only uses the expert's transitions.
+
+- In addition to needing far less information than state of the art methods, by using a LSTD-like methode once and for all at the beginning, our algorithm is also computationnaly more efficient than others that require solving a MDP at each iteration. Indeed, solving a MDP implies (e.g. if one uses LSPI) using LSTD more than once. This empirically shows with a ten-fold gain on computation time on a desktop computer compared to MWAL.
+
+- We insist on retrieving the reward because task transfer (getting an agent with different capabilities than the expert's to fulfill the same task) can not be done with a policy. With a reward function on the states, it is possible to train any agent on the problem, even if the action space is different.
+
+- Our algorithm differs from Ratliff et al.'s work in several ways :
+  - our data points are transitions, whereas MMP needs whole MDPs and associated values (transition probabilities, feature expectations, etc.),
+  - we are not merely replacing mu with an approximation based on \mu_E. We introduce a new way to look at the score function q,
+  - any classifier (and not only Taskar et al.'s) using such a parametrized score function could be plugged in our algorithm. The equations looks the same but our approach is different, and the results show so,
+  - the way we express the score function q allows us to minimize the risk function using only the feature expectation of the expert which is easy to compute from very little data. MMP needs a lot more information to achieveits goal.
+
+- Assumptions for the analysis are strong, but so are most of the assumptions of most of papers e.g. (Abbel and Ng 2004) also assume they can compute \mu perfectly. They provide results about error propagation, but although we formally don't, we experimentally show that this is not critical.
+
