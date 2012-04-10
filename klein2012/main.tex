@@ -354,7 +354,7 @@ guaranteed when the reward function $R$ is bounded.
 %
 %Parfois, définir la fonction de récompense est une tâche ardue alors qu'il est possible à l'opérateur de convenablement contrôler le système de manière intuitive. Un exemple de ce type de tâche est la conduite d'une voiture. Nous accomplissons ce genre de chose au quotidien sans trop y penser mais nous serions bien en peine de préciser les poids précis que nous attribuons aux différents critères tels que la distance nous séparant de la voiture devant nous, la brutalité avec laquelle nous appuyons sur la pédale de frein lorsqu'un danger se présente et ainsi de suite. Dans de tels cas, il est utile d'inférer la récompense à partir d'un comportement démontré.\\
 %
-The optimal behaviour being defined relatively to the reward, it's
+The optimal behaviour being defined relatively to the reward, its
 observation is mandatory to learn. Sometimes, specifying manually
 the reward function can be a hard job while it is natural to an
 operator to achieve the desired task. For instance, driving a car is
@@ -376,7 +376,7 @@ from this policy.
 The problem of finding a reward function from expert demonstrations
 in the IRL framework is ill-posed. Indeed, there is not uniqueness
 of the reward function for which the expert policy is
-optimal~\cite{ng1999policyreward}. Particularly, each policy is
+optimal~\cite{ng1999policy}. Particularly, each policy is
 optimal with respect to the uniformly-zero reward function. Some
 solutions have to be favored.
 %%%
@@ -942,7 +942,7 @@ subgradient algorithm. Of course, this upper-bound will depend on
 the feature expectation errors
 $\{\epsilon^{\mu}_{s_ia}=\hat{\mu}^E_{s_ia}-\mu^E_{s_ia}\}_{1\leq i
 \leq N,a\in A}$ (which may be quantified thanks to the finite sample
-analysis of LSTD~\cite{lazaric:10}) and on the approximation error
+analysis of LSTD~\cite{lazaric2010finiteLSTD}) and on the approximation error
 $\epsilon^R$ which results from the fact that the unknown and
 bounded reward function $R_E\in\mathbb{R}^S$ may not be a linear
 combination of the features $\psi_{1\leq i \leq p}$. Formally, let
@@ -952,7 +952,7 @@ S,a\in A},\gamma,\tilde{R}\}$ where $\tilde{R}\in\mathbb{R}^S$. We
 note $C_R$ the reward-equivalence class of $R$:
 $C_R=\{\tilde{R}\in\mathbb{R}^S: \Pi(T(R))=\Pi(T(\tilde{R}))\}$
 where $\Pi(T(\tilde{R}))$ is the set of optimal deterministic
-policies of $T(\tilde{R})$ (see~\cite{ng1999policyreward} for a
+policies of $T(\tilde{R})$ (see~\cite{ng1999policy} for a
 characterization of $C_R$). A formal definition of $\epsilon^R$ is:
 $\epsilon^R=\|R^*-\theta^{*T}\psi\|_\infty=\max_{s\in
 S}|R^*(s)-\theta^{*T}\psi(s)|$ with
@@ -1143,7 +1143,7 @@ Figure~\ref{onlyFig.fig} (b)) and especially they are close to the
 vertical position. The lack of samples in the rest of the state
 space makes it impossible to infer with certainty the reward
 function. Second, the \textit{actual} reward function $R^E$
-(Figure~\ref{onlyFig.fig} (a)) doesn't live in the hypothesis space
+(Figure~\ref{onlyFig.fig} (a)) does not live in the hypothesis space
 span by a linear combination of the basis functions. Despite these
 difficulties, SCIRL succeeds to extract a reward function leading to
 perform similarly to the expert. %Notice that there is a magnitude
@@ -1197,7 +1197,7 @@ outputs a reward function which is used to obtain a policy using the
 MDP solver. The SCIRL and MWAL policies are then run on the
 simulator for trajectories of length $T$. The average discounted
 cumulative reward, computed with regard to the initial handcrafted
-rewards, serves as the performance measure. It is an Monte Carlo
+rewards, serves as the performance measure. It is a Monte Carlo
 estimate of $V^\pi(s_0)$ for each policy.
 
 This experiment is repeated $M$ times for each policy and results
