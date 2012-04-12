@@ -1,41 +1,48 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%% ICML 2012 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\documentclass[gray]{jmlr} % test grayscale version
+\documentclass[tablecaption=bottom]{jmlr}
 
-% Use the following line _only_ if you're still using LaTeX 2.09.
-%\documentstyle[icml2012,epsf,natbib]{article}
-% If you rely on Latex2e packages, like most moden people use this:
-\documentclass{article}
+% The following packages will be automatically loaded:
+% amsmath, amssymb, natbib, graphicx, url, algorithm2e
 
-% For figures
+%\usepackage{rotating}% for sideways figures and tables
+%\usepackage{longtable}% for long tables
+
+% The booktabs package is used by this sample document
+% (it provides \toprule, \midrule and \bottomrule).
+% Remove the next line if you don't require it.
+\usepackage{booktabs}
+% The siunitx package is used by this sample document
+% to align numbers in a column by their decimal point.
+% Remove the next line if you don't require it.
+\usepackage[load-configurations=version-1]{siunitx} % newer version
+%\usepackage{siunitx}
 \usepackage{graphicx} % more modern
 %\usepackage{epsfig} % less modern
-\usepackage{subfigure}
+%\usepackage{subfigure}
 \usepackage{mathtools}
 \usepackage{amssymb}
 \usepackage{natbib}
 \usepackage{algorithm}
 \usepackage{algorithmic}
-\usepackage{amsthm}
+%\usepackage{amsthm}
 \usepackage{hyperref}
 \usepackage{url}
-\newcommand{\theHalgorithm}{\arabic{algorithm}}
-\usepackage{icml2012}
+%\newcommand{\theHalgorithm}{\arabic{algorithm}}
 \mathtoolsset{showonlyrefs=true}
 
-\newtheorem{definition}{Définition}
+%\newtheorem{definition}{Définition}
 \newtheorem{lemme}{Lemma}
-\newtheorem{theorem}{Théorème}
-\newtheorem{hypo}{Hypothèse}
-\newtheorem{cor}{Corollaire}
+%\newtheorem{theorem}{Théorème}
+%% \newtheorem{hypo}{Hypothèse}
+%% \newtheorem{cor}{Corollaire}
 \newtheorem{prop}{Proposition}
-\newtheorem{exemple}{Exemple}
-\newtheorem{remarques}{Remarques}
-\newtheorem{remarque}{Remarque}
+%% \newtheorem{exemple}{Exemple}
+%% \newtheorem{remarques}{Remarques}
+%% \newtheorem{remarque}{Remarque}
 \newtheorem{assumption}{Assumption}
-\newtheorem{problem}{Problème}
-\newtheorem{algo}{Algorithme}
-\newtheorem{preuve}{Démonstration}
+%% \newtheorem{problem}{Problème}
+%% \newtheorem{algo}{Algorithme}
+%% \newtheorem{preuve}{Démonstration}
 \newcommand{\argmax}{\operatorname*{argmax}} %\operatorname* pour les op. pouvant admettre des limites...
 \newcommand{\argmin}{\operatorname*{argmin}}
 \newcommand{\minp}{\operatorname*{min_+}}
@@ -129,59 +136,60 @@
 \newcommand{\I}{\mathbf{I}}
 \newcommand{\rr}{\mathbf{r}}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Titre court si le titre fait plus de 40 caractères
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\jmlrvolume{vol}
+\jmlryear{2012}
+\jmlrsubmitted{\today}
+\jmlrpublished{}
 
-%\shorttitle{Classification structurée pour l'ARI}
-%
-%\shortouvrage{CAp 2012}
+\title[SCIRL]{Structured Classification for Inverse Reinforcement Learning}
 
-% Titre, auteur, pas de date
+ % Use \Name{Author Name} to specify the name.
+ % If the surname contains spaces, enclose the surname
+ % in braces, e.g. \Name{John {Smith Jones}} similarly
+ % if the name has a "von" part, e.g \Name{Jane {de Winter}}.
+ % If the first letter in the forenames is a diacritic
+ % enclose the diacritic in braces, e.g. \Name{{\'E}louise Smith}
 
-%\title{Classification structurée pour l'apprentissage par renforcement inverse}
-%
-%\author{\fontsize{12}{12}\selectfont{Edouard Klein\inst{1}$^,$\inst{2}, Bilal Piot \inst{1}$^,$\inst{3}, Matthieu Geist\inst{1}, Olivier Pietquin\inst{1}$^,$\inst{3}}}
-%
-%\institute{
-%Sup\'elec, IMS Research group, France, \texttt{prenom.nom@supelec.fr}
-%\and
-%Equipe ABC,
-%LORIA, France
-%\and
-%UMI 2958
-%GeorgiaTech-CNRS, France
-%}
-\icmltitlerunning{Structured Classification for Inverse
-Reinforcement Learning}
+ % \thanks must come after \Name{...} not inside the argument for
+ % example \Name{John Smith}\thanks{A note} NOT \Name{John
+ % Smith\thanks{A note}}
+
+ % Two authors with the same address
+  \author{\Name{Paper under review at ICML}\thanks{No author name provided so as not to breach ICML's double blind process}}
+
+ % Three or more authors with the same address:
+ % \author{\Name{Author Name1} \Email{an1@sample.com}\\
+ %  \Name{Author Name2} \Email{an2@sample.com}\\
+ %  \Name{Author Name3} \Email{an3@sample.com}\\
+ %  \Name{Author Name4} \Email{an4@sample.com}\\
+ %  \Name{Author Name5} \Email{an5@sample.com}\\
+ %  \Name{Author Name6} \Email{an6@sample.com}\\
+ %  \Name{Author Name7} \Email{an7@sample.com}\\
+ %  \Name{Author Name8} \Email{an8@sample.com}\\
+ %  \Name{Author Name9} \Email{an9@sample.com}\\
+ %  \Name{Author Name10} \Email{an10@sample.com}\\
+ %  \Name{Author Name11} \Email{an11@sample.com}\\
+ %  \Name{Author Name12} \Email{an12@sample.com}\\
+ %  \Name{Author Name13} \Email{an13@sample.com}\\
+ %  \Name{Author Name14} \Email{an14@sample.com}\\
+ %  \addr Address}
+
+
+ % Authors with different addresses:
+ % \author{\Name{Author Name1} \Email{abc@sample.com}\\
+ % \addr Address 1
+ % \AND
+ % \Name{Author Name2} \Email{xyz@sample.com}\\
+ % \addr Address 2
+ %}
+
+%\editor{Editor's name}
+
 
 
 \begin{document}
 
-\twocolumn[ \icmltitle{Structured Classification for Inverse
-Reinforcement Learning}
-
-% It is OKAY to include author information, even for blind
-% submissions: the style file will automatically remove it for you
-% unless you've provided the [accepted] option to the icml2012
-% package.
-\icmlauthor{Your Name}{email@yourdomain.edu}
-\icmladdress{Your Fantastic Institute,
-            314159 Pi St., Palo Alto, CA 94306 USA}
-\icmlauthor{Your CoAuthor's Name}{email@coauthordomain.edu}
-\icmladdress{Their Fantastic Institute,
-            27182 Exp St., Toronto, ON M6H 2T1 CANADA}
-
-% You may provide any keywords that you
-% find helpful for describing your paper; these are used to populate
-% the "keywords" metadata in the PDF but will not be shown in the document
-\icmlkeywords{inverse reinforcement learning, structured multi-class
-classification}
-
-\vskip 0.3in
-]
-
-
+\maketitle
 
 \begin{abstract}
 This paper addresses the Inverse Reinforcement Learning (IRL)
@@ -205,6 +213,11 @@ transitions) is required.
 %A formal analysis of the algorithm as well as empirical
 %demonstrations on two classic but challenging problems are provided.
 \end{abstract}
+\begin{keywords}
+inverse reinforcement learning, structured multi-class
+classification
+\end{keywords}
+
 %%%%%
 \section{Introduction}
 %%%%%
@@ -1306,5 +1319,5 @@ feature expectations. Empirical tests on more complex problems will
 also be considered.
 
 \bibliography{Biblio}
-\bibliographystyle{icml2012}
+%\bibliographystyle{icml2012}
 \end{document}
