@@ -225,6 +225,7 @@ plot 'threshold_lstd.dat-0' u 1:2 w lines title 'LSTD' ls 1, 'threshold_lstd.dat
 
 ErrorBars: conf.py threshold_lstd.dat threshold_mc.dat
 	../../Utils/ErrorBars.py
+
   #+end_src
 
   The python file that configures this script for our setting is :

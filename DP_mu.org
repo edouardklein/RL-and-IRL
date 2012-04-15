@@ -5,7 +5,7 @@
    #+begin_src python
 from DP_mu import *
 
-DP_mu( pi, Psi )
+mu = DP_mu( pi, Psi )
    #+end_src
 ** Calcul de $\mu(s)$
 *** Entrées

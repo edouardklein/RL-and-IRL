@@ -1,8 +1,8 @@
 #+TITLE:ANIRL, Pendule, Parfait
 
-Cette expérience s'inscrit dans ne démarche de test plus grande : [[file:../Protocoles.org]]. On va essayer de faire tourner ANIRL sur le pendule.\\
+Cette expérience s'inscrit dans une démarche de test plus grande : [[file:../Protocoles.org]]. On va essayer de faire tourner ANIRL sur le pendule.\\
 
-Grâce à l'expérience ayant permi de fixer la longueur du Monte-Carlo ([[file:MCLength.org]]), on sait que la norme 2 de $\mu_E(s_0)$ est à peu près 20. On fixe donc $\epsilon_{ANIRL}$ à $0.2$ comme nous l'avions prévu dans le protocole. Pour passer sous ce seuil, parfois deux itérations suffisent, parfois il en faut jusqu'à 10. On fixe donc le nombre d'itération maximum à 100, comme prévu par le protocole.\\
+Grâce à l'expérience ayant permis de fixer la longueur du Monte-Carlo ([[file:MCLength.org]]), on sait que la norme 2 de $\mu_E(s_0)$ est à peu près 20. On fixe donc $\epsilon_{ANIRL}$ à $0.2$ comme nous l'avions prévu dans le protocole. Pour passer sous ce seuil, parfois deux itérations suffisent, parfois il en faut jusqu'à 10. On fixe donc le nombre d'itération maximum à 100, comme prévu par le protocole.\\
 
 L'expérience est un succès puisque l'agent parvient systématiquement à balancer le pendule 3000 pas de temps. Pour lancer l'expérience : make ANIRL_Exp1 dans le dossier racine.\\
 
@@ -12,6 +12,7 @@ Les données de l'expert sont tirées du code d'une autre expérience ([[file:LA
 L_MCip=30
 ANIRL_Exp1_D_expert.mat: D_expert.mat
 	head -n $(L_MCip) D_expert.mat > ANIRL_Exp1_D_expert.mat
+
 #+end_src
 
 Début du code C pour cette expérience :
