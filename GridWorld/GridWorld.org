@@ -4,6 +4,8 @@ The size of the grid can be set here.
 #+begin_src c :tangle GridWorld.h :main no
 #define GRID_HEIGHT 5
 #define GRID_WIDTH 5
+//FIXME: Harmoniser les left down up right et north south east west au niveau des notations
+//FIXME: S'assurer qu'on utilise la même convention chiffre<->action partout
 #define LEFT 1
 #define DOWN 2
 #define UP 3

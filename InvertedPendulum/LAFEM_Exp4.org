@@ -68,6 +68,7 @@ theta_lafem_X.mat: D_expert_X.mat omega_mu_E_X.mat ../LAFEM.py LAFEM_Exp3.py ../
 		python LAFEM_Exp3.py > theta_lafem_$$i.mat;\
 	done;
 	touch omega_mu_E_X.mat
+
 #+end_src
 
 One of the last steps is to try each and every of these reward vectors and see how well an agent trained with these is able to balance the pendulum. Code from [[file:LAFEM_Exp2.org][second experiment]] does just that as it outputs the length of one run on the standard error. It takes the reward vector as an argument. On its standard output it puts the $\omega$ vector of the $Q$ function for the agent, which we discard because we won't use it here.
@@ -80,6 +81,7 @@ LAFEM_Exp4_quality.dat: theta_lafem_X.mat LAFEM_Exp2_Samples.dat LAFEM_Exp2_Resu
 	for i in $(N_VALUES); do\
 		(echo -n "$$i " && ./LAFEM_Exp2_Results.exe theta_lafem_$$i.mat >/dev/null)>> LAFEM_Exp4_quality.dat 2>> LAFEM_Exp4_quality.dat;\
 	done;
+
 #+end_src
 
 A bit of greping, tring and seding later and we have a plottable file :
@@ -88,6 +90,7 @@ A bit of greping, tring and seding later and we have a plottable file :
 #+begin_src makefile
 	cat LAFEM_Exp4_quality.dat | grep agent | tr "[:punct:]" " " | sed 's/ Longueur d un run de l agent  //' > toto
 	mv toto LAFEM_Exp4_quality.dat
+
 #+end_src
 
 It can be plot using these GNUPlot instructions :
@@ -110,6 +113,7 @@ LAFEM_Exp4_quality.pdf: LAFEM_Exp4_quality.gp LAFEM_Exp4_quality.dat
 	gnuplot LAFEM_Exp4_quality.gp
 	ps2pdf LAFEM_Exp4_quality.ps
 	rm LAFEM_Exp4_quality.ps
+
 #+end_src
 
 *** Error bars
@@ -137,6 +141,7 @@ g_iN = 100
   #+begin_src makefile
 LAFEM_Exp4_conf.py: LAFEM_Exp4.org 
 	$(call tangle,"LAFEM_Exp4.org")
+
   #+end_src
 
 
@@ -160,6 +165,7 @@ LAFEM_Exp4_quality_EB.pdf: LAFEM_Exp4_quality_EB.gp LAFEM_Exp4_ErrorBars
 	gnuplot LAFEM_Exp4_quality_EB.gp
 	ps2pdf LAFEM_Exp4_quality_EB.ps
 	rm LAFEM_Exp4_quality_EB.ps
+
 #+end_src
 
     Finally the makefile rule :

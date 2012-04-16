@@ -13,6 +13,12 @@ unsigned int nb_lines( char* fn );
 gsl_matrix* file2matrix( char* fn, unsigned int col );
    #+end_src
 
+  Save a GSL matrix to a text file
+   #+begin_src c :tangle utils.h :main no
+int matrix2file( char* fn, gsl_matrix* m);
+   #+end_src
+
+
   Return a random int in [min:max]
    #+begin_src c :tangle utils.h :main no
 int random_int( int min, int max ); 
@@ -59,6 +65,19 @@ gsl_matrix* file2matrix( char* fn, unsigned int col ){
   return answer;
 }
 
+/* Save a gsl matrix to a text file */
+int matrix2file( char* fn , gsl_matrix* m){
+  FILE* f = fopen( fn, "w" );
+  for( int i = 0 ; i < m->size1 ; i++ ){
+    for( int j = 0 ; j < m->size2 ; j++ ){
+      fprintf( f, "%e ", gsl_matrix_get( m, i, j ) );
+    }
+    fprintf( f, "\n" );
+  }
+  fclose( f );
+  return 0;
+}
+
 /* Return an int chosen randomly in [min:max] */
 int random_int( int min, int max ){
   return rand()%(max-min+1) + min;
@@ -83,6 +102,7 @@ double diff_norm( gsl_matrix* m1, gsl_matrix* m2 ){
   gsl_vector_free( diff );
   return answer;
 }
+
   #+end_src
 
 * Python utility functions

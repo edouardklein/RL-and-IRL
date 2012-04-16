@@ -15,7 +15,7 @@ from DP import *
 
 pi = DP( Reward, Actions )
 #ou
-pi = DP_txt( Reward, Actions, "Pi.mat" )
+pi = DP_txt( Reward, Actions, "VPi.mat" )
 #+end_src
 ** Entrées
    - =Reward= : Vecteur de taille $|S|$ donnant la récompense $R(s)$
@@ -601,8 +601,10 @@ def DP_txt( Reward, Actions, Filename ):
     m = len( Actions )
     g_vReward = Reward
     g_vActions = Actions
-    g_vPi = map( int, floor( scipy.rand( n )*m ) )
-    g_vV = scipy.rand( n )
+    #g_vPi = map( int, floor( scipy.rand( n )*m ) )
+    g_vPi = zeros(n)
+    #g_vV = scipy.rand( n )
+    g_vV = zeros(n)
     #While things change,
     changed = True
     while changed:
@@ -626,7 +628,7 @@ def DP_txt( Reward, Actions, Filename ):
     #Construct the pobability matrix from the policy
     Ppi = zeros((n,n))
     for s in range(0,n):
-        Ppi[s] = (g_vActions[ g_vPi[s] ])[s]
+        Ppi[s] = (g_vActions[ int(g_vPi[s]) ])[s]
     savetxt( Filename, g_vV, "%e", "\t" )
     return Ppi
 

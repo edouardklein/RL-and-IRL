@@ -135,8 +135,12 @@ for a in range(0,4):
     f.write( a2str(P_a) )
     f.close()
 
-R = zeros((25,1))
-R[4,0] = 1
+R = genfromtxt( "ANIRL_Exp2_R_E.mat" )
+P_north = genfromtxt( "TT_5x5_PENorth.mat" )
+P_east = genfromtxt( "TT_5x5_PEEast.mat" )
+P_west = genfromtxt( "TT_5x5_PEWest.mat" )
+P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+
 P_pi = DP_txt( R, (P_north, P_south, P_west, P_east), "V_expert.mat" )
 f = open( "TT_5x5_Ppi.mat", "w" )
 f.write( a2str(P_pi) )
@@ -146,15 +150,15 @@ f.close()
    The constraint matrix is then computed from this information :
 #+srcname: TT_Exp1_make
 #+begin_src makefile
-TT_5x5_PENorth.mat: TT_5x5_expertPGen.py ../a2str.py
+TT_5x5_PENorth.mat: TT_5x5_expertPGen.py ../a2str.py ../DP.py ANIRL_Exp2_R_E.mat
 	python TT_5x5_expertPGen.py 
-TT_5x5_PESouth.mat: TT_5x5_expertPGen.py ../a2str.py
+TT_5x5_PESouth.mat: TT_5x5_expertPGen.py ../a2str.py ../DP.py ANIRL_Exp2_R_E.mat
 	python TT_5x5_expertPGen.py 
-TT_5x5_PEEast.mat: TT_5x5_expertPGen.py ../a2str.py
+TT_5x5_PEEast.mat: TT_5x5_expertPGen.py ../a2str.py ../DP.py ANIRL_Exp2_R_E.mat
 	python TT_5x5_expertPGen.py 
-TT_5x5_PEWest.mat: TT_5x5_expertPGen.py ../a2str.py
+TT_5x5_PEWest.mat: TT_5x5_expertPGen.py ../a2str.py ../DP.py ANIRL_Exp2_R_E.mat
 	python TT_5x5_expertPGen.py 
-TT_5x5_Ppi.mat: TT_5x5_expertPGen.py ../a2str.py
+TT_5x5_Ppi.mat: TT_5x5_expertPGen.py ../a2str.py ../DP.py ANIRL_Exp2_R_E.mat
 	python TT_5x5_expertPGen.py 
 
 TT_5x5_Rewards.mat: TT_Exp1_run

@@ -110,11 +110,14 @@ gsl_matrix* proj_ANIRL(){
      #+end_src
      - Output of the halt criterion
        #+begin_src c :tangle ANIRL.c :main no
+//char c;
+//scanf("%c",&c);
     printf( "%d %lf\n", nb_it, t );
     if( t <= g_dBest_t ){
       g_dBest_t = t;
       gsl_matrix_memcpy( g_mBest_omega, omega );
     }
+
        #+end_src
      - $\omega \leftarrow MDPsolver( \theta )$
        #+begin_src c :tangle ANIRL.c :main no
