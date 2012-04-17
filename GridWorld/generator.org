@@ -1,7 +1,7 @@
 #+TITLE: Trajectory generator for the gridworld
 
 This program generates a random walk in a gridworld. See \cite{ng2000algorithms} for a longer explanation of this toy problem. The transitions are output on the standard output. They have the following format $s~a~s'~r~eoe$ where : 
- - s and s' are couples in $[1:width] \times [1:height]$
+ - s and s' are couples in $[0:width-1] \times [0:height-1]$
  - a is an int in [1:4] fo the four compass direction
  - r is the reward, 1 in $(width,height)$ 0 otherwise
  - eoe is the end of episode flag. If not at the end of a trajectory its value is 1, 0 otherwise
@@ -30,8 +30,8 @@ We generate the requested number of walks, the initial state being drawn randoml
 int main(void){
   srand(time(NULL)+getpid()); rand(); rand();rand();
   for( unsigned int i = 0 ; i < NUMBER_OF_WALKS ; i++ ){
-    unsigned int state_x = random_int( 1, GRID_WIDTH );
-    unsigned int state_y = random_int( 1, GRID_HEIGHT );
+    unsigned int state_x = random_int( 0, GRID_WIDTH-1 );
+    unsigned int state_y = random_int( 0, GRID_HEIGHT-1 );
     int eoe = 1;
 #+end_src
 For each walk, the requested number of steps is generated.
@@ -45,8 +45,8 @@ For each walk, the requested number of steps is generated.
 
 We set the next state according to the rules.
 #+begin_src c :tangle generator.c :main no
-      unsigned int next_state_x = state_x;
-      unsigned int next_state_y = state_y;
+      int next_state_x = state_x;
+      int next_state_y = state_y;
       unsigned int action = random_int( 1, 4 );
       unsigned int true_action = action;
       int is_noisy = rand_1_in_10();
@@ -54,28 +54,28 @@ We set the next state according to the rules.
 	true_action = random_int( 1, 4 );
       }
       switch( true_action ){
-      case UP:
+      case DOWN:
 	next_state_y++;
-	if( next_state_y > GRID_HEIGHT ){
-	  next_state_y = GRID_HEIGHT;
+	if( next_state_y >= GRID_HEIGHT ){
+	  next_state_y = GRID_HEIGHT-1;
 	}
 	break;
-      case DOWN:
+      case UP:
 	next_state_y--;
-	if( next_state_y < 1 ){
-	  next_state_y = 1;
+	if( next_state_y < 0 ){
+	  next_state_y = 0;
 	}
 	break;
       case RIGHT:
 	next_state_x++;
-	if( next_state_x > GRID_WIDTH ){
-	  next_state_x = GRID_WIDTH;
+	if( next_state_x > GRID_WIDTH-1 ){
+	  next_state_x = GRID_WIDTH-1;
 	}
 	break;
       case LEFT:
 	next_state_x--;
-	if( next_state_x < 1 ){
-	  next_state_x = 1;
+	if( next_state_x < 0 ){
+	  next_state_x = 0;
 	}
 	break;
       }
@@ -84,8 +84,8 @@ We set the next state according to the rules.
 The reward...
 #+begin_src c :tangle generator.c :main no
       int reward = 0;
-      if( state_x == GRID_WIDTH && 
-	  state_y == GRID_HEIGHT ){
+      if( state_x == GRID_WIDTH-1 && 
+	  state_y == 0 ){
 	reward = 1;
 	eoe = 0;
       }

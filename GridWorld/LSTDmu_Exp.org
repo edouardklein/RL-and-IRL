@@ -72,6 +72,8 @@ gsl_matrix* psi( gsl_matrix* s );
 #+begin_src makefile
 phipsi.c: LSTDmu_Exp.org 
 	$(call tangle,"LSTDmu_Exp.org")
+phipsi.h: LSTDmu_Exp.org 
+	$(call tangle,"LSTDmu_Exp.org")
 
 #+end_src
 
@@ -335,8 +337,8 @@ plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbe
 plot.dat: plot.samples plot.exe
 	./plot.exe > plot.dat
 
-plot.samples: generator.exe 
-	./generator.exe > Samples.dat && touch plot.samples
+Samples.dat: generator.exe 
+	./generator.exe > Samples.dat
 
 #+end_src
 *** Plotting the criteria for the MC method
