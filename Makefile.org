@@ -198,6 +198,11 @@ ANIRL_Exp2_test1:
 LSPI_Exp1:
 	make -C GridWorld LSPI_Exp1
     #+end_src
+   - ANIRL_Exp3 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp3:
+	make -C GridWorld ANIRL_Exp3
+    #+end_src
     
 ** Previous results
    - lagoudakis2003least_figure10.pdf (ChainWalk)

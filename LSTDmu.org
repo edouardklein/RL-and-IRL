@@ -93,7 +93,8 @@ double g_dGamma_anirl = -1;
 double g_dLambda_lstdmu = -1;
 gsl_matrix* (g_fS_0)() = NULL;
 
-gsl_matrix* mu_s0 = lstd_mu_op(  gsl_matrix* D_mu );
+gsl_matrix* mu_s0 = lstd_mu(  gsl_matrix* D_mu,
+			      gsl_matrix* (*pi)(gsl_matrix*));
 #+end_src
 *** Entrées
     - =D_mu= : Matrice dont chaque ligne a la forme  $(s,a,s',\psi(s)^T,eoe)$
@@ -140,6 +141,13 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
 
    It returns the $\omega$ matrix which defines the optimal policy as found by LSPI under the reward $R = \theta^T\psi$. Note that $\omega \equiv \pi$, in other words, ou aproximation of the value function defines the greedy policy.
 *** LSTD$\mu$
+   #+begin_src c :tangle LSTDmu.h :main no
+gsl_matrix* lstd_mu( gsl_matrix* D_mu, 
+			   gsl_matrix* (*pi)(gsl_matrix*) );
+gsl_matrix* lstd_mu_op( gsl_matrix* D_mu );
+   #+end_src 
+
+
    #+begin_src c :tangle LSTDmu.h :main no
 gsl_matrix* lstd_mu_omega( gsl_matrix* D_mu, 
 			   gsl_matrix* (*pi)(gsl_matrix*) );
