@@ -4,7 +4,7 @@ Cette expérience s'inscrit dans une démarche de test plus grande : [[file:../P
 
 On récupère, comme prévu dans le protocole, les valeurs des paramètres d'ANIRL trouvées dans le cas parfait ([[file:ANIRL_Exp2.org]]). A savoir : $\epsilon_{ANIRL} = 0.3$ et $T_{ANIRL} = 170$.
 
-L'expérience est un succès puisque la longueur de la trajectoire de l'agent est assez proche de celle de l'expert et assez loi de la limite autorisée.
+L'expérience est un succès puisque la longueur de la trajectoire de l'agent est assez proche de celle de l'expert et assez loin de la limite autorisée.
 Pour réaliser l'expérience :
  : make ANIRL_Exp3
 dans le dossier racine.

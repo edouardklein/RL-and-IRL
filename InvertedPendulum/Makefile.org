@@ -80,6 +80,7 @@ Those who do not fit in the others categories (because they fit in more than one
 <<LAFEM_Exp7_make>>
 <<MCLength_make>>
 <<ANIRL_Exp1_make>>
+<<ANIRL_Exp4_make>>
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
@@ -121,7 +122,8 @@ O2EXE=gcc $(LFLAGS)
 <<LAFEM_Exp5_clean_make>>
 <<MCLength_clean_make>>
 <<ANIRL_Exp1_clean_make>>
-clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean LAFEM_Exp2_clean LAFEM_Exp3_clean LAFEM_Exp4_clean LAFEM_Exp5_clean MCLength_clean ANIRL_Exp1_clean
+<<ANIRL_Exp4_clean_make>>
+clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean LAFEM_Exp2_clean LAFEM_Exp3_clean LAFEM_Exp4_clean LAFEM_Exp5_clean MCLength_clean ANIRL_Exp1_clean ANIRL_Exp4_clean
 
     #+end_src
 

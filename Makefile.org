@@ -183,6 +183,11 @@ threshold.tex:
 ANIRL_Exp1:
 	make -C InvertedPendulum ANIRL_Exp1
     #+end_src
+   - ANIRL_Exp' (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp4:
+	make -C InvertedPendulum ANIRL_Exp4
+    #+end_src
    - ANIRL_Exp2 (GridWorld)
     #+begin_src makefile :tangle Makefile
 ANIRL_Exp2:
