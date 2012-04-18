@@ -1,36 +1,11 @@
-#+TITLE: Expérience simple pour valider LAFEM
+#+TITLE: Pendule, SCIRL, Parfait
 * Description
+  
+  On modifie une expérience qui existait déjà pour comléter le [[file:../Protocoles.org]]. 
 
-  Dans cette seconde expérience, un expert est entraîné sur le problème du pendule inversé. Il fournit quelques transitions, le calcul de $\mu_E$ est est effectué grâce à un Monte-Carlo suffisament long pour que l'erreur soit négligeable, une fonction de perte simple ($1$ en cas de désaccord avec l'expert, $0$ sinon), une initialisation de la récompense à une valeur négative partout.
-
-  Le but de l'expérience est de savoir si LAFEM est en mesure de fournir une récompense permettant à l'agent de balancer le pendule.
-
-  Si elle est concluante, des expériences futures étudieront l'influence des différents paramètres sur les performances de l'algorithme.
-
-  Si elle n'est pas concluante, on reviendra au GridWorld pour avoir une idée des paramètres qu'il faut bidouiller pour parvenir à quelque chose de concluant.
-
-  L'expérience se déroule comme suit :
-  - [X] Créer une base de données $D_0$ de transitions aléatoires.
-  - [X] Entraîner un expert en utilisant LSPI nourri avec ces transitions ($\pi_E : S\rightarrow A$)
-  - [X] Vérifier que l'expert est en mesure de balancer le pendule durant 3000 pas de temps
-  - [X] Créer une base de données $D_E$ de transitions de l'expert. L'expérience sur LSTD$\mu$ a prouvé qu'une seule trajectoire était suffisante. On en prend une dizaine pour être sûrs.
-  - [X] Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$.
-  - [X] Définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
-  - [X] Définir $D$ à partir des transitions $D_E$ en enlevant l'état d'arrivée
-  - [X] Initialiser $\omega_0 = [-1...-1]^T$
-  - [X] Fixer $T=20$ (pifomètre)
-  - [X] Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) = {1\over 100}\sum\limits_{i=1}^{100}\sum\limits_{t<3000}\gamma^t\phi(s)$
-  - [X] Faire tourner LAFEM
-  - [X] Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
-  - [X] Regarder durant combien de pas de temps l'agent arrrive à faire tenir le pendule. Comparer à l'expert et à une politique aléatoire
-  - [X] Afficher la fonction de valeur de l'expert
-  - [X] Afficher la fonction de valeur de l'agent
-  - [X] Afficher la fonction de récompense sur laquelle l'expert a été entraîné
-  - [X] Afficher la fonction de récompense retrouvée par LAFEM
     
 * Code								       :code:
 ** Parent Dir targets
-    On a besoin de code se trouvant dans des fichiers du répertoire parent de celui-ci. Les quelques règles Makefile ci dessous permettent de s'assurer que ces fichiers sont bien là.
 #+srcname: LAFEM_Exp2_make
 #+begin_src makefile
 ../LAFEM.py:
@@ -82,8 +57,7 @@ double g_dGamma_lstdq =  0.9;
 double g_dEpsilon_lspi = 0.01;
 gsl_matrix* g_mActions = NULL; 
 
-unsigned int g_iMax_episode_len = 3000;
-
+unsigned int g_iMax_episode_len = 3000; 
 int main( void ){
   fprintf(stderr,"Training the expert...");
   fflush( NULL );
@@ -101,8 +75,8 @@ int main( void ){
   }
   gsl_matrix_free( D_expert );
   
-  g_iMax_episode_len = 100;
-  D_expert = inverted_pendulum_simulator( 30 );
+  g_iMax_episode_len = 30;//As discovered in MCLength.org, this should be enough (L_{MCip})
+  D_expert = inverted_pendulum_simulator( 1 ); // M_{MCip}
   FILE* f = fopen("D_expert.mat","w");
   for( int i = 0; i < D_expert->size1 ; i++ ){
     for( int j = 0; j < TRANS_WIDTH; j++){
@@ -128,10 +102,10 @@ LAFEM_Exp2_Expert.c: LAFEM_Exp2.org
 	$(call tangle,"LAFEM_Exp2.org")
 
 D_expert.mat: LAFEM_Exp2_Expert.exe LAFEM_Exp2_Samples.dat
-	./LAFEM_Exp2_Expert.exe > omega_expert.mat
+	./LAFEM_Exp2_Expert.exe > LAFEM_Exp2_omega_expert.mat
 
-omega_expert.mat: LAFEM_Exp2_Expert.exe LAFEM_Exp2_Samples.dat
-	./LAFEM_Exp2_Expert.exe > omega_expert.mat
+LAFEM_Exp2_omega_expert.mat: LAFEM_Exp2_Expert.exe LAFEM_Exp2_Samples.dat
+	./LAFEM_Exp2_Expert.exe > LAFEM_Exp2_omega_expert.mat
 
 #+end_src
 
@@ -163,11 +137,11 @@ double g_dGamma_lafem =  0.9;
 gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
 gsl_matrix* g_mActions = NULL;
 
-unsigned int g_iMax_episode_len = 300;
-unsigned int g_iNb_episodes = 50;
+unsigned int g_iMax_episode_len = 30;
+unsigned int g_iNb_episodes = 1;
 
 int main( void ){
-  g_mOmega = file2matrix( "omega_expert.mat", 1 );
+  g_mOmega = file2matrix( "LAFEM_Exp2_omega_expert.mat", 1 );
   g_mActions = file2matrix( ACTION_FILE, g_iA );
   gsl_matrix* D = file2matrix( "D_expert.mat", TRANS_WIDTH );
 
@@ -297,9 +271,12 @@ class LAFEM_Exp2( LAFEM ):
     def alpha( self, t ):
         return 10./(t+1.)
 
-    theta_0 = zeros( (10, 1) ) - 1.
+    theta_0 = zeros( (10, 1) ) 
 
-    Threshold = 0.1
+    Threshold = 0.2
+
+    T = 20
+
 #+end_src
 
 *** Running LAFEM
@@ -314,8 +291,8 @@ print a2str(omega_lafem)
 LAFEM_Exp2.py: LAFEM_Exp2.org
 	$(call tangle,"LAFEM_Exp2.org")
 
-theta_lafem.mat: LAFEM_Exp2.py ../a2str.py ../LAFEM.py mu_E_Right.mat mu_E_Left.mat mu_E_None.mat D_expert.mat
-	python LAFEM_Exp2.py > theta_lafem.mat
+LAFEM_Exp2_theta_lafem.mat: LAFEM_Exp2.py ../a2str.py ../LAFEM.py mu_E_Right.mat mu_E_Left.mat mu_E_None.mat D_expert.mat
+	python LAFEM_Exp2.py > LAFEM_Exp2_theta_lafem.mat
 
 #+end_src
 
@@ -401,8 +378,8 @@ int main (int argc, char *argv[]){
 
 #+srcname: LAFEM_Exp2_make
 #+begin_src makefile
-omega_lafem.mat: LAFEM_Exp2_Results.exe theta_lafem.mat
-	./LAFEM_Exp2_Results.exe theta_lafem.mat > omega_lafem.mat
+LAFEM_Exp2_omega_lafem.mat: LAFEM_Exp2_Results.exe LAFEM_Exp2_theta_lafem.mat
+	./LAFEM_Exp2_Results.exe LAFEM_Exp2_theta_lafem.mat > LAFEM_Exp2_omega_lafem.mat
 
 LAFEM_Exp2_Results.exe: LAFEM_Exp2_Results.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o simulator.o ../LSPI.o ../LSTDQ.o
 	$(O2EXE) -o LAFEM_Exp2_Results.exe LAFEM_Exp2_Results.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o  simulator.o ../LSPI.o ../LSTDQ.o
@@ -441,7 +418,7 @@ FIXME:Virer ce rand qui ne sert à rien
 #define P_MAX (PI)
 #define V_MIN (-PI)
 #define V_MAX (PI)
-#define EXPERT_Q_FILE "omega_expert.mat"
+#define EXPERT_Q_FILE "LAFEM_Exp2_omega_expert.mat"
 
 unsigned int g_iS = 2;
 unsigned int g_iA = 1;
@@ -583,17 +560,17 @@ The relevant makefile rules.
 
 #+srcname: LAFEM_Exp2_make
 #+begin_src makefile
-LAFEM_Exp2_true_R.dat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat
-	./LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat LAFEM_Exp2
+LAFEM_Exp2_true_R.dat: LAFEM_Exp2_Plot.exe LAFEM_Exp2_theta_lafem.mat LAFEM_Exp2_omega_lafem.mat
+	./LAFEM_Exp2_Plot.exe LAFEM_Exp2_theta_lafem.mat LAFEM_Exp2_omega_lafem.mat LAFEM_Exp2
 
-LAFEM_Exp2_lafem_R.dat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat 
-	./LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat LAFEM_Exp2
+LAFEM_Exp2_lafem_R.dat: LAFEM_Exp2_Plot.exe LAFEM_Exp2_theta_lafem.mat LAFEM_Exp2_omega_lafem.mat 
+	./LAFEM_Exp2_Plot.exe LAFEM_Exp2_theta_lafem.mat LAFEM_Exp2_omega_lafem.mat LAFEM_Exp2
 
-LAFEM_Exp2_Vexpert.dat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat
-	./LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat LAFEM_Exp2
+LAFEM_Exp2_Vexpert.dat: LAFEM_Exp2_Plot.exe LAFEM_Exp2_theta_lafem.mat LAFEM_Exp2_omega_lafem.mat
+	./LAFEM_Exp2_Plot.exe LAFEM_Exp2_theta_lafem.mat LAFEM_Exp2_omega_lafem.mat LAFEM_Exp2
 
-LAFEM_Exp2_Vagent.dat: LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat 
-	./LAFEM_Exp2_Plot.exe theta_lafem.mat omega_lafem.mat LAFEM_Exp2
+LAFEM_Exp2_Vagent.dat: LAFEM_Exp2_Plot.exe LAFEM_Exp2_theta_lafem.mat LAFEM_Exp2_omega_lafem.mat 
+	./LAFEM_Exp2_Plot.exe LAFEM_Exp2_theta_lafem.mat LAFEM_Exp2_omega_lafem.mat LAFEM_Exp2
 
 LAFEM_Exp2_Plot.exe: LAFEM_Exp2_Plot.o phipsi.o ../utils.o ../greedy.o phipsi.o
 	$(O2EXE) -o LAFEM_Exp2_Plot.exe LAFEM_Exp2_Plot.o phipsi.o ../utils.o ../greedy.o  
@@ -711,9 +688,9 @@ LAFEM_Exp2_Vagent.pdf: LAFEM_Exp2_Vagent.gp LAFEM_Exp2_Vagent.dat
 LAFEM_Exp2_clean:
 	find . -maxdepth 1 -iname "LAFEM_Exp2_*"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "LAFEM_Exp2.py"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "omega_lafem.mat"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "theta_lafem.mat"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "omega_expert.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp2_omega_lafem.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp2_theta_lafem.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp2_omega_expert.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "D_expert.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "mu_E_Left.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "mu_E_Right.mat"   | xargs $(XARGS_OPT) rm
