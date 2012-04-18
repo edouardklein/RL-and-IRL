@@ -97,7 +97,7 @@ int main( void ){
   g_mActions = file2matrix( ACTION_FILE, 1 );
   gsl_matrix* omega_expert = file2matrix( "ANIRL_Exp3_expert_omega.mat", 1 );
   g_mOmega =  omega_expert;
-  gsl_matrix* D_expert = gridworld_simulator( 100 );
+  gsl_matrix* D_expert = gridworld_simulator( 1 );
   matrix2file( "ANIRL_Exp3_D_E.mat", D_expert );
   return 0;
 }

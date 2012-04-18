@@ -2,109 +2,7 @@
 
 Cette expérience s'inscrit dans un [[file:../Protocoles.org][protocole]] plus large.
 
-Il faut calculer la matrice $\omega$ issue de LSTD$\mu$.
-FIXME: Ce code existe en plusieur variantes a plusieurs endroit. Il faudrait trouver un moyen intelligent de le factoriser. La présence de la fonction psi rend cela difficile. Il faudrait trouver une interface pour psi (peut etre à coup de =cut= et =paste=)
-
-#+begin_src c :tangle SCIRL_Exp1_LSTDmu.c :main no
-#define _POSIX_C_SOURCE 1
-#include <gsl/gsl_matrix.h>
-#include <math.h>
-#include "GridWorld.h"
-#include "utils.h"
-#include "greedy.h"
-#include "phipsi.h"
-#include "RL_Globals.h"
-#include "IRL_Globals.h"
-#include "LSTDmu.h"
-
-#define TRANS_WIDTH 7
-#define ACTION_FILE "actions.mat"
-
-unsigned int g_iS = 2;
-unsigned int g_iA = 1;
-gsl_matrix* g_mOmega = NULL;
-gsl_matrix* g_mActions = NULL;
-double g_dLambda_lstdmu = 0.1;
-double g_dGamma_anirl = 0.9;//FIXME: Ill named. Should be something like g_dGamma_lstdmu
-//I suspect it is used also in the monte carlo, hence the name when ANIRL was the only
-//implemented IRL algorithm
-gsl_matrix* (*g_fPsi)(gsl_matrix*) = psi;
-gsl_matrix* (*g_fPhi)(gsl_matrix*) = phi;
-
-
-//Defined but not used (needed in LSTDmu.o when linking) :
-double g_dEpsilon_anirl = -1;
-unsigned int g_iIt_max_anirl = -1;
-double g_dGamma_lafem = -1;
-gsl_matrix* (*g_fS_0)( void ) = NULL;
-double g_dBest_error = -1;
-double true_diff_norm = -1;
-double g_dBest_true_error = -1;
-double g_dBest_diff = -1;
-gsl_matrix* g_mBest_omega = NULL;
-double true_V_diff = -1;
-double g_dBest_t = -1;
-//dummy lspi
-gsl_matrix* lspi(gsl_matrix* D, gsl_matrix* omega){
-return NULL;
-}
-
-
-int main( void ){
-  g_mActions = file2matrix( ACTION_FILE, g_iA );
-  gsl_matrix* D = file2matrix( "ANIRL_Exp3_D_E.mat", TRANS_WIDTH );
-
-  gsl_matrix* D_mu = gsl_matrix_alloc( D->size1, g_iS + g_iA + g_iS + g_iP + 1 );
-
-  for( int i = 0; i < D->size1 ; i++ ){
-    gsl_matrix_view vsasdash_src = gsl_matrix_submatrix( D, i, 0, 1, g_iS + g_iA + g_iS );
-    gsl_matrix_view vsasdash_dst = gsl_matrix_submatrix( D_mu, i, 0,
-							 1, g_iS + g_iA + g_iS );
-    gsl_matrix_memcpy( &(vsasdash_dst.matrix), &(vsasdash_src.matrix) );
-    
-    gsl_matrix_view vs = gsl_matrix_submatrix( D, i, 0, 1, g_iS );
-    gsl_matrix* psi_s = g_fPsi( &(vs.matrix) );
-    gsl_matrix_view vpsi_s = gsl_matrix_submatrix( D_mu, i, g_iS + g_iA + g_iS, 1, g_iP );
-    gsl_matrix_transpose_memcpy( &(vpsi_s.matrix), psi_s );
-    gsl_matrix_free( psi_s );
-
-    gsl_matrix_view eoe_src = gsl_matrix_submatrix( D, i, g_iS + g_iA + g_iS + 1,
-						    1, 1 );
-    gsl_matrix_view eoe_dst = gsl_matrix_submatrix( D_mu, i, g_iS + g_iA + g_iS + g_iP,
-						    1, 1 );
-    gsl_matrix_memcpy( &(eoe_dst.matrix), &(eoe_src.matrix) );    
-  }
-  
-  gsl_matrix* omega_E = lstd_mu_op_omega( D_mu );
-  
-  for( int i = 0; i < omega_E->size1; i++ ){
-    for( int j = 0; j < omega_E->size2; j++ ){
-      printf("%e ",gsl_matrix_get( omega_E, i, j ) );
-    }
-    printf("\n");
-  }
-
-  return 0;
-}
-
-#+end_src
-
-#+srcname: SCIRL_Exp1_make
-#+begin_src makefile
-SCIRL_Exp1_LSTDmu.exe: SCIRL_Exp1_LSTDmu.o phipsi.o ../utils.o ../greedy.o ../LSTDmu.o
-	$(O2EXE) -o SCIRL_Exp1_LSTDmu.exe SCIRL_Exp1_LSTDmu.o phipsi.o ../utils.o ../greedy.o ../LSTDmu.o
-
-SCIRL_Exp1_LSTDmu.o: SCIRL_Exp1_LSTDmu.c GridWorld.h ../LSTDmu.h ../utils.h ../greedy.h ../RL_Globals.h ../IRL_Globals.h phipsi.h
-	$(call c2obj,"SCIRL_Exp1_LSTDmu.c")
-
-SCIRL_Exp1_LSTDmu.c: SCIRL_Exp1.org
-	$(call tangle,"SCIRL_Exp1.org")
-
-SCIRL_Exp1_omega_mu_E.mat: SCIRL_Exp1_LSTDmu.exe ANIRL_Exp3_D_E.mat
-	./SCIRL_Exp1_LSTDmu.exe > SCIRL_Exp1_omega_mu_E.mat
-
-#+end_src
-
+L'expérience est un succès : la récompense est jolie, la fonction de valeur encore plus et surtout l'on a une longueur de trajectoire conforme à nos attentes.
 
 On peut maintenant configurer SCIRL comme prévu par le protocole, à savoir en reprenant les valeurs des paramètres obtenues dans [[file:LAFEM_Exp1.org]].
 
@@ -128,7 +26,6 @@ from LAFEM import *
       On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
       #+begin_src python :tangle SCIRL_Exp1.py
 class SCIRL_Exp1( LAFEM ):
-    omega_mu_E = []
     dicPi_E = {}
 
       #+end_src
@@ -143,15 +40,70 @@ class SCIRL_Exp1( LAFEM ):
     S = Sgenerator
     A = [1,2,3,4]
     #+end_src
-
-    Pour entraîner un expert sur le problème du gridworld, i.e. définir $\pi_E : S\rightarrow A$, on réutilise le code du [[file:TaskTransfer.org::*Code][task transfer]] tel quel pour obtenir la politique optimale.
       #+begin_src python :tangle SCIRL_Exp1.py
+    dicMu_E_s_only = {}
+
+    def psi( self, s ):
+        answer = zeros((25,1))
+        x = s[0]
+        y = s[1]
+        index = y*5 + x
+        answer[index] = 1.
+        return answer
+
     def __init__( self ):
         D_E = genfromtxt("ANIRL_Exp3_D_E.mat")
         for trans in D_E:
             self.dicPi_E[l2str(trans[0:2])] = trans[2:3][0]
             self.data = self.data +[[ trans[0:2], trans[2:3][0]]]
-        self.omega_mu_E = genfromtxt( "SCIRL_Exp1_omega_mu_E.mat" )
+      #+end_src      
+
+      Le calcul de mu_E se fait d'après la technique de Monte-Carlo heuristique suggérée par Matthieu. Il s'agit pour les couples $(s,a)$ pour lesquels on possède des données d'un simple Monte-Carlo, et pour les couples $(s,a)$ où $a \neq \pi_E(s)$ de $\gamma \hat\mu_E(s,\pi_E(s))$.
+FIXME:remonter cette méthode, et LSTDmu et les autres si elles sont assez générique dans la classe parente, sous un autre nom. Ainsi pour les utilser is suffira d'ecrire un truc du style =self.mu_E = self.mu_E_MC=.
+
+      #+begin_src python :tangle SCIRL_Exp1.py
+        dicMu_E_data = {}
+        for start_index in range(0,len(D_E)):
+            trans = D_E[start_index,:]
+            s = trans[0:2]
+            a = trans[2:3][0]
+
+            #import pdb
+            #          pdb.set_trace()
+            end_index = start_index
+            while D_E[end_index,2+1+2+1] != 0.: #eoe
+                end_index+=1
+            data_MC = D_E[start_index:end_index+1,0:2]
+            
+            mu_struct = []
+            try:
+                mu_struct = dicMu_E_data[l2str(s)]
+            except KeyError:
+                pass
+            mu_struct.append(data_MC)
+            dicMu_E_data[l2str(s)] = mu_struct
+        #Now dicMu_E_data contains the data that allows for the Monte-Carlo computation
+        self.dicMu_E_s_only = {}
+        for state in dicMu_E_data:
+            nb = 0.
+            gamma = 0.9
+            mu_s = zeros((25,1))
+            for traj in dicMu_E_data[state]:
+                nb+=1.
+                i = 0
+                for s in traj:
+                    i+=1.
+                    mu_s += pow( gamma, i )*self.psi( s )
+            mu_s /= nb
+            self.dicMu_E_s_only[state] = mu_s
+
+    def mu_E( self, s, a ):
+        gamma = 0.9
+        if self.dicPi_E[l2str(s)] == a:
+            return self.dicMu_E_s_only[l2str(s)]
+        else:
+            return gamma*self.dicMu_E_s_only[l2str(s)]
+
       #+end_src      
     On définit la fonction de perte $l$ :
     #+begin_src python :tangle SCIRL_Exp1.py
@@ -163,21 +115,6 @@ class SCIRL_Exp1( LAFEM ):
 
     #+end_src
     
-    On définit la fonction renvoyant $\mu_E(s,a)$. Pour cela on réimplémente phi
-    #+begin_src python :tangle SCIRL_Exp1.py
-    def phi( self, s, a ):
-        answer = zeros((100,1))
-        x = s[0]
-        y = s[1]
-        index = y*5*4 + x*4 + a-1
-        answer[index] = 1.
-        return answer
-
-    def mu_E( self, s, a ):
-        answer = dot( self.omega_mu_E.transpose(), self.phi( s, a ) )
-        return answer
-
-    #+end_src
     
       #+begin_src python :tangle SCIRL_Exp1.py
     def alpha( self, t ):
@@ -195,7 +132,7 @@ print a2str(theta_scirl)
 SCIRL_Exp1.py: SCIRL_Exp1.org
 	$(call tangle,"SCIRL_Exp1.org")
 
-SCIRL_Exp1_theta.mat: SCIRL_Exp1.py ../a2str.py ../LAFEM.py SCIRL_Exp1_omega_mu_E.mat ANIRL_Exp3_D_E.mat
+SCIRL_Exp1_theta.mat: SCIRL_Exp1.py ../a2str.py ../LAFEM.py ANIRL_Exp3_D_E.mat
 	python SCIRL_Exp1.py > SCIRL_Exp1_theta.mat
 
 #+end_src
