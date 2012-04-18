@@ -66,7 +66,7 @@ def DP_mu( pi, Phi ):
         new_answer = Phi + g_fGamma*dot(pi,answer)
         diff = sum( abs( new_answer - answer ) )
         answer = new_answer
-        if diff > 0.01:
+        if diff > 0.00001:
             changed = True
         else:
             changed = False

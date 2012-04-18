@@ -213,6 +213,11 @@ ANIRL_Exp3:
 SCIRL_Exp1:
 	make -C GridWorld SCIRL_Exp1
     #+end_src
+   - SCIRL_Exp2 (Highway)
+    #+begin_src makefile :tangle Makefile
+SCIRL_Exp2:
+	make -C Highway SCIRL_Exp2
+    #+end_src
     
 ** Previous results
    - lagoudakis2003least_figure10.pdf (ChainWalk)

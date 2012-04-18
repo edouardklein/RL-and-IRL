@@ -1,0 +1,178 @@
+#+TITLE: Highway, SCIRL, Parfait
+
+Expérience s'inscrivant dans un [[../Protocoles.org]] plus large.
+
+La norme de $\mu_E(s_0)$ est d'environ 2.8, on place donc $\epsilon = 0.028$.
+
+* Code								       :code:
+** Helper code
+*** Configuration de LAFEM.
+    #+begin_src python :tangle SCIRL_Exp2.py
+import sys
+sys.path+=['..']
+from a2str import *
+from LAFEM import *
+from DP_mu import *
+from DP import *
+import Highway
+
+    #+end_src
+FIXME: Factoriser cette fonction utilitaire ailleurs
+      #+begin_src python :tangle SCIRL_Exp2.py
+def PPi2dicPi( Ppi , States, s_index, Actions, Pactions):
+    "Transforms a policy whose form is a matrix to a dictionnary"
+    dicPi = {}
+    for s in States:
+        index = s_index( s )
+        pi_s = Ppi[index]
+        a = -1
+        found = False
+        for a,Pa in zip( Actions, Pactions ):
+            if all( abs( pi_s - Pa[index]) < 0.00001 ): #Float precision can sometimes get in the way
+                dicPi[l2str(s)] = a
+                found = True
+                break
+        if not found:
+            raise Exception( "Given policy uses an action I don't know of" )
+    return dicPi
+
+      #+end_src      
+    
+      #+begin_src python :tangle SCIRL_Exp2.py
+class SCIRL_Exp2( LAFEM ):
+    P = []
+    Pi_E = array([])
+    Mu = []
+    A = Highway.A
+      #+end_src
+    
+      #+begin_src python :tangle SCIRL_Exp2.py
+    def __init__( self ):
+        self.Pi_E = genfromtxt( "Pi_E.mat" )
+        print "P_a creation..."
+        self.P = [Highway.P(a) for a in Highway.A]
+        print "Expert conversion..."
+        self.dicPi_E = PPi2dicPi( self.Pi_E, Highway.Sgenerator(), Highway.s_index, Highway.A, self.P )
+        
+
+      #+end_src      
+    On peuple $D$ : 
+      #+begin_src python :tangle SCIRL_Exp2.py
+        print "Data creation..."
+        for s in Highway.Sgenerator():
+            self.data.append( [ s, self.dicPi_E[l2str(s)] ] )
+      #+end_src
+    On calcule les matrices de /feature expectation/
+      #+begin_src python :tangle SCIRL_Exp2.py
+        self.Mu_E = genfromtxt( "Mu_E.mat" )
+        print "mu_a computation..."
+        self.Mu = [identity(3*9*9*3) + 0.9*dot( p, self.Mu_E ) for p in self.P]
+        print "Norme de Mu_E : "+str( linalg.norm( self.Mu_E[ Highway.s_index( Highway.S_0() )]))
+      #+end_src
+
+    On définit la fonction de perte $l$ :
+    #+begin_src python :tangle SCIRL_Exp2.py
+    def l( self, s, a ):
+        if self.dicPi_E[l2str(s)] == a:
+            return 0
+        else:
+            return 1
+    #+end_src
+    
+    On définit la fonction renvoyant $\mu_E(s,a)$ : 
+    #+begin_src python :tangle SCIRL_Exp2.py
+    def mu_E( self, s, a ):
+        mu = ( self.Mu[a] )[ Highway.s_index(s) ]
+        return ( zeros((1,3*9*9*3)) + mu ).transpose()#Ugly hack to get a column vector and not a line vector
+
+    #+end_src
+    
+
+
+    On définit $\alpha(t) = 0.1,\forall t$ (pifomètre)
+      #+begin_src python :tangle SCIRL_Exp2.py
+    def alpha( self, t ):
+        return 3/(t+1.)
+      #+end_src
+    On initialise $\omega_0 = [0...0]^T$
+      #+begin_src python :tangle SCIRL_Exp2.py
+    theta_0 = zeros( (3*9*9*3, 1) )
+      #+end_src
+    - Fixer $T=20$ (pifomètre)
+      #+begin_src python :tangle SCIRL_Exp2.py
+    Threshold = 0.028
+    T = 400
+      #+end_src
+     
+** Main code
+*** Faire tourner l'expérience
+      #+begin_src python :tangle SCIRL_Exp2.py
+scirl = SCIRL_Exp2()
+theta_scirl = scirl.run()
+      #+end_src
+     
+     Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$ :
+     #+begin_src python :tangle SCIRL_Exp2.py
+print "Agent creation..."
+Pi = DP_txt( theta_scirl, scirl.P, "SCIRL_Exp2_V_agent.mat" )
+     #+end_src
+*** Sauver les données pour les résultats
+     Comparer $\theta^T\mu_E(s_0)$ et $\theta^T\mu_\pi(s_0)$ :
+     #+begin_src python :tangle SCIRL_Exp2.py
+perf_expert = dot( Highway.R().transpose() , ( scirl.Mu_E[ Highway.s_index( Highway.S_0() )]).transpose() )
+print "mu_pi computation..."
+Mu_pi = DP_mu( Pi, identity( 3*9*9*3 ))
+perf_agent = dot( Highway.R().transpose() , ( Mu_pi[ Highway.s_index( Highway.S_0() )]).transpose() )
+
+print "Performance moyenne de l'expert : "
+print perf_expert
+
+print "Performance moyenne de l'agent :"
+print perf_agent
+
+     #+end_src
+
+** Makefile Rules
+*** Tangling
+  #+srcname: SCIRL_Exp2_make
+  #+begin_src makefile
+SCIRL_Exp2.py: SCIRL_Exp2.org 
+	$(call tangle,"SCIRL_Exp2.org")
+
+  #+end_src
+*** Parent Dir targets
+#+srcname: SCIRL_Exp2_make
+#+begin_src makefile
+../DP_mu.py:
+	make -C .. DP_mu.py
+
+../DP.py:
+	make -C .. DP.py
+
+../a2str.py:
+	make -C .. a2str.py
+
+../LAFEM.py:
+	make -C .. LAFEM.py
+
+#+end_src
+
+*** Experiment targets
+    L'expérience produit quelques figures, et affiche des infos sur la sortie standard.
+#+srcname: SCIRL_Exp2_make
+#+begin_src makefile
+SCIRL_Exp2: SCIRL_Exp2.py ../DP_mu.py ../DP.py ../a2str.py ../LAFEM.py Highway.py Pi_E.mat Mu_E.mat
+	python SCIRL_Exp2.py
+
+#+end_src
+
+*** Cleaning
+   A rule to clean the mess :
+  #+srcname: SCIRL_Exp2_clean_make
+  #+begin_src makefile
+SCIRL_Exp2_clean:
+	find . -maxdepth 1 -iname "SCIRL_Exp2.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp2_*"   | xargs $(XARGS_OPT) rm
+  #+end_src
+
+* Résultats

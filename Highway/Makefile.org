@@ -4,13 +4,8 @@
 ** Misc.
 Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
   #+begin_src makefile :tangle Makefile :noweb yes
-<<phipsi_make>>
-<<MWAL_make>>
-<<SCIRL_make>>
-<<Comparison_make>>
-<<App_make>>
-<<RandomSamples_make>>
-<<LSPI_make>>
+<<Highway_make>>
+<<SCIRL_Exp2_make>>
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
@@ -29,14 +24,10 @@ O2EXE=gcc $(LFLAGS)
 
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-<<SCIRL_clean_make>>
-<<Simulator_clean_make>>
-<<Comparison_clean_make>>
-<<MWAL_clean_make>>
-<<Main_clean_make>>
-<<RandomSamples_clean_make>>
+<<Highway_clean_make>>
+<<SCIRL_Exp2_clean_make>>
 
-clean: SCIRL_clean Comparison_clean Simulator_clean MWAL_clean Main_clean RandomSamples_clean
+clean: Highway_clean SCIRL_Exp2_clean
 	find . -maxdepth 1 -iname "*~"   | xargs $(XARGS_OPT) rm
 
     #+end_src
