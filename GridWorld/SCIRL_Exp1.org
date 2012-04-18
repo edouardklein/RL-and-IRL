@@ -1,0 +1,352 @@
+#+TITLE: GridWorld, SCIRL, Dégradé
+
+Cette expérience s'inscrit dans un [[file:../Protocoles.org][protocole]] plus large.
+
+Il faut calculer la matrice $\omega$ issue de LSTD$\mu$.
+FIXME: Ce code existe en plusieur variantes a plusieurs endroit. Il faudrait trouver un moyen intelligent de le factoriser. La présence de la fonction psi rend cela difficile. Il faudrait trouver une interface pour psi (peut etre à coup de =cut= et =paste=)
+
+#+begin_src c :tangle SCIRL_Exp1_LSTDmu.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "GridWorld.h"
+#include "utils.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+#include "LSTDmu.h"
+
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+gsl_matrix* g_mOmega = NULL;
+gsl_matrix* g_mActions = NULL;
+double g_dLambda_lstdmu = 0.1;
+double g_dGamma_anirl = 0.9;//FIXME: Ill named. Should be something like g_dGamma_lstdmu
+//I suspect it is used also in the monte carlo, hence the name when ANIRL was the only
+//implemented IRL algorithm
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = psi;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = phi;
+
+
+//Defined but not used (needed in LSTDmu.o when linking) :
+double g_dEpsilon_anirl = -1;
+unsigned int g_iIt_max_anirl = -1;
+double g_dGamma_lafem = -1;
+gsl_matrix* (*g_fS_0)( void ) = NULL;
+double g_dBest_error = -1;
+double true_diff_norm = -1;
+double g_dBest_true_error = -1;
+double g_dBest_diff = -1;
+gsl_matrix* g_mBest_omega = NULL;
+double true_V_diff = -1;
+double g_dBest_t = -1;
+//dummy lspi
+gsl_matrix* lspi(gsl_matrix* D, gsl_matrix* omega){
+return NULL;
+}
+
+
+int main( void ){
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* D = file2matrix( "ANIRL_Exp3_D_E.mat", TRANS_WIDTH );
+
+  gsl_matrix* D_mu = gsl_matrix_alloc( D->size1, g_iS + g_iA + g_iS + g_iP + 1 );
+
+  for( int i = 0; i < D->size1 ; i++ ){
+    gsl_matrix_view vsasdash_src = gsl_matrix_submatrix( D, i, 0, 1, g_iS + g_iA + g_iS );
+    gsl_matrix_view vsasdash_dst = gsl_matrix_submatrix( D_mu, i, 0,
+							 1, g_iS + g_iA + g_iS );
+    gsl_matrix_memcpy( &(vsasdash_dst.matrix), &(vsasdash_src.matrix) );
+    
+    gsl_matrix_view vs = gsl_matrix_submatrix( D, i, 0, 1, g_iS );
+    gsl_matrix* psi_s = g_fPsi( &(vs.matrix) );
+    gsl_matrix_view vpsi_s = gsl_matrix_submatrix( D_mu, i, g_iS + g_iA + g_iS, 1, g_iP );
+    gsl_matrix_transpose_memcpy( &(vpsi_s.matrix), psi_s );
+    gsl_matrix_free( psi_s );
+
+    gsl_matrix_view eoe_src = gsl_matrix_submatrix( D, i, g_iS + g_iA + g_iS + 1,
+						    1, 1 );
+    gsl_matrix_view eoe_dst = gsl_matrix_submatrix( D_mu, i, g_iS + g_iA + g_iS + g_iP,
+						    1, 1 );
+    gsl_matrix_memcpy( &(eoe_dst.matrix), &(eoe_src.matrix) );    
+  }
+  
+  gsl_matrix* omega_E = lstd_mu_op_omega( D_mu );
+  
+  for( int i = 0; i < omega_E->size1; i++ ){
+    for( int j = 0; j < omega_E->size2; j++ ){
+      printf("%e ",gsl_matrix_get( omega_E, i, j ) );
+    }
+    printf("\n");
+  }
+
+  return 0;
+}
+
+#+end_src
+
+#+srcname: SCIRL_Exp1_make
+#+begin_src makefile
+SCIRL_Exp1_LSTDmu.exe: SCIRL_Exp1_LSTDmu.o phipsi.o ../utils.o ../greedy.o ../LSTDmu.o
+	$(O2EXE) -o SCIRL_Exp1_LSTDmu.exe SCIRL_Exp1_LSTDmu.o phipsi.o ../utils.o ../greedy.o ../LSTDmu.o
+
+SCIRL_Exp1_LSTDmu.o: SCIRL_Exp1_LSTDmu.c GridWorld.h ../LSTDmu.h ../utils.h ../greedy.h ../RL_Globals.h ../IRL_Globals.h phipsi.h
+	$(call c2obj,"SCIRL_Exp1_LSTDmu.c")
+
+SCIRL_Exp1_LSTDmu.c: SCIRL_Exp1.org
+	$(call tangle,"SCIRL_Exp1.org")
+
+SCIRL_Exp1_omega_mu_E.mat: SCIRL_Exp1_LSTDmu.exe ANIRL_Exp3_D_E.mat
+	./SCIRL_Exp1_LSTDmu.exe > SCIRL_Exp1_omega_mu_E.mat
+
+#+end_src
+
+
+On peut maintenant configurer SCIRL comme prévu par le protocole, à savoir en reprenant les valeurs des paramètres obtenues dans [[file:LAFEM_Exp1.org]].
+
+    #+begin_src python :tangle SCIRL_Exp1.py
+import sys
+sys.path+=['..']
+from a2str import *
+from LAFEM import *
+
+#We had to debug a floating point error
+#def err_handler(type, flag):
+#    print "Floating point error (%s), with flag %s" % (type, flag)
+#    import pdb
+#    pdb.set_trace()
+#seterrcall( err_handler )
+#seterr( all='call' )
+
+
+    #+end_src
+    
+      On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
+      #+begin_src python :tangle SCIRL_Exp1.py
+class SCIRL_Exp1( LAFEM ):
+    omega_mu_E = []
+    dicPi_E = {}
+
+      #+end_src
+
+      On définit $S$ et $A$ de manière à pouvoir itérer dessus.
+    #+begin_src python :tangle SCIRL_Exp1.py
+    def Sgenerator( self ):
+        for x in range(0,5):
+            for y in range(0,5):
+                yield array([x,y])
+
+    S = Sgenerator
+    A = [1,2,3,4]
+    #+end_src
+
+    Pour entraîner un expert sur le problème du gridworld, i.e. définir $\pi_E : S\rightarrow A$, on réutilise le code du [[file:TaskTransfer.org::*Code][task transfer]] tel quel pour obtenir la politique optimale.
+      #+begin_src python :tangle SCIRL_Exp1.py
+    def __init__( self ):
+        D_E = genfromtxt("ANIRL_Exp3_D_E.mat")
+        for trans in D_E:
+            self.dicPi_E[l2str(trans[0:2])] = trans[2:3][0]
+            self.data = self.data +[[ trans[0:2], trans[2:3][0]]]
+        self.omega_mu_E = genfromtxt( "SCIRL_Exp1_omega_mu_E.mat" )
+      #+end_src      
+    On définit la fonction de perte $l$ :
+    #+begin_src python :tangle SCIRL_Exp1.py
+    def l( self, s, a ):
+        if self.dicPi_E[l2str(s)] == a:
+            return 0
+        else:
+            return 1
+
+    #+end_src
+    
+    On définit la fonction renvoyant $\mu_E(s,a)$. Pour cela on réimplémente phi
+    #+begin_src python :tangle SCIRL_Exp1.py
+    def phi( self, s, a ):
+        answer = zeros((100,1))
+        x = s[0]
+        y = s[1]
+        index = y*5*4 + x*4 + a-1
+        answer[index] = 1.
+        return answer
+
+    def mu_E( self, s, a ):
+        answer = dot( self.omega_mu_E.transpose(), self.phi( s, a ) )
+        return answer
+
+    #+end_src
+    
+      #+begin_src python :tangle SCIRL_Exp1.py
+    def alpha( self, t ):
+        return 10./(t+1.)
+    theta_0 = zeros( (25, 1) )
+    Threshold = 0.044
+    T = 40
+scirl = SCIRL_Exp1()
+theta_scirl = scirl.run()
+print a2str(theta_scirl)
+
+      #+end_src
+#+srcname: SCIRL_Exp1_make
+#+begin_src makefile
+SCIRL_Exp1.py: SCIRL_Exp1.org
+	$(call tangle,"SCIRL_Exp1.org")
+
+SCIRL_Exp1_theta.mat: SCIRL_Exp1.py ../a2str.py ../LAFEM.py SCIRL_Exp1_omega_mu_E.mat ANIRL_Exp3_D_E.mat
+	python SCIRL_Exp1.py > SCIRL_Exp1_theta.mat
+
+#+end_src
+
+Maintenant on peut optimiser cette récompense et regarder ce que ça donne d'un point de vue graphique (tracé de V) :
+
+     #+begin_src python :tangle SCIRL_Exp1_results.py
+import sys
+sys.path+=['..']
+from DP import *
+from Pi2txt import *
+
+R = genfromtxt( "SCIRL_Exp1_theta.mat" )
+P_north = genfromtxt( "TT_5x5_PENorth.mat" )
+P_east = genfromtxt( "TT_5x5_PEEast.mat" )
+P_west = genfromtxt( "TT_5x5_PEWest.mat" )
+P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+Ppi = DP_txt( R, (P_north, P_south, P_west, P_east), "SCIRL_Exp1_V.mat" )
+
+print "Politique de l'agent : "
+print Pi2Asciiart( Ppi )
+V_agent = genfromtxt("SCIRL_Exp1_V.mat")
+
+
+f = open( "SCIRL_Exp1_V.txt", "w" )
+
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,V_agent[index]) )
+    f.write("\n")
+f.close()
+
+f = open( "SCIRL_Exp1_R.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,R[index]) )
+    f.write("\n")
+f.close()
+
+
+     #+end_src
+#+begin_src gnuplot :tangle SCIRL_Exp1_V.gp
+set pm3d
+set output "SCIRL_Exp1_V.ps"
+set term postscript enhanced color
+set view 61,254
+splot "SCIRL_Exp1_V.txt"
+#+end_src
+
+#+begin_src gnuplot :tangle SCIRL_Exp1_R.gp
+set pm3d
+set output "SCIRL_Exp1_R.ps"
+set term postscript enhanced color
+set view 61,254
+splot "SCIRL_Exp1_R.txt"
+#+end_src
+
+#+srcname: SCIRL_Exp1_make
+#+begin_src makefile
+SCIRL_Exp1_V.txt: SCIRL_Exp1_results.py SCIRL_Exp1_theta.mat TT_5x5_PENorth.mat TT_5x5_PESouth.mat TT_5x5_PEWest.mat TT_5x5_PEEast.mat
+	python SCIRL_Exp1_results.py
+SCIRL_Exp1_R.txt: SCIRL_Exp1_results.py SCIRL_Exp1_theta.mat TT_5x5_PENorth.mat TT_5x5_PESouth.mat TT_5x5_PEWest.mat TT_5x5_PEEast.mat
+	python SCIRL_Exp1_results.py
+
+SCIRL_Exp1_V.pdf: SCIRL_Exp1_V.gp SCIRL_Exp1_V.txt
+	gnuplot SCIRL_Exp1_V.gp
+	ps2pdf SCIRL_Exp1_V.ps
+	rm SCIRL_Exp1_V.ps
+
+SCIRL_Exp1_R.pdf: SCIRL_Exp1_R.gp SCIRL_Exp1_R.txt
+	gnuplot SCIRL_Exp1_R.gp
+	ps2pdf SCIRL_Exp1_R.ps
+	rm SCIRL_Exp1_R.ps
+
+#+end_src
+
+Ainsi que d'un point de vue de la longueur des trajectoires :
+#+begin_src c :tangle SCIRL_Exp1.c :main no
+
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "GridWorld.h"
+#include "simulator.h"
+#include "utils.h"
+#include "greedy.h"
+#include "phipsi.h"
+
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+gsl_matrix* g_mActions = NULL; 
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
+
+
+
+int main( void ){
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_agent = file2matrix( "SCIRL_Exp1_omega.mat", 1 );
+  g_mOmega = omega_agent;
+  gsl_matrix* D_agent = gridworld_simulator( 1000 );
+  printf("Longueur moyenne du run de l'agent : %f\n",((double)(D_agent->size1))/1000.);
+  return 0;
+}
+
+#+end_src
+
+#+srcname: SCIRL_Exp1_make
+#+begin_src makefile
+SCIRL_Exp1.c: SCIRL_Exp1.org
+	$(call tangle,"SCIRL_Exp1.org")
+SCIRL_Exp1.o: SCIRL_Exp1.c GridWorld.h ../greedy.h ../RL_Globals.h ../utils.h  phipsi.h simulator.h ../LSTDmu.h ../IRL_Globals.h ../ANIRL.h ../LSPI.h
+	$(call c2obj,"SCIRL_Exp1.c")
+#FIXME: On ne devrait pas avoir à lier avec criteria.o ou abbeel2004apprenticeship.o
+SCIRL_Exp1.exe: SCIRL_Exp1.o ../greedy.o ../utils.o  phipsi.o simulator.o
+	$(O2EXE) -o SCIRL_Exp1.exe SCIRL_Exp1.o ../greedy.o ../utils.o  phipsi.o simulator.o
+
+SCIRL_Exp1_omega.mat: R2omega.py SCIRL_Exp1_theta.mat Pi2txt.py
+	mv SCIRL_Exp1_theta.mat ANIRL_Exp2_R.mat #FIXME: Rendre R2omega plus générique pour ne plus avoir à faire ça
+	python R2omega.py
+	mv ANIRL_Exp2_R.mat SCIRL_Exp1_theta.mat
+	mv ANIRL_Exp2_omega.mat SCIRL_Exp1_omega.mat
+
+SCIRL_Exp1: SCIRL_Exp1.exe SCIRL_Exp1_omega.mat SCIRL_Exp1_R.pdf SCIRL_Exp1_V.pdf
+	./SCIRL_Exp1.exe
+
+#+end_src
+
+
+  #+srcname: SCIRL_Exp1_clean_make
+  #+begin_src makefile
+SCIRL_Exp1_clean:
+	find . -maxdepth 1 -iname "SCIRL_Exp1.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "SCIRL_Exp1.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1*.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1*.ps"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1*.gp"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1*.txt"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1*.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1_LSTDmu*"   | xargs $(XARGS_OPT) rm
+  #+end_src

@@ -384,6 +384,8 @@ Puis on vérifie que le contrôle obtenu tient la route :
 Tout cela se compile de la sorte :
 #+srcname: ANIRL_Exp2_make
 #+begin_src makefile
+R2omega.py: ANIRL_Exp2.org 
+	$(call tangle,"ANIRL_Exp2.org")
 ANIRL_Exp2.c: ANIRL_Exp2.org 
 	$(call tangle,"ANIRL_Exp2.org")
 ANIRL_Exp2.o: ANIRL_Exp2.c GridWorld.h ../utils.h ../greedy.h phipsi.h ../RL_Globals.h ../IRL_Globals.h ../ANIRL.h simulator.h

@@ -351,8 +351,10 @@ class LAFEM:
        #+begin_src python :tangle LAFEM.py
          DeltaTheta = DeltaTheta / len(self.data) #1/N
          norm = scipy.linalg.norm(DeltaTheta)
-         theta = theta - self.alpha( t ) * DeltaTheta / norm
+         if norm > 0.:
+             theta = theta - self.alpha( t ) * DeltaTheta / norm
          sys.stderr.write("Norme du gradient : "+str(norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)+"\n")
+
        #+end_src
      - Si $||\theta_{t+1}||_2 < ||\theta_T||_2$, effectuer $\theta_T \leftarrow\theta_{t+1}$
        #+begin_src python :tangle LAFEM.py

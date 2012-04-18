@@ -13,10 +13,11 @@ Those who do not fit in the others categories (because they fit in more than one
 <<ANIRL_Exp2_make>>
 <<LSPI_Exp1_make>>
 <<ANIRL_Exp3_make>>
+<<SCIRL_Exp1_make>>
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
-tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
+tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs  >/dev/null 2>/dev/null
 
 <<LAFEM_Exp1_code_make>>
 <<LSTDmu_Exp_code_make>>
@@ -52,7 +53,8 @@ O2EXE=gcc $(LFLAGS)
 <<ANIRL_Exp2_clean_make>>
 <<ANIRL_Exp3_clean_make>>
 <<LSPI_Exp1_clean_make>>
-clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulator_clean TT_Exp1_clean ANIRL_Exp2_clean LSPI_Exp1_clean ANIRL_Exp3_clean
+<<SCIRL_Exp1_clean_make>>
+clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulator_clean TT_Exp1_clean ANIRL_Exp2_clean LSPI_Exp1_clean ANIRL_Exp3_clean SCIRL_Exp1_clean
 
 <<LSTDmu_Exp_nuke_make>>
     #+end_src
