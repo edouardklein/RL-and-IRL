@@ -15,7 +15,7 @@ import Highway
 from numpy import *
 import scipy
 
-trans = Highway.random_play( 60, 1 )
+trans = Highway.random_play( 600, 10 )
 savetxt( "ANIRL_Exp6_D.mat", trans, "%d", " " )
 
 #+end_src
@@ -34,6 +34,7 @@ ANIRL_Exp6_D.mat: ANIRL_Exp6_D.py Highway.py ../DP.py
 #include <gsl/gsl_blas.h>
 #include <math.h>
 #include "LSPI.h"
+#include "../RL_Globals.h"
 #include "utils.h"
 
 #include "phipsi.h"
@@ -43,7 +44,6 @@ ANIRL_Exp6_D.mat: ANIRL_Exp6_D.py Highway.py ../DP.py
 #define ACTION_FILE "actions.mat"
 unsigned int g_iS = 4; /*State space dimension*/
 unsigned int g_iA = 1; /*Action space dimension*/
-unsigned int g_iK = 3*9*9*3*5; /*Feature space dimension*/
 double g_dGamma_lstdq =  0.9; /*Discount factor*/
 double g_dEpsilon_lspi = 0.1; /*Halt criterion*/
 gsl_matrix* g_mOmega = NULL; //Omega
@@ -61,7 +61,7 @@ int main( void ){
   gsl_matrix_free( omega );
   gsl_matrix_free( D );
   gsl_matrix_free( omega_0 );
-  return system( "python PlayOmega.py ANIRL_Exp6_omega_LSPI.mat" );;
+  return system( "python PlayOmega2.py ANIRL_Exp6_omega_LSPI.mat" );;
 }
 
   #+end_src
