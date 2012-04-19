@@ -322,7 +322,7 @@ V = genfromtxt( "ANIRL_Exp2_V.mat" )
 # que ceux de la fonction phi
 # definie dans LSTDmu_exp.org
 # FIXME: Creer un fichier qui decrit les indices
-# est s'y referer a chaque fois
+# et s'y referer a chaque fois
 
 omega = zeros((100,1))
 
@@ -372,6 +372,7 @@ On lance ANIRL :
 #+end_src
 
 Puis on vérifie que le contrôle obtenu tient la route :
+#FIXME: On devrait vérifier ça en regardant V(s_0)
 #+begin_src c :tangle ANIRL_Exp2.c :main no
   g_mOmega = omega_DP;
   gsl_matrix* D_agent = gridworld_simulator( 1000 );

@@ -8,6 +8,8 @@ emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
 
 
   The [[End results]] produced by this Makfile have their own dedicated section.
+
+#FIXME: Passer lint ou un autre outil d'analyse statique de code sur tout. Pychecker pour python. Quand j'aurais le temps.
   
 * Makefiles rules
   The rules are written in the file they work with. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
@@ -183,7 +185,7 @@ threshold.tex:
 ANIRL_Exp1:
 	make -C InvertedPendulum ANIRL_Exp1
     #+end_src
-   - ANIRL_Exp' (InvertedPendulum)
+   - ANIRL_Exp4 (InvertedPendulum)
     #+begin_src makefile :tangle Makefile
 ANIRL_Exp4:
 	make -C InvertedPendulum ANIRL_Exp4
@@ -192,6 +194,11 @@ ANIRL_Exp4:
     #+begin_src makefile :tangle Makefile
 ANIRL_Exp2:
 	make -C GridWorld ANIRL_Exp2
+    #+end_src
+   - ANIRL_Exp5 (Highway)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp5:
+	make -C Highway ANIRL_Exp5
     #+end_src
    - ANIRL_Exp2_test1 (GridWorld)
     #+begin_src makefile :tangle Makefile

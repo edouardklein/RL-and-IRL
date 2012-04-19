@@ -541,11 +541,33 @@ from numpy import *
 import scipy
 import pdb
 
+#FIXME: To be clean, these should be local (l_*) variables, not visible from the outside
 g_vReward = []
 g_vActions = []
 g_vV = []
 g_vPi = []
 g_fGamma = 0.9
+
+
+#FIXME: try to use numpy.armgax() somehow instead of this
+def greedy_policy( state, omega, phi, Actions ):
+    "returns \arg\max_a \omega^T\phi(s,a)"
+    s_besta = max( [[state, a] for a in Actions], key=lambda sa : dot( omega.transpose(), phi( sa[0], sa[1] )))
+    return s_besta[ 1 ]
+
+def omega2pi( omega, phi, States, s_index, Actions ):
+    "Returns the probability matrix describing the greedy policy\
+    with respect to the Q function described by \omega^T\phi"
+    dicPi = {} #We don't know the cardinal of the state space in advance
+    for state in States:
+        action = greedy_policy( state, omega, phi, range(0, len(Actions)))
+        Pa = Actions[ action ]
+        dicPi[ s_index(state) ] = Pa[ s_index(state) ]
+    size = max( dicPi.keys() ) + 1
+    Pi = zeros(( size, size ))
+    for i in range(0,size):
+        Pi[ i, : ] = dicPi[ i ]
+    return Pi
 
 def Q( s, a ):
     return g_vReward[s] + 0.9 * dot( (g_vActions[ a ])[s], g_vV.transpose() )

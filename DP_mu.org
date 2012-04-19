@@ -69,7 +69,7 @@ def DP_mu( pi, Phi ):
         if diff > 0.00001:
             changed = True
         else:
-            changed = False
+            changed = False<
     return answer
 #+end_src
 

@@ -6,6 +6,7 @@ Those who do not fit in the others categories (because they fit in more than one
   #+begin_src makefile :tangle Makefile :noweb yes
 <<Highway_make>>
 <<SCIRL_Exp2_make>>
+<<ANIRL_Exp5_make>>
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
@@ -26,8 +27,9 @@ O2EXE=gcc $(LFLAGS)
     #+begin_src makefile :tangle Makefile :noweb yes
 <<Highway_clean_make>>
 <<SCIRL_Exp2_clean_make>>
+<<ANIRL_Exp5_clean_make>>
 
-clean: Highway_clean SCIRL_Exp2_clean
+clean: Highway_clean SCIRL_Exp2_clean ANIRL_Exp5_clean
 	find . -maxdepth 1 -iname "*~"   | xargs $(XARGS_OPT) rm
 
     #+end_src
