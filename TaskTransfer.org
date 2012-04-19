@@ -549,19 +549,34 @@ g_vPi = []
 g_fGamma = 0.9
 
 
+def V2omega( R, V, States, s_index, Pactions, sa_index ):
+    dicOmega = {} #We don't know the cardinal of the state space in advance
+    for state in States:
+        for action in range(0,len(Pactions)):
+            Pa = Pactions[ action ]
+            #Q(s,a) = R(s) + \gamma Pa(s)^TV
+            #FIXME: Gamma est code en dur ici
+            dicOmega[ sa_index( state, action ) ] = \
+            R[ s_index( state ) ] + 0.9*dot( Pa[ s_index( state ), : ], V )
+    size = max( dicOmega.keys() ) + 1
+    omega = zeros(( size, 1 ))
+    for i in range( 0, size ):
+        omega[ i ] = dicOmega[ i ]
+    return omega
+
 #FIXME: try to use numpy.armgax() somehow instead of this
 def greedy_policy( state, omega, phi, Actions ):
     "returns \arg\max_a \omega^T\phi(s,a)"
     s_besta = max( [[state, a] for a in Actions], key=lambda sa : dot( omega.transpose(), phi( sa[0], sa[1] )))
     return s_besta[ 1 ]
 
-def omega2pi( omega, phi, States, s_index, Actions ):
+def omega2pi( omega, phi, States, s_index, Pactions ):
     "Returns the probability matrix describing the greedy policy\
     with respect to the Q function described by \omega^T\phi"
     dicPi = {} #We don't know the cardinal of the state space in advance
     for state in States:
-        action = greedy_policy( state, omega, phi, range(0, len(Actions)))
-        Pa = Actions[ action ]
+        action = greedy_policy( state, omega, phi, range(0, len(Pactions)))
+        Pa = Pactions[ action ]
         dicPi[ s_index(state) ] = Pa[ s_index(state) ]
     size = max( dicPi.keys() ) + 1
     Pi = zeros(( size, size ))
@@ -572,7 +587,7 @@ def omega2pi( omega, phi, States, s_index, Actions ):
 def Q( s, a ):
     return g_vReward[s] + 0.9 * dot( (g_vActions[ a ])[s], g_vV.transpose() )
 
-def DP( Reward, Actions ):
+def DP( Reward, Actions ): #FIXME devrait s'appeler Pactions ou qqc du genre
     "Returns the probability matrix corresponding to the optimal policy with respect to the given reward and the given actions. Actions are given in the form of a probability matrix. Probability matrices are so that the $(i,j)$ element gives the probability of transitioning to state $j$ upon taking action $a$ in state $i$"
     #pdb.set_trace()
     global g_vReward

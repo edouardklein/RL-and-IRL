@@ -111,7 +111,7 @@ scirl = SCIRL_Exp2()
 theta_scirl = scirl.run()
       #+end_src
      
-     Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$ :
+     Entrainer un agent sur le problème du highway, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$ :
      #+begin_src python :tangle SCIRL_Exp2.py
 print "Agent creation..."
 Pi = DP_txt( theta_scirl, scirl.P, "SCIRL_Exp2_V_agent.mat" )

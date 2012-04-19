@@ -1,0 +1,156 @@
+#+TITLE: Highway, SCIRL, Dégradé
+
+Cette expérience s'inscrit dans un [[file:../Protocoles.org][protocole]] plus large.
+
+
+On peut maintenant configurer SCIRL comme prévu par le protocole, à savoir en reprenant les valeurs des paramètres obtenues dans [[file:SCIRL_Exp2.org]].
+
+On va tout d'abord créer les trajectoires de l'expert.
+
+    #+begin_src python :tangle SCIRL_Exp3_DE.py
+import sys
+sys.path+=['..']
+from DP import *
+import Highway
+
+V_E = genfromtxt( "V_Expert.mat" )
+R = Highway.R()
+
+omega_E = V2omega( R, V_E, Highway.Sgenerator(), Highway.s_index,\
+[Highway.P(a) for a in Highway.A], Highway.sa_index )
+
+trans = Highway.omega_play( omega_E, 20, 1 ) #L,M
+
+savetxt( "SCIRL_Exp3_DE.mat", trans, "%d", "\t" )
+
+    #+end_src
+#+srcname: SCIRL_Exp3_make
+#+begin_src makefile
+SCIRL_Exp3_DE.py: SCIRL_Exp3.org
+	$(call tangle,"SCIRL_Exp3.org")
+
+SCIRL_Exp3_DE.mat: SCIRL_Exp3_DE.py Highway.py ../DP.py V_Expert.mat
+	python SCIRL_Exp3_DE.py
+
+#+end_src
+
+    #+begin_src python :tangle SCIRL_Exp3.py
+import sys
+sys.path+=['..']
+from a2str import *
+from LAFEM import *
+from DP import *
+from DP_mu import *
+import Highway
+
+    #+end_src
+    
+      On définit ce qui est nécessaire au fonctionnement de LAFEM en sous classant la classe abstraite LAFEM
+      #+begin_src python :tangle SCIRL_Exp3.py
+class SCIRL_Exp3( LAFEM ):
+    dicPi_E = {}
+    A = Highway.A
+    dicMu_E_s_only = {}
+      #+end_src
+
+      #+begin_src python :tangle SCIRL_Exp3.py
+
+    def __init__( self ):
+        D_E = genfromtxt("SCIRL_Exp3_DE.mat")
+        for trans in D_E:
+            self.dicPi_E[l2str(trans[0:4])] = trans[4:5][0]
+            self.data = self.data +[[ trans[0:4], trans[4:5][0]]]
+      #+end_src      
+
+      Le calcul de mu_E se fait d'après la technique de Monte-Carlo heuristique suggérée par Matthieu. Il s'agit pour les couples $(s,a)$ pour lesquels on possède des données d'un simple Monte-Carlo, et pour les couples $(s,a)$ où $a \neq \pi_E(s)$ de $\gamma \hat\mu_E(s,\pi_E(s))$.
+FIXME:remonter cette méthode, et LSTDmu et les autres si elles sont assez générique dans la classe parente, sous un autre nom. Ainsi pour les utilser is suffira d'ecrire un truc du style =self.mu_E = self.mu_E_MC=.
+
+      #+begin_src python :tangle SCIRL_Exp3.py
+        dicMu_E_data = {}
+        for start_index in range(0,len(D_E)):
+            s = D_E[ start_index, 0:4 ]
+            end_index = (i for i in range(start_index,len(D_E)) if D_E[i,4+1+4+1] == 0).next() #till next eoe
+            data_MC = D_E[start_index:end_index+1,0:4]
+            try:
+                dicMu_E_data[l2str(s)].append(data_MC)
+            except KeyError:
+                dicMu_E_data[l2str(s)] = [data_MC]
+        #Now dicMu_E_data contains the data that allows for the Monte-Carlo computation
+        self.dicMu_E_s_only = {}
+        for state in dicMu_E_data:
+            gamma = 0.9
+            lstMu_s = map( lambda traj: monte_carlo_mu( traj, 0.9, Highway.psi ), dicMu_E_data[state] )
+            mu_s = mean( lstMu_s, 0 )
+            self.dicMu_E_s_only[state] = mu_s
+        
+
+    def mu_E( self, s, a ):
+        gamma = 0.9
+        if self.dicPi_E[l2str(s)] == a:
+            return self.dicMu_E_s_only[l2str(s)]
+        else:
+            return gamma*self.dicMu_E_s_only[l2str(s)]
+
+      #+end_src      
+    On définit la fonction de perte $l$ :
+    #+begin_src python :tangle SCIRL_Exp3.py
+    def l( self, s, a ):
+        if self.dicPi_E[l2str(s)] == a:
+            return 0
+        else:
+            return 1
+
+    #+end_src
+    
+    
+      #+begin_src python :tangle SCIRL_Exp3.py
+    def alpha( self, t ):
+        return 3./(t+1.)
+    theta_0 = zeros( (3*9*9*3, 1) )
+    Threshold = 0.038
+    T = 400
+scirl = SCIRL_Exp3()
+theta_scirl = scirl.run()
+
+      #+end_src
+
+     Entrainer un agent sur le problème du highway, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$ :
+     #+begin_src python :tangle SCIRL_Exp3.py
+print "Agent creation..."
+Pi = DP_txt( theta_scirl, [Highway.P(a) for a in Highway.A], "SCIRL_Exp3_V_agent.mat" )
+     #+end_src
+     Comparer $\theta^T\mu_E(s_0)$ et $\theta^T\mu_\pi(s_0)$ :
+     #+begin_src python :tangle SCIRL_Exp3.py
+Mu_E = genfromtxt( "Mu_E.mat" )
+perf_expert = dot( Highway.R().transpose() , ( Mu_E[ Highway.s_index( Highway.S_0() )]).transpose() )
+print "mu_pi computation..."
+Mu_pi = DP_mu( Pi, identity( 3*9*9*3 ))
+perf_agent = dot( Highway.R().transpose() , ( Mu_pi[ Highway.s_index( Highway.S_0() )]).transpose() )
+
+print "Performance moyenne de l'expert : "
+print perf_expert
+
+print "Performance moyenne de l'agent :"
+print perf_agent
+
+     #+end_src
+
+#+srcname: SCIRL_Exp3_make
+#+begin_src makefile
+SCIRL_Exp3.py: SCIRL_Exp3.org
+	$(call tangle,"SCIRL_Exp3.org")
+
+SCIRL_Exp3: SCIRL_Exp3.py ../a2str.py ../LAFEM.py SCIRL_Exp3_DE.mat ../DP.py ../DP_mu.py
+	python SCIRL_Exp3.py
+
+#+end_src
+
+
+
+  #+srcname: SCIRL_Exp3_clean_make
+  #+begin_src makefile
+SCIRL_Exp3_clean:
+	find . -maxdepth 1 -iname "SCIRL_Exp3.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp3.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp3_*"   | xargs $(XARGS_OPT) rm
+  #+end_src
