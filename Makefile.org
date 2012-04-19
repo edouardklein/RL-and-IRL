@@ -203,7 +203,7 @@ ANIRL_Exp5:
    - ANIRL_Exp6 (Highway)
     #+begin_src makefile :tangle Makefile
 ANIRL_Exp6:
-	make -C Highway ANIRL_Exp6_LSPI
+	make -C Highway ANIRL_Exp6
     #+end_src
    - ANIRL_Exp2_test1 (GridWorld)
     #+begin_src makefile :tangle Makefile

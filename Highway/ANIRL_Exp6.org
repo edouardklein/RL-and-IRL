@@ -39,13 +39,12 @@ ANIRL_Exp6_D.mat: ANIRL_Exp6_D.py Highway.py ../DP.py
 
 #include "phipsi.h"
 
-#define D_WIDTH 5
 
 #define ACTION_FILE "actions.mat"
 unsigned int g_iS = 4; /*State space dimension*/
 unsigned int g_iA = 1; /*Action space dimension*/
 double g_dGamma_lstdq =  0.9; /*Discount factor*/
-double g_dEpsilon_lspi = 0.1; /*Halt criterion*/
+double g_dEpsilon_lspi = 0.03; /*Halt criterion*/
 gsl_matrix* g_mOmega = NULL; //Omega
 gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi; //\phi
 gsl_matrix* g_mActions = NULL; //All actions, one per line
@@ -60,11 +59,24 @@ int main( void ){
   matrix2file( "ANIRL_Exp6_omega_LSPI.mat", omega );
   gsl_matrix_free( omega );
   gsl_matrix_free( D );
+printf("Entrainement sur beaucoup de données\n");
+  system( "python PlayOmega2.py ANIRL_Exp6_omega_LSPI.mat" );
+  #+end_src
+
+On regarde maintenant ce que ça donne avec en entrée les trajectoires de l'expert (beaucoup moins nombreuses) :
+
+  #+begin_src c :tangle ANIRL_Exp6_LSPI.c :main no
+D = file2matrix( "SCIRL_Exp3_DE.mat", 4+1+4+1+1 );
+ omega = lspi( D, omega_0 );
+  matrix2file( "ANIRL_Exp6_omega_LSPI.mat", omega );
+  gsl_matrix_free( omega );
+  gsl_matrix_free( D );
   gsl_matrix_free( omega_0 );
-  return system( "python PlayOmega2.py ANIRL_Exp6_omega_LSPI.mat" );;
+printf("Entraînement sur les données de l'expert\n");
+  system( "python PlayOmega2.py ANIRL_Exp6_omega_LSPI.mat" );
 }
 
-  #+end_src
+#+end_src
    #+srcname: ANIRL_Exp6_make
    #+begin_src makefile
 ../LSPI.h:
@@ -75,6 +87,10 @@ int main( void ){
 	make -C .. LSPI.o
 ../LSTDQ.o:
 	make -C .. LSTDQ.o
+../LSTDmu.o:
+	make -C .. LSTDmu.o
+../LSTDmu.h:
+	make -C .. LSTDmu.h
 
 actions.mat: ANIRL_Exp6.org
 	$(call tangle,"ANIRL_Exp6.org")
@@ -86,10 +102,12 @@ ANIRL_Exp6_LSPI.o: ANIRL_Exp6_LSPI.c ../greedy.h ../RL_Globals.h ../utils.h  phi
 ANIRL_Exp6_LSPI.exe: ANIRL_Exp6_LSPI.o ../greedy.o ../utils.o  phipsi.o ../LSPI.o ../LSTDQ.o 
 	$(O2EXE) -o ANIRL_Exp6_LSPI.exe ANIRL_Exp6_LSPI.o ../greedy.o ../utils.o  phipsi.o ../LSPI.o ../LSTDQ.o
 
-ANIRL_Exp6_LSPI: ANIRL_Exp6_LSPI.exe ANIRL_Exp6_D.mat actions.mat ../DP_mu.py
+ANIRL_Exp6_LSPI: ANIRL_Exp6_LSPI.exe ANIRL_Exp6_D.mat actions.mat ../DP_mu.py SCIRL_Exp3_DE.mat
 	./ANIRL_Exp6_LSPI.exe
 
    #+end_src
+
+Le résultat n'est pas aussi bon, mais ça laisse espérer qu'ANIRL fonctionne comme il faut.
 
 * Expérience
 
@@ -108,11 +126,12 @@ Il ne reste enfin plus qu'à utiliser ces données pour faire tourner ANIRL.
 
 #include "RL_Globals.h"
 #include "IRL_Globals.h"
-#define TRANS_WIDTH 7
+#define TRANS_WIDTH 4+1+4+1+1
 #define ACTION_FILE "actions.mat"
 #define EXPERT_FILE "SCIRL_Exp3_DE.mat"
 
-unsigned int g_iS = 2;
+unsigned int g_iNb_samples = -1;
+unsigned int g_iS = 4;
 unsigned int g_iA = 1;
 unsigned int g_iIt_max_lspi = 20;
 gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
@@ -219,25 +238,27 @@ On lance ANIRL :
 
 Puis on vérifie que le contrôle obtenu tient la route :
 #+begin_src c :tangle ANIRL_Exp6.c :main no
-  g_mOmega = omega_agent;
-  gsl_matrix* D_agent = gridworld_simulator( 1000 );
-  printf("Longueur moyenne du run de l'agent : %f\n",((double)(D_agent->size1))/1000.);
-  return 0;
+  matrix2file( "ANIRL_Exp6_omega_agent.mat", omega_agent );
+  return system( "python PlayOmega2.py ANIRL_Exp6_omega_agent.mat" );
 }
+
 
 #+end_src
 
    #+srcname: ANIRL_Exp6_make
    #+begin_src makefile
+../abbeel2004apprenticeship.o:
+	make -C .. abbeel2004apprenticeship.o
+
 ANIRL_Exp6.c: ANIRL_Exp6.org
 	$(call tangle,"ANIRL_Exp6.org")
-ANIRL_Exp6.o: ANIRL_Exp6.c GridWorld.h ../greedy.h ../RL_Globals.h ../utils.h  phipsi.h simulator.h ../LSTDmu.h ../IRL_Globals.h ../ANIRL.h ../LSPI.h
+ANIRL_Exp6.o: ANIRL_Exp6.c ../greedy.h ../RL_Globals.h ../utils.h  phipsi.h ../LSTDmu.h ../IRL_Globals.h ../ANIRL.h ../LSPI.h
 	$(call c2obj,"ANIRL_Exp6.c")
 #FIXME: On ne devrait pas avoir à lier avec criteria.o ou abbeel2004apprenticeship.o
-ANIRL_Exp6.exe: ANIRL_Exp6.o ../greedy.o ../utils.o  phipsi.o simulator.o ../LSTDmu.o ../ANIRL.o ../LSPI.o ../LSTDQ.o ../criteria.o ../abbeel2004apprenticeship.o
-	$(O2EXE) -o ANIRL_Exp6.exe ANIRL_Exp6.o ../greedy.o ../utils.o  phipsi.o simulator.o ../LSTDmu.o ../ANIRL.o ../LSPI.o ../LSTDQ.o ../criteria.o ../abbeel2004apprenticeship.o
+ANIRL_Exp6.exe: ANIRL_Exp6.o ../greedy.o ../utils.o  phipsi.o ../LSTDmu.o ../ANIRL.o ../LSPI.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../criteria.o ../DP_mu.py
+	$(O2EXE) -o ANIRL_Exp6.exe ANIRL_Exp6.o ../greedy.o ../utils.o  phipsi.o ../LSTDmu.o ../ANIRL.o ../LSPI.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../criteria.o
 
-ANIRL_Exp6: ANIRL_Exp6_D_E.mat ANIRL_Exp6.exe
+ANIRL_Exp6: SCIRL_Exp3_DE.mat ANIRL_Exp6.exe
 	./ANIRL_Exp6.exe
 
    #+end_src
