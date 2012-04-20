@@ -19,7 +19,7 @@ R = Highway.R()
 omega_E = V2omega( R, V_E, Highway.Sgenerator(), Highway.s_index,\
 [Highway.P(a) for a in Highway.A], Highway.sa_index )
 
-trans = Highway.omega_play( omega_E, 20, 1 ) #L,M
+trans = Highway.omega_play( omega_E, 10, 1 ) #L,M
 
 savetxt( "SCIRL_Exp3_DE.mat", trans, "%d", "\t" )
 

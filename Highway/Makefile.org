@@ -9,6 +9,7 @@ Those who do not fit in the others categories (because they fit in more than one
 <<SCIRL_Exp3_make>>
 <<ANIRL_Exp5_make>>
 <<ANIRL_Exp6_make>>
+<<Cascading_Exp1_make>>
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
@@ -32,8 +33,9 @@ O2EXE=gcc $(LFLAGS)
 <<SCIRL_Exp3_clean_make>>
 <<ANIRL_Exp5_clean_make>>
 <<ANIRL_Exp6_clean_make>>
+<<Cascading_Exp1_clean_make>>
 
-clean: Highway_clean SCIRL_Exp2_clean ANIRL_Exp5_clean SCIRL_Exp3_clean ANIRL_Exp6_clean
+clean: Highway_clean SCIRL_Exp2_clean ANIRL_Exp5_clean SCIRL_Exp3_clean ANIRL_Exp6_clean Cascading_Exp1_clean
 	find . -maxdepth 1 -iname "*~"   | xargs $(XARGS_OPT) rm
 
     #+end_src

@@ -270,7 +270,7 @@ class LAFEM:
    L'algorithme prend en entrée :
    - une fonction de perte $l : S\times A \rightarrow \mathbb R$, prenant deux vecteurs ligne $s$ et $a$ en argument, renvoyant un réel
      #+begin_src python :tangle LAFEM.py
-   def l( self, s, a ): #FIXME: on utilise toujours la même devrait y avoir moyen de factoriser (celle de cascading.org est pas dégueu)
+   def l( self, s, a ): #FIXME: on utilise toujours la meme devrait y avoir moyen de factoriser (celle de cascading.org est pas degueu)
       raise NotImplementedError, "Cannot call abstract method"
      #+end_src
    - la /feature expectation/ de l'expert $\mu_E : S\times A \rightarrow \mathbb R ^p$, prenant deux vecteurs lignes $s$ et $a$ en argument, renvoyant un vecteur colonne

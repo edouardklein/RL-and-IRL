@@ -9,19 +9,29 @@ $<s_i,a_i>$ -[classifieur]-> $q(s,a) = \omega^T\phi(s,a)$
 $D_E = <s_i,q(s_i,a_i)-\gamma q(s'_i,a'_i)>$
 $D_C = <s_i,q(s_i,a_i)-\gamma q(s'_i,a*)>$
 
-$D_E$ -[regresseur]-> $\hat\R_E(s) = \omega_E^T\psi(s)$
-$D_C$ -[regresseur]-> $\hat\R_C(s) = \omega_C^T\psi(s)$
+$D_E$ -[regresseur]-> $\hat\R_E(s) = \theta_E^T\psi(s)$
+$D_C$ -[regresseur]-> $\hat\R_C(s) = \theta_C^T\psi(s)$
 
-Donc en résumé, en entrée l'on prend en entrée un set de transitions $<s_i,a_i,eoe>$ venant de l'expert, ainsi que deux features $\phi$ et $\psi$ et l'on renvoie deux matrices $\omega_E$ et $\omega_C$ définissant une récompense.
+Donc en résumé, en entrée l'on prend en entrée un set de transitions $<s_i,a_i,eoe>$ venant de l'expert, ainsi que deux features $\phi$ et $\psi$ et l'on renvoie deux matrices $\theta_E$ et $\theta_C$ définissant une récompense.
 
 #+begin_src python :tangle Cascading.py
 from LAFEM import *
 from numpy import *
 import scipy.linalg
 
+def run( D, psi, phi, Actions ):
+    "Run the cascading algorithm"
+    omega_q = classif_score( D, phi, Actions )
+    q = lambda s,a : dot( omega_q.transpose(), phi( s, a ) )
+    D_E = shape_for_E_regression( D, q, psi )
+    D_C = shape_for_C_regression( D, q, psi, Actions )
+    theta_E = regression( D_E )
+    theta_C = regression( D_C )
+    return [theta_E,theta_C]
+
 def classif_score( D, phi, Actions ):
     "Returns the omega matrix so that \omega^T\phi(s,a) allows for classification of elements s with labels a"
-    #Il s'avère que SCIRL, notre algo d'IRL peut être adapté pour
+    #Il s'avere que SCIRL, notre algo d'IRL peut etre adapte pour
     #faire de la classification, il suffit de lui fournir, en lieu et place de $\mu_E$
     #n'importe quelle feature
     class IRL2classif_hack( LAFEM ):
@@ -31,10 +41,11 @@ def classif_score( D, phi, Actions ):
         A = Actions
         def __init__( self ):
             s_0 = D[0][0]
-            theta_0 = zeros( phi( s_0 ).shape )
+            a_0 = D[0][1]
+            self.theta_0 = zeros( phi( s_0, a_0 ).shape )
         def l( self, s, a ):
             try:
-                filter( lambda sa : sa[0] == s and sa[1] == a, self.data )[0] #Same action as the expert
+                filter( lambda sa : all(sa[0] == s) and all(sa[1] == a), self.data )[0] #Same action as the expert
                 return 0
             except IndexError: #The action of the expert was different from a
                 return 1
@@ -52,18 +63,9 @@ def regression( data ):
     Y = zeros(( len( data ), data[0][1].shape[1] ))
     for i in range(0,len(data)):
         X[i,:] = data[i][0]
-        Y[i,:] = data[i][0]
-    return dot( dot( scipy.linalg.inv( dot( X.transpose(), X )), X.transpose() ) , Y)
-
-def run( D, psi, phi, Actions ):
-    "Run the cascading algorithm"
-    omega_q = classif_score( D, phi )
-    q = lambda s,a : dot( omega_q.transpose(), phi( s, a ) )
-    D_E = shape_for_E_regression( D, q, psi )
-    D_C = shape_for_C_regression( D, q, psi, Actions )
-    omega_E = regression( D_E )
-    omega_C = regression( D_C )
-    return [omega_E,omega_C]
+        Y[i,:] = data[i][1]
+    #FIXME Achtung regularisation
+    return dot( dot( scipy.linalg.inv( dot( X.transpose(), X ) +0.1*identity( X.shape[1] )), X.transpose() ) , Y)
 
 def shape_for_E_regression( D, q, psi ):
     "Given data of the form [[s,a],...,[s,a]], returns the matrix [[psi(s)^T,q(s,a)-gamma*q(s',a')],...]"
@@ -81,7 +83,7 @@ def shape_for_C_regression( D, q, psi, Actions ):
         s = sasa[0]
         a = sasa[1]
         ss = sasa[2]
-        astar = max( [ [ss,a] for a in Actions ], key=lambda sa : q( sa[0], sa[1] ) )[1]
+        astar = max( [ [ss,x] for x in Actions ], key=lambda sa : q( sa[0], sa[1] ) )[1]
         return [ psi( s ).transpose(), q(s,a) - 0.9*q( ss, astar )] #FIXME: hard coded gamma
     return map( hatR, shape_as_sasa( D ) )
 
@@ -91,7 +93,7 @@ def shape_as_sasa( D ):
     s = map( lambda sa: sa[0], D[0:-1] )
     a = map( lambda sa: sa[1], D[0:-1] )
     ss = map( lambda sa: sa[0], D[1:] ) #ss stands for s'
-    aa = map( lambda sa: sa[0], D[1:] ) #and aa for a'
+    aa = map( lambda sa: sa[1], D[1:] ) #and aa for a'
     return map( lambda x,y,z,t : [x,y,z,t], s, a, ss, aa )
 
 #+end_src
