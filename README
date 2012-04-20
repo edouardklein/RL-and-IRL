@@ -1,5 +1,9 @@
 FIXME: Protocole proposé:
+Dans Notations.org centraliser toutes les notations en associant notations programmationnelles et notations mathématiques les unes avec les autres
+Etablir des conventions dans les notations, et pour qu'elles soient respectées, autant que faire se peut les coder dans un formatteur de code automatique
+Lire les guidelines de Rob pike en C ou de google en Python (style guide) et les respecter si possible
 Sélectionner les targets intéressants (ceux déjà publiés par exemple)
+Faire un graphe des Makefiles et les corriger si possible
 Faire en sorte que tous ces targets fonctionnent (on arrive à produire les graphes)
 Automatiser le fait qu'à chaque commit sur un certain repo tous les targets sont exécutés à nouveau et je reçois un mail m'annonçant le résultat.
 Trouver un moyen de découvrir le code non exécuté
@@ -11,7 +15,8 @@ Le blabla est réduit au minimum
 Le blabla permet de comprendre quand le lecteur sait ce que l'expérience fait, et souhaite comprendre le code, uniquement ça. Ceux pour qui on rédige le document sont ceux qui liront le code pour comprendre les expériences.
 Il n'y a pas deux morceaux de code qui font la même chose.
 Enfin regarder s'il y a des FIXME qui restent (on devrait les éliminer au cours du processus) et les éliminer.
-Après ça, on peut publier le code
+Finalement, passer un coup de lint et de pyChecker
+Après ça, on doit pouvoir peut publier le code
 
 The code in this directory and its subdirectories is notably used to produce the figures of [1]. 
 

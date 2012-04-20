@@ -136,10 +136,7 @@ Boul \and Bil}
 \\}
 \maketitle              % typeset the title of the contribution
 \begin{abstract}
-This paper considers the problem of learning from demonstrations and more particularly the inverse reinforcement learning (IRL) problem.
-The IRL framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered.
-Unlike most of existing IRL algorithms, the proposed approach doesn't require any of the following: complete trajectories from an expert, a generative model of the environment, the knowledge
-of the transition probabilities, the ability to compute a (near)-optimal policy for different rewards and hence resolve the forward reinforcement learning (RL) problem, the expert's policy. In addition, only a small amount of expert demonstrations (not even in the form of trajectories but simple transitions) is required. Thus, this new approach which consists in cascading two well-known supervised learning (SL) methods is a model-free and veritable IRL approach in the sense that the output of our algorithm is a non-trivial reward function for which the expert policy is near optimal. Finally, we provide an analysis which legitimates this new approach.
+This paper considers the inverse reinforcement learning (IRL) problem. The IRL framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered. This reward function is seen as the most succinct description of the task, allowing for task transfer from the expert to an agent with potentially different abilities. The proposed contribution consists in cascading a classification and a regression steps to produce a non-trivial reward function for which we show the expert policy to be near optimal. In addition to being generic, this approach is model-free, it does not require solving any direct reinforcement learning problem (unlike most of IRL algorithms) and it solely relies on transitions from the expert (no need to sample trajectories according to other policies). All of this is illustrated through nontrivial experiments.
 \end{abstract}
 
 \section{Introduction}
@@ -263,6 +260,7 @@ R^C(s,a)=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s')), \forall a \in A, \
 However, the model being unknown (contrary to $q$ and $\pi_C$) it is not possible to compute $R^C$ directly. However, it can be estimated from the available transitions (see
 \eqref{equation:data}). Let us write:
 \begin{equation}
+\label{r.def}
 \hat{r}_i=q(s_i,a_i)-\gamma q(s_i',\pi_C(s_i')), \forall i\in \{1,\dots,D\}.
 \end{equation}
 This is an unbiased estimate of $R_C(s_i,a_i)$, indeed:
@@ -478,7 +476,65 @@ Finally by regrouping the results in \eqref{equation: cas3-1} and \eqref{equatio
 
 \section{Experiments}
 \label{section: experiments}
+\subsection{Instantiation of the algorithm}
+As hinted to FIXME(Plus insister sur cet aspect) in Section \ref{section: Cascading}, our algorithm can be instanciated in many ways, as any off-the-shelf classifier using a score function can be used in the first step, and any regression method can be used in the second step. This freedom of choice leaves room for problem dependant tweaks if needed.\\
 
+In our tests, we used a subgradient-descent based classifier and a simple regularized least square regression method. The classifier tries to minimize the risk function $R_N(q)$ :
+\begin{equation}
+  R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right).
+\end{equation}
+where $l$ is a user defined function whose role is to quantify the gap between the best and second to best actions. In all our tests we used the naive solution $l(s_i,a) = 1$ if $a\neq a_i$ and $l(s_i,a_i) = 0$. To minimize the risk, we introduce the parametrization 
+\begin{equation}
+  q(s,a) = \omega^T\phi(s,a).
+\end{equation}
+The risk now becomes :
+\begin{equation}
+  R_N(\omega) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\omega^T\phi(s_i,a) + l(s_i,a)) - \omega^T\phi(s_i,a_i) \right).
+\end{equation}
+
+Because of the $\max$ in the expression, we can not use a simple gradiend descent on $\omega$ to minimize the risk. We have to make use of the subgradient. Let $a^* = \max_a\omega^T\phi(s,a)$, we get the following update rule :
+\begin{equation}
+  \omega_{t+1} = \omega_t -\alpha_t{1\over N}\sum_{i=1}^N\left(\phi(s_i,a^*) - \phi(s_i,a_i)\right).
+\end{equation}
+The regressor is a classical least square fitting. Given some features $\psi : S\rightarrow \mathbb{R}^p$, we define :
+\begin{eqnarray}
+\Psi &= \begin{pmatrix}\psi(s_1)^T\\\vdots\\\psi(s_N)^T\end{pmatrix}\\
+\textrm{and}
+\hat R &= \begin{pmatrix}\hat r_1 \\\vdots\\\hat r_N\end{pmatrix}\\
+\end{eqnarray}
+with $r_i$ as in equation \ref{r.def}. We then get :
+\begin{equation}
+\theta = (\Psi^T\Psi + \lambda Id)^{-1}\Psi^T\hat R,
+\end{equation}
+so that $\hat R_C(s) = \theta^T \psi(s)$.\\
+\subsection{Experimental setting}
+For each problem we test our approach with, we compare it to the following baselines :
+\begin{itemize}
+\item an agent trained on a random reward,
+\item an agent choosing its next action randomly,
+\item the policy output by the algorithm of \cite{abbeel2004apprenticeship}.
+\end{itemize}
+
+The algorithm of \cite{abbeel2004apprenticeship} can be instanciated to work in the same dire conditions as our algorithm, that is to say using only samples from the expert. To do this, we estimate the feature expectations and solve the MDP in a batch, off policy manner thanks respectively to to LSTD$\mu$ (\cite{klein2011batch}) and LSPI (\cite{lagoudakis2003least}).\\
+
+Sometimes this particular instantiation of \cite{abbeel2004apprenticeship}'s algorithm is not able to solve the problem. We then fall back to an instantiation using suroutines that breaks the batch, expert-only setting in order to have something to compare to. Precise workarounds will be described as they are used. It is important to note that sometimes our algorithm is at the best of our knowledge FIXME(c'est pas vrai il y a SCIRL aussi ;) the only one able to solve the problem with such a constrained input.
+\subsection{Highway driving simulator}
+\begin{itemize}
+\item description du problème
+\item deux sets de features pour faire marcher LSPI donc ANIRL
+\item résultats
+\item Insister sur le fait qu'on est meilleur quand il y a peu de samples
+\item Insisiter sur le fait qu'en features naturelles, LSPI ne fonctionne pas
+\end{itemize}
+\subsection{Gridworld}
+\begin{itemize}
+\item description du problème
+\item Introduction du task transfert (l'expert est une sorte de tour, l'agent un roi)
+\item Résultats pour l'IRL (comparaison avec ANIRL)
+\item résultats pour le task transfer, impossible de comparer avec ANIRL car officiellement pas de récompense
+\end{itemize}
+\subsection{Pendule}
+A n'ajouter que si les résultats présentent un intérêt particulier par rapport aux deux autres problèmes.
 \section{Related Work}
 \label{section: related work}
 
