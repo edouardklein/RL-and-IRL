@@ -1,0 +1,489 @@
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+\documentclass{llncs}
+%
+\usepackage{makeidx}  % allows for indexgeneration
+% For figures
+\usepackage{graphicx} % more modern
+%\usepackage[latin1]{inputenc}
+%\usepackage[francais]{babel}
+\usepackage{subfigure}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{dsfont}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,%
+    citecolor=black,%
+    filecolor=black,%
+    linkcolor=black,%
+    urlcolor=black
+}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\mathtoolsset{showonlyrefs=true}
+\newtheorem{hypo}{Hypothesis}
+\newcommand{\argmax}{\operatorname*{argmax}}
+\newcommand{\argmin}{\operatorname*{argmin}}
+\newcommand{\arginf}{\operatorname*{arginf}}
+\newcommand{\minp}{\operatorname*{min_+}}
+\newcommand{\Ker}{\operatorname*{Ker}}
+\newcommand{\trace}{\operatorname*{trace}}
+\newcommand{\cov}{\operatorname{cov}}
+\newcommand{\card}{\operatorname*{Card}}
+\newcommand{\vect}{\operatorname*{Vect}}
+\newcommand{\var}{\operatorname{Var}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\erf}{\operatorname{erf}}
+\newcommand{\bound}{\operatorname*{bound}}
+\newcommand{\vpi}{\operatorname{VPI}}
+\newcommand{\gn}{\operatorname{Gain}}
+\newcommand{\p}{\operatorname{Pr}}
+\newcommand{\mlp}{\operatorname{MLP}}
+\newcommand*\tto[2]{\smash{\mathop{\longrightarrow}\limits_{#1}^{#2}}}
+\newcommand*\ntto[2]{\smash{\mathop{\nrightarrow}\limits_{#1}^{#2}}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\Q}{\mathbf{Q}}
+\newcommand{\A}{\mathbf{A}}
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\Y}{\mathbf{Y}}
+\newcommand{\E}{\mathbf{E}}
+\newcommand{\K}{\mathbf{K}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\R}{\mathbf{R}}
+\newcommand{\ba}{\mathbf{a}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\bc}{\mathbf{c}}
+\newcommand{\bd}{\mathbf{d}}
+\newcommand{\be}{\mathbf{e}}
+\newcommand{\af}{\mathbf{f}}
+\newcommand{\bg}{\mathbf{g}}
+\newcommand{\bh}{\mathbf{h}}
+\newcommand{\bi}{\mathbf{i}}
+\newcommand{\bj}{\mathbf{j}}
+\newcommand{\bk}{\mathbf{k}}
+\newcommand{\bl}{\mathbf{l}}
+\newcommand{\bm}{\mathbf{m}}
+\newcommand{\bn}{\mathbf{n}}
+\newcommand{\bo}{\mathbf{o}}
+\newcommand{\bp}{\mathbf{p}}
+\newcommand{\bq}{\mathbf{q}}
+\newcommand{\br}{\mathbf{r}}
+\newcommand{\bs}{\mathbf{s}}
+\newcommand{\bt}{\mathbf{t}}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bv}{\mathbf{v}}
+\newcommand{\bw}{\mathbf{w}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bz}{\mathbf{z}}
+\newcommand{\ma}{\mathbf{A}}
+\newcommand{\mb}{\mathbf{B}}
+\newcommand{\mc}{\mathbf{C}}
+\newcommand{\md}{\mathbf{D}}
+\newcommand{\me}{\mathbf{E}}
+\newcommand{\mf}{\mathbf{F}}
+\newcommand{\mg}{\mathbf{G}}
+\newcommand{\mh}{\mathbf{H}}
+\newcommand{\mi}{\mathbf{I}}
+\newcommand{\mj}{\mathbf{J}}
+\newcommand{\mk}{\mathbf{K}}
+\newcommand{\ml}{\mathbf{L}}
+\newcommand{\mm}{\mathbf{M}}
+\newcommand{\mn}{\mathbf{N}}
+\newcommand{\mo}{\mathbf{O}}
+\newcommand{\Mp}{\mathbf{P}}
+\newcommand{\mq}{\mathbf{Q}}
+\newcommand{\mr}{\mathbf{R}}
+\newcommand{\ms}{\mathbf{S}}
+\newcommand{\mt}{\mathbf{T}}
+\newcommand{\Mu}{\mathbf{U}}
+\newcommand{\mv}{\mathbf{V}}
+\newcommand{\mw}{\mathbf{W}}
+\newcommand{\mx}{\mathbf{X}}
+\newcommand{\my}{\mathbf{Y}}
+\newcommand{\mz}{\mathbf{Z}}
+\newcommand{\tphi}{\tilde{\Phi}}
+\newcommand{\espace}{\text{ }}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\s}{\mathbf{s}}
+\newcommand{\n}{\mathbf{n}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\I}{\mathbf{I}}
+\newcommand{\rr}{\mathbf{r}}
+\newcommand{\0}{\mathbf{0}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\am}{{\mathcal{A}_m}}
+\newcommand{\amj}{{\mathcal{A}_m^{+j}}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\begin{document}
+
+\title{Titre}
+\titlerunning{Titre}  % abbreviated title (for running head)
+\author{Boul\inst{1} \and Bil\inst{2}
+Boul \and Bil}
+\authorrunning{} % abbreviated author list (for running head)
+%
+\institute{SUPELEC,\\
+\email{SUPELEC},\\ WWW home page:
+\texttt{SUPELEC}
+\and
+\\}
+\maketitle              % typeset the title of the contribution
+\begin{abstract}
+This paper considers the problem of learning from demonstrations and more particularly the inverse reinforcement learning (IRL) problem.
+The IRL framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered.
+Unlike most of existing IRL algorithms, the proposed approach doesn't require any of the following: complete trajectories from an expert, a generative model of the environment, the knowledge
+of the transition probabilities, the ability to compute a (near)-optimal policy for different rewards and hence resolve the forward reinforcement learning (RL) problem, the expert's policy. In addition, only a small amount of expert demonstrations (not even in the form of trajectories but simple transitions) is required. Thus, this new approach which consists in cascading two well-known supervised learning (SL) methods is a model-free and veritable IRL approach in the sense that the output of our algorithm is a non-trivial reward function for which the expert policy is near optimal. Finally, we provide an analysis which legitimates this new approach.
+\end{abstract}
+
+\section{Introduction}
+
+Given a sequential decision making problem posed in the MDP formalism, it is often difficult to specify manually a reward function in order to realize a given task. However, observing an expert demonstrating a task is often possible and more easier~\cite{ng2000algorithms}. That is why learning from demonstrations and more particularly IRL is an interesting problem. The IRL framework, fisrt introduced in~[\cite{russell1998learning},\cite{ng2000algorithms}], assumes that an expert, demonstrating a task, is acting optimally in a MDP with respect to an unknown reward function to be discovered. Unlike direct methods of learning from demonstrations which learn a mapping from states to actions via a supervised learning~[\cite{atkeson1997robot},\cite{pomerleau1989alvinn}], IRL methods must recover a reward function which is the most compact and tranferable way to specify a task. Moreover most of the direct methods do not use the structure of the MDP (one notable excepetion is~\cite{melo2010learning}), hence mimic the policy of the expert and are not able to generalize correctly the expert policy outside state examples. In order to overcome this drawback, undirect methods known as apprenticeship learning were introduced: the first one is~\cite{ng2004feature}. These methods (see~\cite{neu2009training} for a good survey) uses the IRL framework but most of them assume the dynamic of the environment known, or an environment model (via a simulator) must be available so as to test the effects of a policy. Moreover, most of existing undirect approaches require to solve the direct reinforcement learning problem (find an optimal policy knowing a given reward) several times (one notable exception is~\cite{boularias2011relative}). Finally, in many cases, the output of the algorithm is a policy but not a reward function (see section \ref{section: related work} for an in-depth presentation). These constraints can lead to the development of algorithms unapplicable to real problems and make the problem of apprenticeship learning harder than reinforcement learning. That is why a reborn interest for direct methods which passively imitate the expert exists. More particularly the reduction of the apprenticeship learning to classification, first introduced in~\cite{zadrozny2003cost} and recently used in~\cite{melo2010learning}, is legitimated for finite horizons problems in~[\cite{syed2010reduction},\cite{ross2010efficient}]. Our approach tries to avoid the drawbacks of the direct and undirect methods by cascading two well known supervised learning(see section \ref{section: Cascading}): first a step of classification and then a step of regression which introduces the MDP structure and  outputs a reward function (see \ref{section: Cascading}). Our approach doesn't require any of the following: complete trajectories from an expert, a generative model of the environment, the knowledge of the transition probabilities, the ability to compute a (near)-optimal policy for different rewards and hence resolve the forward reinforcement learning (RL) problem, the expert's policy. In addition, only a small amount of expert demonstrations (not even in the form of trajectories but simple transitions) is required.\\
+The remainder of the paper is oraganized as follows: section \ref{section: background} gives us the different notations used in the paper and presents briefly the RL and IRL frameworks, section \ref{section: Cascading} present our method which is legitimated in section \ref{section: Cascading}, \ref{section: experiments} presents an instanciation of our method and tests it on different benchmarks and finally section \ref{section: related work} compares our method to the state of the art.
+
+\section{Background and Notations}
+\label{section: background}
+A (finite) MDP \cite{puterman1994markov} is a tuple $\{S,A,P,\gamma,R\}$ where $S=\{s_i\}_{1\leq i \leq N}$ is the finite state space with $N\in\mathbb{N}^*$ states, $A=\{a_k\}_{1\leq k \leq K}$ is the finite action space with $K\in\mathbb{N}^*$ actions, $P=\{P_{s,a}\}_{(s,a)\in S\times A}$ is the set of transition probabilities where $P_{s,a}$ is a distribution probability over $S$, $P$ represents the dynamics of the MDP and the notation $p(s,a,s')=P_{s,a}(s')$ is often used and quantifies the probability to reach $s'\in S$ knowing that the action $a \in A$ was taken in the state $s\in S$, $\gamma\in]0,1[$ is the discount factor and $R$ is a function from $S\times A$ to $\mathbb{R}$ called the reward function. A deterministic policy $\pi$ is a function from $S$ to $A$, $\Pi$ is the set of deterministic policies and the value function $V^\pi_R$ is a function from $S$ to $\mathbb{R}$ defined by:
+\begin{equation}
+V^\pi_R(s)=E^\pi_s[\sum_{t=0}^{+\infty}\gamma^tR(s_t,\pi(s_t))], \forall s \in S,
+\end{equation}
+where $E^\pi_s$ is the expectation over the distribution of the trajectories $(s_0,s_1,\dots)$ obtained by executing the policy $\pi$ starting from $s_0=s$.
+The action-value function $Q^\pi_R$ is a function from $S\times A$ to $R$ defined by:
+\begin{equation}
+Q^\pi_R(s,a)=E^\pi_{s,a}[R(s_0,a)+\sum_{t=1}^{+\infty}\gamma^tR(s_t,\pi(s_t))], \forall s \in S,\forall a \in A,
+\end{equation}
+where $E^\pi_{s,a}$ is the expectation over the distribution of the trajectories $(s_0,s_1,\dots)$ obtained starting from $s_0=s$, executing $a$ and then following the policy $\pi$.
+The classical results for finite MDPs are the well-known Bellman equations \cite{sutton1998reinforcement}:
+\begin{align}
+\label{equation: Bellman}
+&V^{\pi}_R(s)=R(s,\pi(s))+\gamma\sum_{s'\in S}P_{s,\pi(s)}(s')V^{\pi}_R(s'), \forall s\in S,
+\\
+&Q^{\pi}_R(s,a)=R(s,a)+\gamma\sum_{s'\in S}P_{s,a}(s')V^{\pi}_R(s'), \forall s\in S, \forall a\in A.
+\end{align}
+A policy $\pi$ is said optimal for the reward $R$ when:
+\begin{equation}
+\label{equation:Voptimal}
+V^{\pi}_R(s)\geq V^{\tilde{\pi}}_R(s) , \forall s\in S, \forall \tilde{\pi}\in\Pi.
+\end{equation}
+Another classical result called the Bellman optimality is: $\pi$ is an optimal policy for the reward $R$ if and only if:
+\begin{equation}
+\label{equation:Qoptimal}
+\pi(s)\in\argmax_{a\in A} Q^\pi_R(s,a), \forall s\in S.
+\end{equation}
+%Inversely, a real column-vector $X=[X_i]_{1\leq i \leq N}$ can be identified to the function from $S$ to $\mathbb{R}$ that maps $s_i$ to $X_i$ for all $i\in\{1,\dots,N\}$ and the real rectangular-matrice $Y=[Y_{i,k}]_{1\leq i \leq N, 1\leq k \leq K}$ can be identified to the function from $S\times A$ to $\mathbb{R}$ that maps $(s_i,a_k)$ to $Y_{i,k}$ for all $(i,k)\in\{1,\dots,N\}\times\{1,\dots,K\}$.
+For a finite-MDP $\{S,A,P,\gamma,R\}$ the existence of an optimal policy for any function $R$ is shown in \cite{bertsekas2001dynamic}.
+As $S=\{s_i\}_{1\leq i \leq N}$ and $A=\{a_i\}_{1\leq i \leq K}$ are finite, a function $X$ from $S$ to $\mathbb{R}$ can be identified to the real column-vector $[X(s_i)]_{1\leq i \leq N}$ and a function $Y$ from
+$S\times A$ to $\mathbb{R}$ can be identified to the real rectangular-matrice of $N$ rows and $K$ columns  $[Y(s_i,a_k)]_{1\leq i \leq N, 1\leq k \leq K}$.
+Thus the notation $V^\pi_R$ depending on the context will be considered as a function or a column vector. Moreover if $Y$ is a function from $S\times A$ to $\mathbb{R}$ then the notation $Y_a$ will mean that $Y_a$ is the function from $S$ to $R$ that maps $s$ to $Y(s,a)$. So the notation $R_a$ can be a function or a column-vector depending on the context.
+We will also need the following matrices and column-vectors defined for any dynamic $P$, any policy $\pi$ and reward function $R$ :$P_a=[P_{s_i,a}(s_j)]_{1\leq i,j \leq N}$, $P_\pi=[P_{s_i,\pi(s_i)}(s_j)]_{1\leq i,j \leq N}$, $R_\pi=[R(s_i,\pi(s_i))]_{1\leq i,j \leq N}$. The transposition of a real column-vector $X=[X_i]_{1\leq i \leq M}$, $M\in\mathbb{N}^*$, is the real row-vector $X^T$ and $\|X\|_{\infty}=\max_{1\leq i \leq N}|X_i|$. The transposition of the real matrice $Y=[Y_{i,j}]_{1\leq i \leq I, 1\leq j \leq J}$, $(I,J)\in\mathbb{N}^2$, will be $Y^T$ and $\|Y\|_{\text{max}}=\max_{1\leq i \leq I,1\leq j \leq J}|Y_{i,j}|$.  Thanks to these vectorial notations, we can define the Bellman operator $T^\pi_R$, for a given deterministic policy $\pi$ and a given reward $R$, which is a function from $\mathbb{R}^N$ to $\mathbb{R}^N$ such that:
+\begin{equation}
+T^\pi_RX=R_\pi+\gamma P_\pi X , \forall X\in \mathbb{R}^N.
+\end{equation}
+It is well known that the unique fixed point of the operator $T^\pi_R$ is the column-vector $V^\pi_R$ \cite{puterman1994markov}.\\
+RL consists in finding an optimal policy for the reward function $R$. Notice that the state space may be too large for an exact representation of the value function (which calls for approximate
+representation), that the model (P and R) may be unknown (the only information being provided through rewarded transition sampled according
+to some behavioral policy), that learning can occurs in an online or offline setting, and so on. There exists good books on the subject [\cite{bertsekas2001dynamic},\cite{sutton1998reinforcement}].\\
+In the classical IRL paradigm \cite{ng2000algorithms}, an MDP without reward $\{S,A,P,\gamma\}$ and a policy $\pi_E$ called expert-policy are given and the problem is to find
+a reward $R^*$ for which the policy $\pi_E$ will be optimal. However this problem is clearly ill-posed in the sense that there is no uniqueness of the reward $R^*$ : many rewards functions are equivalent in the sense that they have the same optimal deterministic policies \cite{ng1999policyreward}, moreover the trivial zero-reward is a solution for any deterministic policy $\pi_E$ as it is shown in \cite{ng2000algorithms}. In the literature, some solutions are proposed in order to respond to the ill-posed nature of the problem (\cite{ng2000algorithms},\cite{ziebart2008maximum},\cite{boularias2011relative}).
+In this paper, we assume that the solely available information is provided by transitions sampled according to the expert policy $\pi_E$:
+\begin{equation}
+\label{equation:data}
+\{(s_i,a_i=\pi_E(s_i)),s_i')\}_{1\leq i \leq D}, D\in\mathbb{N}^*.
+\end{equation}
+The reward function is obviously unknown, but this assumption means that the dynamics ($P$) is only known through transitions $(s_i, a_i, s_i')$ and that the
+policy $\pi_E$ is only known through state-action pairs $(s_i, a_i)$.\\
+Finally let's recall some basic but important results of finite-Markov chain theory.
+\begin{definition}
+Let $Y=[Y_{i,j}]_{1\leq i,j \leq M}$ be a  stochastic square matrix of size $M\in\mathbb{N}^*$. Then $Y$ is said to be irreducible if:
+\begin{equation}
+U(i,j)=\sum_{k=0}^{+\infty}Y^k(i,j)>0 ,\forall (i,j)\in \{1,\dots,M\}^2.
+\end{equation}
+\end{definition}
+\begin{theorem}
+ Let $Y$  be a stochastic square matrix of size $M\in\mathbb{N}^*$. $Y$ is irreducible if and only if there exists a unique and strictly positive distribution $\mu$ over $\{1,\dots,M\}$, $\mu$ is a function from $\{1,\dots,M\}$ to $\mathbb{R}$ which can be seen as a real column vector of size $M$, such that:
+\begin{equation}
+\label{equation: stationarity}
+\mu^T=\mu^TY.
+\end{equation}
+$\mu$ is called the stationary distribution of $Y$.
+\end{theorem}
+\begin{definition}
+Let $Y$ be a stochastic square matrix of size $M\in\mathbb{N}^*$ and irreducible. It is aperiodic if for all $(i,j)\in {1,\dots,M}^2$ it exists $n_0\in \mathbb{N}^*$ such that for all $n\geq n_0$: $Y^n(i,j)>0$.
+\end{definition}
+\begin{theorem}
+\label{theoreme : mixing exponential}
+Let $Y$ be a stochastic square matrix of size $M\in\mathbb{N}^*$. If $Y$ is irreducible and aperiodic then:
+\begin{equation}
+\lim_{k\rightarrow +\infty}\sum_{j=1}^{j=M}[Y^k(i,j)-\mu(j)]\rightarrow 0,\forall i\in\{1,\dots,M\},
+\end{equation}
+and more precisely there exists $\alpha\in]0,1[$ and $C\in\mathbb{R}_+$ such that:
+\begin{equation}
+\sum_{j=1}^{j=M}|Y^k(i,j)-\mu(j)|\leq C\alpha^k,\forall i\in\{1,\dots,M\},\forall k\in\mathbb{N}^*.
+\end{equation}
+\end{theorem}
+In our framework, if $P_\pi$ is irreducible, then $\mu_\pi$ will be its stationary distribution.
+
+%Other notations will be needed in order to prove that the cascading approach is legitimate. Let's define the column-vector $\mu^{t,\pi,s}=[\mu^{t,\pi,s}_i]_{1\leq i \leq N}$ where $\mu^{t,\pi,s}_i$ is the probability of being in the state $s_i\in S$ at time $t\in\mathbb{N}$ when the start-state is $s$ and the policy followed is $\pi$ :
+%\begin{equation}
+%\mu^{t,\pi,s}=(\Delta_s^T(P_\pi)^t)^T,
+%\end{equation}
+%where $\Delta_s$ is the column-vector: $\Delta_s={\delta(s_i,s)}_{1\leq i \leq N}$ with $\delta(.,.)$ the Kronecker symbol. For a fixed policy $\pi$, the matrix $P_\pi$ is a stochastic matrix of finite dimension and if it is ergodic and recurrent positive then there exists a unique distribution probability represented by the column vector $\mu^\pi=[\mu^{\pi}_i]_{1\leq i \leq N}$ such that :
+%\begin{equation}
+%\mu_\pi=(\mu_\pi^T P_\pi)^T.
+%\end{equation}
+%In that case $\mu^\pi$ is called the stationary distribution of the policy $\pi$ and :
+%\begin{equation}
+%\forall s\in S \lim_{t\rightarrow+\infty}\mu_{t,\pi,s}=\mu_\pi.
+%\end{equation}
+%Thus in the particular case of ergodicty and recurrent positivity we can easily express $\mu_\pi^TV^\pi_R$ :
+%\begin{align}
+%\mu_\pi^TV^\pi_R&=\mu_\pi^T(R_\pi+\gamma P_\pi V^\pi_R)=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TP_\pi V^\pi_R,
+%\\
+%&=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi.
+%\end{align}
+\section{Cascading Classification and Regression for IRL}
+\label{section: Cascading}
+In this section, we propose to cascade two supervised learning (SL) approaches (namely a classifier and a regressor) to solve the IRL problem.
+\subsection{The general idea}
+The available data being depicted in \eqref{equation:data}, a first problem would be to generalize the expert policy $\pi_E$ outside state examples provided in this dataset. A first approach, recently used in \cite{melo2010learning} and legitimated for finite-horizon problems in \cite{syed2010reduction}, is to frame this problem as learning a multi-classifier where each action $a \in A$ will be a class. Indeed, trained on the training set $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$, many classifiers are able to output a score function $q$ from $S\times A$ to $\mathbb{R}$. The final decision rule $\pi_C$ which is a function from $S$ to $\mathbb{R}$ and thus can be seen as a deterministic policy is constructed in order to satisfy:
+\begin{equation}
+\label{equation:Coptimal}
+\pi_C(s)\in\argmax_{a\in A}q(s,a),\forall s\in S.
+\end{equation}
+Now, one can notice the similarity between \eqref{equation:Qoptimal} and \eqref{equation:Coptimal}. The score-function $q$ can then be interpreted as an action-value function and it is easy and natural to construct a reward function $R_C$ for which the policy $\pi_C$ is optimal as it will be proven in the section \ref{section: Analysis}. Let define $R^C$ as:
+\begin{equation}
+R^C(s,a)=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s')), \forall a \in A, \forall s\in S.
+\end{equation}
+However, the model being unknown (contrary to $q$ and $\pi_C$) it is not possible to compute $R^C$ directly. However, it can be estimated from the available transitions (see
+\eqref{equation:data}). Let us write:
+\begin{equation}
+\hat{r}_i=q(s_i,a_i)-\gamma q(s_i',\pi_C(s_i')), \forall i\in \{1,\dots,D\}.
+\end{equation}
+This is an unbiased estimate of $R_C(s_i,a_i)$, indeed:
+\begin{equation}
+R_C(s_i,a_i)=\sum_{s'\in S}p(s_i,a_i,s')[q(s_i,a_i)-\gamma q(s',\pi_C(s'))], \forall i\in \{1,\dots,D\}.
+\end{equation}
+Therefore, it is possible to build an estimate $\hat{R}_C$ of $R_C$, using a regressor trained on the dataset:
+\begin{equation}
+\{(s_i,a_i,s'_i,\hat{r}_i)\}_{1\leq i \leq D}.
+\end{equation}
+Finally, we see $\hat{R}_C$ as an approximation of $R_C$ and $\hat{\pi}_C$ will be an optimal policy for the reward $\hat{R}_C$. In order to verify that the reward function $\hat{R}_C$ is a good candidate to resolve the IRL problem, it will be proven in the section \ref{section: Analysis} that the policies $\pi_E$ and $\hat{\pi}_C$ are quite similar (confer lemma \ref{lemma : results}).
+\section{Analysis} \label{section: Analysis}
+This section is devoted to show, under some hypotheses, that the cascading approach is legitimate. The first result is a lemma which gives a practical way to calculate $\mu_\pi^TV^{\pi}_R$ for a given policy $\pi$ and a given reward function $R$. The second result is a theorem which gives an upper bound to the term $\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}$ where $\mu_E$ is the stationary distribution of the expert policy $\pi_E$. We also give an interpretation of the term $\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}$ and explain why being able to bound this term means that our approach is legitimate.
+\subsection{Results and Discussion}
+\begin{lemma}
+\label{lemma: calculs V}
+Let $\{S,A,P,\gamma,R\}$ be a finite MDP and $\pi$ a deterministic policy.
+If $P_\pi$ is reducible, then $\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi$.
+\end{lemma}
+The first lemma gives a practical tool which will be useful in order to simplify some terms in the proof of the next theorem. Moreover it is useful
+to notice that the term  $\mu_\pi^TV^\pi_R$ can be reinterpreted as an expectation. Indeed we have:
+\begin{equation}
+\mu_\pi^TV^\pi_R=E_{s \sim \mu_\pi}[V^\pi_R(s)],
+\end{equation}
+where $E_{s \sim \mu_\pi}$ means that $s$ is distributed over the distribution $\mu_\pi$. All the results provided in the next theorem use the expectation $E_{s \sim \mu_E}$ which is the canonical expectation
+to consider when one wants to prove a result over the state space $S$ related to the policy of the expert $\pi_E$.\\
+Before giving an upper bound to $\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C})=E_{s \sim \mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]$, we define $\epsilon_C\in\mathbb{R}_+$ called the classification error and the function $\epsilon_R$ from $S\times A$ to $\mathbb{R}$ called the regression error such that:
+\begin{align}
+&\epsilon_C=\sum_{s\in S}\mu_{E}(s)\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}=E_{s \sim \mu_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}],
+\\
+&\epsilon_R(s,a)=\hat{R}^C(s,a)-R^C(s,a), \forall a\in A, \forall s\in S.
+\end{align}
+The column vectors $\epsilon^C_R=[\epsilon_R(s_i,\hat{\pi}_C(s_i))]_{1\leq i \leq N}$ and $\epsilon^E_R=[\epsilon_R(s_i,\pi_E(s_i))]_{1\leq i \leq N}$ will also be needed.
+\begin{remark}
+One can notice that the error classification is defined thanks to the expectation $E_{s \sim \mu_E}$. In the classical framework of classification the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$
+are generated independently according to a distribution $\mu_{\text{Data}}$ over $S$ and hence the classical classification error must be:
+\begin{equation}
+\epsilon_C=E_{s \sim \mu_{\text{Data}}}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}].
+\end{equation}
+Then one can suppose that our data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated independently thanks to $\mu_E$ but this assumption is quite strong and non-realistic.
+However it is often the case that the data provided by the expert are trajectories. In that case the theorem \ref{theoreme : mixing exponential}, which says that the rate of convergence
+to the stationary distribution is at least exponential, allows us to suppose that the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated under $\mu_E$.
+\end{remark}
+\begin{theorem}
+\label{theorem : results}
+Let $\{S,A,P,\gamma\}$ be a finite MDP without reward and $\pi_E$ an expert policy. The only available data is depicted in \eqref{equation:data}.
+The notations $q$, $\pi_C$, $\hat{\pi}_C$, $\hat{R}^C$ are introduced in the section \ref{section: Cascading}.
+If $P_{\pi_E}$ is reducible, then $\mu_E$ is the stationary distribution of $\pi_E$ and:
+\begin{enumerate}
+\item $\pi_C$ is optimal for the reward $R^C$.
+\item $\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}$.
+\item $\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C})\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^C_R\|_{\infty}+\|\epsilon^E_R\|_{\infty}}{1-\gamma}$.
+\end{enumerate}
+\end{theorem}
+In order to understand why this theorem is useful, let us make some important assumptions. Let us suppose that the classification and the regression steps are perfect in the sense that $\epsilon_R(s,a)=0,\forall (s,a)\in S\times A$ and $\epsilon_C=0$. Then we obviously have, thanks to the theorem \ref{theorem : results}, that $\pi_E=\pi_C$ is optimal for $\hat{R}_C=R_C$. Thus the method is able to provide a non-trivial reward function for which the policy $\pi_E$ is optimal. Moreover if the classification step and the regression step are not perfect, the theorem \ref{theorem : results} shows, that our approach is able to provide a non trivial-reward $\hat{R}_C$ for which the policy $\pi_E$ is near-optimal in the sense that:
+\begin{equation}
+E_{s \sim \mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]\leq B[\epsilon_C+\|\epsilon_R\|_{\text{max}}], B\in\mathbb{R}_+,
+\end{equation}
+which means that the value functions of $\pi_E$ and $\hat{\pi}_C$ are not so different in the most visited states by the policy $\pi_E$.
+
+\subsection{Proofs}
+
+\begin{proof}[Lemma \ref{lemma: calculs V}]
+Here, we use \eqref{equation: stationarity}.
+\begin{align}
+\mu_\pi^TV^\pi_R&=\mu_\pi^T(R_\pi+\gamma P_\pi V^\pi_R)=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TP_\pi V^\pi_R,
+\\
+&=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi.
+\end{align}
+\end{proof}
+
+%\begin{remark}
+%Let use the notations of the lemma \ref{lemma: calculs V}. For each $s\in S$, we define the average reward $\rho^\pi_R(s)$ such that :
+%\begin{equation}
+%\rho^\pi_R(s)=\lim_{n\rightarrow+\infty}\frac{1}{n}E^\pi_s[\sum_{t=0}^{n-1}\gamma^tR(s_t,\pi(s_t))]
+%\end{equation}
+%If $P_\pi$ is reducible then $\rho^\pi_R(s)$ does not depend on $s$ and:
+%\begin{equation}
+%\rho_R^\pi(s)=\rho_R^\pi=\mu_\pi^TR_\pi,\forall s\in S.
+%\end{equation}
+%The proof of that result is essentially an application of the ergodic theorem (see \cite{puterman1994markov}).
+%So, if $P_\pi$ is reducible:
+%\begin{equation}
+%\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\rho_R^\pi.
+%\end{equation}
+%There is a clear link between the average reward and the discounted reward.
+%\end{remark}
+
+\begin{proof}[Theorem \ref{lemma : results}]
+In order to prove the tree results of the lemma \ref{lemma : results}, it is interesting to introduce the function $R_E$ from $S\times A$ to $\mathbb{R}$ such that:
+\begin{equation}
+R^E(s,a)=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_E(s')), \forall a \in A, \forall s\in S.
+\end{equation}
+The first step is to show that:
+\begin{align}
+&q(s,\pi_C(s))=V^{\pi_C}_{R^C}(s), \forall s\in S,
+\\
+&q(s,\pi_E(s))=V^{\pi_E}_{R^E}(s), \forall s\in S.
+\end{align}
+This is quite straightforward because the column vector $q_{\pi_E}=[q(s,\pi_E(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_E}_{R^E}$ and  $q_{\pi_C}=[q(s,\pi_C(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_C}_{R^C}$:
+\begin{align}
+T^{\pi_E}_{R^E}(q_{\pi_E})&=R^E_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E},
+\\
+&=q_{\pi_E}-\gamma P_{\pi_E}q_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E}=q_{\pi_E},
+\\
+T^{\pi_C}_{R^C}(q_{\pi_C})&=R^C_{\pi_C}+\gamma P_{\pi_C}q_{\pi_C},
+\\
+&=q_{\pi_C}-\gamma P_{\pi_C}q_{\pi_C}+\gamma P_{\pi_C}q_{\pi_C}=q_{\pi_C}.
+\end{align}
+Moreover it is clear that $q_a=[q(s_i,a)]_{1\leq i\leq N}=Q^{\pi_C}_{R^C,a}=[Q^{\pi_C}_{R^C}(s_i,a)]_{1\leq i\leq N}$ for all $a \in A$:
+\begin{align}
+Q^{\pi_C}_{R^C,a}&=R^C_a+\gamma P_a V^{\pi_C}_{R^C}, \forall a\in A,
+\\
+&=R^C_a+\gamma P_a q_{\pi_C}=q_a-\gamma P_a q_{\pi_C} + \gamma P_a q_{\pi_C}=q_a, \forall a\in A.
+\end{align}
+So $q(s,a)=Q^{\pi_C}_{R^C}(s,a),\forall s\in S,\forall a\in A$ and as:
+\begin{equation}
+\pi_C(s)\in\argmax_{a\in A}q(s,a), \forall s\in S,
+\end{equation}
+$\pi_C$ is optimal for the reward $R_C$.
+Now let us prove that:
+\begin{equation}
+\mu_E^TV^{\pi_C}_{R^C}-\mu_E^TV^{\pi_E}_{R^C}\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
+\end{equation}
+Indeed:
+\begin{equation}
+\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})=\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E}+V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}).
+\end{equation}
+And $\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})$ is such that:
+\begin{align}
+\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})&=\sum_{s\in S}\mu_E(s)[V^{\pi_C}_{R^C}(s)-V^{\pi_E}_{R^E}(s)],
+\\
+&=\sum_{s\in S}\mu_E(s)[q(s,\pi_C(s))-q(s,\pi_E(s))]
+\\
+&=\sum_{s\in S}\mu_E(s)[q(s,\pi_C(s))-q(s,\pi_E(s))]\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}},
+\\
+&\leq\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-q(s,\pi_E(s))),
+\\
+&\leq\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a)).
+\end{align}
+It remains to deal with the term $\mu_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})$ using the fact that $\mu_E^TP_{\pi_E}=\mu_E^T$ and the lemma \ref{lemma: calculs V}:
+\begin{align}
+\mu_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})&=\frac{1}{1-\gamma}\mu_E^T(R^E_{\pi_E}-R^C_{\pi_E}),
+\\
+&=\frac{1}{1-\gamma}\mu_E^T(\gamma P_{\pi_E}q_{\pi_C}-\gamma P_{\pi_E}q_{\pi_E}),
+\\
+&=\frac{\gamma}{1-\gamma}\mu_E^T(q_{\pi_C}-q_{\pi_E}),
+\\
+&=\frac{\gamma}{1-\gamma}\sum_{s\in S}\mu_E(s)[q(s,\pi_C(s))-q(s,\pi_E(s))]\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}},
+\\
+&\leq\frac{\gamma}{1-\gamma}\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-q(s,\pi_E(s))),
+\\
+&\leq\frac{\gamma}{1-\gamma}\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a)).
+\end{align}
+Finally:
+\begin{align}
+\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})&=\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E}+V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}),
+\\
+&\leq\frac{(\gamma+1-\gamma)\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma},
+\\
+&=\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
+\end{align}
+In order to finish the proof it remains to show that:
+\begin{equation}
+\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^C_R\|_{\infty}+\|\epsilon^E_R\|_{\infty}}{1-\gamma}.
+\end{equation}
+We notice that:
+\begin{equation}
+\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C})=\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}+V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C}+V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C}).
+\end{equation}
+It is very easy to see that:
+\begin{align}
+&\|V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}\|_{+\infty}\leq\frac{\|\epsilon^C_R\|_{\infty}}{1-\gamma},
+\\
+&\|V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C}\|_{+\infty}\leq\frac{\|\epsilon^E_R\|_{\infty}}{1-\gamma},
+\end{align}
+Indeed:
+\begin{align}
+V^{\hat{\pi}_C}(s)_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}(s)&=E^{\hat{\pi}_C}_s[\sum_{t=0}^{+\infty}\gamma^t(\hat{R}^C(s_t,\hat{\pi}_C(s_t))-R^C(s_t,\hat{\pi}_C(s_t)))], \forall s\in S,
+\\
+&\leq\frac{\|\epsilon^C_R\|_{\infty}}{1-\gamma}, \forall s\in S.
+\\
+V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C}(s)&=E^{\pi_E}_s[\sum_{t=0}^{+\infty}\gamma^t(R^C(s_t,\pi_E(s_t))-\hat{R}^C(s_t,\pi_E(s_t)))], \forall s\in S,
+\\
+&\leq\frac{\|\epsilon^E_R\|_{\infty}}{1-\gamma}, \forall s\in S.
+\end{align}
+Thus:
+\begin{equation}
+\label{equation: cas3-1}
+\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}+V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})\leq\frac{\|\epsilon^E_R\|_{\infty}+\|\epsilon^C_R\|_{\infty}}{1-\gamma}.
+\end{equation}
+It remains to deal with the term $\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})$:
+\begin{equation}
+\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})=\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_C}_{R^C}+V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C}).
+\end{equation}
+As $\pi_C$ is optimal for the reward $R^C$ then:
+\begin{equation}
+\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_C}_{R^C})\leq 0.
+\end{equation}
+So:
+\begin{equation}
+\label{equation: cas3-2}
+\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})\leq \mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
+\end{equation}
+Finally by regrouping the results in \eqref{equation: cas3-1} and \eqref{equation: cas3-2}:
+\begin{align}
+\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}&\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^C_R\|_{\infty}+\|\epsilon^E_R\|_{\infty}}{1-\gamma},
+\\
+&\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+2\|\epsilon_R\|_{\text{max}}}{1-\gamma}.
+\end{align}
+
+\end{proof}
+
+\section{Experiments}
+\label{section: experiments}
+
+\section{Related Work}
+\label{section: related work}
+
+\section{Conclusion}
+
+\bibliographystyle{splncs}
+\bibliography{Biblio}
+\end{document}
