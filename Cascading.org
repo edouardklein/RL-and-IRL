@@ -1,0 +1,102 @@
+#+TITLE: Code for the SL cascading approach to IRL
+
+FIXME: Faire un header propre pour ces trucs
+
+La méthode, décrite ailleurs consiste à :
+
+$<s_i,a_i>$ -[classifieur]-> $q(s,a) = \omega^T\phi(s,a)$ 
+
+$D_E = <s_i,q(s_i,a_i)-\gamma q(s'_i,a'_i)>$
+$D_C = <s_i,q(s_i,a_i)-\gamma q(s'_i,a*)>$
+
+$D_E$ -[regresseur]-> $\hat\R_E(s) = \omega_E^T\psi(s)$
+$D_C$ -[regresseur]-> $\hat\R_C(s) = \omega_C^T\psi(s)$
+
+Donc en résumé, en entrée l'on prend en entrée un set de transitions $<s_i,a_i,eoe>$ venant de l'expert, ainsi que deux features $\phi$ et $\psi$ et l'on renvoie deux matrices $\omega_E$ et $\omega_C$ définissant une récompense.
+
+#+begin_src python :tangle Cascading.py
+from LAFEM import *
+from numpy import *
+import scipy.linalg
+
+def classif_score( D, phi, Actions ):
+    "Returns the omega matrix so that \omega^T\phi(s,a) allows for classification of elements s with labels a"
+    #Il s'avère que SCIRL, notre algo d'IRL peut être adapté pour
+    #faire de la classification, il suffit de lui fournir, en lieu et place de $\mu_E$
+    #n'importe quelle feature
+    class IRL2classif_hack( LAFEM ):
+        data = D
+        Threshold = 0.1 #Sensible default
+        T = 40 #Sensible default
+        A = Actions
+        def __init__( self ):
+            s_0 = D[0][0]
+            theta_0 = zeros( phi( s_0 ).shape )
+        def l( self, s, a ):
+            try:
+                filter( lambda sa : sa[0] == s and sa[1] == a, self.data )[0] #Same action as the expert
+                return 0
+            except IndexError: #The action of the expert was different from a
+                return 1
+        def mu_E( self, s, a ):
+            return phi( s, a )
+        def alpha( self, t):
+            return 3./(t+1) #Sensible default
+    classifier = IRL2classif_hack()
+    return classifier.run()
+
+def regression( data ):
+    "When given data of the form [[x,y]...] returns \omega to that \omega^Tx = y, almost"
+    #The formula is omega = (X^TX)^{-1}X^TY
+    X = zeros(( len( data ), data[0][0].shape[1] ))
+    Y = zeros(( len( data ), data[0][1].shape[1] ))
+    for i in range(0,len(data)):
+        X[i,:] = data[i][0]
+        Y[i,:] = data[i][0]
+    return dot( dot( scipy.linalg.inv( dot( X.transpose(), X )), X.transpose() ) , Y)
+
+def run( D, psi, phi, Actions ):
+    "Run the cascading algorithm"
+    omega_q = classif_score( D, phi )
+    q = lambda s,a : dot( omega_q.transpose(), phi( s, a ) )
+    D_E = shape_for_E_regression( D, q, psi )
+    D_C = shape_for_C_regression( D, q, psi, Actions )
+    omega_E = regression( D_E )
+    omega_C = regression( D_C )
+    return [omega_E,omega_C]
+
+def shape_for_E_regression( D, q, psi ):
+    "Given data of the form [[s,a],...,[s,a]], returns the matrix [[psi(s)^T,q(s,a)-gamma*q(s',a')],...]"
+    def hatR( sasa ):
+        s = sasa[0]
+        a = sasa[1]
+        ss = sasa[2]
+        aa = sasa[3]
+        return [ psi( s ).transpose(), q(s,a) - 0.9*q( ss, aa )] #FIXME: hard coded gamma
+    return map( hatR, shape_as_sasa( D ) )
+
+def shape_for_C_regression( D, q, psi, Actions ):
+    "Given data of the form [[s,a],...,[s,a]], returns the matrix [[psi(s)^T,q(s,a)-gamma*q(s',a*)],...]"
+    def hatR( sasa ):
+        s = sasa[0]
+        a = sasa[1]
+        ss = sasa[2]
+        astar = max( [ [ss,a] for a in Actions ], key=lambda sa : q( sa[0], sa[1] ) )[1]
+        return [ psi( s ).transpose(), q(s,a) - 0.9*q( ss, astar )] #FIXME: hard coded gamma
+    return map( hatR, shape_as_sasa( D ) )
+
+
+def shape_as_sasa( D ):
+    "Given data of the form [[s,a],...,[s,a]], returns data of the form [[s,a,s',a'],...]"
+    s = map( lambda sa: sa[0], D[0:-1] )
+    a = map( lambda sa: sa[1], D[0:-1] )
+    ss = map( lambda sa: sa[0], D[1:] ) #ss stands for s'
+    aa = map( lambda sa: sa[0], D[1:] ) #and aa for a'
+    return map( lambda x,y,z,t : [x,y,z,t], s, a, ss, aa )
+
+#+end_src
+#+srcname: Cascading_code_make
+#+begin_src makefile
+Cascading.py: Cascading.org
+	$(call tangle,"Cascading.org")
+#+end_src

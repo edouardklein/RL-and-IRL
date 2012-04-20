@@ -1,3 +1,18 @@
+FIXME: Protocole proposé:
+Sélectionner les targets intéressants (ceux déjà publiés par exemple)
+Faire en sorte que tous ces targets fonctionnent (on arrive à produire les graphes)
+Automatiser le fait qu'à chaque commit sur un certain repo tous les targets sont exécutés à nouveau et je reçois un mail m'annonçant le résultat.
+Trouver un moyen de découvrir le code non exécuté
+Supprimer le code non exécuté
+Réaliser un document ou des documents de synthèse dans le dossier racine présentant les résultats des différentes expériences (targets). Si possible en rendant le document interactif via org-mode.
+Enfin, descendre chacun de ces targets pour s'assurer que :
+Le code est lisible
+Le blabla est réduit au minimum
+Le blabla permet de comprendre quand le lecteur sait ce que l'expérience fait, et souhaite comprendre le code, uniquement ça. Ceux pour qui on rédige le document sont ceux qui liront le code pour comprendre les expériences.
+Il n'y a pas deux morceaux de code qui font la même chose.
+Enfin regarder s'il y a des FIXME qui restent (on devrait les éliminer au cours du processus) et les éliminer.
+Après ça, on peut publier le code
+
 The code in this directory and its subdirectories is notably used to produce the figures of [1]. 
 
 The code is written in a literate programming form, using babel and org-mode [2]. It has been "literated" after been written normally, thus it is organized with respect to technical reasons, not as a mental flow. This kind of defeats the point of literate programming and should be corrected "soon".

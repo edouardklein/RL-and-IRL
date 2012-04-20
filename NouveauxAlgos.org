@@ -257,7 +257,7 @@ Cela signifie qu'en choisissant les bonnes fonctions de base l'on arrive directe
    L'algorithme est implémenté dans une classe abstraite en python. Les éléments nécessaires à l'algorithme sont définis comme des fonctions abstraites, ce qui fait qu'il est impossible de créer ou d'utiliser cette classe sans la sous classer en définissant les éléments nécessaires.
 
 #+begin_src python :tangle LAFEM.py
-from numpy import *
+from numpy import * #Normaliser les imports de numpy et scipy
 import scipy.linalg
 import os
 import sys
@@ -270,7 +270,7 @@ class LAFEM:
    L'algorithme prend en entrée :
    - une fonction de perte $l : S\times A \rightarrow \mathbb R$, prenant deux vecteurs ligne $s$ et $a$ en argument, renvoyant un réel
      #+begin_src python :tangle LAFEM.py
-   def l( self, s, a ):
+   def l( self, s, a ): #FIXME: on utilise toujours la même devrait y avoir moyen de factoriser (celle de cascading.org est pas dégueu)
       raise NotImplementedError, "Cannot call abstract method"
      #+end_src
    - la /feature expectation/ de l'expert $\mu_E : S\times A \rightarrow \mathbb R ^p$, prenant deux vecteurs lignes $s$ et $a$ en argument, renvoyant un vecteur colonne
