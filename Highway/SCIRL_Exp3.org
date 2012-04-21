@@ -1,3 +1,4 @@
+
 #+TITLE: Highway, SCIRL, Dégradé
 
 Cette expérience s'inscrit dans un [[file:../Protocoles.org][protocole]] plus large.
@@ -7,32 +8,6 @@ On peut maintenant configurer SCIRL comme prévu par le protocole, à savoir en 
 
 On va tout d'abord créer les trajectoires de l'expert.
 
-    #+begin_src python :tangle SCIRL_Exp3_DE.py
-import sys
-sys.path+=['..']
-from DP import *
-import Highway
-
-V_E = genfromtxt( "V_Expert.mat" )
-R = Highway.R()
-
-omega_E = V2omega( R, V_E, Highway.Sgenerator(), Highway.s_index,\
-[Highway.P(a) for a in Highway.A], Highway.sa_index )
-
-trans = Highway.omega_play( omega_E, 10, 1 ) #L,M
-
-savetxt( "SCIRL_Exp3_DE.mat", trans, "%d", "\t" )
-
-    #+end_src
-#+srcname: SCIRL_Exp3_make
-#+begin_src makefile
-SCIRL_Exp3_DE.py: SCIRL_Exp3.org
-	$(call tangle,"SCIRL_Exp3.org")
-
-SCIRL_Exp3_DE.mat: SCIRL_Exp3_DE.py Highway.py ../DP.py V_Expert.mat
-	python SCIRL_Exp3_DE.py
-
-#+end_src
 
     #+begin_src python :tangle SCIRL_Exp3.py
 import sys
@@ -67,6 +42,7 @@ FIXME:remonter cette méthode, et LSTDmu et les autres si elles sont assez gén�
 
       #+begin_src python :tangle SCIRL_Exp3.py
         dicMu_E_data = {}
+        #FIXME maybe duplicated feature (cutting into episodes) in ../Cascading.org
         for start_index in range(0,len(D_E)):
             s = D_E[ start_index, 0:4 ]
             end_index = (i for i in range(start_index,len(D_E)) if D_E[i,4+1+4+1] == 0).next() #till next eoe
