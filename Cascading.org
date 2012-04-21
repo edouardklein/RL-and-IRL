@@ -47,9 +47,9 @@ def classif_score( D, phi, Actions ):
             self.theta_0 = zeros( phi( s_0, a_0 ).shape )
             #FIXME factoriser ce qui suit (optimisation de la fonction l et fonction l naive)
             for sa in D:
-                dicPi_E[ l2str( sa[0] )] = sa[1]
+                self.dicPi_E[ l2str( sa[0] )] = sa[1]
         def l( self, s, a ):
-            return 0 if all( dicPi_E[ l2str( s )] == a ) else 1
+            return 0 if all( self.dicPi_E[ l2str( s )] == a ) else 1
         def mu_E( self, s, a ):
             return phi( s, a )
         def alpha( self, t):

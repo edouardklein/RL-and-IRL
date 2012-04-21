@@ -1,4 +1,5 @@
 FIXME: Protocole proposé:
+Régler le problème des makefiles des sous dossier qui ne parviennet pas à provoquer la makure d'un fichier dans le dossier parent
 Dans Notations.org centraliser toutes les notations en associant notations programmationnelles et notations mathématiques les unes avec les autres
 Etablir des conventions dans les notations, et pour qu'elles soient respectées, autant que faire se peut les coder dans un formatteur de code automatique
 Lire les guidelines de Rob pike en C ou de google en Python (style guide) et les respecter si possible
