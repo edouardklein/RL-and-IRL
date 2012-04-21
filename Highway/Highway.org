@@ -1,0 +1,511 @@
+#+TITLE: Highway driving simulator
+
+Let us describe the Highway driving simulator inspired by [[http://www.cs.princeton.edu/~usyed/al_code.tar.gz][the demo]] by Umar Syed.
+
+As it is coded, the problem is fundamentally discrete.
+
+* State and action spaces
+The state space is of dimension $4$ and cardinal $3\cdot 9\cdot 9\cdot 3 = 729$ : 
+ - The speed $v$ labelled from $0$ to $2$ from slow to fast.
+ - The horizontal position of the blue car (the one controlled by the player) $x_b$, varying from $0$ (completely outside of the three-lane road on the left) to $8$ (completely outside on the right). Each increase thus corresponds to a shift of half a car's width on the right.
+ - The vertical position of the red car $y_r$, from $0$, completely ahead of the player's car, to $8$ halfway behind the player's car. Each increase corresponds to half a car's length down.
+ - The horizontal position of the red car $x_r$, from $0$ (left lane) to $2$ (right lane).
+
+The action space is of dimension one and cardinal $5$. The player can try to :
+ - do nothing ($0$)
+ - increase its speed ($1$)
+ - decrease its speed ($2$)
+ - go left ($3$)
+ - go right ($4$)
+
+The following python code allow one to iterate trough all the states and actions :
+    #+begin_src python :tangle Highway.py
+from numpy import *
+import scipy
+import sys
+sys.path+=['..']
+from DP import *
+from DP_mu import *
+import random
+
+def Sgenerator( ):
+    for v in range(0,3):
+        for x_b in range(0,9):
+            for y_r in range(0,9):
+                for x_r in range(0,3):
+                    yield [v,x_b,y_r,x_r]
+
+A = range(0,5)
+    #+end_src
+
+It is useful to associate each state and each state-action pair with an index. This allows for a matricial representation of the problem. Also, features from the state and state-action space are provided.
+
+    #+begin_src python :tangle Highway.py
+def s_index( state ):
+    v = state[0]
+    x_b = state[1]
+    y_r = state[2]
+    x_r = state[3]
+    index = x_r + y_r*3 + x_b*3*9 + v*3*9*9
+    return index
+
+def sa_index( state, action ):
+    v = state[0]
+    x_b = state[1]
+    y_r = state[2]
+    x_r = state[3]
+    a = action
+    index = x_r + y_r*3 + x_b*3*9 + v*3*9*9 + a*3*9*9*3
+    return index
+
+def psi( s ):
+    answer = zeros(( 3*9*9*3, 1 ))
+    answer[ s_index( s )] = 1.
+    return answer
+
+def phi( s,a ):
+    answer = zeros(( 3*9*9*3*5, 1 ))
+    answer[ sa_index( s, a )] = 1.
+    return answer
+
+def psi2( state ): #Copie du code C
+    shouldMoveLeft = 0
+    shouldMoveRight = 0
+    shouldIncreaseSpeed = 0
+    shouldDoNothing = 0
+    constantTerm = 1
+    v = state[0]
+    xb = state[1]
+    yr = state[2]
+    xr = state[3]
+  #Outside of the road => get on the road
+    if  xb < 2 :
+        shouldMoveRight = 1
+    elif( xb >6 ):
+        shouldMoveLeft = 1
+    #Car is coming in my lane : avoid it
+    elif( xr == 0 and ( xb == 2 or xb == 3 ) ):
+        shouldMoveRight = 1
+    elif( xr == 1 and xb == 3 ):
+        shouldMoveLeft = 1
+    elif( xr == 1 and xb == 4 ):
+        shouldMoveRight = 1
+        shouldMoveLeft = 1
+    elif( xr == 1 and xb == 5 ):
+        shouldMoveRight = 1
+    elif( xr == 2 and (xb == 5 or xb == 6 )):
+        shouldMoveLeft = 1
+    #I'm going too slow
+    elif( v < 2 ):
+        shouldIncreaseSpeed = 1
+    else:
+        shouldDoNothing = 1
+
+    answer = zeros(( 5,1 ))
+    answer[0] = shouldMoveLeft
+    answer[1] = shouldMoveRight
+    answer[2] = shouldIncreaseSpeed
+    answer[3] = shouldDoNothing
+    answer[4] = constantTerm
+    return answer;
+
+
+def phi2( s,a ):
+    answer = zeros(( 5*5, 1 ))
+    index = 5*a
+    answer[ index:index+5,:] = psi2(s)
+    return answer
+
+    #+end_src
+
+    #+begin_src c :tangle phipsi.c :main no
+#include <gsl/gsl_matrix.h>
+
+unsigned int g_iK = 5*5; /*Feature space dimension*/
+unsigned int g_iP = 5; /*Feature space dimension*/
+
+gsl_matrix* psi( gsl_matrix* state ){
+  //New try for LSPI, let's put features so informative it is not even funny
+  char shouldMoveLeft = 0;
+  char shouldMoveRight = 0;
+  char shouldIncreaseSpeed = 0;
+  char shouldDoNothing = 0;
+  char constantTerm = 1;
+  int v = (int)gsl_matrix_get( state, 0, 0 );
+  int xb = (int)gsl_matrix_get( state, 0, 1 );
+  //int yr = (int)gsl_matrix_get( state, 0, 2 );
+  int xr = (int)gsl_matrix_get( state, 0, 3 );
+  //Outside of the road => get on the road
+  if( xb < 2 ){
+    shouldMoveRight = 1;
+  }else if( xb >6 ){
+    shouldMoveLeft = 1;
+  }//Car is coming in my lane : avoid it
+  else if( xr == 0 && ( xb == 2 || xb == 3 ) ){
+    shouldMoveRight = 1;
+  }else if( xr == 1 && xb == 3 ){
+    shouldMoveLeft = 1;
+  }else if( xr == 1 && xb == 4 ){
+    shouldMoveRight = 1;
+    shouldMoveLeft = 1;
+  }else if( xr == 1 && xb == 5 ){
+    shouldMoveRight = 1;
+  }else if( xr == 2 && (xb == 5 || xb == 6 )){
+    shouldMoveLeft = 1;
+  }// I'm going too slow
+  else if( v < 2 ){
+    shouldIncreaseSpeed = 1;
+  }else{
+    shouldDoNothing = 1;
+  }
+  gsl_matrix* answer = gsl_matrix_calloc( 5, 1 );
+  gsl_matrix_set( answer, 0, 0, (double)shouldMoveLeft );
+  gsl_matrix_set( answer, 1, 0, (double)shouldMoveRight );
+  gsl_matrix_set( answer, 2, 0, (double)shouldIncreaseSpeed );
+  gsl_matrix_set( answer, 3, 0, (double)shouldDoNothing );
+  gsl_matrix_set( answer, 4, 0, (double)constantTerm );
+  return answer;
+}
+
+gsl_matrix* phi( gsl_matrix* sa ){
+  gsl_matrix* answer = gsl_matrix_calloc( 5*5, 1 );
+  gsl_matrix_view vs = gsl_matrix_submatrix( sa, 0, 0, 1, 5 );
+  gsl_matrix* mpsi = psi( &vs.matrix );
+  int index = 5*(int)gsl_matrix_get( sa, 0, 4 );
+  gsl_matrix_view dst = gsl_matrix_submatrix( answer, index, 0, 5, 1 );
+  gsl_matrix_memcpy( &dst.matrix, mpsi );
+  gsl_matrix_free( mpsi );
+  return answer;
+}
+
+    #+end_src
+    #+begin_src c :tangle phipsi.h :main no
+int s_index( gsl_matrix* state );
+int sa_index( gsl_matrix* sa );
+gsl_matrix* psi( gsl_matrix* s );
+gsl_matrix* phi( gsl_matrix* sa );
+
+    #+end_src
+#+srcname: Highway_make
+  #+begin_src makefile
+phipsi.c: Highway.org 
+	$(call tangle,"Highway.org")
+phipsi.h: Highway.org 
+	$(call tangle,"Highway.org")
+
+#+end_src
+
+* Dynamics
+  
+  Actions from the player have deterministic outcomes. Every action will always succeed or always result in no change in the blue car's position and velocity depending on the blue car's current position and velocity e.g. trying to go left when $x_b = 0$ will result in no change on the blue car's coordinate.
+
+  Red cars move from top to bottom (from low $y_r$ to hig $y_r$) according to the speed, but always on the same lane ($x_r$ is constant for a giver red car).
+  - At low speed, red cars will shift through all the possible positions.
+  - At med speed, red cars will shift through all even positions.
+  - At high speed, red car will shift through positions $1$, $4$ and $7$.
+
+    
+  The step after a red car reaches its final position, a new red car is created on the initial vertical position coherent with the now-current speed, with a uniformly random horizontal position.
+
+
+  One can associate a probability matrix with each action, describing the transition probability from every state to every other if the considered action is taken at each step.
+    #+begin_src python :tangle Highway.py
+def next_states( state, action ):
+    "Returns a tuple of the next possible states given the agent is in the provided state ant takes the provided action."
+    v = next_v = state[0]
+    xb = next_xb = state[1]
+    yr = next_yr = state[2]
+    xr = next_xr = state[3]
+    #taking the player's action into account
+    if action == 0:
+        pass
+    elif action == 1:
+        next_v = v + 1 if v < 2 else 2
+    elif action == 2:
+        next_v = v - 1 if v > 0 else 0
+    elif action == 3:
+        next_xb = xb - 1 if xb > 0 else 0
+    elif action == 4:
+        next_xb = xb + 1 if xb < 8 else 8
+    else:
+        raise ValueError( "Action %d does not exist" % action )
+    #Moving the red car
+    next_yr_lst = []
+    if v == 0:
+        next_yr_lst = range(0,9)
+    elif v == 1:
+        next_yr_lst = [1,3,5,7]
+    elif v == 2:
+        next_yr_lst = [1,4,7]
+    else:
+        raise ValueError("Speed %d is unknown to me"%v)
+    possible_outcomes = []        
+    try:
+        next_yr = (i for i in next_yr_lst if i > yr).next()
+        possible_outcomes.append( [next_v, next_xb, next_yr, next_xr] )
+    except StopIteration : #This means the car has reached past its final position
+        next_yr = next_yr_lst[0]
+        possible_outcomes = [ [next_v, next_xb, next_yr, i] for i in range(0,3) ]
+    return possible_outcomes
+
+def P( a ):
+    "Returns the matrix of transition probability for action a."
+    P_a = zeros((3*9*9*3,3*9*9*3))
+    for state in Sgenerator():
+        current_index = s_index( state )
+        possible_outcomes = next_states( state, a )
+        #Writing the probabilities in the matrix
+        for next_s in possible_outcomes:
+            next_index = s_index( next_s )
+            P_a[ current_index, next_index ] = 1./len(possible_outcomes) #This line assumes two outcome won't share the same index
+    return P_a
+
+    #+end_src
+* Suggested reward
+** Definition
+  A reward that makes some sense would punish leaving the road, punish collisions even harder and reward going fast :
+  - A collision gives a reward of -1
+  - Leaving the road while not colliding gives a reward of -0.5
+  - Going at fast speed while on the road and not colliding gives a reward of 0.5
+  - Every other case gives no reward
+
+    
+  We define a collision as having any part of the cars merging, so a collision occurs only when the red car is in vertical position $6$, $7$ or $8$ and the blue car is in the same lane as the red car, even partially.
+
+  We define going off-road as being, even partially, on the roadside.
+    #+begin_src python :tangle Highway.py
+def R( ):
+    reward = zeros((3*9*9*3,1))
+    S = Sgenerator()
+    for state in S:
+        current_index = s_index( state )
+        v = state[0]
+        xb = state[1]
+        yr = state[2]
+        xr = state[3]
+        lane_nb2blue_x = [[1,2,3],[3,4,5],[5,6,7]] #Coincidentally, lane_nb is xr
+        if yr in [6,7,8] and xb in lane_nb2blue_x[xr] : #Collision
+            reward[ current_index ] = -1.
+        elif xb in [0,1,7,8]:
+            reward[ current_index ] = -0.5
+        elif v == 2:
+            reward[ current_index ] = 1.
+        else:
+            pass #already at 0
+    return reward
+
+    #+end_src
+** Training an expert
+One can compute the probability matrix associated with an expert's policy with respect to this reward as well as the corresponding feature expectation thanks to :
+    #+begin_src python :tangle Expert.py
+import sys
+sys.path+=['..']
+import Highway
+from DP import *
+from DP_mu import *
+
+print "Expert creation..."
+P = [Highway.P(a) for a in Highway.A]
+Pi_E = DP_txt( Highway.R(), P, "V_Expert.mat" )
+print "mu_E computation..."
+Mu_E = DP_mu( Pi_E, identity(3*9*9*3) )
+
+savetxt( "Pi_E.mat", Pi_E, "%e", "\t" )
+savetxt( "Mu_E.mat", Mu_E, "%e", "\t" )
+print "Performances de l'expert :"
+print Highway.evaluate_Pi( Pi_E )
+    #+end_src
+
+#+srcname: Highway_make
+  #+begin_src makefile
+Expert.py: Highway.org 
+	$(call tangle,"Highway.org")
+
+Pi_E.mat: Expert.py ../DP.py ../DP_mu.py
+	python Expert.py
+
+Mu_E.mat: Expert.py ../DP.py ../DP_mu.py
+	python Expert.py
+
+  #+end_src
+
+** Obtaining samples from the expert
+    #+begin_src python :tangle DE.py
+import sys
+sys.path+=['..']
+from DP import *
+import Highway
+
+L = int( sys.argv[ 1 ])
+M = int( sys.argv[ 2 ])
+V_E = genfromtxt( "V_Expert.mat" )
+R = Highway.R()
+omega_E = V2omega( R, V_E, Highway.Sgenerator(), Highway.s_index,\
+[Highway.P(a) for a in Highway.A], Highway.sa_index )
+trajs = Highway.omega_play( omega_E, L, M ) 
+for trans in trajs:
+    for c in trans:
+        print "%d "%c,
+    print
+    #+end_src
+#+srcname: Highway_make
+#+begin_src makefile
+DE.py: Highway.org
+	$(call tangle,"Highway.org")
+
+#+end_src
+
+* Utilities
+** omega to mu
+  ANIRL needs to compute the feature expectation of a policy described by a $\omega$ matrix.
+  #+begin_src python :tangle omega2mu.py
+import sys
+sys.path+=['..']
+import Highway
+from DP import *
+from DP_mu import *
+
+omega = genfromtxt( sys.argv[1] )
+Pi = omega2pi( omega, Highway.phi, Highway.Sgenerator(), Highway.s_index, [Highway.P( a ) for a in Highway.A ] )
+sys.stderr.write("omega2mu...\n")
+Mu = DP_mu( Pi, identity( 3*9*9*3 ))
+Mu_s_0 = Mu[ Highway.s_index( Highway.S_0() )]
+
+savetxt( "/dev/stdout", Mu_s_0, "%e", "\n" )
+
+  #+end_src
+** theta to omega
+  It also needs the $\omega$ matrix describing the optimal policy with respect to a reward vector
+  FIXME: Faire comme dans omega2mu et ranger une partie de ce code dans le dossier parent
+  #+begin_src python :tangle theta2omega.py
+import sys
+sys.path+=['..']
+import Highway
+from DP import *
+
+theta = genfromtxt( sys.argv[1] )
+R = zeros(( 3*9*9*3, 1 ))
+for state in Highway.Sgenerator():
+    R[ Highway.s_index( state ) ] = dot( theta.transpose(), Highway.psi( state ) )
+sys.stderr.write("theta2omega...\n")
+Pi = DP_txt( R, [ Highway.P(a) for a in Highway.A ], "Highway_V.mat" ) #FIXME enployer DP(pas txt) mais s'assurer qu'elle fonctionne avant.
+#FIXME again, txt devrait etre un argument optionel et il ne devrait y avoir qu'une seule fonction
+#FIXME again again, on devrait pouvoir recuperer le vecteur V sans le lire dans un fichier
+V = genfromtxt( "Highway_V.mat" )
+
+omega = V2omega( R, V, Highway.Sgenerator(), Highway.s_index,\
+[Highway.P(a) for a in Highway.A], Highway.sa_index )
+
+savetxt( "/dev/stdout", omega, "%e", "\n" )
+
+
+  #+end_src
+* Playing with the simulator and evaluating policies
+** Evaluate pi
+  FIXME: Faudrait coder un truc pour arriver à observer le contrôle.
+  L'évaluation d'une politique se fait grâce à :
+  #+begin_src python :tangle Highway.py
+def evaluate_Pi( Pi ):
+    sys.stderr.write( "Mu computation...\n" )
+    Mu = DP_mu( Pi, identity( 3*9*9*3 ))
+    mean_Mu = mean( Mu, 0 )
+    return dot( mean_Mu, R() )
+
+  #+end_src
+** Evaluate omega
+  Lorsque l'on dispose d'une description de la Q fonction optimale sous la forme d'une matrice $\omega$ utilisant les features informatifs, l'on peut l'évaluer comme ça :
+  #+begin_src python :tangle EvaluateOmega.py
+import sys
+sys.path+=['..']
+import Highway
+from DP import *
+from DP_mu import *
+
+omega = genfromtxt( sys.argv[1] )
+Pi = omega2pi( omega, Highway.phi2, Highway.Sgenerator(), Highway.s_index, [Highway.P( a ) for a in Highway.A ] )
+print evaluate_Pi( Pi )
+  #+end_src
+
+** Evaluate R
+   How good, with respect to the true reward, is an agent trained over a certain other reward ?
+  #+begin_src python :tangle Highway.py
+def evaluate_theta( theta, l_psi ):
+    dicR = {}
+    for s in Sgenerator():
+        index = s_index( s )
+        dicR[ index ] = dot( theta.transpose(), l_psi( s ) )
+    R_theta = zeros(( len(dicR), 1 ))
+    for i in dicR:
+        R_theta[ i ] = dicR[ i ]
+    sys.stderr.write( "Pi computation...\n" )
+    Pi = DP_txt( R_theta, [P(a) for a in A], "V_agent.mat" )
+    return evaluate_Pi( Pi )
+
+  #+end_src
+   
+** Let a policy control the car
+  On peut aussi obtenir les trajectoires tirées par une politique :
+
+    #+begin_src python :tangle Highway.py
+def omega_play( omega, L, M ):
+    "Plays M episodes of length L, actig according to the greedy policy described by omega. Returns the transitions."
+    answer = zeros(( L*M, 4+1+4+1+1 ))
+    reward  = R()
+    for iep in range(0,M):
+        state = array(map( int, array([3,9,9,3])*scipy.rand(4)))
+        for itrans in range(0,L):
+            action = greedy_policy( state, omega, phi, A )
+            next_state = random.choice( next_states( state, action ))
+            r = reward[ s_index( state ) ]
+            eoe = 1 if itrans < L-1 else 0
+            index = iep*L + itrans
+            trans = []
+            [ trans.extend(i) for i in [state, [action], next_state, [r, eoe] ]]
+            answer[ index, : ] = trans
+            state = next_state
+    return answer
+    #+end_src
+** Let a random player control the car
+
+def random_play( L, M ):
+    "Plays M episodes of length L, actig randomly at each step. Returns the transitions."
+    answer = zeros(( L*M, 4+1+4+1+1 ))
+    reward = R()
+    for iep in range(0,M):
+        state = S_0()
+        for itrans in range(0,L):
+            action = random.choice( A )
+            next_state = random.choice( next_states( state, action ))
+            r = reward[ s_index( state ) ]
+            eoe = 1 if itrans < L-1 else 0
+            index = iep*L + itrans
+            trans = []
+            [ trans.extend(i) for i in [state, [action], next_state, [r, eoe] ]]
+            answer[ index, : ] = trans
+            state = next_state
+    return answer
+
+    #+end_src
+
+* Stuff
+  #+srcname: Highway_make
+  #+begin_src makefile
+Highway.py: Highway.org 
+	$(call tangle,"Highway.org")
+
+omega2mu.py: Highway.org 
+	$(call tangle,"Highway.org")
+
+theta2omega.py: Highway.org 
+	$(call tangle,"Highway.org")
+
+Playomega.py: Highway.org 
+	$(call tangle,"Highway.org")
+
+  #+end_src
+  #+srcname: Highway_clean_make
+  #+begin_src makefile
+Highway_clean: 
+	find . -maxdepth 1 -iname "Highway.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.*"   | xargs $(XARGS_OPT) rm
+  #+end_src
