@@ -128,7 +128,6 @@ Il ne reste enfin plus qu'à utiliser ces données pour faire tourner ANIRL.
 #include "IRL_Globals.h"
 #define TRANS_WIDTH 4+1+4+1+1
 #define ACTION_FILE "actions.mat"
-#define EXPERT_FILE "SCIRL_Exp3_DE.mat"
 
 unsigned int g_iNb_samples = -1;
 unsigned int g_iS = 4;
@@ -205,9 +204,9 @@ gsl_matrix* (*g_fMDP_solver)(gsl_matrix*) = &lspi_wrapper;
 
 
 #+begin_src c :tangle ANIRL_Exp6.c :main no
-int main( void ){
+int main( int argc, char** argv ){
   g_mActions = file2matrix( ACTION_FILE, g_iA );
-  D_E = file2matrix( EXPERT_FILE, TRANS_WIDTH );
+  D_E = file2matrix( argv[1], TRANS_WIDTH );
   D_mu = gsl_matrix_alloc( D_E->size1, g_iS + g_iA + g_iS + g_iP + 1 );
 
   for( int i = 0; i < D_E->size1 ; i++ ){
@@ -239,7 +238,9 @@ On lance ANIRL :
 Puis on vérifie que le contrôle obtenu tient la route :
 #+begin_src c :tangle ANIRL_Exp6.c :main no
   matrix2file( "ANIRL_Exp6_omega_agent.mat", omega_agent );
-  return system( "python PlayOmega2.py ANIRL_Exp6_omega_agent.mat" );
+  printf("%d ",D_E->size1);
+  fflush(NULL);
+  return system( "python EvaluateOmega.py ANIRL_Exp6_omega_agent.mat" );
 }
 
 
@@ -258,8 +259,15 @@ ANIRL_Exp6.o: ANIRL_Exp6.c ../greedy.h ../RL_Globals.h ../utils.h  phipsi.h ../L
 ANIRL_Exp6.exe: ANIRL_Exp6.o ../greedy.o ../utils.o  phipsi.o ../LSTDmu.o ../ANIRL.o ../LSPI.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../criteria.o ../DP_mu.py
 	$(O2EXE) -o ANIRL_Exp6.exe ANIRL_Exp6.o ../greedy.o ../utils.o  phipsi.o ../LSTDmu.o ../ANIRL.o ../LSPI.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../criteria.o
 
-ANIRL_Exp6: SCIRL_Exp3_DE.mat ANIRL_Exp6.exe
-	./ANIRL_Exp6.exe
+../criteria.o:
+	make -C .. criteria.o
+
+ANIRL_Exp6: ANIRL_Exp6.exe EvaluateOmega.py DE.py
+	for i in $(LM_VALUES); \
+	do \
+	python DE.py $$i > DE.mat; \
+        ./ANIRL_Exp6.exe DE.mat >> ANIRL_Exp6.mat; \
+	done
 
    #+end_src
 

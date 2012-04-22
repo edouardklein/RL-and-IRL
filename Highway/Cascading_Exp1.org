@@ -5,7 +5,7 @@ On compare les performences des différentes configurations de notre algo :
  - Utilisation de $a'_i$ (E) ou de $\pi_C(s')$ (C)
 
 Soit 4 combinaisons en tout : NE, NC, IE et IC. Un seul script qui prend en argument le fichier de données et affiche le nombre de samples et les performances sur la sortie standard, sur une seule ligne, séparés par des tabulations. Dans l'ordre : NE, NC, IE et IC. 
-* With true features
+* Computation
 #+begin_src python :tangle Cascading_Exp1.py
 import sys
 sys.path+=['..']
@@ -33,7 +33,7 @@ print "%d\t%lf\t%lf\t%lf\t%lf"%(D_E.shape[0], perf_NE, perf_NC, perf_IE, perf_IC
 Cascading_Exp1.py: Cascading_Exp1.org
 	$(call tangle,"Cascading_Exp1.org")
 
-LM_VALUES="3 3" "10 10"
+LM_VALUES="3 3" "5 5" "7 7" "10 10" "15 15" "20 20"
 Cascading_Exp1: Cascading_Exp1.py Highway.py ../DP.py Mu_E.mat ../Cascading.py ../LAFEM.py DE.py ../a2str.py
 	for i in $(LM_VALUES); \
 	do \

@@ -423,7 +423,7 @@ from DP_mu import *
 
 omega = genfromtxt( sys.argv[1] )
 Pi = omega2pi( omega, Highway.phi2, Highway.Sgenerator(), Highway.s_index, [Highway.P( a ) for a in Highway.A ] )
-print evaluate_Pi( Pi )
+print Highway.evaluate_Pi( Pi )[0]
   #+end_src
 
 ** Evaluate R
