@@ -112,7 +112,7 @@ gsl_matrix* proj_ANIRL(){
        #+begin_src c :tangle ANIRL.c :main no
 //char c;
 //scanf("%c",&c);
-    printf( "%d %lf\n", nb_it, t );
+    fprintf(stderr, "%d %lf\n", nb_it, t );
     if( t <= g_dBest_t ){
       g_dBest_t = t;
       gsl_matrix_memcpy( g_mBest_omega, omega );
@@ -173,7 +173,7 @@ gsl_matrix* proj_ANIRL(){
        #+end_src
    -  Last Output of the different criteria
      #+begin_src c :tangle ANIRL.c :main no
-  printf( "%d %lf %lf %lf %lf\n", nb_it, t );
+  fprintf(stderr, "%d %lf %lf %lf %lf\n", nb_it, t );
   if( t <= g_dBest_t ){
     g_dBest_t = t;
     gsl_matrix_memcpy( g_mBest_omega, omega );
