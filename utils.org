@@ -157,12 +157,39 @@ def mean_min_max( D ):
     Y_mean = map(mean,map( lambda d_x: map( lambda d_xi:d_xi[1],d_x),[filter(lambda a:a[0]==x,D) for x in X]))
     return [X,Y_mean,Y_min,Y_max]
 
-def filled_mean_min_max( p, X, Y_mean, Y_min, Y_max, color, lbl ):
+def naive_variance(data):
+    n = 0
+    Sum = 0
+    Sum_sqr = 0 
+    for x in data:
+        n = n + 1
+        Sum = Sum + x
+        Sum_sqr = Sum_sqr + x*x
+    mean = Sum/n
+    variance = (Sum_sqr - Sum*mean)/(n - 1)
+    return variance
+
+
+def mean_var( D ):
+    "Returns the abscissa, mean, and variance values for each abscissa in matrix D. D follows format : [[x,y],...,[x,y]]"
+    X = unique(D[:,0])
+    #Yes, it is unreadable
+    Y_mean = map(mean,map( lambda d_x: map( lambda d_xi:d_xi[1],d_x),[filter(lambda a:a[0]==x,D) for x in X]))
+    Y_var = map(lambda a: sqrt(naive_variance(a)),map( lambda d_x: map( lambda d_xi:d_xi[1],d_x),[filter(lambda a:a[0]==x,D) for x in X]))
+    return [X,Y_mean,Y_var]
+
+def filled_mean_min_max( p, X, Y_mean, Y_min, Y_max, color, _alpha, style, lblmain,lblminmax ):
     "Plot data, with bold mean line, and a light color fill betwee the min and max"
-    p.plot( X, Y_mean,color=color,lw=2, label=lbl)
-    p.plot( X, Y_min, color=color,lw=1)
-    p.plot( X, Y_max, color=color,lw=1)
-    p.fill_between(X,Y_min,Y_max,facecolor=color,alpha='0.2')
+    if lblmain == None:
+        p.plot( X, Y_mean,color=color,lw=2)
+    else:
+        p.plot( X, Y_mean,color=color,lw=2, label=lblmain)
+    if lblminmax == None:
+        p.plot( X, Y_min, color=color,lw=1,linestyle=style)
+    else:
+        p.plot( X, Y_min, color=color,lw=1,linestyle=style, label=lblminmax)
+    p.plot( X, Y_max, color=color,lw=1,linestyle=style)
+    p.fill_between(X,Y_min,Y_max,facecolor=color,alpha=_alpha)
 
   #+end_src
   
