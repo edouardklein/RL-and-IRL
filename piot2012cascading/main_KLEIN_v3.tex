@@ -11,6 +11,7 @@
 %\usepackage[latin1]{inputenc}
 %\usepackage[francais]{babel}
 \usepackage{subfigure}
+\usepackage{tabularx}
 \usepackage{mathtools}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -508,19 +509,26 @@ with $r_i$ as in equation \ref{r.def}. We then get :
 \end{equation}
 so that $\hat R_C(s) = \theta^T \psi(s)$.\\
 \subsection{Experimental setting}
-For each problem we test our approach with, we compare it to the following baselines :
-\begin{itemize}
-\item an agent trained on a random reward,
-\item an agent choosing its next action randomly,
-\item the policy output by the algorithm of \cite{abbeel2004apprenticeship}.
-\end{itemize}
+For each problem we test our approach with, we compare it to two baselines : the mean performance of an agent trained on a random reward and the mean performance of the policy output by the algorithm of \cite{abbeel2004apprenticeship}. This algorithm can be instanciated to work in the same dire conditions as our algorithm, that is to say using only samples from the expert. To do this, we estimate the feature expectations and solve the MDP in a batch, off policy manner thanks respectively to to LSTD$\mu$ (\cite{klein2011batch}) and LSPI (\cite{lagoudakis2003least}).
+\subsection{Inverted pendulum}
+In \cite{klein2011batch}, it is noted that the particular instanciation of Abbeel and Ng's algorithm we use as a baseline is unable to solve the Inverted Pendulum problem (described in \cite{lagoudakis2003least}). 
 
-The algorithm of \cite{abbeel2004apprenticeship} can be instanciated to work in the same dire conditions as our algorithm, that is to say using only samples from the expert. To do this, we estimate the feature expectations and solve the MDP in a batch, off policy manner thanks respectively to to LSTD$\mu$ (\cite{klein2011batch}) and LSPI (\cite{lagoudakis2003least}).\\
 
-Sometimes this particular instantiation of \cite{abbeel2004apprenticeship}'s algorithm is not able to solve the problem. We then fall back to an instantiation using suroutines that breaks the batch, expert-only setting in order to have something to compare to. Precise workarounds will be described as they are used. It is important to note that sometimes our algorithm is at the best of our knowledge FIXME(c'est pas vrai il y a SCIRL aussi ;) the only one able to solve the problem with such a constrained input.
+There exist settings this particular instantiation of \cite{abbeel2004apprenticeship}'s algorithm is not able to solve. In \cite{klein2011batch} the authors note that this instanciation the problem. We then fall back to an instantiation using suroutines that breaks the batch, expert-only setting in order to have something to compare to. Precise workarounds will be described as they are used. It is important to note that sometimes our algorithm is at the best of our knowledge FIXME(c'est pas vrai il y a SCIRL aussi ;) the only one able to solve the problem with such a constrained input.
 \subsection{Highway driving simulator}
-Inspired from a problem seen in FIXME(qui l'utilise, déjà ?), we coded a driving simulator. The agent controls a car that can switch between the three lanes of the road, go off-road on either side and modulate between three speed levels. 
-\includegraphics{"../Highway/Cascading_Exp1_fig1.pdf"}
+Inspired from a problem seen in \cite{syed2008apprenticeship,syed2008game}, we coded a driving simulator. The agent controls a car that can switch between the three lanes of the road, go off-road on either side and modulate between three speed levels. The first thing to note about this setting is that the direct problem (RL) problem is not trivial, as LSPI is unable to solve it using the natural features we first gave it. These feature stemmed from a discretization of the state-action space, the dimension of the features being the cardinality of this space. With each state-action pair $s,a$ we associate an index $i$ so that the $i$-th coordinate of the feature is $1$ and every other is $0$. We tried to train an agent on the reward used by the expert (which was trained using an exact dynamic programming approach), but on top of being extremely slow to run (the LSTD$Q$ subroutine implies a matrix inversion) it does not converge.\\
+As LSPI is used in \cite{abbeel2004apprenticeship}'s algorithm to solve the MDP, it is impossible to use the latter with the natural features. We thus have to spend quite some time engeineering new informative features to make LSPI work. These new features have a dimensionality of $5$, including a constant term and coordinates whose semantics is \emph{The agent should turn right}, \emph{The agent should turn left}, \emph{The agent should increase its speed} and \emph{The agent should do nothing}. With these features in hand, we were able to solve the IRL problem with \cite{abbeel2004apprenticeship}'s algorithm. The results of our experiment is given on two figures, Figure \ref{Cascading_Exp1_1.fig} and \ref{Cascading_Exp1_2.fig}. The data presented here is the mean, minimum and maximum value obtained over 50 runs. The random baseline presented here is the mean, min adn max performance of an agent over 50 different random rewards.\\
+Figure \ref{Cascading_Exp1_1.fig} shows results when employing the Cascading algorithm with the natural set of features and Figure \ref{Cascading_Exp1_2.fig} shows results when using the engineered features, comparing it the the results of \cite{abbeel2004apprenticeship}'s algorithm which could be applied in this case. Although the mean value with natural features is lower than with the engineered ones, we see that there is less risk of catastrophic failure (the min value is higher) and, more importantly, we were actually able to solve the problem in a satisfying manner with.
+
+ \begin{figure}
+ \begin{tabular}{ccc}
+ \subfigure[Abbeel and Ng IRL  with engineered features]{\includegraphics[width=.45\linewidth]{"Cascading_Exp1_fig3"}\label{Cascading_Exp1_3.fig}}&\hspace{.05\linewidth}&
+ \subfigure[Cascading with engineered features]{\includegraphics[width=.45\linewidth]{"Cascading_Exp1_fig2"}\label{Cascading_Exp1_2.fig}}\\
+ \subfigure[Cascading with natural features]{\includegraphics[width=.4\linewidth]{"Cascading_Exp1_fig1"}\label{Cascading_Exp1_1.fig}}&\hspace{.05\linewidth}&\includegraphics[width=0.45\linewidth]{"Cascading_Exp1_legend"}
+ \end{tabular}
+\caption{Results on the Highway Driving problem. Data is shown with mean, standard deviation, minimum and maximum value over 50 runs.}
+ \end{figure}
+
 \begin{itemize}
 \item description du problème
 \item deux sets de features pour faire marcher LSPI donc ANIRL

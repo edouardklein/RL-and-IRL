@@ -95,16 +95,7 @@ filled_mean_min_max( pylab, XNE, Y_meanNE, Y_minNE, Y_maxNE, 'red', 0.2,'--',"Ca
 filled_mean_min_max( pylab, XNE, Y_meanNE, Y_meanNE - Y_varNE, Y_meanNE + Y_varNE, 'red', 0.4,'-.' ,None,None)
 filled_mean_min_max( pylab, XNE, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
 filled_mean_min_max( pylab, XNE, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
-pylab.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
-pylab.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
 pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
-# set some legend properties.  All the code below is optional.  The
-# defaults are usually sensible but if you need more control, this
-# shows you how
-pylab.legend(loc='lower right')
-leg = pylab.gca().get_legend()
-ltext  = leg.get_texts()  # all the text.Text instance in the legend
-pylab.setp(ltext, fontsize=14)    # the legend text fontsize
 pylab.savefig('Cascading_Exp1_fig1.pdf')
 
 #Second plot, Cascading avec les features informatives, seul
@@ -118,13 +109,7 @@ filled_mean_min_max( pylab, XIE, Y_meanIE, Y_minIE, Y_maxIE, 'red', 0.2,'--',"Ca
 filled_mean_min_max( pylab, XIE, Y_meanIE, Y_meanIE-Y_varIE, Y_meanIE+Y_varIE, 'red', 0.4,'-.',None,None)
 filled_mean_min_max( pylab, XNE, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
 filled_mean_min_max( pylab, XNE, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
-pylab.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
-pylab.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
 pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
-pylab.legend(loc='center right')
-leg = pylab.gca().get_legend()
-ltext  = leg.get_texts()  # all the text.Text instance in the legend
-pylab.setp(ltext, fontsize=14)    # the legend text fontsize
 pylab.savefig('Cascading_Exp1_fig2.pdf',transparent=True)
 
 #Third plot, ANIRL avec les features informatives, seul
@@ -139,14 +124,21 @@ filled_mean_min_max( pylab, XA, Y_meanA, Y_minA, Y_maxA, 'green', 0.2,'--',"Abbe
 filled_mean_min_max( pylab, XA, Y_meanA, Y_meanA - Y_varA, Y_meanA + Y_varA, 'green', 0.4,'-.',None,None)
 filled_mean_min_max( pylab, XNE, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
 filled_mean_min_max( pylab, XNE, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
-pylab.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
-pylab.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
 pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
-pylab.legend(loc='center right')
-leg = pylab.gca().get_legend()
-ltext  = leg.get_texts()  # all the text.Text instance in the legend
-pylab.setp(ltext, fontsize=14)    # the legend text fontsize
 pylab.savefig('Cascading_Exp1_fig3.pdf',transparent=True)
+
+#Fourth file : the legend
+fig = pylab.figure(4)
+figlegend = pylab.figure(figsize=(4,2))
+ax = fig.add_subplot(111)
+lines = ax.plot([-1,-1],[-1,-2], color='red',label="Cascading IRL",lw=2,linestyle='-')
+lines += ax.plot([-1,-1],[-1,-2], color='green',label="Abbeen \& Ng IRL",lw=2,linestyle='-')
+lines += ax.plot([-1,-1],[-1,-2], color='cyan',label="Agent trained on a random reward",lw=2,linestyle='-')
+lines += ax.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
+lines += ax.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
+lines += ax.plot([-1,-1],[-1,-2], color='blue',label="Expert",lw=2,linestyle='-')
+figlegend.legend(lines,("Cascading IRL","Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
+figlegend.savefig("Cascading_Exp1_legend.pdf")
 
 #+end_src
 #+srcname: Cascading_Exp1_make
