@@ -74,9 +74,11 @@ x_min = min(XA)
 x_max = max(XA)
 y_min = min( min(Y_minA), min(Y_minNE), min(Y_minIE) )
 Expert = 7.74390968*ones(XA.shape) #python Expert.py to get this value
-Random = -2.33080728*ones(XA.shape)#python Random.py to get this value
+Random_mean = -1.5821833963484*ones(XA.shape)#See Highway.org about Random.py for information on these values
+Random_min = -4.0007295890199996*ones(XA.shape)#python Random.py to get this value
+Random_max = 2.7064859345599999*ones(XA.shape)#python Random.py to get this value
 y_max = 8 #Comme ca l'expert peut respirer
-y_min = min( Random[0],min(Y_minA), min(Y_minNE), min(Y_minIE) ) - 0.2
+y_min = min( Random_min[0],min(Y_minA), min(Y_minNE), min(Y_minIE) ) - 0.2
 
 
 #First plot, Cascading with natural features, alone
@@ -89,7 +91,7 @@ pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
 pylab.grid(True)
 filled_mean_min_max( pylab, XNE, Y_meanNE, Y_minNE, Y_maxNE, 'red',"Cascading IRL")
 pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
-pylab.plot(XA,Random, color='cyan',label="Agent trained on random reward",lw=2)
+filled_mean_min_max( pylab, XNE, Random_mean, Random_min, Random_max, 'cyan',"Agent trained on a random reward")
 pylab.legend(loc='center right')
 
 pylab.savefig('Cascading_Exp1_fig1.pdf')
@@ -106,7 +108,7 @@ pylab.grid(True)
 filled_mean_min_max( pylab, XIE, Y_meanIE, Y_minIE, Y_maxIE, 'red', "Cascading IRL")
 filled_mean_min_max( pylab, XA, Y_meanA, Y_minA, Y_maxA, 'green', "Abbeel \& Ng IRL")
 pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
-pylab.plot(XA,Random, color='cyan',label="Agent trained on random reward",lw=2)
+filled_mean_min_max( pylab, XNE, Random_mean, Random_min, Random_max, 'cyan',"Agent trained on a random reward")
 pylab.legend(loc='center right')
 pylab.savefig('Cascading_Exp1_fig2.pdf',transparent=True)
 

@@ -339,14 +339,20 @@ import Highway
 from DP import *
 from DP_mu import *
 
-print "Agent creation..."
+sys.stderr.write("Agent creation...\n")
 P = [Highway.P(a) for a in Highway.A]
 randR = scipy.random.rand(Highway.R().shape[0],Highway.R().shape[1]) - 0.5
 Pi = DP_txt( randR, P, "V_Expert.mat" )
 
-print "Performances de l'agent aleatoire :"
-print Highway.evaluate_Pi( Pi )
+sys.stderr.write("Performances de l'agent aleatoire :\n")
+print Highway.evaluate_Pi( Pi )[0]
     #+end_src
+This code can be executed a few times like so :
+ : for i in `seq 1 50`; do python Random.py >> Random.mat ; done
+
+Then we can get the mean, min and max values with :
+ : python -c "from numpy import *;D=genfromtxt('Random.mat');print [mean(D),min(D),max(D)]"
+
 
 #+srcname: Highway_make
   #+begin_src makefile
