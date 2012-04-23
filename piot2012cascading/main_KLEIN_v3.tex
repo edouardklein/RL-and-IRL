@@ -519,6 +519,8 @@ The algorithm of \cite{abbeel2004apprenticeship} can be instanciated to work in 
 
 Sometimes this particular instantiation of \cite{abbeel2004apprenticeship}'s algorithm is not able to solve the problem. We then fall back to an instantiation using suroutines that breaks the batch, expert-only setting in order to have something to compare to. Precise workarounds will be described as they are used. It is important to note that sometimes our algorithm is at the best of our knowledge FIXME(c'est pas vrai il y a SCIRL aussi ;) the only one able to solve the problem with such a constrained input.
 \subsection{Highway driving simulator}
+Inspired from a problem seen in FIXME(qui l'utilise, déjà ?), we coded a driving simulator. The agent controls a car that can switch between the three lanes of the road, go off-road on either side and modulate between three speed levels. 
+\includegraphics{"../Highway/Cascading_Exp1_fig1.pdf"}
 \begin{itemize}
 \item description du problème
 \item deux sets de features pour faire marcher LSPI donc ANIRL

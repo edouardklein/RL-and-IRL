@@ -143,6 +143,29 @@ def a2str(a):
   #+end_src
 
   We output values near 0 as 0. Instead we probably should understand why there are so much near-0 values in the normal output. I think it has to do with the linear system solver.
+
+  Some code used to plot mean, min and maxes
+  #+begin_src python :tangle Plot.py
+from numpy import *
+
+def mean_min_max( D ):
+    "Returns the abscissa, mean, min and max value for each abscissa in matrix D. D follows format : [[x,y],...,[x,y]]"
+    X = unique(D[:,0])
+    #Yes, it is unreadable.
+    Y_min = map(min,map( lambda d_x: map( lambda d_xi:d_xi[1],d_x),[filter(lambda a:a[0]==x,D) for x in X]))
+    Y_max = map(max,map( lambda d_x: map( lambda d_xi:d_xi[1],d_x),[filter(lambda a:a[0]==x,D) for x in X]))
+    Y_mean = map(mean,map( lambda d_x: map( lambda d_xi:d_xi[1],d_x),[filter(lambda a:a[0]==x,D) for x in X]))
+    return [X,Y_mean,Y_min,Y_max]
+
+def filled_mean_min_max( p, X, Y_mean, Y_min, Y_max, color, lbl ):
+    "Plot data, with bold mean line, and a light color fill betwee the min and max"
+    p.plot( X, Y_mean,color=color,lw=2, label=lbl)
+    p.plot( X, Y_min, color=color,lw=1)
+    p.plot( X, Y_max, color=color,lw=1)
+    p.fill_between(X,Y_min,Y_max,facecolor=color,alpha='0.2')
+
+  #+end_src
+  
 * Makefile rules
   Tangling : 
   #+srcname: utils_code_make
@@ -154,6 +177,8 @@ utils.h: utils.org
 	$(call tangle,"utils.org")
 
 a2str.py: utils.org
+	$(call tangle,"utils.org")
+Plot.py: utils.org
 	$(call tangle,"utils.org")
   #+end_src
 

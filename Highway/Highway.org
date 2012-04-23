@@ -329,6 +329,32 @@ Mu_E.mat: Expert.py ../DP.py ../DP_mu.py
 
   #+end_src
 
+** Random reward baseline
+   One can wonder waht kind of performance gets an agent trained on a random reward.
+    #+begin_src python :tangle Random.py
+import sys
+sys.path+=['..']
+import scipy
+import Highway
+from DP import *
+from DP_mu import *
+
+print "Agent creation..."
+P = [Highway.P(a) for a in Highway.A]
+randR = scipy.random.rand(Highway.R().shape[0],Highway.R().shape[1]) - 0.5
+Pi = DP_txt( randR, P, "V_Expert.mat" )
+
+print "Performances de l'agent aleatoire :"
+print Highway.evaluate_Pi( Pi )
+    #+end_src
+
+#+srcname: Highway_make
+  #+begin_src makefile
+Random.py: Highway.org 
+	$(call tangle,"Highway.org")
+
+  #+end_src
+
 ** Obtaining samples from the expert
     #+begin_src python :tangle DE.py
 import sys
