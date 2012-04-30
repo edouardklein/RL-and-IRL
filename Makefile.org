@@ -1,18 +1,8 @@
 * Introduction
-  In this directory lies the code I use when I work on my PhD.
-  
-  This file describes the technical use of each file of this directory. It is tangled as the Makefile by running :
- #+begin_src sh
-emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
-#+end_src
-
-
-  The [[End results]] produced by this Makfile have their own dedicated section.
-
 #FIXME: Passer lint ou un autre outil d'analyse statique de code sur tout. Pychecker pour python. Quand j'aurais le temps.
   
 * Makefiles rules
-  The rules are written in the file they work with. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
+  The rules are written in the file they affect. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
 ** Misc.
 Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
   #+begin_src makefile :tangle Makefile :noweb yes
@@ -27,6 +17,7 @@ Those who do not fit in the others categories (because they fit in more than one
 <<TT_Test3_make>>
   #+end_src
 ** Code extraction
+
   #+begin_src makefile :tangle Makefile :noweb yes
 tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs >/dev/null 2>/dev/null
 
@@ -68,12 +59,6 @@ o2exe=gcc $(LFLAGS)
 <<criteria_c2o_make>>
 <<greedy_c2o_make>>
   #+end_src
-** Org source to PDF
-    #+begin_src makefile :tangle Makefile :noweb yes
-org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.emacs && pdflatex $1.tex && bibtex $1 && pdflatex $1.tex && pdflatex $1.tex
-
-<<NA_org2pdf_make>>
-    #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
 export XARGS_OPT=-t
@@ -100,7 +85,37 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
 	$(MAKE) -C Highway clean
     #+end_src
 * End results
-** LAFEM
+** Published Work
+*** Papers
+**** TODO Retrouver tous ces papiers et s'assurer qu'on peut les recompiler
+**** LSTD$\mu$
+    - IJCAI 2011
+      - Paper
+      - Poster
+      - Slides
+    - EWRL 2011
+      - Paper
+      - Poster
+      - Slides
+    - JFPDA 2011
+      - Paper
+      - Poster
+      - Slides
+**** Dimensionality reduction (MLASA 2011)
+    - Paper
+    - Poster
+    - Slides
+*** Figures
+**** TODO Lister les features des papiers ci dessus
+** Unpublished work
+*** Papers and drafts
+**** SCIRL
+**** Cascading
+*** Figures
+**** TODO Reprendre les 12 figures
+**** TODO Reprendre le travail sur le GridWorld
+** Archive
+*** LAFEM
    - LAFEM_Exp1 (GridWorld)
     #+begin_src makefile :tangle Makefile
 LAFEM_Exp1:
@@ -149,15 +164,15 @@ MCLength:
 	make -C InvertedPendulum MCLength
     #+end_src
      
-** TaskTransfer
-   - TT_Exp1 (GridWorld)
-   - TT_Exp2
-   - TT_Exp3
-   - TT_test0
-   - TT_test1
-   - TT_test2
-   - TT_test3
-** LSTDmu
+*** TaskTransfer
+    - TT_Exp1 (GridWorld)
+    - TT_Exp2
+    - TT_Exp3
+    - TT_test0
+    - TT_test1
+    - TT_test2
+    - TT_test3
+*** LSTDmu
    - criteria_mc.tex (GridWorld)
     #+begin_src makefile :tangle Makefile
 criteria_mc.tex:
@@ -242,19 +257,16 @@ Cascading_Exp1:
 	make -C Highway Cascading_Exp1
     #+end_src
     
-** Previous results
+*** Previous results
    - lagoudakis2003least_figure10.pdf (ChainWalk)
     #+begin_src makefile :tangle Makefile
 lagoudakis2003least_figure10.pdf:
 	make -C ChainWalk lagoudakis2003least_figure10.pdf
     #+end_src
-* Tests
+*** Tests
   #+begin_src makefile :tangle Makefile :noweb yes
 test: TT_test0 TT_test1 TT_test2 TT_test3
     #+end_src
-
-
-
 * Inception
 Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tangle your makefile so you can tangle while you make.
 
