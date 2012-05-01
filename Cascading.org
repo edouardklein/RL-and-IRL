@@ -28,7 +28,7 @@ def run( D, psi, phi, Actions ):
     D_C = shape_for_C_regression( D, q, psi, Actions )
     theta_E = regression( D_E )
     theta_C = regression( D_C )
-    return [theta_E,theta_C]
+    return [theta_E,theta_C,omega_q]
 
 def classif_score( D, phi, Actions ):
     "Returns the omega matrix so that \omega^T\phi(s,a) allows for classification of elements s with labels a"
