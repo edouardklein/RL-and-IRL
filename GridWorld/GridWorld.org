@@ -318,7 +318,7 @@ def omega_play( omega, L, M ):
             action = greedy_policy( state, omega, phi, A )
             next_state = weighted_choice( next_states( state, action ))
             r = reward[ s_index( state ) ]
-            eoe = 0 if itrans >= L-1 or (state[0]==4 and state[1]==0) else 0 #0 means end of episode.
+            eoe = 0 if itrans >= L-1 or (state[0]==4 and state[1]==0) else 1 #0 means end of episode.
             index = iep*L + itrans
             trans = []
             [ trans.extend(i) for i in [state, [action], next_state, [r, eoe] ]]
