@@ -106,6 +106,7 @@ double diff_norm( gsl_matrix* m1, gsl_matrix* m2 ){
   #+end_src
 
 * Python utility functions
+** a2str
   We need the matrices to be output so that two equal matrices are output the same way.
 
   #+begin_src python :tangle a2str.py
@@ -144,6 +145,7 @@ def a2str(a):
 
   We output values near 0 as 0. Instead we probably should understand why there are so much near-0 values in the normal output. I think it has to do with the linear system solver.
 
+** Plot
   Some code used to plot mean, min and maxes
   #+begin_src python :tangle Plot.py
 from numpy import *
@@ -192,7 +194,22 @@ def filled_mean_min_max( p, X, Y_mean, Y_min, Y_max, color, _alpha, style, lblma
     p.fill_between(X,Y_min,Y_max,facecolor=color,alpha=_alpha)
 
   #+end_src
-  
+** Random Wighted Choice  
+#+begin_src python :tangle RWC.py
+#code from http://stackoverflow.com/questions/3679694/a-weighted-version-of-random-choice
+import random
+
+def weighted_choice(choices):
+   total = sum(w for c,w in choices)
+   r = random.uniform(0, total)
+   upto = 0
+   for c, w in choices:
+      if upto+w > r:
+         return c
+      upto += w
+   assert False, "Shouldn't get here"
+
+#+end_src
 * Makefile rules
   Tangling : 
   #+srcname: utils_code_make

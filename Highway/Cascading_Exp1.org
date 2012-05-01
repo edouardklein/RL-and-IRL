@@ -73,14 +73,13 @@ D_IE = D_Cascading[:,[0,3]]
 [XIE,Y_meanIE,Y_varIE] = map( array,mean_var( D_IE ))
 #[XIC,Y_meanIC,Y_minIC,Y_maxIC] = mean_min_max( D_IC )
 
-x_min = min(XA)
-x_max = max(XA)
-y_min = min( min(Y_minA), min(Y_minNE), min(Y_minIE) )
 Expert = 7.74390968*ones(XA.shape) #python Expert.py to get this value
 Random_mean = -1.5821833963484*ones(XA.shape)#See Highway.org about Random.py for information on these values
 Random_min = -4.0007295890199996*ones(XA.shape)#python Random.py to get this value
 Random_max = 2.7064859345599999*ones(XA.shape)#python Random.py to get this value
 Random_var = 1.4465398450419833*ones(XA.shape)#python Random.py to get this value
+x_min = min(XA)
+x_max = max(XA)
 y_max = 9.5 #Comme ca l'expert peut respirer
 y_min = min( Random_min[0],min(Y_minA), min(Y_minNE), min(Y_minIE) ) - 0.2
 
@@ -141,6 +140,8 @@ figlegend.legend(lines,("Cascading IRL","Abbeel \& Ng IRL","Agent trained on a r
 figlegend.savefig("Cascading_Exp1_legend.pdf")
 
 #+end_src
+FIXME: Le plot concernat ANIRL devrait avoir son code dans ANIRL_Exp6.org et non ici.
+
 #+srcname: Cascading_Exp1_make
 #+begin_src makefile
 Cascading_Exp1_plot.py: Cascading_Exp1.org

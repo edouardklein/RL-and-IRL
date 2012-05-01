@@ -4,8 +4,6 @@ Cette expérience s'inscrit dans une démarche de test plus grande : [[file:../P
 
 On récupère, comme prévu dans le protocole, les valeurs des paramètres d'ANIRL trouvées dans le cas parfait ([[file:ANIRL_Exp5.org]]). A savoir : $\epsilon_{ANIRL} = 0.03$ et $T_{ANIRL} = 70$.
 
-On reprend la trajectoire de l'expert générée dans l'expérience sur SCIRL dans le cas dégradé ([[file:SCIRL_Exp3.org]]).
-
 * Test de LSPI
 LSPI étant la routine utilisée par ANIRL pour résoudre le MDP, il convient de voir si elle parvient effectivement à résoudre le problème.
 

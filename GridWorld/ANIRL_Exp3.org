@@ -4,121 +4,6 @@ Cette expérience s'inscrit dans une démarche de test plus grande : [[file:../P
 
 On récupère, comme prévu dans le protocole, les valeurs des paramètres d'ANIRL trouvées dans le cas parfait ([[file:ANIRL_Exp2.org]]). A savoir : $\epsilon_{ANIRL} = 0.3$ et $T_{ANIRL} = 170$.
 
-L'expérience est un succès puisque la longueur de la trajectoire de l'agent est assez proche de celle de l'expert et assez loin de la limite autorisée.
-Pour réaliser l'expérience :
- : make ANIRL_Exp3
-dans le dossier racine.
-
-L'expert est entraîné grâce à l'algorithme de programmation dynamique. On transforme cette politique dans un format exploitable par le simulateur grâce à:
-#+begin_src python :tangle pi2omega.py
-#FIXME: Factoriser ce code avec celui present dans ANIRL_Exp2.org, dans R2omega.py
-import sys
-from numpy import *
-import scipy
-
-
-R = genfromtxt( sys.argv[1] )
-Ppi = genfromtxt( sys.argv[2] )
-V = genfromtxt( sys.argv[3] )
-P_north = genfromtxt( "TT_5x5_PENorth.mat" )
-P_east = genfromtxt( "TT_5x5_PEEast.mat" )
-P_west = genfromtxt( "TT_5x5_PEWest.mat" )
-P_south = genfromtxt( "TT_5x5_PESouth.mat" )
-
-#On construit maintenant la matrice omega, les
-# indices utilises sont donc les memes
-# que ceux de la fonction phi
-# definie dans LSTDmu_exp.org
-# FIXME: Creer un fichier qui decrit les indices
-# est s'y referer a chaque fois
-
-omega = zeros((100,1))
-
-for x in range(0,5):
-    for y in range(0,5):
-        for a in range(1,5):
-            index = y*5*4 + x*4 + a-1
-            P_a = array([])
-            if a == 1:
-                P_a = P_west
-            elif a == 2:
-                P_a = P_south
-            elif a == 3:
-                P_a = P_north
-            elif a == 4:
-                P_a = P_east
-            else:
-                print "BOUM"
-                exit( -1 )
-            #Q(s,a) = R(s) + \gamma P_a(s)^TV
-            #FIXME: Gamma est code en dur ici
-            omega[index,0] = R[ x+5*y ] + 0.9*dot( P_a[x+5*y,:], V )
-            #if x == 3 and y == 0:
-                #import pdb
-                #pdb.set_trace()
-                #print "Index s : %d | Index sa : %d | Q((3,0),%d) = %f"%(x+5*y,index,a,R[ x+5*y ] + 0.9*dot( P_a[x+5*y,:], V ))
-
-savetxt( "ANIRL_Exp3_expert_omega.mat", omega, "%e", "\n" )
-
-#+end_src
-
-#+srcname: ANIRL_Exp3_make
-#+begin_src makefile
-pi2omega.py: ANIRL_Exp3.org
-	$(call tangle,"ANIRL_Exp3.org")
-
-ANIRL_Exp3_expert_omega.mat: pi2omega.py TT_5x5_PENorth.mat TT_5x5_PESouth.mat TT_5x5_PEWest.mat TT_5x5_PEEast.mat TT_5x5_Ppi.mat ANIRL_Exp2_R_E.mat V_expert.mat
-	python pi2omega.py ANIRL_Exp2_R_E.mat TT_5x5_Ppi.mat V_expert.mat
-
-#+end_src
-
-On peut maintenant s'occuper de générer une trajectoire (conformément au protocole) 
-
-#+begin_src c :tangle ANIRL_Exp3_D_E.c :main no
-#include <gsl/gsl_matrix.h>
-#include "phipsi.h"
-#include "simulator.h"
-#include "utils.h"
-#include "greedy.h"
-
-#include "GridWorld.h"
-#include "RL_Globals.h"
-#define D_FILE_NAME "Samples.dat"
-#define TRANS_WIDTH 7
-#define ACTION_FILE "actions.mat"
-
-unsigned int g_iS = 2;
-unsigned int g_iA = 1;
-gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
-gsl_matrix* g_mOmega = NULL;
-gsl_matrix* g_mActions = NULL; 
-
-int main( void ){
-  g_mActions = file2matrix( ACTION_FILE, 1 );
-  gsl_matrix* omega_expert = file2matrix( "ANIRL_Exp3_expert_omega.mat", 1 );
-  g_mOmega =  omega_expert;
-  gsl_matrix* D_expert = gridworld_simulator( 1 );
-  matrix2file( "ANIRL_Exp3_D_E.mat", D_expert );
-  return 0;
-}
-
-#+end_src
-
-   #+srcname: ANIRL_Exp3_make
-   #+begin_src makefile
-ANIRL_Exp3_D_E.c: ANIRL_Exp3.org
-	$(call tangle,"ANIRL_Exp3.org")
-ANIRL_Exp3_D_E.o: ANIRL_Exp3_D_E.c GridWorld.h ../greedy.h ../RL_Globals.h ../utils.h  phipsi.h simulator.h
-	$(call c2obj,"ANIRL_Exp3_D_E.c")
-
-ANIRL_Exp3_D_E.exe: ANIRL_Exp3_D_E.o ../greedy.o ../utils.o phipsi.o simulator.o
-	$(O2EXE) -o ANIRL_Exp3_D_E.exe ANIRL_Exp3_D_E.o ../greedy.o ../utils.o phipsi.o simulator.o
-
-ANIRL_Exp3_D_E.mat: ANIRL_Exp3_D_E.exe ANIRL_Exp3_expert_omega.mat
-	./ANIRL_Exp3_D_E.exe
-
-   #+end_src
-
 Il ne reste enfin plus qu'à utiliser ces données pour faire tourner ANIRL.
 #+begin_src c :tangle ANIRL_Exp3.c :main no
 #define _POSIX_C_SOURCE 1
@@ -138,7 +23,6 @@ Il ne reste enfin plus qu'à utiliser ces données pour faire tourner ANIRL.
 #include "IRL_Globals.h"
 #define TRANS_WIDTH 7
 #define ACTION_FILE "actions.mat"
-#define EXPERT_FILE "ANIRL_Exp3_D_E.mat"
 
 unsigned int g_iS = 2;
 unsigned int g_iA = 1;
@@ -156,7 +40,7 @@ gsl_matrix* g_mActions = NULL;
 gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
 gsl_matrix* D_E = NULL;
 gsl_matrix* D_mu = NULL;
-gsl_matrix* (*g_fSimulator)(int) = &gridworld_simulator;
+gsl_matrix* (*g_fSimulator)(int) = NULL;
 
 //FIXME: Useless but defined anyway in order to compile
 unsigned int M = -1; //M_{MCip}
@@ -188,6 +72,7 @@ gsl_matrix* (*g_fMu_E)() = &mu_E;
 
    #+end_src
  - LSPI en tant que solveur de MDP :
+   FIXME: Coder ce wrapper dans ANIRL.org, il est utilisé souvent, ce code est dupliqué tel quel en plusieurs endroits.
    #+begin_src c :tangle ANIRL_Exp3.c :main no
 gsl_matrix* lspi_wrapper(gsl_matrix* theta){
   for( unsigned int i = 0 ; i < D_E->size1 ; i++ ){
@@ -212,9 +97,9 @@ gsl_matrix* (*g_fMDP_solver)(gsl_matrix*) = &lspi_wrapper;
 
 
 #+begin_src c :tangle ANIRL_Exp3.c :main no
-int main( void ){
+int main( int argc, char** argv ){
   g_mActions = file2matrix( ACTION_FILE, g_iA );
-  D_E = file2matrix( EXPERT_FILE, TRANS_WIDTH );
+  D_E = file2matrix( argv[1], TRANS_WIDTH );
   D_mu = gsl_matrix_alloc( D_E->size1, g_iS + g_iA + g_iS + g_iP + 1 );
 
   for( int i = 0; i < D_E->size1 ; i++ ){
@@ -235,7 +120,7 @@ int main( void ){
 						    1, 1 );
     gsl_matrix_memcpy( &(eoe_dst.matrix), &(eoe_src.matrix) );    
   }
-
+//FIXME: La fabrication de D_mu est elle aussi présente en plusieurs exemplaires. On pourrait également la factoriser dans ANIRL.org
 #+end_src
 
 On lance ANIRL :
@@ -245,10 +130,10 @@ On lance ANIRL :
 
 Puis on vérifie que le contrôle obtenu tient la route :
 #+begin_src c :tangle ANIRL_Exp3.c :main no
-  g_mOmega = omega_agent;
-  gsl_matrix* D_agent = gridworld_simulator( 1000 );
-  printf("Longueur moyenne du run de l'agent : %f\n",((double)(D_agent->size1))/1000.);
-  return 0;
+  matrix2file( "ANIRL_Exp3_omega_agent.mat", omega_agent );
+  printf("%d ",D_E->size1);
+  fflush(NULL);
+  return system( "python EvaluateOmega.py ANIRL_Exp3_omega_agent.mat" );
 }
 
 #+end_src
@@ -263,8 +148,13 @@ ANIRL_Exp3.o: ANIRL_Exp3.c GridWorld.h ../greedy.h ../RL_Globals.h ../utils.h  p
 ANIRL_Exp3.exe: ANIRL_Exp3.o ../greedy.o ../utils.o  phipsi.o simulator.o ../LSTDmu.o ../ANIRL.o ../LSPI.o ../LSTDQ.o ../criteria.o ../abbeel2004apprenticeship.o
 	$(O2EXE) -o ANIRL_Exp3.exe ANIRL_Exp3.o ../greedy.o ../utils.o  phipsi.o simulator.o ../LSTDmu.o ../ANIRL.o ../LSPI.o ../LSTDQ.o ../criteria.o ../abbeel2004apprenticeship.o
 
-ANIRL_Exp3: ANIRL_Exp3_D_E.mat ANIRL_Exp3.exe
-	./ANIRL_Exp3.exe
+LM_VALUES="10 1" "15 1" "20 2" "20 10" "20 20" "20 30"
+ANIRL_Exp3: ANIRL_Exp3.exe EvaluateOmega.py DE.py V_Expert.mat
+	for i in $(LM_VALUES); \
+	do \
+	python DE.py $$i > DE.mat; \
+        ./ANIRL_Exp3.exe DE.mat >> ANIRL_Exp3.mat; \
+	done
 
    #+end_src
 
@@ -278,8 +168,78 @@ ANIRL_Exp3_clean:
 	find . -maxdepth 1 -iname "ANIRL_Exp3.exe"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "ANIRL_Exp3.tex"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "ANIRL_Exp3.pdf"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "ANIRL_Exp3_D_E.*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp3_*"   | xargs $(XARGS_OPT) rm
 
   #+end_src
 
 
+
+* Plotting
+#+begin_src python :tangle ANIRL_Exp3_plot.py
+from matplotlib import rc
+rc('text', usetex=True)
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import pylab as pylab
+from Plot import *
+
+D_ANIRL = genfromtxt( "ANIRL_Exp3.mat" )
+[XA,Y_meanA,Y_minA,Y_maxA] = map( array, mean_min_max( D_ANIRL ))
+[XA,Y_meanA,Y_varA] = map( array, mean_var( D_ANIRL ))
+
+Expert = 4.11057152*ones(XA.shape) #python Expert.py to get this value
+Random_mean = 0.44716131254651209*ones(XA.shape)#See Highway.org about Random.py for information on these values
+Random_min = 0.070870373379200005*ones(XA.shape)#python Random.py to get this value
+Random_max = 3.9837417388*ones(XA.shape)#python Random.py to get this value
+Random_var = 0.79871008754797834*ones(XA.shape)#python Random.py to get this value
+x_min = min(XA)
+x_max = max(XA)
+y_max = 5.0 #Comme ca l'expert peut respirer
+y_min = min( Random_min[0],min(Y_minA) ) - 1.2
+
+#Third plot, ANIRL avec les features informatives, seul
+#Second plot, Cascading avec les features informatives, seul
+pylab.figure(1)
+pylab.clf()
+pylab.axis([x_min,x_max,y_min,y_max])
+pylab.xlabel('Number of samples from the expert')
+pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
+pylab.grid(True)
+filled_mean_min_max( pylab, XA, Y_meanA, Y_minA, Y_maxA, 'green', 0.2,'--',"Abbeel \& Ng IRL",None)
+filled_mean_min_max( pylab, XA, Y_meanA, Y_meanA - Y_varA, Y_meanA + Y_varA, 'green', 0.4,'-.',None,None)
+filled_mean_min_max( pylab, XA, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
+filled_mean_min_max( pylab, XA, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
+pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
+pylab.savefig('ANIRL_Exp3_fig1.pdf',transparent=True)
+
+#Fourth file : the legend
+fig = pylab.figure(2)
+figlegend = pylab.figure(figsize=(4,2))
+ax = fig.add_subplot(111)
+#lines = ax.plot([-1,-1],[-1,-2], color='red',label="Cascading IRL",lw=2,linestyle='-')
+lines = ax.plot([-1,-1],[-1,-2], color='green',label="Abbeen \& Ng IRL",lw=2,linestyle='-')
+lines += ax.plot([-1,-1],[-1,-2], color='cyan',label="Agent trained on a random reward",lw=2,linestyle='-')
+lines += ax.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
+lines += ax.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
+lines += ax.plot([-1,-1],[-1,-2], color='blue',label="Expert",lw=2,linestyle='-')
+#figlegend.legend(lines,("Cascading IRL","Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
+figlegend.legend(lines,("Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
+figlegend.savefig("ANIRL_Exp3_legend.pdf")
+
+#+end_src
+FIXME: Le plot concernat ANIRL devrait avoir son code dans ANIRL_Exp6.org et non ici.
+
+#+srcname: ANIRL_Exp3_make
+#+begin_src makefile
+ANIRL_Exp3_plot.py: ANIRL_Exp3.org
+	$(call tangle,"ANIRL_Exp3.org")
+
+ANIRL_Exp3_fig1.pdf: ANIRL_Exp3_plot.py ANIRL_Exp3.mat ../Plot.py
+	python ANIRL_Exp3_plot.py
+
+../Plot.py:
+	make -C .. Plot.py
+
+#+end_src
