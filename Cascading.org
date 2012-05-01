@@ -117,10 +117,7 @@ def shape_as_sasa( D ):
         # If not, then we have a truncated trajectory, and as there is
         # no way to know what a_N+1 was, we drop s_N, a_N, s_N+1
         if( all( s[-1] == ss[-1] ) ):
-            try:
-                aa.extend(a[-1])
-            except TypeError: # a contains only one element
-                aa.append(a)
+            aa.append(a[-1])
         else:
             s = s[:-1]
             a = a[:-1]
