@@ -1,50 +1,22 @@
-Le papier JFPDA11 nécessite des figures qui prennent des plombes. Il faut essayer de relancer ces figures.
+On teste l'aglo de cascading.
 
-La branche master permet de faire ça, mais ce n'est pas le soucis en ce moment.
+A l'heure actuelle, il n'a été testé avec succès que sur le Highway. Et encore, j'ai bidouillé la régression alors que je n'aurais pas dû.
 
-FIXME: Protocole proposé:
-Régler le problème des makefiles des sous dossier qui ne parviennet pas à provoquer la makure d'un fichier dans le dossier parent
-Dans Notations.org centraliser toutes les notations en associant notations programmationnelles et notations mathématiques les unes avec les autres
-Etablir des conventions dans les notations, et pour qu'elles soient respectées, autant que faire se peut les coder dans un formatteur de code automatique
-Lire les guidelines de Rob pike en C ou de google en Python (style guide) et les respecter si possible
-Sélectionner les targets intéressants (ceux déjà publiés par exemple)
-Faire un graphe des Makefiles et les corriger si possible
-Faire en sorte que tous ces targets fonctionnent (on arrive à produire les graphes)
-Automatiser le fait qu'à chaque commit sur un certain repo tous les targets sont exécutés à nouveau et je reçois un mail m'annonçant le résultat.
-Trouver un moyen de découvrir le code non exécuté
-Supprimer le code non exécuté
-Réaliser un document ou des documents de synthèse dans le dossier racine présentant les résultats des différentes expériences (targets). Si possible en rendant le document interactif via org-mode.
-Enfin, descendre chacun de ces targets pour s'assurer que :
-Le code est lisible
-Le blabla est réduit au minimum
-Le blabla permet de comprendre quand le lecteur sait ce que l'expérience fait, et souhaite comprendre le code, uniquement ça. Ceux pour qui on rédige le document sont ceux qui liront le code pour comprendre les expériences.
-Il n'y a pas deux morceaux de code qui font la même chose.
-Enfin regarder s'il y a des FIXME qui restent (on devrait les éliminer au cours du processus) et les éliminer.
-Finalement, passer un coup de lint et de pyChecker
-Après ça, on doit pouvoir peut publier le code
+Pour voir les résultats courants :
+make Cascading_Exp1 (autant de fois que l'on veut de points de données)
+make ANIRL_Exp6 (idem, autant de fois que l'on veur de points de données)
+puis 
+make -C Highway Cascading_Exp1_fig1.pdf
+Cela va créer les fichiers Cascading_Exp1_fig*.pdf
+Avec :
+1 Cascading avec features naturelles
+2 Cascading informatives
+3 ANIRL avec les features informatives (pour comparaison)
+Ainsi qu'un fchier à part avec la légende.
 
-The code in this directory and its subdirectories is notably used to produce the figures of [1]. 
+FIXME: Faire un target unique pour tout ces fichiers
+FIXME: Régler la police qui est différente de celle par défaut de LaTeX (de fait, c'est moche)
 
-The code is written in a literate programming form, using babel and org-mode [2]. It has been "literated" after been written normally, thus it is organized with respect to technical reasons, not as a mental flow. This kind of defeats the point of literate programming and should be corrected "soon".
-
-The Makefile.org file contains a small summary of the content of each other file, as it describes the rules according to which the files must be combined to get the figures of [1].
-
-The source code in this directory is managed by git [3]. It i also uploaded on GitHub [4]. Any bug fixes or suggestion are welcome.
-
-
-DEPENDENCIES
- - I used the GSL [5] throughout the whole thing. Hence, the license under which this work is distributed is the GPL [6].
- - Part of the code (i.e. the part from Umar Syed's driving simulator) requires the CVX package for solving convex optimization problems. It can be found here:
-
-http://www.stanford.edu/~boyd/cvx/
-
-
-Contact and copyright owner : edouard.klein at supelec.fr
-
-[1] E. KLEIN, M. GEIST, O. PIETQUIN, "Batch, Off-policy and Model-Free Apprenticeship Learning". In Proceedings of the IJCAI Workshop on Agents Learning Interactively from Human Teachers (ALIHT 2011), Barcelona (Spain), 6 pages, 2011.
-[2] http://orgmode.org/worg/org-contrib/babel/
-[3] http://git-scm.com/
-[4] https://github.com/edouardklein/RL-and-IRL
-[5] http://www.gnu.org/software/gsl/
-[6] http://www.gnu.org/licenses/gpl-3.0.html
+Prochaine étape :
+Enlever la bidouille de la régression et voir si ça marche ou pas.
 
