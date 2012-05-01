@@ -67,7 +67,7 @@ def regression( data ):
         X[i,:] = data[i][0]
         Y[i,:] = data[i][1]
     #FIXME Achtung regularisation, lambda = 0.1
-    #FIXME Le coefficient de régularisation devrait être réglable
+    #FIXME Le coefficient de regularisation devrait etre reglable
     return dot( dot( scipy.linalg.inv( dot( X.transpose(), X ) +0.1*identity( X.shape[1] )), X.transpose() ) , Y)
 
 def shape_for_E_regression( D, q, psi ):
