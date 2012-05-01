@@ -1,3 +1,7 @@
+Le papier JFPDA11 nécessite des figures qui prennent des plombes. Il faut essayer de relancer ces figures.
+
+La branche master permet de faire ça, mais ce n'est pas le soucis en ce moment.
+
 FIXME: Protocole proposé:
 Régler le problème des makefiles des sous dossier qui ne parviennet pas à provoquer la makure d'un fichier dans le dossier parent
 Dans Notations.org centraliser toutes les notations en associant notations programmationnelles et notations mathématiques les unes avec les autres
