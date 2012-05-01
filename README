@@ -17,6 +17,4 @@ Ainsi qu'un fchier à part avec la légende.
 FIXME: Faire un target unique pour tout ces fichiers
 FIXME: Régler la police qui est différente de celle par défaut de LaTeX (de fait, c'est moche)
 
-Prochaine étape :
-Enlever la bidouille de la régression et voir si ça marche ou pas.
-
+La bidouille vient d'être enlevée dans la régression.
