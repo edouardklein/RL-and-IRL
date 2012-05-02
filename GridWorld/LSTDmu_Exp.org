@@ -27,55 +27,6 @@ We set some constants
 #define ACTION_FILE "actions.mat"
 #+end_src
 
-FIXME: Phi et Psi sont maintenant tanglées dans un fichier à part, précédemment elles l'étaient dans plot.c. Cela va casser l'expérience présente dans ce fichier, mais pour l'instant ce n'est pas mon soucis. Il faudrait cependant réparer ça un de ces quatre.
-FIXME: Egalement, x et y vont de 0 à 4 alors que le code original a l'air de supposer qu'ils vont de 1 à 5
-
-We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
-#+begin_src c :tangle phipsi.c :main no
-#include "GridWorld.h"
-#include <gsl/gsl_matrix.h>
-
-unsigned int g_iK = (GRID_HEIGHT*GRID_WIDTH*4); /* dim(\phi) */
-unsigned int g_iP = (GRID_HEIGHT*GRID_WIDTH); /* dim(\psi) */
-
-gsl_matrix* phi( gsl_matrix* sa ){
-  gsl_matrix* answer = gsl_matrix_calloc( g_iK, 1 );
-  unsigned int x = (unsigned int)gsl_matrix_get( sa, 0, 0 );
-  unsigned int y = (unsigned int)gsl_matrix_get( sa, 0, 1 );
-  unsigned int a = (unsigned int)gsl_matrix_get( sa, 0, 2 );
-  unsigned int index = y*GRID_WIDTH*4 + x*4 + a-1;
-  //if( x == 3 && y == 0 ){
-  //  printf("Phi, Index s: %d | Index sa : %d |",x+5*y,index);
-  //}
-  gsl_matrix_set( answer, index, 0, 1.0 );
-  return answer;
-}
-
-gsl_matrix* psi( gsl_matrix* s ){
-  gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
-  unsigned int x = (unsigned int)gsl_matrix_get( s, 0, 0 );
-  unsigned int y = (unsigned int)gsl_matrix_get( s, 0, 1 );
-  unsigned int index = y*GRID_WIDTH + x;
-  gsl_matrix_set( answer, index, 0, 1.0 );
-  return answer;
-}
-
-#+end_src
-
-#+begin_src c :tangle phipsi.h :main no
-gsl_matrix* phi( gsl_matrix* sa );
-
-gsl_matrix* psi( gsl_matrix* s );
-#+end_src
-
-   #+srcname: LSTDmu_Exp_code_make
-#+begin_src makefile
-phipsi.c: LSTDmu_Exp.org 
-	$(call tangle,"LSTDmu_Exp.org")
-phipsi.h: LSTDmu_Exp.org 
-	$(call tangle,"LSTDmu_Exp.org")
-
-#+end_src
 
 At the beginning of each episode, the player comes back to the lower left cell (i.e. coordinates (1,1) ).
 #+begin_src c :tangle plot.c :main no

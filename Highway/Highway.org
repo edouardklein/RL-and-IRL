@@ -5,6 +5,7 @@ Let us describe the Highway driving simulator inspired by [[http://www.cs.prince
 As it is coded, the problem is fundamentally discrete.
 
 * State and action spaces
+** S and A
 The state space is of dimension $4$ and cardinal $3\cdot 9\cdot 9\cdot 3 = 729$ : 
  - The speed $v$ labelled from $0$ to $2$ from slow to fast.
  - The horizontal position of the blue car (the one controlled by the player) $x_b$, varying from $0$ (completely outside of the three-lane road on the left) to $8$ (completely outside on the right). Each increase thus corresponds to a shift of half a car's width on the right.
@@ -37,7 +38,7 @@ def Sgenerator( ):
 
 A = range(0,5)
     #+end_src
-
+** $\phi$ and $\psi$
 It is useful to associate each state and each state-action pair with an index. This allows for a matricial representation of the problem. Also, features from the state and state-action space are provided.
 
     #+begin_src python :tangle Highway.py
@@ -261,6 +262,7 @@ def P( a ):
     return P_a
 
     #+end_src
+
 * Suggested reward
 ** Definition
   A reward that makes some sense would punish leaving the road, punish collisions even harder and reward going fast :
@@ -342,7 +344,7 @@ from DP_mu import *
 sys.stderr.write("Agent creation...\n")
 P = [Highway.P(a) for a in Highway.A]
 randR = scipy.random.rand(Highway.R().shape[0],Highway.R().shape[1]) - 0.5
-Pi = DP_txt( randR, P, "V_Expert.mat" )
+Pi = DP_txt( randR, P, "V_Random.mat" )
 
 sys.stderr.write("Performances de l'agent aleatoire :\n")
 print Highway.evaluate_Pi( Pi )[0]
@@ -457,7 +459,7 @@ omega = genfromtxt( sys.argv[1] )
 Pi = omega2pi( omega, Highway.phi2, Highway.Sgenerator(), Highway.s_index, [Highway.P( a ) for a in Highway.A ] )
 print Highway.evaluate_Pi( Pi )[0]
   #+end_src
-
+#FIXME ya pas de règles pour fabriquer EvaluateOmega.py
 ** Evaluate R
    How good, with respect to the true reward, is an agent trained over a certain other reward ?
   #+begin_src python :tangle Highway.py

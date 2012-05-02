@@ -18,3 +18,8 @@ FIXME: Faire un target unique pour tout ces fichiers
 FIXME: Régler la police qui est différente de celle par défaut de LaTeX (de fait, c'est moche)
 
 La bidouille vient d'être enlevée dans la régression.
+Pendant que l'expérience tourne sur le PC du boulot, on va modifer le GridWorld pour que le code soit aussi clean que sur le Highway. On veut comparer ANIRL et le Cascading. On va commencer par modifier ANIR_Exp3 (GridWorld, ANIRL, dégradé) pour qu'il utilise le même type de code qu'ANIRL_Exp6 (Highway, ANIRL, dégradé). Ensuite seulement on implémentera le cascading S->R sur le gridworld.
+ANIRL_Exp3 vient d'être testé, ça marche. Ceci dit on a fait quelques changement depuis dans l'espoir de faire marcher Cascading. Qui ne marche pas. Donc je commite maintenant (y compris les résultats d'ANRIL) et je relace ANIRL histoire de voir si les résultats sont encore bons.
+Maintenant, ANIRL_Exp3 fonctionne, mais pas Cascading_Exp2. Il faut savoir pourquoi, aussi l'on va essayer de voir ce que renvoie le classifieur.
+
+

@@ -1,24 +1,341 @@
 #+TITLE: Constants for the Gridworld
 
-The size of the grid can be set here.
-#+begin_src c :tangle GridWorld.h :main no
-#define GRID_HEIGHT 5
-#define GRID_WIDTH 5
-//FIXME: Harmoniser les left down up right et north south east west au niveau des notations
-//FIXME: S'assurer qu'on utilise la même convention chiffre<->action partout
-#define LEFT 1
-#define DOWN 2
-#define UP 3
-#define RIGHT 4
+* State and action spaces
+** S and A
+The state space is of dimension $2$ and cardinal $5\cdot 5 = 25$ : 
+ - The first component, $x$, is the horizontal position, where $x=0$ is the left colum and $x=4$ the right column
+ - The second component, $y$, is the vertical position. $y=0$ for the first line, and $y=4$ for the last (and lower) line.
+
+
+The action space is of dimension one and cardinal $4$. The player can try to :
+ - go south ($0$)
+ - go west ($1$)
+ - go east ($2$)
+ - go north ($3$)
+
+
+The following python code allow one to iterate trough all the states and actions :
+    #+begin_src python :tangle GridWorld.py
+from numpy import *
+import scipy
+import sys
+sys.path+=['..']
+from DP import *
+from DP_mu import *
+from RWC import *
+import random
+
+def Sgenerator( ):
+    for x in range(0,5):
+        for y in range(0,5):
+            yield [x,y]
+
+A = range(0,4)
+    #+end_src
+
+** $\phi$ and $\psi$
+It is useful to associate each state and each state-action pair with an index. This allows for a matricial representation of the problem. Also, features from the state and state-action space are provided.
+    #+begin_src python :tangle GridWorld.py
+def s_index( state ):
+    x = state[0]
+    y = state[1]
+    index = y*5 + x
+    return int(index)
+
+def sa_index( state, action ):
+    x = state[0]
+    y = state[1]
+    a = action
+    index = y*5*4 + x*4 + a
+    return int(index)
+
+def psi( s ):
+    answer = zeros(( 5*5, 1 ))
+    answer[ s_index( s )] = 1.
+    return answer
+
+def phi( s,a ):
+    answer = zeros(( 5*5*4, 1 ))
+    answer[ sa_index( s, a )] = 1.
+    return answer
+    #+end_src
+
+    #+begin_src c :tangle phipsi.c :main no
+#include <gsl/gsl_matrix.h>
+
+unsigned int g_iK = (5*5*4); /* dim(\phi) */
+unsigned int g_iP = (5*5); /* dim(\psi) */
+int s_index( gsl_matrix* state ){
+  unsigned int x = (unsigned int)gsl_matrix_get( state, 0, 0 );
+  unsigned int y = (unsigned int)gsl_matrix_get( state, 0, 1 );
+  unsigned int i = y*5 + x;
+  return i;
+}
+int sa_index( gsl_matrix* sa ){
+  unsigned int x = (unsigned int)gsl_matrix_get( sa, 0, 0 );
+  unsigned int y = (unsigned int)gsl_matrix_get( sa, 0, 1 );
+  unsigned int a = (unsigned int)gsl_matrix_get( sa, 0, 2 );
+  unsigned int i = y*5*4 + x*4 + a;
+  return i;
+}
+
+
+
+gsl_matrix* phi( gsl_matrix* sa ){
+  gsl_matrix* answer = gsl_matrix_calloc( g_iK, 1 );
+  int i = sa_index( sa );
+  gsl_matrix_set( answer, i, 0, 1.0 );
+  return answer;
+}
+
+gsl_matrix* psi( gsl_matrix* s ){
+  gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
+  int i = s_index( s );
+  gsl_matrix_set( answer, i, 0, 1.0 );
+  return answer;
+}
+    #+end_src
+    #+begin_src c :tangle phipsi.h :main no
+int s_index( gsl_matrix* state );
+int sa_index( gsl_matrix* sa );
+gsl_matrix* psi( gsl_matrix* s );
+gsl_matrix* phi( gsl_matrix* sa );
+    #+end_src
+
+#+srcname: GridWorld_make
+  #+begin_src makefile
+phipsi.c: GridWorld.org 
+	$(call tangle,"GridWorld.org")
+phipsi.h: GridWorld.org 
+	$(call tangle,"GridWorld.org")
+
 #+end_src
+FIXME: Phi et Psi sont maintenant tanglées dans un fichier à part, précédemment elles l'étaient dans plot.c. Cela va casser l'expérience présente dans ce fichier, mais pour l'instant ce n'est pas mon soucis. Il faudrait cependant réparer ça un de ces quatre.
+
+* Dynamics
+  
+  Actions have non deterministic outcomes. 3 times out of 10, the results of an action will change and be the expected result of another, different action. Sometimes (when the agent is near the border) the results of two actions can be identical.
+
+
+  One can associate a probability matrix with each action, describing the transition probability from every state to every other if the considered action is taken at each step.
+    #+begin_src python :tangle GridWorld.py
+def next_states( state, action ):
+    "Returns the list [[s,w],...] of next possible states and associated probability"
+    x = state[0]
+    y = state[1]
+    x_south = x
+    y_south = y + 1 if y!=4 else 4
+    x_west = x - 1 if x!=0 else 0
+    y_west = y
+    x_east = x + 1 if x!=4 else 4
+    y_east = y 
+    x_north = x
+    y_north = y - 1 if y!=0 else 0
+    weights = zeros((1,4)) + .1
+    weights[0,action] = 0.7
+    assert abs(sum(weights) - 1.) < 0.00001
+    states = map( array, [[x_south,y_south],[x_west,y_west],[x_east,y_east],[x_north,y_north]]) #Same order as specified in the textual description of the action space
+    return zip( states, weights[0] )
+
+def P( a ):
+    "Returns the matrix of transition probability for action a."
+    P_a = zeros((5*5,5*5))
+    for state in Sgenerator():
+        current_index = s_index( state )
+        states = next_states( state, a )
+        for sdash,w in states:
+            index_dash = s_index( sdash )
+            P_a[current_index, index_dash] += w
+    return P_a
+
+    #+end_src
+
+* Suggested reward
+** Definition
+   We arbitrarily decide that we want the expert to go to the north east corner.
+    #+begin_src python :tangle GridWorld.py
+def R( ):
+    reward = zeros((5*5,1))
+    index = s_index([4,0])
+    reward[index] = 1.
+    return reward
+
+    #+end_src
+
+** Training an expert
+One can compute the probability matrix associated with an expert's policy with respect to this reward as well as the corresponding feature expectation thanks to :
+    #+begin_src python :tangle Expert.py
+import sys
+sys.path+=['..']
+import GridWorld
+from DP import *
+from DP_mu import *
+
+print "Expert creation..."
+P = [GridWorld.P(a) for a in GridWorld.A]
+Pi_E = DP_txt( GridWorld.R(), P, "V_Expert.mat" )
+print "mu_E computation..."
+Mu_E = DP_mu( Pi_E, identity(5*5) )
+
+savetxt( "Pi_E.mat", Pi_E, "%e", "\t" )
+savetxt( "Mu_E.mat", Mu_E, "%e", "\t" )
+print "Performances de l'expert :"
+print GridWorld.evaluate_Pi( Pi_E )
+    #+end_src
+
+#+srcname: GridWorld_make
+  #+begin_src makefile
+Expert.py: GridWorld.org 
+	$(call tangle,"GridWorld.org")
+
+Pi_E.mat: Expert.py ../DP.py ../DP_mu.py
+	python Expert.py
+
+Mu_E.mat: Expert.py ../DP.py ../DP_mu.py
+	python Expert.py
+
+V_Expert.mat: Expert.py ../DP.py ../DP_mu.py
+	python Expert.py
+
+  #+end_src
+
+** Obtaining samples from the expert
+    #+begin_src python :tangle DE.py
+import sys
+sys.path+=['..']
+from DP import *
+import GridWorld
+
+L = int( sys.argv[ 1 ])
+M = int( sys.argv[ 2 ])
+V_E = genfromtxt( "V_Expert.mat" )
+R = GridWorld.R()
+omega_E = V2omega( R, V_E, GridWorld.Sgenerator(), GridWorld.s_index,\
+[GridWorld.P(a) for a in GridWorld.A], GridWorld.sa_index )
+trajs = GridWorld.omega_play( omega_E, L, M ) 
+for trans in trajs:
+    for c in trans:
+        print "%d "%c,
+    print
+    #+end_src
+#+srcname: GridWorld_make
+#+begin_src makefile
+DE.py: GridWorld.org
+	$(call tangle,"GridWorld.org")
+
+#+end_src
+
+** Random reward baseline
+   One can wonder waht kind of performance gets an agent trained on a random reward.
+    #+begin_src python :tangle Random.py
+import sys
+sys.path+=['..']
+import scipy
+import GridWorld
+from DP import *
+from DP_mu import *
+
+sys.stderr.write("Agent creation...\n")
+P = [GridWorld.P(a) for a in GridWorld.A]
+randR = scipy.random.rand(GridWorld.R().shape[0],GridWorld.R().shape[1]) - 0.5
+Pi = DP_txt( randR, P, "V_Random.mat" )
+
+sys.stderr.write("Performances de l'agent aleatoire :\n")
+print GridWorld.evaluate_Pi( Pi )[0]
+    #+end_src
+This code can be executed a few times like so :
+ : for i in `seq 1 50`; do python Random.py >> Random.mat ; done
+
+Then we can get the mean, min and max values with :
+ : python -c "from numpy import *;D=genfromtxt('Random.mat');print [mean(D),min(D),max(D)]"
+
+
+#+srcname: GridWorld_make
+  #+begin_src makefile
+Random.py: GridWorld.org 
+	$(call tangle,"GridWorld.org")
+
+  #+end_src
+
+
+* Playing with the simulator and evaluationg policies
+** Evaluate a policy
+     L'évaluation d'une politique se fait grâce à :
+  #+begin_src python :tangle GridWorld.py
+def evaluate_Pi( Pi ):
+    sys.stderr.write( "Mu computation...\n" )
+    Mu = DP_mu( Pi, identity( 5*5 ))
+    mean_Mu = mean( Mu, 0 )
+    return dot( mean_Mu, R() )
+
+  #+end_src
+
+** Evaluate omega
+  Lorsque l'on dispose d'une description de la Q fonction optimale sous la forme d'une matrice $\omega$ on peut l'évaluer comme ça :
+  #+begin_src python :tangle EvaluateOmega.py
+import sys
+sys.path+=['..']
+import GridWorld
+from DP import *
+from DP_mu import *
+
+omega = genfromtxt( sys.argv[1] )
+Pi = omega2pi( omega, GridWorld.phi, GridWorld.Sgenerator(), GridWorld.s_index, [GridWorld.P( a ) for a in GridWorld.A ] )
+print GridWorld.evaluate_Pi( Pi )[0]
+  #+end_src
+
+** Evaluate R
+   How good, with respect to the true reward, is an agent trained over a certain other reward ?
+  #+begin_src python :tangle GridWorld.py
+def evaluate_theta( theta, l_psi ):
+    dicR = {}
+    for s in Sgenerator():
+        index = s_index( s )
+        dicR[ index ] = dot( theta.transpose(), l_psi( s ) )
+    R_theta = zeros(( len(dicR), 1 ))
+    for i in dicR:
+        R_theta[ i ] = dicR[ i ]
+    sys.stderr.write( "Pi computation...\n" )
+    Pi = DP_txt( R_theta, [P(a) for a in A], "V_agent.mat" )
+    return evaluate_Pi( Pi )
+
+  #+end_src
+   
+
+** Let a policy control the car
+  On peut aussi obtenir les trajectoires tirées par une politique :
+    #+begin_src python :tangle GridWorld.py
+def omega_play( omega, L, M ):
+    "Plays M episodes of length L, actig according to the greedy policy described by omega. Returns the transitions."
+    answer = zeros(( L*M, 2+1+2+1+1 ))
+    reward  = R()
+    for iep in range(0,M):
+        #state = array(map( int, array([5,5])*scipy.rand(2)))
+        state = array([0,4])
+        eoe = 1
+        itrans = 0
+        while eoe == 1:
+            action = greedy_policy( state, omega, phi, A )
+            next_state = weighted_choice( next_states( state, action ))
+            r = reward[ s_index( state ) ]
+            eoe = 0 if itrans >= L-1 or (state[0]==4 and state[1]==0) else 1 #0 means end of episode.
+            index = iep*L + itrans
+            trans = []
+            [ trans.extend(i) for i in [state, [action], next_state, [r, eoe] ]]
+            answer[ index, : ] = trans
+            state = next_state
+            itrans+=1
+    return answer
+
+    #+end_src
 
 * Makefile rules
   We just tangle the file and give a rule to clean the result. Nothing fancy here.
   #+srcname: GridWorld_make
   #+begin_src makefile
-GridWorld.h: GridWorld.org
+GridWorld.py: GridWorld.org
 	$(call tangle,"GridWorld.org")
 
 GridWorld_clean:
-	find . -maxdepth 1 -iname "GridWorld.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "GridWorld.py"   | xargs $(XARGS_OPT) rm
   #+end_src
