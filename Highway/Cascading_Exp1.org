@@ -13,18 +13,22 @@ from numpy import *
 import scipy
 import Cascading
 import Highway
+from DP import *
+from DP_mu import *
 
 D_E = genfromtxt( sys.argv[1] )
 Data = map( lambda trans: [trans[0:4],trans[4:5][0],trans[5:9],trans[10:11][0]], D_E ) #s,a,s',eoe 
-theta_NE,theta_NC = Cascading.run( Data, Highway.psi, Highway.phi, Highway.A )
-theta_IE,theta_IC = Cascading.run( Data, Highway.psi2, Highway.phi2, Highway.A )
+theta_NE,theta_NC,omega_N = Cascading.run( Data, Highway.psi, Highway.phi, Highway.A )
+theta_IE,theta_IC,omega_I = Cascading.run( Data, Highway.psi2, Highway.phi2, Highway.A )
 
-perf_NE = Highway.evaluate_theta( theta_NE, Highway.psi )
 perf_NC = Highway.evaluate_theta( theta_NC, Highway.psi )
-perf_IE = Highway.evaluate_theta( theta_IE, Highway.psi2 )
 perf_IC = Highway.evaluate_theta( theta_IC, Highway.psi2 )
+Pi_CN = omega2pi( omega_N, Highway.phi, Highway.Sgenerator(), Highway.s_index, [Highway.P( a ) for a in Highway.A ] )
+perf_CN = Highway.evaluate_Pi( Pi_CN )[0]
+Pi_CI = omega2pi( omega_I, Highway.phi2, Highway.Sgenerator(), Highway.s_index, [Highway.P( a ) for a in Highway.A ] )
+perf_CI = Highway.evaluate_Pi( Pi_CI )[0]
 
-print "%d\t%lf\t%lf\t%lf\t%lf"%(D_E.shape[0], perf_NE, perf_NC, perf_IE, perf_IC )
+print "%d\t%lf\t%lf\t%lf\t%lf"%(D_E.shape[0], perf_NC, perf_IC, perf_CN, perf_CI )
 
 #+end_src
 
@@ -60,18 +64,18 @@ from Plot import *
 
 D_ANIRL = genfromtxt( "ANIRL_Exp6.mat" )
 D_Cascading = genfromtxt( "Cascading_Exp1.mat" )
-D_NE = D_Cascading[:,[0,1]]
-#D_NC = D_Cascading[:,[0,2]]
-D_IE = D_Cascading[:,[0,3]]
-#D_IC = D_Cascading[:,[0,4]]
+D_NC = D_Cascading[:,[0,1]]
+D_IC = D_Cascading[:,[0,2]]
 [XA,Y_meanA,Y_minA,Y_maxA] = map( array, mean_min_max( D_ANIRL ))
 [XA,Y_meanA,Y_varA] = map( array, mean_var( D_ANIRL ))
-[XNE,Y_meanNE,Y_minNE,Y_maxNE] = map( array, mean_min_max( D_NE ))
-[XNE,Y_meanNE,Y_varNE] = map( array, mean_var( D_NE ))
-#[XNC,Y_meanNC,Y_minNC,Y_maxNC] = mean_min_max( D_NC )
-[XIE,Y_meanIE,Y_minIE,Y_maxIE] = map( array,mean_min_max( D_IE ))
-[XIE,Y_meanIE,Y_varIE] = map( array,mean_var( D_IE ))
-#[XIC,Y_meanIC,Y_minIC,Y_maxIC] = mean_min_max( D_IC )
+[XNC,Y_meanNC,Y_minNC,Y_maxNC] = map( array, mean_min_max( D_NC ))
+[XNC,Y_meanNC,Y_varNC] = map( array, mean_var( D_NC ))
+[XIC,Y_meanIC,Y_minIC,Y_maxIC] = map( array,mean_min_max( D_IC ))
+[XIC,Y_meanIC,Y_varIC] = map( array,mean_var( D_IC ))
+[XCN,Y_meanCN,Y_minCN,Y_maxCN] = map( array,mean_min_max( D_CN ))
+[XCN,Y_meanCN,Y_varCN] = map( array,mean_var( D_CN ))
+[XCI,Y_meanCI,Y_minCI,Y_maxCI] = map( array,mean_min_max( D_CI ))
+[XCI,Y_meanCI,Y_varCI] = map( array,mean_var( D_CI ))
 
 Expert = 7.74390968*ones(XA.shape) #python Expert.py to get this value
 Random_mean = -1.5821833963484*ones(XA.shape)#See Highway.org about Random.py for information on these values
@@ -81,7 +85,7 @@ Random_var = 1.4465398450419833*ones(XA.shape)#python Random.py to get this valu
 x_min = min(XA)
 x_max = max(XA)
 y_max = 9.5 #Comme ca l'expert peut respirer
-y_min = min( Random_min[0],min(Y_minA), min(Y_minNE), min(Y_minIE) ) - 0.2
+y_min = min( Random_min[0],min(Y_minA), min(Y_minNC), min(Y_minIC) ) - 0.2
 
 #First plot, Cascading with natural features, alone
 pylab.figure(1)
@@ -90,10 +94,10 @@ pylab.axis([x_min,x_max,y_min,y_max])
 pylab.xlabel('Number of samples from the expert')
 pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
 pylab.grid(True)
-filled_mean_min_max( pylab, XNE, Y_meanNE, Y_minNE, Y_maxNE, 'red', 0.2,'--',"Cascading IRL",None)
-filled_mean_min_max( pylab, XNE, Y_meanNE, Y_meanNE - Y_varNE, Y_meanNE + Y_varNE, 'red', 0.4,'-.' ,None,None)
-filled_mean_min_max( pylab, XNE, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
-filled_mean_min_max( pylab, XNE, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
+filled_mean_min_max( pylab, XNC, Y_meanNC, Y_minNC, Y_maxNC, 'red', 0.2,'--',"Cascading IRL",None)
+filled_mean_min_max( pylab, XNC, Y_meanNC, Y_meanNC - Y_varNC, Y_meanNC + Y_varNC, 'red', 0.4,'-.' ,None,None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
 pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
 pylab.savefig('Cascading_Exp1_fig1.pdf')
 
@@ -104,10 +108,10 @@ pylab.axis([x_min,x_max,y_min,y_max])
 pylab.xlabel('Number of samples from the expert')
 pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
 pylab.grid(True)
-filled_mean_min_max( pylab, XIE, Y_meanIE, Y_minIE, Y_maxIE, 'red', 0.2,'--',"Cascading IRL",None)
-filled_mean_min_max( pylab, XIE, Y_meanIE, Y_meanIE-Y_varIE, Y_meanIE+Y_varIE, 'red', 0.4,'-.',None,None)
-filled_mean_min_max( pylab, XNE, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
-filled_mean_min_max( pylab, XNE, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
+filled_mean_min_max( pylab, XIC, Y_meanIC, Y_minIC, Y_maxIC, 'red', 0.2,'--',"Cascading IRL",None)
+filled_mean_min_max( pylab, XIC, Y_meanIC, Y_meanIC-Y_varIC, Y_meanIC+Y_varIC, 'red', 0.4,'-.',None,None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
 pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
 pylab.savefig('Cascading_Exp1_fig2.pdf',transparent=True)
 
@@ -121,8 +125,8 @@ pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
 pylab.grid(True)
 filled_mean_min_max( pylab, XA, Y_meanA, Y_minA, Y_maxA, 'green', 0.2,'--',"Abbeel \& Ng IRL",None)
 filled_mean_min_max( pylab, XA, Y_meanA, Y_meanA - Y_varA, Y_meanA + Y_varA, 'green', 0.4,'-.',None,None)
-filled_mean_min_max( pylab, XNE, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
-filled_mean_min_max( pylab, XNE, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
 pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
 pylab.savefig('Cascading_Exp1_fig3.pdf',transparent=True)
 
@@ -138,6 +142,35 @@ lines += ax.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,
 lines += ax.plot([-1,-1],[-1,-2], color='blue',label="Expert",lw=2,linestyle='-')
 figlegend.legend(lines,("Cascading IRL","Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
 figlegend.savefig("Cascading_Exp1_legend.pdf")
+
+#Fourth plot, Classification avec les features naturelles, seul
+pylab.figure(5)
+pylab.clf()
+pylab.axis([x_min,x_max,y_min,y_max])
+pylab.xlabel('Number of samples from the expert')
+pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
+pylab.grid(True)
+filled_mean_min_max( pylab, XCN, Y_meanCN, Y_minCN, Y_maxCN, 'yellow', 0.2,'--',"Classification with natural features",None)
+filled_mean_min_max( pylab, XCN, Y_meanCN, Y_meanCN - Y_varCN, Y_meanCN + Y_varCN, yellow', 0.4,'-.',None,None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
+pylab.plot(XCN,Expert, color='blue',label="Expert",lw=2)
+pylab.savefig('Cascading_Exp1_fig4.pdf',transparent=True)
+
+#Fifth plot, Classification avec les features informatives, seul
+pylab.figure(6)
+pylab.clf()
+pylab.axis([x_min,x_max,y_min,y_max])
+pylab.xlabel('Number of samples from the expert')
+pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
+pylab.grid(True)
+filled_mean_min_max( pylab, XCI, Y_meanCI, Y_minCI, Y_maxCI, 'yellow', 0.2,'--',"Classification with natural features",None)
+filled_mean_min_max( pylab, XCI, Y_meanCI, Y_meanCI - Y_varCI, Y_meanCI + Y_varCI, yellow', 0.4,'-.',None,None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
+filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
+pylab.plot(XCI,Expert, color='blue',label="Expert",lw=2)
+pylab.savefig('Cascading_Exp1_fig4.pdf',transparent=True)
+
 
 #+end_src
 FIXME: Le plot concernat ANIRL devrait avoir son code dans ANIRL_Exp6.org et non ici.
