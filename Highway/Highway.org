@@ -468,6 +468,19 @@ Pi = omega2pi( omega, Highway.phi2, Highway.Sgenerator(), Highway.s_index, [High
 print Highway.evaluate_Pi( Pi )[0]
   #+end_src
 #FIXME ya pas de règles pour fabriquer EvaluateOmega.py
+  Si l'on utilise les features naturelles, alors il convient d'utilser :
+  #+begin_src python :tangle EvaluateOmegaN.py
+import sys
+sys.path+=['..']
+import Highway
+from DP import *
+from DP_mu import *
+
+omega = genfromtxt( sys.argv[1] )
+Pi = omega2pi( omega, Highway.phi, Highway.Sgenerator(), Highway.s_index, [Highway.P( a ) for a in Highway.A ] )
+print Highway.evaluate_Pi( Pi )[0]
+  #+end_src
+
 ** Evaluate R
    How good, with respect to the true reward, is an agent trained over a certain other reward ?
   #+begin_src python :tangle Highway.py

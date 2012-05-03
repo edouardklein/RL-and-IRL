@@ -125,7 +125,7 @@ On lance ANIRL :
 Puis on vérifie que le contrôle obtenu tient la route :
 #+begin_src c :tangle ANIRL_Exp5.c :main no
   matrix2file( "ANIRL_Exp5_omega_agent.mat", omega_DP );
-  return system( "python EvaluateOmega.py ANIRL_Exp5_omega_agent.mat" );
+  return system( "python EvaluateOmegaN.py ANIRL_Exp5_omega_agent.mat" );
 }
 
 #+end_src
