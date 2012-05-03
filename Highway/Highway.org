@@ -395,6 +395,11 @@ DE.py: Highway.org
 * Utilities
 ** omega to mu
   ANIRL needs to compute the feature expectation of a policy described by a $\omega$ matrix.
+
+  #+begin_src python :tangle Highway.py
+def S_0():
+    return array( [1,2,2,1] )
+#+end_src
   #+begin_src python :tangle omega2mu.py
 import sys
 sys.path+=['..']
@@ -501,27 +506,6 @@ def omega_play( omega, L, M ):
             answer[ index, : ] = trans
             state = next_state
     return answer
-    #+end_src
-** Let a random player control the car
-
-def random_play( L, M ):
-    "Plays M episodes of length L, actig randomly at each step. Returns the transitions."
-    answer = zeros(( L*M, 4+1+4+1+1 ))
-    reward = R()
-    for iep in range(0,M):
-        state = S_0()
-        for itrans in range(0,L):
-            action = random.choice( A )
-            next_state = random.choice( next_states( state, action ))
-            r = reward[ s_index( state ) ]
-            eoe = 1 if itrans < L-1 else 0
-            index = iep*L + itrans
-            trans = []
-            [ trans.extend(i) for i in [state, [action], next_state, [r, eoe] ]]
-            answer[ index, : ] = trans
-            state = next_state
-    return answer
-
     #+end_src
 
 * Stuff

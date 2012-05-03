@@ -125,7 +125,7 @@ On lance ANIRL :
 Puis on vérifie que le contrôle obtenu tient la route :
 #+begin_src c :tangle ANIRL_Exp5.c :main no
   matrix2file( "ANIRL_Exp5_omega_agent.mat", omega_DP );
-  return system( "python PlayOmega.py ANIRL_Exp5_omega_agent.mat" );
+  return system( "python EvaluateOmega.py ANIRL_Exp5_omega_agent.mat" );
 }
 
 #+end_src
@@ -149,7 +149,7 @@ ANIRL_Exp5.o: ANIRL_Exp5.c ../utils.h ../greedy.h ../RL_Globals.h ../IRL_Globals
 ANIRL_Exp5.exe: ANIRL_Exp5.o ../greedy.o ../utils.o ../ANIRL.o ANIRL_Exp5_mu_pi.o 
 	$(O2EXE) -o ANIRL_Exp5.exe ANIRL_Exp5.o ../greedy.o ../utils.o ../ANIRL.o ANIRL_Exp5_mu_pi.o
 
-ANIRL_Exp5: ANIRL_Exp5.exe  Mu_E.mat ANIRL_Exp5_mu_E_s0.mat theta2omega.py omega2mu.py PlayOmega.py
+ANIRL_Exp5: ANIRL_Exp5.exe  Mu_E.mat ANIRL_Exp5_mu_E_s0.mat theta2omega.py omega2mu.py
 	./ANIRL_Exp5.exe
 
 ../ANIRL.h:
@@ -157,6 +157,44 @@ ANIRL_Exp5: ANIRL_Exp5.exe  Mu_E.mat ANIRL_Exp5_mu_E_s0.mat theta2omega.py omega
 
 ../ANIRL.o:
 	make -C .. ANIRL.o
+
+#+end_src
+
+* Plotting
+#+begin_src python :tangle ANIRL_Exp5_plot.py
+from matplotlib import rc
+rc('text', usetex=True)
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import pylab as pylab
+from Plot import *
+
+D = genfromtxt( "ANIRL_Exp5.mat" )
+
+myPlot = Plot()
+myPlot.Expert = 7.74390968 #python Expert.py to get this value
+myPlot.Random_mean = -1.5821833963484#See Highway.org about Random.py for information on these values
+myPlot.Random_min = -4.0007295890199996#python Random.py to get this value
+myPlot.Random_max = 2.7064859345599999#python Random.py to get this value
+myPlot.Random_var = 1.4465398450419833#python Random.py to get this value
+
+myPlot.ymin = -5
+myPlot.ymax = 10
+
+myPlot.plot( D, 'blue', 'ANIRL_Exp5_fig1.pdf' )
+
+
+#+end_src
+
+#+srcname: ANIRL_Exp5_make
+#+begin_src makefile
+ANIRL_Exp5_plot.py: ANIRL_Exp5.org
+	$(call tangle,"ANIRL_Exp5.org")
+
+ANIRL_Exp5_fig1.pdf: ANIRL_Exp5_plot.py ANIRL_Exp5.mat ../Plot.py
+	python ANIRL_Exp5_plot.py
 
 #+end_src
 

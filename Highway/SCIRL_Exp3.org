@@ -138,7 +138,6 @@ myPlot.plot( D, 'red', 'SCIRL_Exp3_fig1.pdf' )
 
 
 #+end_src
-FIXME: Le plot concernat ANIRL devrait avoir son code dans ANIRL_Exp6.org et non ici.
 
 #+srcname: SCIRL_Exp3_make
 #+begin_src makefile
