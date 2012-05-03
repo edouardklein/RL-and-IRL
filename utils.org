@@ -149,6 +149,9 @@ def a2str(a):
   Some code used to plot mean, min and maxes
   #+begin_src python :tangle Plot.py
 from numpy import *
+import scipy
+import pylab as pylab
+
 
 def mean_min_max( D ):
     "Returns the abscissa, mean, min and max value for each abscissa in matrix D. D follows format : [[x,y],...,[x,y]]"
@@ -192,6 +195,37 @@ def filled_mean_min_max( p, X, Y_mean, Y_min, Y_max, color, _alpha, style, lblma
         p.plot( X, Y_min, color=color,lw=1,linestyle=style, label=lblminmax)
     p.plot( X, Y_max, color=color,lw=1,linestyle=style)
     p.fill_between(X,Y_min,Y_max,facecolor=color,alpha=_alpha)
+
+class Plot:
+    Random_mean = None
+    Random_min = None
+    Random_var = None
+    Random_max = None
+    Expert = None
+    ymin = None
+    ymax = None
+
+    def __init__( self ):
+        pass
+    def plot( self, D, color, filename ):
+        [X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D ))
+        [X,Y_mean,Y_var] = map( array, mean_var( D ))
+        pylab.figure(1)
+        pylab.clf()
+        x_min = min(X)
+        x_max = max(X)
+        y_max = self.ymax if self.ymax else mint(max( self.Expert, max( Y_max + Y_var) ))+1
+        y_min = self.ymin if self.ymin else int(min( self.Random_min,min(Y_min - Y_var) ) - 1)
+        pylab.axis([x_min,x_max,y_min,y_max])
+        pylab.xlabel('Number of samples from the expert')
+        pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
+        pylab.grid(True)
+        filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, color, 0.2,'--',None,None)
+        filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, color, 0.4,'-.',None,None)
+        filled_mean_min_max( pylab, X, self.Random_mean*ones(X.shape), self.Random_min*ones(X.shape), self.Random_max*ones(X.shape), 'cyan',0.2,'--',"Agent trained on a random reward",None)
+        filled_mean_min_max( pylab, X, self.Random_mean*ones(X.shape), (self.Random_mean-self.Random_var)*ones(X.shape), (self.Random_mean+self.Random_var)*ones(X.shape), 'cyan',0.4,'-.',None,None)
+        pylab.plot(X,self.Expert*ones(X.shape), color='cyan',label="Expert",lw=2,ls=':')
+        pylab.savefig(filename,transparent=True)
 
   #+end_src
 ** Random Wighted Choice  
