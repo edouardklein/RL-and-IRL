@@ -626,7 +626,6 @@ def DP( Reward, Actions ): #FIXME devrait s'appeler Pactions ou qqc du genre
         Ppi[s] = (g_vActions[ g_vPi[s] ])[s]
     return Ppi
 
-
 def DP_txt( Reward, Actions, Filename ):
     "Same as DP, mais sauve la fonction de valeur dans un fichier."
     #pdb.set_trace()
@@ -666,6 +665,53 @@ def DP_txt( Reward, Actions, Filename ):
     Ppi = zeros((n,n))
     for s in range(0,n):
         Ppi[s] = (g_vActions[ int(g_vPi[s]) ])[s]
+    savetxt( Filename, g_vV, "%e", "\t" )
+    return Ppi
+#FIXME reecrire toutes ces fonctions de maniere plus succinte
+
+def QSA( s, a, s_index, sa_index ):
+    return g_vReward[sa_index(s,a)] + 0.9 * dot( (g_vActions[ a ])[s_index(s)], g_vV.transpose() )
+
+def DP_txt_SA( Reward, States, Actions, s_index, sa_index, Filename ):
+    "Same as DP, mais sauve la fonction de valeur dans un fichier."
+    #pdb.set_trace()
+    global g_vReward
+    global g_vActions
+    global g_vV
+    global g_vPi
+    n = len( Reward ) #cardinality of state ation space
+    m = len( Actions ) #Cardinality of action space
+    n = n/m #cardinality of state space
+    g_vReward = Reward
+    g_vActions = Actions
+    #g_vPi = map( int, floor( scipy.rand( n )*m ) )
+    g_vPi = zeros(n)
+    #g_vV = scipy.rand( n )
+    g_vV = zeros(n)
+    #While things change,
+    changed = True
+    while changed:
+        changed = 0
+        #For each state
+        for s in States:
+            old_pi = g_vPi[ s_index(s) ]
+            old_V = g_vV[ s_index(s) ]
+            chosen_a = 0
+            max_Q = QSA( s, chosen_a, s_index, sa_index )
+            #Select the action that maximizes Q
+            for a in range(0,m):
+                fQ = QSA( s, a, s_index, sa_index )
+                if( fQ > max_Q ):
+                    max_Q = fQ
+                    chosen_a = a
+            g_vPi[ s_index(s) ] = chosen_a
+            g_vV[ s_index(s) ] = max_Q
+            if( g_vPi[ s_index(s) ] != old_pi or g_vV[ s_index(s) ] != old_V ):
+                changed = 1
+    #Construct the pobability matrix from the policy
+    Ppi = zeros((n,n))
+    for s in States:
+        Ppi[s_index(s)] = (g_vActions[ int(g_vPi[s_index(s)]) ])[s_index(s)]
     savetxt( Filename, g_vV, "%e", "\t" )
     return Ppi
 
