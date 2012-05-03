@@ -247,7 +247,7 @@ This code can be executed a few times like so :
  : for i in `seq 1 50`; do python Random.py >> Random.mat ; done
 
 Then we can get the mean, min and max values with :
- : python -c "from numpy import *;D=genfromtxt('Random.mat');print [mean(D),min(D),max(D)]"
+ : python -c "from numpy import *;import sys;sys.path+=['..'];from Plot import *;D=genfromtxt('Random.mat');print [mean(D),min(D),max(D),naive_variance(D)]"
 
 
 #+srcname: GridWorld_make
