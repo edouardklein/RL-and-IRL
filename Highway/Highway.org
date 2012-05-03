@@ -329,6 +329,9 @@ Pi_E.mat: Expert.py ../DP.py ../DP_mu.py
 Mu_E.mat: Expert.py ../DP.py ../DP_mu.py
 	python Expert.py
 
+V_Expert.mat: Expert.py ../DP.py ../DP_mu.py
+	python Expert.py
+
   #+end_src
 
 ** Random reward baseline

@@ -300,6 +300,21 @@ def evaluate_theta( theta, l_psi ):
     return evaluate_Pi( Pi )
 
   #+end_src
+  #+begin_src python :tangle GridWorld.py
+def evaluate_thetaSA( theta, l_phi ):
+    dicR = {}
+    for s in Sgenerator():
+        for a in A:
+            index = sa_index( s,a )
+            dicR[ index ] = dot( theta.transpose(), l_phi( s, a ) )
+    R_theta = zeros(( len(dicR), 1 ))
+    for i in dicR:
+        R_theta[ i ] = dicR[ i ]
+    sys.stderr.write( "Pi computation...\n" )
+    Pi = DP_txt_SA( R_theta, [s for s in Sgenerator()], [P(a) for a in A], s_index, sa_index, "V_agent.mat" )
+    return evaluate_Pi( Pi )
+
+  #+end_src
    
 
 ** Let a policy control the car
