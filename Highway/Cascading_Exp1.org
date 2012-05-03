@@ -36,7 +36,7 @@ print "%d\t%lf\t%lf\t%lf\t%lf"%(D_E.shape[0], perf_NC, perf_IC, perf_CN, perf_CI
 #+begin_src makefile
 Cascading_Exp1.py: Cascading_Exp1.org
 	$(call tangle,"Cascading_Exp1.org")
-
+#FIXME Il faudrait rendre les L constant, apparament ya des soucis
 LM_VALUES="3 3" "5 5" "7 7" "10 10" "15 15" "20 20"
 Cascading_Exp1: Cascading_Exp1.py Highway.py ../DP.py Mu_E.mat ../Cascading.py ../LAFEM.py DE.py ../a2str.py
 	for i in $(LM_VALUES); \
@@ -62,12 +62,11 @@ import scipy
 import pylab as pylab
 from Plot import *
 
-D_ANIRL = genfromtxt( "ANIRL_Exp6.mat" )
 D_Cascading = genfromtxt( "Cascading_Exp1.mat" )
 D_NC = D_Cascading[:,[0,1]]
 D_IC = D_Cascading[:,[0,2]]
-[XA,Y_meanA,Y_minA,Y_maxA] = map( array, mean_min_max( D_ANIRL ))
-[XA,Y_meanA,Y_varA] = map( array, mean_var( D_ANIRL ))
+D_CN = D_Cascading[:,[0,3]]
+D_CI = D_Cascading[:,[0,4]]
 [XNC,Y_meanNC,Y_minNC,Y_maxNC] = map( array, mean_min_max( D_NC ))
 [XNC,Y_meanNC,Y_varNC] = map( array, mean_var( D_NC ))
 [XIC,Y_meanIC,Y_minIC,Y_maxIC] = map( array,mean_min_max( D_IC ))
@@ -77,15 +76,15 @@ D_IC = D_Cascading[:,[0,2]]
 [XCI,Y_meanCI,Y_minCI,Y_maxCI] = map( array,mean_min_max( D_CI ))
 [XCI,Y_meanCI,Y_varCI] = map( array,mean_var( D_CI ))
 
-Expert = 7.74390968*ones(XA.shape) #python Expert.py to get this value
-Random_mean = -1.5821833963484*ones(XA.shape)#See Highway.org about Random.py for information on these values
-Random_min = -4.0007295890199996*ones(XA.shape)#python Random.py to get this value
-Random_max = 2.7064859345599999*ones(XA.shape)#python Random.py to get this value
-Random_var = 1.4465398450419833*ones(XA.shape)#python Random.py to get this value
-x_min = min(XA)
-x_max = max(XA)
+Expert = 7.74390968*ones(XNC.shape) #python Expert.py to get this value
+Random_mean = -1.5821833963484*ones(XNC.shape)#See Highway.org about Random.py for information on these values
+Random_min = -4.0007295890199996*ones(XNC.shape)#python Random.py to get this value
+Random_max = 2.7064859345599999*ones(XNC.shape)#python Random.py to get this value
+Random_var = 1.4465398450419833*ones(XNC.shape)#python Random.py to get this value
+x_min = min(XNC)
+x_max = max(XNC)
 y_max = 9.5 #Comme ca l'expert peut respirer
-y_min = min( Random_min[0],min(Y_minA), min(Y_minNC), min(Y_minIC) ) - 0.2
+y_min = min( Random_min[0],min(Y_minNC), min(Y_minNC), min(Y_minIC) ) - 0.2
 
 #First plot, Cascading with natural features, alone
 pylab.figure(1)
@@ -98,7 +97,7 @@ filled_mean_min_max( pylab, XNC, Y_meanNC, Y_minNC, Y_maxNC, 'red', 0.2,'--',"Ca
 filled_mean_min_max( pylab, XNC, Y_meanNC, Y_meanNC - Y_varNC, Y_meanNC + Y_varNC, 'red', 0.4,'-.' ,None,None)
 filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
 filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
-pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
+pylab.plot(XNC,Expert, color='blue',label="Expert",lw=2)
 pylab.savefig('Cascading_Exp1_fig1.pdf')
 
 #Second plot, Cascading avec les features informatives, seul
@@ -112,36 +111,21 @@ filled_mean_min_max( pylab, XIC, Y_meanIC, Y_minIC, Y_maxIC, 'red', 0.2,'--',"Ca
 filled_mean_min_max( pylab, XIC, Y_meanIC, Y_meanIC-Y_varIC, Y_meanIC+Y_varIC, 'red', 0.4,'-.',None,None)
 filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
 filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
-pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
+pylab.plot(XNC,Expert, color='blue',label="Expert",lw=2)
 pylab.savefig('Cascading_Exp1_fig2.pdf',transparent=True)
 
-#Third plot, ANIRL avec les features informatives, seul
-#Second plot, Cascading avec les features informatives, seul
-pylab.figure(3)
-pylab.clf()
-pylab.axis([x_min,x_max,y_min,y_max])
-pylab.xlabel('Number of samples from the expert')
-pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
-pylab.grid(True)
-filled_mean_min_max( pylab, XA, Y_meanA, Y_minA, Y_maxA, 'green', 0.2,'--',"Abbeel \& Ng IRL",None)
-filled_mean_min_max( pylab, XA, Y_meanA, Y_meanA - Y_varA, Y_meanA + Y_varA, 'green', 0.4,'-.',None,None)
-filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
-filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
-pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
-pylab.savefig('Cascading_Exp1_fig3.pdf',transparent=True)
-
-#Fourth file : the legend
-fig = pylab.figure(4)
-figlegend = pylab.figure(figsize=(4,2))
-ax = fig.add_subplot(111)
-lines = ax.plot([-1,-1],[-1,-2], color='red',label="Cascading IRL",lw=2,linestyle='-')
-lines += ax.plot([-1,-1],[-1,-2], color='green',label="Abbeen \& Ng IRL",lw=2,linestyle='-')
-lines += ax.plot([-1,-1],[-1,-2], color='cyan',label="Agent trained on a random reward",lw=2,linestyle='-')
-lines += ax.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
-lines += ax.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
-lines += ax.plot([-1,-1],[-1,-2], color='blue',label="Expert",lw=2,linestyle='-')
-figlegend.legend(lines,("Cascading IRL","Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
-figlegend.savefig("Cascading_Exp1_legend.pdf")
+#The legend
+# fig = pylab.figure(4)
+# figlegend = pylab.figure(figsize=(4,2))
+# ax = fig.add_subplot(111)
+# lines = ax.plot([-1,-1],[-1,-2], color='red',label="Cascading IRL",lw=2,linestyle='-')
+# lines += ax.plot([-1,-1],[-1,-2], color='green',label="Abbeen \& Ng IRL",lw=2,linestyle='-')
+# lines += ax.plot([-1,-1],[-1,-2], color='cyan',label="Agent trained on a random reward",lw=2,linestyle='-')
+# lines += ax.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
+# lines += ax.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
+# lines += ax.plot([-1,-1],[-1,-2], color='blue',label="Expert",lw=2,linestyle='-')
+# figlegend.legend(lines,("Cascading IRL","Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
+# figlegend.savefig("Cascading_Exp1_legend.pdf")
 
 #Fourth plot, Classification avec les features naturelles, seul
 pylab.figure(5)
@@ -151,7 +135,7 @@ pylab.xlabel('Number of samples from the expert')
 pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
 pylab.grid(True)
 filled_mean_min_max( pylab, XCN, Y_meanCN, Y_minCN, Y_maxCN, 'yellow', 0.2,'--',"Classification with natural features",None)
-filled_mean_min_max( pylab, XCN, Y_meanCN, Y_meanCN - Y_varCN, Y_meanCN + Y_varCN, yellow', 0.4,'-.',None,None)
+filled_mean_min_max( pylab, XCN, Y_meanCN, Y_meanCN - Y_varCN, Y_meanCN + Y_varCN, 'yellow', 0.4,'-.',None,None)
 filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
 filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
 pylab.plot(XCN,Expert, color='blue',label="Expert",lw=2)
@@ -165,11 +149,11 @@ pylab.xlabel('Number of samples from the expert')
 pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
 pylab.grid(True)
 filled_mean_min_max( pylab, XCI, Y_meanCI, Y_minCI, Y_maxCI, 'yellow', 0.2,'--',"Classification with natural features",None)
-filled_mean_min_max( pylab, XCI, Y_meanCI, Y_meanCI - Y_varCI, Y_meanCI + Y_varCI, yellow', 0.4,'-.',None,None)
+filled_mean_min_max( pylab, XCI, Y_meanCI, Y_meanCI - Y_varCI, Y_meanCI + Y_varCI, 'yellow', 0.4,'-.',None,None)
 filled_mean_min_max( pylab, XNC, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
 filled_mean_min_max( pylab, XNC, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
 pylab.plot(XCI,Expert, color='blue',label="Expert",lw=2)
-pylab.savefig('Cascading_Exp1_fig4.pdf',transparent=True)
+pylab.savefig('Cascading_Exp1_fig5.pdf',transparent=True)
 
 
 #+end_src
