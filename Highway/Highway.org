@@ -347,7 +347,7 @@ from DP_mu import *
 sys.stderr.write("Agent creation...\n")
 P = [Highway.P(a) for a in Highway.A]
 randR = scipy.random.rand(Highway.R().shape[0],Highway.R().shape[1]) - 0.5
-Pi = DP_txt( randR, P, "V_Random.mat" )
+Pi = Highway.HDP( randR, "V_Random.mat" )
 
 sys.stderr.write("Performances de l'agent aleatoire :\n")
 print Highway.evaluate_Pi( Pi )[0]
@@ -430,7 +430,7 @@ R = zeros(( 3*9*9*3, 1 ))
 for state in Highway.Sgenerator():
     R[ Highway.s_index( state ) ] = dot( theta.transpose(), Highway.psi( state ) )
 sys.stderr.write("theta2omega...\n")
-Pi = DP_txt( R, [ Highway.P(a) for a in Highway.A ], "Highway_V.mat" ) #FIXME enployer DP(pas txt) mais s'assurer qu'elle fonctionne avant.
+Pi = Highway.HDP( R, "Highway_V.mat" )
 #FIXME again, txt devrait etre un argument optionel et il ne devrait y avoir qu'une seule fonction
 #FIXME again again, on devrait pouvoir recuperer le vecteur V sans le lire dans un fichier
 V = genfromtxt( "Highway_V.mat" )

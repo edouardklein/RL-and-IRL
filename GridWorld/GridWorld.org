@@ -238,7 +238,7 @@ from DP_mu import *
 sys.stderr.write("Agent creation...\n")
 P = [GridWorld.P(a) for a in GridWorld.A]
 randR = scipy.random.rand(GridWorld.R().shape[0],GridWorld.R().shape[1]) - 0.5
-Pi = DP_txt( randR, P, "V_Random.mat" )
+Pi = GridWorld.GWDP( randR, "V_Random.mat" )
 
 sys.stderr.write("Performances de l'agent aleatoire :\n")
 print GridWorld.evaluate_Pi( Pi )[0]
@@ -303,7 +303,7 @@ def evaluate_theta( theta, l_psi ):
     for i in dicR:
         R_theta[ i ] = dicR[ i ]
     sys.stderr.write( "Pi computation...\n" )
-    Pi = DP_txt( R_theta, [P(a) for a in A], "V_agent.mat" )
+    Pi = GridWorld.GWDP( R_theta, "V_agent.mat" )
     return evaluate_Pi( Pi )
 
   #+end_src
@@ -318,7 +318,7 @@ def evaluate_thetaSA( theta, l_phi ):
     for i in dicR:
         R_theta[ i ] = dicR[ i ]
     sys.stderr.write( "Pi computation...\n" )
-    Pi = DP_txt_SA( R_theta, [s for s in Sgenerator()], [P(a) for a in A], s_index, sa_index, "V_agent.mat" )
+    Pi = GridWorld.GWDPSA( R_theta, "V_agent.mat" )
     return evaluate_Pi( Pi )
 
   #+end_src
