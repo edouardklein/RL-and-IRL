@@ -3,34 +3,13 @@ On teste l'aglo de cascading.
 A l'heure actuelle, il n'a été testé avec succès que sur le Highway. Et encore, j'ai bidouillé la régression alors que je n'aurais pas dû.
 La bidouille vient d'être enlevée dans la régression.
 Sur le gridworld, Cascading sur S ne marche pas. mais la classif pure fonctionne. Donc on teste aussi la classif pure sure le highway.
-Avec Cascagin_Exp1 et ANIRL_Exp6 on s'aperçoit que :
+Avec Cascading_Exp1 et ANIRL_Exp6 on s'aperçoit que :
+- Dans le cas des features naturelles, la régression apporte quelque chose, et la classif pure n'est pas une approche qui fonctionne
+- En informé ça marche aussi, mais la classif seule marche également. D'ailleurs la classif seule fonctionne mieux qu'ANIRL
+- SCIRL fonctionne très bien. C'est la meilleure approche en features naturelles, arrive à parité en naturel avec le cascading informé
+- ANIRL parfait ne donne pas un résultat parfai :-p
+* Sur le GridWorld
+La baseline, ANIRL_Exp3, fonctionne vraiment pas trop mal.
+Cascading_Exp2 devrait permettre de voir que le cascading ne fonctionne pas avec une régression sur S seule. Par contre la classif seule semble marcher.
+Cela correspond au cas foireux que Matthieu a identifé.
 
-
-
-
-Pour voir les résultats courants :
-make Cascading_Exp1 (autant de fois que l'on veut de points de données)
-make ANIRL_Exp6 (idem, autant de fois que l'on veur de points de données)
-puis 
-make -C Highway Cascading_Exp1_fig1.pdf
-Cela va créer les fichiers Cascading_Exp1_fig*.pdf
-Avec :
-1 Cascading avec features naturelles
-2 Cascading informatives
-3 ANIRL avec les features informatives (pour comparaison)
-Ainsi qu'un fchier à part avec la légende.
-
-FIXME: Faire un target unique pour tout ces fichiers
-FIXME: Régler la police qui est différente de celle par défaut de LaTeX (de fait, c'est moche)
-
-Pendant que l'expérience tourne sur le PC du boulot, on va modifer le GridWorld pour que le code soit aussi clean que sur le Highway. On veut comparer ANIRL et le Cascading. On va commencer par modifier ANIR_Exp3 (GridWorld, ANIRL, dégradé) pour qu'il utilise le même type de code qu'ANIRL_Exp6 (Highway, ANIRL, dégradé). Ensuite seulement on implémentera le cascading S->R sur le gridworld.
-ANIRL_Exp3 vient d'être testé, ça marche. Ceci dit on a fait quelques changement depuis dans l'espoir de faire marcher Cascading. Qui ne marche pas. Donc je commite maintenant (y compris les résultats d'ANRIL) et je relace ANIRL histoire de voir si les résultats sont encore bons.
-Maintenant, ANIRL_Exp3 fonctionne, mais pas Cascading_Exp2. Il faut savoir pourquoi, aussi l'on va essayer de voir ce que renvoie le classifieur.
-Le classifieur parvient à contrôler le GridWorld aussi bien qu'ANIRL
-Trois pistes.
-D'autre part, essayer de faire tourner Cascading en régressant sur SxA pour le GridWorld
-Enfin, regarder ce que ça donne sur le pendule
-
-Le test sur le résultat de la classif sur le Highway est en train de tourner, on va maintenant voir ce que ça donne sur le GridWorld en regressant sur SxA.
-On choisit de ne regarder que ce que ça donne lorsque l'on utilise pi_C, pour ne pas alourdir le code et ralentir les calculs.
-Pour l'instant ça ne marche pas sur SA
