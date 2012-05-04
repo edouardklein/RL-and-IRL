@@ -29,7 +29,7 @@ def Sgenerator( ):
     for x in range(0,5):
         for y in range(0,5):
             yield [x,y]
-
+S = [s for s in Sgenerator()]
 A = range(0,4)
     #+end_src
 
@@ -173,7 +173,7 @@ from DP_mu import *
 
 print "Expert creation..."
 P = [GridWorld.P(a) for a in GridWorld.A]
-Pi_E = DP_txt( GridWorld.R(), P, "V_Expert.mat" )
+Pi_E = GridWorld.GWDP( GridWorld.R(), "V_Expert.mat" )
 print "mu_E computation..."
 Mu_E = DP_mu( Pi_E, identity(5*5) )
 
@@ -257,7 +257,14 @@ Random.py: GridWorld.org
 
   #+end_src
 
+* DP wrapper
+  It can be cumbersome to call the Dynamic programming algorithm, so we provide a wrapper :
+  #+begin_src python :tangle GridWorld.py
+def GWDP( R, filename ):
+    return DP( R, S, s_index, A, [P(a) for a in A], lambda x:x, sa_index, filename )
 
+  #+end_src
+  
 * Playing with the simulator and evaluationg policies
 ** Evaluate a policy
      L'évaluation d'une politique se fait grâce à :
