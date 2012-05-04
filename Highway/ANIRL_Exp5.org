@@ -210,3 +210,7 @@ ANIRL_Exp5_clean:
 	find . -maxdepth 1 -iname "ANIRL_Exp5_*"   | xargs $(XARGS_OPT) rm
   #+end_src
 
+* Results
+  Après un 
+  : make ANIRL_Exp5
+  ont rouve que la performance est 7.21254356586. Il n'y a pas d'aléatoire là dedans.
