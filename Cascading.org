@@ -108,7 +108,6 @@ def shape_for_SA_regression( D, q, phi, Actions ):
         return [ phi( s, a ).transpose()[0], (q(s,a) - 0.9*q( ss, astar ))[0]] #FIXME: hard coded gamma
     return map( hatR, shape_as_sasa( D ) )
 
-
 def shape_as_sasa( D ):
     "Given data of the form [[s,a,s',eoe],...,[s,a,s',eoe]], returns data of the form [[s,a,s',a'],...]"
     episodes = []

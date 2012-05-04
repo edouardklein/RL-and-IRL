@@ -172,7 +172,6 @@ from DP import *
 from DP_mu import *
 
 print "Expert creation..."
-P = [GridWorld.P(a) for a in GridWorld.A]
 Pi_E = GridWorld.GWDP( GridWorld.R(), "V_Expert.mat" )
 print "mu_E computation..."
 Mu_E = DP_mu( Pi_E, identity(5*5) )
@@ -263,6 +262,9 @@ Random.py: GridWorld.org
 def GWDP( R, filename ):
     return DP( R, S, s_index, A, [P(a) for a in A], lambda x:x, sa_index, filename )
 
+def GWDPSA( R, filename ):
+    return DPSA( R, S, s_index, A, [P(a) for a in A], lambda x:x, sa_index, filename )
+
   #+end_src
   
 * Playing with the simulator and evaluationg policies
@@ -318,7 +320,7 @@ def evaluate_thetaSA( theta, l_phi ):
     for i in dicR:
         R_theta[ i ] = dicR[ i ]
     sys.stderr.write( "Pi computation...\n" )
-    Pi = GridWorld.GWDPSA( R_theta, "V_agent.mat" )
+    Pi = GWDPSA( R_theta, "V_agent.mat" )
     return evaluate_Pi( Pi )
 
   #+end_src
