@@ -36,6 +36,8 @@ def Sgenerator( ):
                 for x_r in range(0,3):
                     yield [v,x_b,y_r,x_r]
 
+S = [s for s in Sgenerator()]
+
 A = range(0,5)
     #+end_src
 ** $\phi$ and $\psi$
@@ -278,7 +280,6 @@ def P( a ):
     #+begin_src python :tangle Highway.py
 def R( ):
     reward = zeros((3*9*9*3,1))
-    S = Sgenerator()
     for state in S:
         current_index = s_index( state )
         v = state[0]
@@ -307,8 +308,7 @@ from DP import *
 from DP_mu import *
 
 print "Expert creation..."
-P = [Highway.P(a) for a in Highway.A]
-Pi_E = DP_txt( Highway.R(), P, "V_Expert.mat" )
+Pi_E = Highway.HDP( Highway.R(), "V_Expert.mat" )
 print "mu_E computation..."
 Mu_E = DP_mu( Pi_E, identity(3*9*9*3) )
 
@@ -442,6 +442,14 @@ savetxt( "/dev/stdout", omega, "%e", "\n" )
 
 
   #+end_src
+** DP wrapper
+  It can be cumbersome to call the Dynamic programming algorithm, so we provide a wrapper :
+  #+begin_src python :tangle Highway.py
+def HDP( R, filename ):
+    return DP( R, S, s_index, A, [P(a) for a in A], lambda x:x, sa_index, filename )
+
+  #+end_src
+
 * Playing with the simulator and evaluating policies
 ** Evaluate pi
   FIXME: Faudrait coder un truc pour arriver à observer le contrôle.
@@ -493,7 +501,7 @@ def evaluate_theta( theta, l_psi ):
     for i in dicR:
         R_theta[ i ] = dicR[ i ]
     sys.stderr.write( "Pi computation...\n" )
-    Pi = DP_txt( R_theta, [P(a) for a in A], "V_agent.mat" )
+    Pi = HDP( R_theta, "V_agent.mat" )
     return evaluate_Pi( Pi )
 
   #+end_src
