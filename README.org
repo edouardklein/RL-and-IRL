@@ -13,3 +13,4 @@ La baseline, ANIRL_Exp3, fonctionne vraiment pas trop mal.
 Cascading_Exp2 devrait permettre de voir que le cascading ne fonctionne pas avec une régression sur S seule. Par contre la classif seule semble marcher.
 Cela correspond au cas foireux que Matthieu a identifé.
 
+Avec Cascading_Exp3 ça a l'air de pas marcher non plus sur SxA. Une petite bidouille pour vérifier ça...

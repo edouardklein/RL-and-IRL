@@ -16,10 +16,13 @@ from DP_mu import *
 D_E = genfromtxt( sys.argv[1] )
 assert D_E[-1,6] == 0 #End of episode ?
 Data = map( lambda trans: [trans[0:2],trans[2:3][0],trans[3:5],trans[6:7][0]], D_E ) #s,a,s',eoe 
-theta_SA = Cascading.runSA( Data, GridWorld.phi, GridWorld.A )
+theta_SA,omega_Q = Cascading.runSA( Data, GridWorld.phi, GridWorld.A )
 perf_SA = GridWorld.evaluate_thetaSA( theta_SA, GridWorld.phi )
 
-print "%d\t%lf"%(D_E.shape[0], perf_SA )
+Pi_classif = omega2pi( omega_Q, GridWorld.phi, GridWorld.Sgenerator(), GridWorld.s_index, [GridWorld.P( a ) for a in GridWorld.A ] )
+perf_classif = GridWorld.evaluate_Pi( Pi_classif )[0]
+
+print "%d\t%lf\t%lf"%(D_E.shape[0], perf_SA, perf_classif )
 
 #+end_src
 

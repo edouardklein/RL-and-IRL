@@ -36,7 +36,7 @@ def runSA( D, phi, Actions ):
     q = lambda s,a : dot( omega_q.transpose(), phi( s, a ) )
     D = shape_for_SA_regression( D, q, phi, Actions )
     theta_SA = regression( D )
-    return theta_SA
+    return [theta_SA,omega_q]
 
 def classif_score( D, phi, Actions ):
     "Returns the omega matrix so that \omega^T\phi(s,a) allows for classification of elements s with labels a"
@@ -105,7 +105,8 @@ def shape_for_SA_regression( D, q, phi, Actions ):
         a = sasa[1]
         ss = sasa[2]
         astar = max( [ [ss,x] for x in Actions ], key=lambda sa : q( sa[0], sa[1] ) )[1]
-        return [ phi( s, a ).transpose()[0], (q(s,a) - 0.9*q( ss, astar ))[0]] #FIXME: hard coded gamma
+        return [ phi( s, a ).transpose()[0], (q(s,a) - 0.9*q( ss, astar ))[0]] #FIXME: hard coded gamma 
+    #FIXME : bug, dans l'entraînement il faut mettre tous les a, pas juse a_i
     return map( hatR, shape_as_sasa( D ) )
 
 def shape_as_sasa( D ):
