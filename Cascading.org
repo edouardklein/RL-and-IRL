@@ -99,16 +99,23 @@ def shape_for_C_regression( D, q, psi, Actions ):
     return map( hatR, shape_as_sasa( D ) )
 
 def shape_for_SA_regression( D, q, phi, Actions ):
-    "Given data of the form [[s,a,s',eoe],...,[s,a,s',eoe]], returns the matrix [[phi(s,a)^T,q(s,a)-gamma*q(s',a*)],...]"
-    def hatR( sasa ):
-        s = sasa[0]
-        a = sasa[1]
-        ss = sasa[2]
-        astar = max( [ [ss,x] for x in Actions ], key=lambda sa : q( sa[0], sa[1] ) )[1]
-        return [ phi( s, a ).transpose()[0], (q(s,a) - 0.9*q( ss, astar ))[0]] #FIXME: hard coded gamma 
-    #FIXME : bug, dans l'entraînement il faut mettre tous les a, pas juse a_i
-    return map( hatR, shape_as_sasa( D ) )
+    "Given data of the form [[s,a,s',eoe],...,[s,a,s',eoe]], returns the matrix FIXME ecrire le vrai truc sur plusieurs lignes"
+    answer = []
+    SASA = shape_as_sasa( D )
+    for sasa in SASA:
+        si = sasa[0]
+        ai = sasa[1]
+        ssi = sasa[2]
+        astar = max( [ [ssi,x] for x in Actions ], key=lambda sa : q( sa[0], sa[1] ) )[1]
+        for a in Actions:
+            if a == ai:
+                answer.append( [ phi( si, ai ).transpose()[0], (q(si,ai) - 0.9*q( ssi, astar ))[0]] )
+            else:
+                #version "l'action non optimale fait perdre un temps, et on reste dans si"
+                answer.append( [ phi( si, a ).transpose()[0], (q(si,a) - 0.9*q( si, ai ))[0]] )
+    return answer
 
+#FIXME le second a ne sert maintenant probablement plus a rien, vu que l'on utilise pi_C...
 def shape_as_sasa( D ):
     "Given data of the form [[s,a,s',eoe],...,[s,a,s',eoe]], returns data of the form [[s,a,s',a'],...]"
     episodes = []
