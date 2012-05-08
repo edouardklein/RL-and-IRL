@@ -112,7 +112,7 @@ def shape_for_SA_regression( D, q, phi, Actions ):
                 answer.append( [ phi( si, ai ).transpose()[0], (q(si,ai) - 0.9*q( ssi, astar ))[0]] )
             else:
                 #version gamma fois ce qu'on met pour l'action optimale
-                answer.append( [ phi( si, a ).transpose()[0], 0.9*(q(si,ai) - 0.9*q( ssi, astar ))[0]] )
+                answer.append( [ phi( si, a ).transpose()[0], (q(si,a) - 0.9*q( ssi, astar ))[0]] )
     return answer
 
 #FIXME le second a ne sert maintenant probablement plus a rien, vu que l'on utilise pi_C...

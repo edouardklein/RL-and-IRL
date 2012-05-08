@@ -56,36 +56,20 @@ import pylab as pylab
 from Plot import *
 
 D_Cascading = genfromtxt( "Cascading_Exp3.mat" )
-D = D_Cascading[:,[0,1]]
-[X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D ))
-[X,Y_mean,Y_var] = map( array, mean_var( D ))
+D_C = D_Cascading[:,[0,1]]
+D_Classif = D_Cascading[:,[0,2]]
+myPlot = Plot()
+myPlot.Expert = 4.11057591 #python Expert.py to get this value
+myPlot.Random_mean = 0.48848324670295395#See Highway.org about Random.py for information on these values
+myPlot.Random_min = 0.069469005947400006#python Random.py to get this value
+myPlot.Random_max = 3.2720195801399998#python Random.py to get this value
+myPlot.Random_var = 0.57868038965027513#python Random.py to get this value
 
-Expert = 4.11057152*ones(X.shape) #python Expert.py to get this value
-Random_mean = 0.44716131254651209*ones(X.shape)#See Highway.org about Random.py for information on these values
-Random_min = 0.070870373379200005*ones(X.shape)#python Random.py to get this value
-Random_max = 3.9837417388*ones(X.shape)#python Random.py to get this value
-Random_var = 0.79871008754797834*ones(X.shape)#python Random.py to get this value
-x_min = min(X)
-x_max = max(X)
-y_max = 5.0 #Comme ca l'expert peut respirer
-y_min = min( Random_min[0],min(Y_min) ) - 1.2
+myPlot.ymin = -1
+myPlot.ymax = 5
 
-
-#First plot, Cascading, alone
-pylab.figure(1)
-pylab.clf()
-pylab.axis([x_min,x_max,y_min,y_max])
-pylab.xlabel('Number of samples from the expert')
-pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
-pylab.grid(True)
-filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, 'red', 0.2,'--',"Cascading IRL over $S\times A$",None)
-filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, 'red', 0.4,'-.' ,None,None)
-filled_mean_min_max( pylab, X, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
-filled_mean_min_max( pylab, X, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
-pylab.plot(X,Expert, color='blue',label="Expert",lw=2)
-pylab.savefig('Cascading_Exp3_fig1.pdf')
-#FIXME prendre un cercle chromatique et attribuer une couleur a chaque algorithme
-#FIXME factoriser ce code de trace qui se retrouve partout
+myPlot.plot( D_C, 'orange', 'Cascading_Exp3_fig1.pdf' )
+myPlot.plot( D_Classif, 'yellow', 'Cascading_Exp3_fig2.pdf' )
 #+end_src
 FIXME: Le plot concernat ANIRL devrait avoir son code dans ANIRL_Exp6.org et non ici.
 
