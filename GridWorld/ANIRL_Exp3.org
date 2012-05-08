@@ -158,6 +158,43 @@ ANIRL_Exp3: ANIRL_Exp3.exe EvaluateOmega.py DE.py V_Expert.mat
 
    #+end_src
 
+* Plotting
+#+begin_src python :tangle ANIRL_Exp3_plot.py
+from matplotlib import rc
+rc('text', usetex=True)
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import pylab as pylab
+from Plot import *
+
+D = genfromtxt( "ANIRL_Exp3.mat" )
+
+myPlot = Plot()
+myPlot.Expert = 4.11057591 #python Expert.py to get this value
+myPlot.Random_mean = 0.48848324670295395#See Highway.org about Random.py for information on these values
+myPlot.Random_min = 0.069469005947400006#python Random.py to get this value
+myPlot.Random_max = 3.2720195801399998#python Random.py to get this value
+myPlot.Random_var = 0.57868038965027513#python Random.py to get this value
+
+myPlot.ymin = -1
+myPlot.ymax = 5
+
+myPlot.plot( D, 'blue', 'ANIRL_Exp3_fig1.pdf' )
+
+
+#+end_src
+
+#+srcname: ANIRL_Exp3_make
+#+begin_src makefile
+ANIRL_Exp3_plot.py: ANIRL_Exp3.org
+	$(call tangle,"ANIRL_Exp3.org")
+
+ANIRL_Exp3_fig1.pdf: ANIRL_Exp3_plot.py ANIRL_Exp3.mat ../Plot.py
+	python ANIRL_Exp3_plot.py
+
+#+end_src
 
   #+srcname: ANIRL_Exp3_clean_make
   #+begin_src makefile
@@ -172,74 +209,3 @@ ANIRL_Exp3_clean:
 
   #+end_src
 
-
-
-* Plotting
-#+begin_src python :tangle ANIRL_Exp3_plot.py
-from matplotlib import rc
-rc('text', usetex=True)
-import sys
-sys.path+=['..']
-from numpy import *
-import scipy
-import pylab as pylab
-from Plot import *
-
-D_ANIRL = genfromtxt( "ANIRL_Exp3.mat" )
-[XA,Y_meanA,Y_minA,Y_maxA] = map( array, mean_min_max( D_ANIRL ))
-[XA,Y_meanA,Y_varA] = map( array, mean_var( D_ANIRL ))
-
-Expert = 4.11057152*ones(XA.shape) #python Expert.py to get this value
-Random_mean = 0.44716131254651209*ones(XA.shape)#See Highway.org about Random.py for information on these values
-Random_min = 0.070870373379200005*ones(XA.shape)#python Random.py to get this value
-Random_max = 3.9837417388*ones(XA.shape)#python Random.py to get this value
-Random_var = 0.79871008754797834*ones(XA.shape)#python Random.py to get this value
-x_min = min(XA)
-x_max = max(XA)
-y_max = 5.0 #Comme ca l'expert peut respirer
-y_min = min( Random_min[0],min(Y_minA) ) - 1.2
-
-#Third plot, ANIRL avec les features informatives, seul
-#Second plot, Cascading avec les features informatives, seul
-pylab.figure(1)
-pylab.clf()
-pylab.axis([x_min,x_max,y_min,y_max])
-pylab.xlabel('Number of samples from the expert')
-pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
-pylab.grid(True)
-filled_mean_min_max( pylab, XA, Y_meanA, Y_minA, Y_maxA, 'green', 0.2,'--',"Abbeel \& Ng IRL",None)
-filled_mean_min_max( pylab, XA, Y_meanA, Y_meanA - Y_varA, Y_meanA + Y_varA, 'green', 0.4,'-.',None,None)
-filled_mean_min_max( pylab, XA, Random_mean, Random_min, Random_max, 'cyan',0.2,'--',"Agent trained on a random reward",None)
-filled_mean_min_max( pylab, XA, Random_mean, Random_mean-Random_var, Random_mean+Random_var, 'cyan',0.4,'-.',None,None)
-pylab.plot(XA,Expert, color='blue',label="Expert",lw=2)
-pylab.savefig('ANIRL_Exp3_fig1.pdf',transparent=True)
-
-#Fourth file : the legend
-fig = pylab.figure(2)
-figlegend = pylab.figure(figsize=(4,2))
-ax = fig.add_subplot(111)
-#lines = ax.plot([-1,-1],[-1,-2], color='red',label="Cascading IRL",lw=2,linestyle='-')
-lines = ax.plot([-1,-1],[-1,-2], color='green',label="Abbeen \& Ng IRL",lw=2,linestyle='-')
-lines += ax.plot([-1,-1],[-1,-2], color='cyan',label="Agent trained on a random reward",lw=2,linestyle='-')
-lines += ax.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
-lines += ax.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
-lines += ax.plot([-1,-1],[-1,-2], color='blue',label="Expert",lw=2,linestyle='-')
-#figlegend.legend(lines,("Cascading IRL","Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
-figlegend.legend(lines,("Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
-figlegend.savefig("ANIRL_Exp3_legend.pdf")
-
-#+end_src
-FIXME: Le plot concernat ANIRL devrait avoir son code dans ANIRL_Exp6.org et non ici.
-
-#+srcname: ANIRL_Exp3_make
-#+begin_src makefile
-ANIRL_Exp3_plot.py: ANIRL_Exp3.org
-	$(call tangle,"ANIRL_Exp3.org")
-
-ANIRL_Exp3_fig1.pdf: ANIRL_Exp3_plot.py ANIRL_Exp3.mat ../Plot.py
-	python ANIRL_Exp3_plot.py
-
-../Plot.py:
-	make -C .. Plot.py
-
-#+end_src

@@ -31,7 +31,7 @@ class SCIRL_Exp3( LAFEM ):
       #+begin_src python :tangle SCIRL_Exp3.py
 
     def __init__( self ):
-        D_E = genfromtxt("SCIRL_Exp3_DE.mat")
+        D_E = genfromtxt(sys.argv[1])
         for trans in D_E:
             self.dicPi_E[l2str(trans[0:4])] = trans[4:5][0]
             self.data = self.data +[[ trans[0:4], trans[4:5][0]]]
@@ -90,25 +90,10 @@ theta_scirl = scirl.run()
 
       #+end_src
 
-     Entrainer un agent sur le problème du highway, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$ :
      #+begin_src python :tangle SCIRL_Exp3.py
-print "Agent creation..."
-Pi = DP_txt( theta_scirl, [Highway.P(a) for a in Highway.A], "SCIRL_Exp3_V_agent.mat" )
-     #+end_src
-     Comparer $\theta^T\mu_E(s_0)$ et $\theta^T\mu_\pi(s_0)$ :
-     #+begin_src python :tangle SCIRL_Exp3.py
-Mu_E = genfromtxt( "Mu_E.mat" )
-perf_expert = dot( Highway.R().transpose() , ( Mu_E[ Highway.s_index( Highway.S_0() )]).transpose() )
-print "mu_pi computation..."
-Mu_pi = DP_mu( Pi, identity( 3*9*9*3 ))
-perf_agent = dot( Highway.R().transpose() , ( Mu_pi[ Highway.s_index( Highway.S_0() )]).transpose() )
+perf_agent = Highway.evaluate_theta( theta_scirl, Highway.psi )
 
-print "Performance moyenne de l'expert : "
-print perf_expert
-
-print "Performance moyenne de l'agent :"
-print perf_agent
-
+print "%d\t%lf"%(len(scirl.data), perf_agent)
      #+end_src
 
 #+srcname: SCIRL_Exp3_make
@@ -116,8 +101,51 @@ print perf_agent
 SCIRL_Exp3.py: SCIRL_Exp3.org
 	$(call tangle,"SCIRL_Exp3.org")
 
-SCIRL_Exp3: SCIRL_Exp3.py ../a2str.py ../LAFEM.py SCIRL_Exp3_DE.mat ../DP.py ../DP_mu.py
-	python SCIRL_Exp3.py
+SCIRL_Exp3: SCIRL_Exp3.py ../a2str.py ../LAFEM.py DE.py ../DP.py ../DP_mu.py V_Expert.mat
+	for i in $(LM_VALUES); \
+	do \
+	python DE.py $$i > DE.mat; \
+	python SCIRL_Exp3.py DE.mat >> SCIRL_Exp3.mat; \
+	done
+
+#+end_src
+
+
+* Plotting
+#+begin_src python :tangle SCIRL_Exp3_plot.py
+from matplotlib import rc
+rc('text', usetex=True)
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import pylab as pylab
+from Plot import *
+
+D = genfromtxt( "SCIRL_Exp3.mat" )
+
+myPlot = Plot()
+myPlot.Expert = 7.74390968 #python Expert.py to get this value
+myPlot.Random_mean = -1.5821833963484#See Highway.org about Random.py for information on these values
+myPlot.Random_min = -4.0007295890199996#python Random.py to get this value
+myPlot.Random_max = 2.7064859345599999#python Random.py to get this value
+myPlot.Random_var = 1.4465398450419833#python Random.py to get this value
+
+myPlot.ymin = -5
+myPlot.ymax = 10
+
+myPlot.plot( D, 'red', 'SCIRL_Exp3_fig1.pdf' )
+
+
+#+end_src
+
+#+srcname: SCIRL_Exp3_make
+#+begin_src makefile
+SCIRL_Exp3_plot.py: SCIRL_Exp3.org
+	$(call tangle,"SCIRL_Exp3.org")
+
+SCIRL_Exp3_fig1.pdf: SCIRL_Exp3_plot.py SCIRL_Exp3.mat ../Plot.py
+	python SCIRL_Exp3_plot.py
 
 #+end_src
 

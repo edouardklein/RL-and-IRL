@@ -1,0 +1,16 @@
+* Sur le Highway
+On teste l'aglo de cascading.
+A l'heure actuelle, il n'a été testé avec succès que sur le Highway. Et encore, j'ai bidouillé la régression alors que je n'aurais pas dû.
+La bidouille vient d'être enlevée dans la régression.
+Sur le gridworld, Cascading sur S ne marche pas. mais la classif pure fonctionne. Donc on teste aussi la classif pure sure le highway.
+Avec Cascading_Exp1 et ANIRL_Exp6 on s'aperçoit que :
+- Dans le cas des features naturelles, la régression apporte quelque chose, et la classif pure n'est pas une approche qui fonctionne
+- En informé ça marche aussi, mais la classif seule marche également. D'ailleurs la classif seule fonctionne mieux qu'ANIRL
+- SCIRL fonctionne très bien. C'est la meilleure approche en features naturelles, arrive à parité en naturel avec le cascading informé
+- ANIRL parfait ne donne pas un résultat parfai :-p
+* Sur le GridWorld
+La baseline, ANIRL_Exp3, fonctionne vraiment pas trop mal.
+Cascading_Exp2 devrait permettre de voir que le cascading ne fonctionne pas avec une régression sur S seule. Par contre la classif seule semble marcher.
+Cela correspond au cas foireux que Matthieu a identifé.
+
+Avec Cascading_Exp3 ça a l'air de pas marcher non plus sur SxA. Une petite bidouille pour vérifier ça...

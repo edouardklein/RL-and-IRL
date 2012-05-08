@@ -29,7 +29,7 @@ def Sgenerator( ):
     for x in range(0,5):
         for y in range(0,5):
             yield [x,y]
-
+S = [s for s in Sgenerator()]
 A = range(0,4)
     #+end_src
 
@@ -172,8 +172,7 @@ from DP import *
 from DP_mu import *
 
 print "Expert creation..."
-P = [GridWorld.P(a) for a in GridWorld.A]
-Pi_E = DP_txt( GridWorld.R(), P, "V_Expert.mat" )
+Pi_E = GridWorld.GWDP( GridWorld.R(), "V_Expert.mat" )
 print "mu_E computation..."
 Mu_E = DP_mu( Pi_E, identity(5*5) )
 
@@ -238,7 +237,7 @@ from DP_mu import *
 sys.stderr.write("Agent creation...\n")
 P = [GridWorld.P(a) for a in GridWorld.A]
 randR = scipy.random.rand(GridWorld.R().shape[0],GridWorld.R().shape[1]) - 0.5
-Pi = DP_txt( randR, P, "V_Random.mat" )
+Pi = GridWorld.GWDP( randR, "V_Random.mat" )
 
 sys.stderr.write("Performances de l'agent aleatoire :\n")
 print GridWorld.evaluate_Pi( Pi )[0]
@@ -247,7 +246,7 @@ This code can be executed a few times like so :
  : for i in `seq 1 50`; do python Random.py >> Random.mat ; done
 
 Then we can get the mean, min and max values with :
- : python -c "from numpy import *;D=genfromtxt('Random.mat');print [mean(D),min(D),max(D)]"
+ : python -c "from numpy import *;import sys;sys.path+=['..'];from Plot import *;D=genfromtxt('Random.mat');print [mean(D),min(D),max(D),naive_variance(D)]"
 
 
 #+srcname: GridWorld_make
@@ -257,7 +256,17 @@ Random.py: GridWorld.org
 
   #+end_src
 
+* DP wrapper
+  It can be cumbersome to call the Dynamic programming algorithm, so we provide a wrapper :
+  #+begin_src python :tangle GridWorld.py
+def GWDP( R, filename ):
+    return DP( R, S, s_index, A, [P(a) for a in A], lambda x:x, sa_index, filename )
 
+def GWDPSA( R, filename ):
+    return DPSA( R, S, s_index, A, [P(a) for a in A], lambda x:x, sa_index, filename )
+
+  #+end_src
+  
 * Playing with the simulator and evaluationg policies
 ** Evaluate a policy
      L'évaluation d'une politique se fait grâce à :
@@ -296,7 +305,22 @@ def evaluate_theta( theta, l_psi ):
     for i in dicR:
         R_theta[ i ] = dicR[ i ]
     sys.stderr.write( "Pi computation...\n" )
-    Pi = DP_txt( R_theta, [P(a) for a in A], "V_agent.mat" )
+    Pi = GridWorld.GWDP( R_theta, "V_agent.mat" )
+    return evaluate_Pi( Pi )
+
+  #+end_src
+  #+begin_src python :tangle GridWorld.py
+def evaluate_thetaSA( theta, l_phi ):
+    dicR = {}
+    for s in Sgenerator():
+        for a in A:
+            index = sa_index( s,a )
+            dicR[ index ] = dot( theta.transpose(), l_phi( s, a ) )
+    R_theta = zeros(( len(dicR), 1 ))
+    for i in dicR:
+        R_theta[ i ] = dicR[ i ]
+    sys.stderr.write( "Pi computation...\n" )
+    Pi = GWDPSA( R_theta, "V_agent.mat" )
     return evaluate_Pi( Pi )
 
   #+end_src
