@@ -129,7 +129,7 @@ LAFEM_Exp2:
    - LAFEM_Exp3 (InvertedPendulum)
     #+begin_src makefile :tangle Makefile
 LAFEM_Exp3:
-	make -C InvertedPendulum LAFEM_Exp3_true_R.pdf LAFEM_Exp3_lafem_R.pdf LAFEM_Exp3_Vexpert.pdf LAFEM_Exp3_Vagent.pdf
+	make -C InvertedPendulum LAFEM_Exp3
     #+end_src
    - LAFEM_Exp4 (InvertedPendulum)
     #+begin_src makefile :tangle Makefile

@@ -114,6 +114,8 @@ import sys
 sys.path+=['..']
 from a2str import *
 from LAFEM import *
+import InvertedPendulum
+from subprocess import call
 
 class LAFEM_Exp3( LAFEM ):
     omega_mu_E = []
@@ -122,7 +124,7 @@ class LAFEM_Exp3( LAFEM ):
     A = [0,1,2]
 
     def __init__( self ):
-        D_E = genfromtxt("D_expert.mat")
+        D_E = genfromtxt(sys.argv[1])
         for trans in D_E:
             self.dicPi_E[l2str(trans[0:2])] = trans[2:3][0]
             self.data = self.data +[[ trans[0:2], trans[2:3][0]]]
@@ -140,31 +142,10 @@ class LAFEM_Exp3( LAFEM ):
             return 1
 #+end_src
      
-     $\mu_E$ is computed thanks to the data stored earlier by the program using LSTD$\mu$. We first have to redefine $\phi$ in python because it is simpler than wrapping the C code (present in [[file:plot.org]]). 
-
-#+begin_src python :tangle LAFEM_Exp3.py
-    def phi( self, s, a ):
-        answer = zeros((30,1))
-        position = s[0]
-        speed = s[1]
-        action = a
-        index = action*10
-        answer[index] = 1.
-        index+=1
-        for i in range(-1,2):
-            for j in range(-1,2):
-                d_i = i*3.141592/4.
-                d_j = j
-                answer[index] = exp(-(pow(position-d_i,2) +
-                                      pow(speed-d_j,2))/2.)
-                index+=1
-        return answer
-        
-#+end_src
      Then we use the  $\mu_E(s,a) = \omega^T_{\pi_E}\phi(s,a)$ formula :
 #+begin_src python :tangle LAFEM_Exp3.py
     def mu_E( self, s, a ):
-        answer = dot( self.omega_mu_E.transpose(), self.phi( s, a ) )
+        answer = dot( self.omega_mu_E.transpose(), InvertedPendulum.phi( s, a ) )
         return answer
         #return (zeros((1,10)) + answer).transpose() #Ugly hack to get a column vector and not a line vector
 
@@ -178,13 +159,19 @@ class LAFEM_Exp3( LAFEM ):
 
 #+end_src
 
-*** Running LAFEM
+*** Running SCIRL
     FIXME: s/omega/theta/avec discernement
 
  #+begin_src python :tangle LAFEM_Exp3.py
 lafem = LAFEM_Exp3()
-omega_lafem = lafem.run()
-print a2str(omega_lafem)
+theta_lafem = lafem.run()
+
+savetxt( "LAFEM_Exp3_theta.mat", theta_lafem, "%e", "\n" );
+
+print "%d\t"%len( lafem.data ),
+sys.stdout.flush()
+call([ "./Evaluate_theta.exe","LAFEM_Exp3_theta.mat"])
+print
 #+end_src
 
 #+srcname: LAFEM_Exp3_make
@@ -192,141 +179,50 @@ print a2str(omega_lafem)
 LAFEM_Exp3.py: LAFEM_Exp3.org
 	$(call tangle,"LAFEM_Exp3.org")
 
-LAFEM_Exp3_theta_lafem_mu.mat: LAFEM_Exp3.py ../a2str.py ../LAFEM.py LAFEM_Exp3_omega_mu_E.mat D_expert.mat
-	python LAFEM_Exp3.py > LAFEM_Exp3_theta_lafem_mu.mat
+LAFEM_Exp3: LAFEM_Exp3.py InvertedPendulum.py ../Cascading.py ../LAFEM.py DE.exe ../a2str.py Random_Samples.mat Evaluate_omega.exe Evaluate_theta.exe LAFEM_Exp3_omega_mu_E.mat
+	for i in $(LM_VALUES); \
+	do \
+	./DE.exe $$i > DE.mat; \
+	python LAFEM_Exp3.py DE.mat >> LAFEM_Exp3.mat; \
+	done
 
 #+end_src
-
-*** Comparative results between the expert and the agent
-
-
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_omega_lafem_mu.mat: LAFEM_Exp2_Results.exe LAFEM_Exp3_theta_lafem_mu.mat
-	./LAFEM_Exp2_Results.exe LAFEM_Exp3_theta_lafem_mu.mat > LAFEM_Exp3_omega_lafem_mu.mat
-
-#+end_src
-
 *** Plotting
-The relevant makefile rules.
+#+begin_src python :tangle LAFEM_Exp3_plot.py
+from matplotlib import rc
+rc('text', usetex=True)
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import pylab as pylab
+from Plot import *
 
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_true_R.mat: LAFEM_Exp2_Plot.exe LAFEM_Exp3_theta_lafem_mu.mat LAFEM_Exp3_omega_lafem_mu.mat 
-	./LAFEM_Exp2_Plot.exe LAFEM_Exp3_theta_lafem_mu.mat LAFEM_Exp3_omega_lafem_mu.mat LAFEM_Exp3
+D = genfromtxt( "LAFEM_Exp3.mat" )
+myPlot = Plot()
+myPlot.Expert = 4.11057591 #python Expert.py to get this value
+myPlot.Random_mean = 0.48848324670295395#See Highway.org about Random.py for information on these values
+myPlot.Random_min = 0.069469005947400006#python Random.py to get this value
+myPlot.Random_max = 3.2720195801399998#python Random.py to get this value
+myPlot.Random_var = 0.57868038965027513#python Random.py to get this value
 
-LAFEM_Exp3_lafem_R.mat: LAFEM_Exp2_Plot.exe LAFEM_Exp3_theta_lafem_mu.mat LAFEM_Exp3_omega_lafem_mu.mat
-	./LAFEM_Exp2_Plot.exe LAFEM_Exp3_theta_lafem_mu.mat LAFEM_Exp3_omega_lafem_mu.mat LAFEM_Exp3
+myPlot.ymin = -1
+myPlot.ymax = 5
 
-LAFEM_Exp3_Vexpert.mat: LAFEM_Exp2_Plot.exe LAFEM_Exp3_theta_lafem_mu.mat LAFEM_Exp3_omega_lafem_mu.mat 
-	./LAFEM_Exp2_Plot.exe LAFEM_Exp3_theta_lafem_mu.mat LAFEM_Exp3_omega_lafem_mu.mat LAFEM_Exp3
-
-LAFEM_Exp3_Vagent.mat: LAFEM_Exp2_Plot.exe LAFEM_Exp3_theta_lafem_mu.mat LAFEM_Exp3_omega_lafem_mu.mat 
-	./LAFEM_Exp2_Plot.exe LAFEM_Exp3_theta_lafem_mu.mat LAFEM_Exp3_omega_lafem_mu.mat LAFEM_Exp3
-
-
-
-#+end_src
-
-The gnuplot instructions to plot all this, along with the relevant makefile rules :
-#+begin_src gnuplot :tangle LAFEM_Exp3_true_R.gp
-set pm3d map
-set output "LAFEM_Exp3_true_R.ps"
-set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
-set xlabel "Position"
-set ylabel "Speed"
-splot "LAFEM_Exp3_true_R.dat" notitle
+myPlot.plot( D, 'red', 'LAFEM_Exp3_fig1.pdf' )
 
 #+end_src
 
 #+srcname: LAFEM_Exp3_make
 #+begin_src makefile
-LAFEM_Exp3_true_R.gp: LAFEM_Exp3.org
+LAFEM_Exp3_plot.py: LAFEM_Exp3.org
 	$(call tangle,"LAFEM_Exp3.org")
 
-LAFEM_Exp3_true_R.pdf: LAFEM_Exp3_true_R.gp LAFEM_Exp3_true_R.mat
-	gnuplot LAFEM_Exp3_true_R.gp
-	ps2pdf LAFEM_Exp3_true_R.ps
-	rm LAFEM_Exp3_true_R.ps
-
-#+end_src
-
-#+begin_src gnuplot :tangle LAFEM_Exp3_lafem_R.gp
-
-set output "LAFEM_Exp3_lafem_R.ps"
-set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
-set xlabel "Position"
-set ylabel "Speed"
-set parametric
-set style line 2 lt 1 lw 1 pt 1 linecolor rgb "green"
-set pm3d map
-splot "LAFEM_Exp3_lafem_R.dat" notitle w pm3d, "D_expert.mat" u 1:2:(0.0) w points ls 2 notitle
-#+end_src
-
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_lafem_R.gp: LAFEM_Exp3.org
-	$(call tangle,"LAFEM_Exp3.org")
-
-LAFEM_Exp3_lafem_R.pdf: LAFEM_Exp3_lafem_R.gp LAFEM_Exp3_lafem_R.mat
-	gnuplot LAFEM_Exp3_lafem_R.gp
-	ps2pdf LAFEM_Exp3_lafem_R.ps
-	rm LAFEM_Exp3_lafem_R.ps
-
+LAFEM_Exp3_fig1.pdf: LAFEM_Exp3_plot.py LAFEM_Exp3.mat ../Plot.py
+	python LAFEM_Exp3_plot.py
 #+end_src
 
 
-#+begin_src gnuplot :tangle LAFEM_Exp3_Vexpert.gp
-set pm3d map
-set output "LAFEM_Exp3_Vexpert.ps"
-set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
-set xlabel "Position"
-set ylabel "Speed"
-splot "LAFEM_Exp3_Vexpert.dat" notitle
-
-#+end_src
-
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_Vexpert.gp: LAFEM_Exp3.org
-	$(call tangle,"LAFEM_Exp3.org")
-
-LAFEM_Exp3_Vexpert.pdf: LAFEM_Exp3_Vexpert.gp LAFEM_Exp3_Vexpert.mat
-	gnuplot LAFEM_Exp3_Vexpert.gp
-	ps2pdf LAFEM_Exp3_Vexpert.ps
-	rm LAFEM_Exp3_Vexpert.ps
-
-#+end_src
-
-#+begin_src gnuplot :tangle LAFEM_Exp3_Vagent.gp
-set pm3d map
-set output "LAFEM_Exp3_Vagent.ps"
-set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
-set xlabel "Position"
-set ylabel "Speed"
-splot "LAFEM_Exp3_Vagent.dat" notitle
-
-#+end_src
-
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_Vagent.gp: LAFEM_Exp3.org
-	$(call tangle,"LAFEM_Exp3.org")
-
-LAFEM_Exp3_Vagent.pdf: LAFEM_Exp3_Vagent.gp LAFEM_Exp3_Vagent.mat
-	gnuplot LAFEM_Exp3_Vagent.gp
-	ps2pdf LAFEM_Exp3_Vagent.ps
-	rm LAFEM_Exp3_Vagent.ps
-
-#+end_src
 
 ** Cleaning
    A rule to clean the mess :
