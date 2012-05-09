@@ -34,6 +34,61 @@ def phi( s, a ):
 
    #+end_src
 * Obtaining samples from the expert
+#+begin_src c :tangle omega_E.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "Random_Samples.mat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+//FIXME : those two are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+unsigned int g_iMax_episode_len = 3000; 
+int main( void ){
+  fprintf(stderr,"Training the expert...");
+  fflush( NULL );
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_expert = lspi( D, omega_0 );
+  g_mOmega = omega_expert;
+  fprintf(stderr,"done\n");
+
+  gsl_matrix* D_expert = inverted_pendulum_simulator( 1 );
+  fprintf(stderr,"Longueur d'un run de l'expert : %d\n",D_expert->size1);
+  if( D_expert->size1 < g_iMax_episode_len ){
+    return 1;
+  }
+  gsl_matrix_free( D_expert );
+
+  gsl_matrix_fprintf( stdout, omega_expert, "%e" );
+
+  return 0;
+}
+
+#+end_src
+
+
 #+begin_src c :tangle DE.c :main no
 #define _POSIX_C_SOURCE 1
 #include <gsl/gsl_matrix.h>
@@ -67,23 +122,11 @@ unsigned int g_iMax_episode_len = -1;
 int main( int argc, char** argv ){
   g_iMax_episode_len = atoi( argv[1] );
   unsigned int M = atoi( argv[2] );
-  fprintf(stderr,"Training the expert...");
-  fflush( NULL );
-  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
-  g_mActions = file2matrix( ACTION_FILE, g_iA );
-  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
-  gsl_matrix* omega_expert = lspi( D, omega_0 );
+  gsl_matrix* omega_expert = file2matrix("omega_E.mat",1);
   g_mOmega = omega_expert;
-  fprintf(stderr,"done\n");
-
-  gsl_matrix* D_expert = inverted_pendulum_simulator( 1 );
-  fprintf(stderr,"Longueur d'un run de l'expert : %d\n",D_expert->size1);
-  if( D_expert->size1 < g_iMax_episode_len ){
-    return 1;
-  }
-  gsl_matrix_free( D_expert );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
   
-  D_expert = inverted_pendulum_simulator( M );
+  gsl_matrix* D_expert = inverted_pendulum_simulator( M );
   for( int i = 0; i < D_expert->size1 ; i++ ){
     for( int j = 0; j < TRANS_WIDTH; j++){
       printf("%e ",gsl_matrix_get( D_expert, i, j ) );
@@ -97,6 +140,15 @@ int main( int argc, char** argv ){
 
 #+srcname: InvertedPendulum_make
 #+begin_src makefile
+omega_E.mat: omega_E.exe
+	./omega_E.exe > omega_E.mat
+
+omega_E.exe: omega_E.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o InvertedPendulum.o simulator.o
+	$(O2EXE) -o omega_E.exe omega_E.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o InvertedPendulum.o ../LSPI.o simulator.o
+
+omega_E.o: omega_E.c InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../greedy.h ../RL_Globals.h phipsi.h
+	$(call c2obj,"omega_E.c")
+
 DE.exe: DE.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o InvertedPendulum.o simulator.o
 	$(O2EXE) -o DE.exe DE.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o InvertedPendulum.o ../LSPI.o simulator.o
 
