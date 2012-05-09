@@ -51,10 +51,8 @@ return NULL;
 }
 
 
-int main( void ){
-  g_mOmega = file2matrix( "omega_expert.mat", 1 );
-  g_mActions = file2matrix( ACTION_FILE, g_iA );
-  gsl_matrix* D = file2matrix( "D_expert.mat", TRANS_WIDTH );
+int main( int argc, char** argv ){
+  gsl_matrix* D = file2matrix( argv[1], TRANS_WIDTH );
 
   gsl_matrix* D_mu = gsl_matrix_alloc( D->size1, g_iS + g_iA + g_iS + g_iP + 1 );
 
@@ -77,7 +75,7 @@ int main( void ){
     gsl_matrix_memcpy( &(eoe_dst.matrix), &(eoe_src.matrix) );    
   }
   
-  gsl_matrix* omega_pi = lstd_mu_omega( D_mu, &greedy_policy );
+  gsl_matrix* omega_pi = lstd_mu_op_omega( D_mu );
   
   for( int i = 0; i < omega_pi->size1; i++ ){
     for( int j = 0; j < omega_pi->size2; j++ ){
@@ -102,9 +100,6 @@ LAFEM_Exp3_LSTDmu.o: LAFEM_Exp3_LSTDmu.c InvertedPendulum.h ../LSTDmu.h ../utils
 LAFEM_Exp3_LSTDmu.c: LAFEM_Exp3.org
 	$(call tangle,"LAFEM_Exp3.org")
 
-LAFEM_Exp3_omega_mu_E.mat: LAFEM_Exp3_LSTDmu.exe LAFEM_Exp2_omega_expert.mat D_expert.mat
-	./LAFEM_Exp3_LSTDmu.exe > LAFEM_Exp3_omega_mu_E.mat
-
 #+end_src
 
 *** Configuring LAFEM
@@ -128,7 +123,7 @@ class LAFEM_Exp3( LAFEM ):
         for trans in D_E:
             self.dicPi_E[l2str(trans[0:2])] = trans[2:3][0]
             self.data = self.data +[[ trans[0:2], trans[2:3][0]]]
-        self.omega_mu_E = genfromtxt( "LAFEM_Exp3_omega_mu_E.mat" )
+        self.omega_mu_E = genfromtxt( sys.argv[2] )
 
 #+end_src
      
@@ -160,7 +155,6 @@ class LAFEM_Exp3( LAFEM ):
 #+end_src
 
 *** Running SCIRL
-    FIXME: s/omega/theta/avec discernement
 
  #+begin_src python :tangle LAFEM_Exp3.py
 lafem = LAFEM_Exp3()
@@ -179,11 +173,12 @@ print
 LAFEM_Exp3.py: LAFEM_Exp3.org
 	$(call tangle,"LAFEM_Exp3.org")
 
-LAFEM_Exp3: LAFEM_Exp3.py InvertedPendulum.py ../Cascading.py ../LAFEM.py DE.exe ../a2str.py Random_Samples.mat Evaluate_omega.exe Evaluate_theta.exe LAFEM_Exp3_omega_mu_E.mat
+LAFEM_Exp3: LAFEM_Exp3.py InvertedPendulum.py ../Cascading.py ../LAFEM.py DE.exe ../a2str.py Random_Samples.mat Evaluate_omega.exe Evaluate_theta.exe LAFEM_Exp3_LSTDmu.exe
 	for i in $(LM_VALUES); \
 	do \
 	./DE.exe $$i > DE.mat; \
-	python LAFEM_Exp3.py DE.mat >> LAFEM_Exp3.mat; \
+	./LAFEM_Exp3_LSTDmu.exe DE.mat > omega_mu_E.mat; \
+	python LAFEM_Exp3.py DE.mat omega_mu_E.mat >> LAFEM_Exp3.mat; \
 	done
 
 #+end_src
