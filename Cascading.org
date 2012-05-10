@@ -102,14 +102,14 @@ def shape_for_SA_regression( D, q, phi, Actions ):
     "Given data of the form [[s,a,s',eoe],...,[s,a,s',eoe]], returns the matrix FIXME ecrire le vrai truc sur plusieurs lignes"
     answer = []
     SASA = shape_as_sasa( D )
-    q_min = 100000000
+    q_max = -100000000
     for sasa in SASA:
         si = sasa[0]
         ai = sasa[1]
         ssi = sasa[2]
         for a in Actions:
-            if q_min > (q(ssi,a ))[0] :
-                q_min = (q(ssi, a ))[0]
+            if q_max < (q(ssi,a ))[0] :
+                q_max = (q(ssi, a ))[0]
     for sasa in SASA:
         si = sasa[0]
         ai = sasa[1]
@@ -119,8 +119,8 @@ def shape_for_SA_regression( D, q, phi, Actions ):
             if a == ai:
                 answer.append( [ phi( si, ai ).transpose()[0], (q(si,ai) - 0.9*q( ssi, astar ))[0]] )
             else:
-                #version (6)
-                answer.append( [ phi( si, a ).transpose()[0], 0.9*q_min ] )
+                #version (7)
+                answer.append( [ phi( si, a ).transpose()[0], 0.9*q_max ] )
     return answer
 
 #FIXME le second a ne sert maintenant probablement plus a rien, vu que l'on utilise pi_C...
