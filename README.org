@@ -7,10 +7,16 @@ Avec Cascading_Exp1 et ANIRL_Exp6 on s'aperçoit que :
 - Dans le cas des features naturelles, la régression apporte quelque chose, et la classif pure n'est pas une approche qui fonctionne
 - En informé ça marche aussi, mais la classif seule marche également. D'ailleurs la classif seule fonctionne mieux qu'ANIRL
 - SCIRL fonctionne très bien. C'est la meilleure approche en features naturelles, arrive à parité en naturel avec le cascading informé
-- ANIRL parfait ne donne pas un résultat parfai :-p
+- ANIRL parfait ne donne pas un résultat parfait :-p
+
+On va aussi tester le cascading SxA, histoire de. On teste deux des méthodes qui marchent sur le Gridworl, 4 et 6
 * Sur le GridWorld
 La baseline, ANIRL_Exp3, fonctionne vraiment pas trop mal.
 Cascading_Exp2 devrait permettre de voir que le cascading ne fonctionne pas avec une régression sur S seule. Par contre la classif seule semble marcher.
 Cela correspond au cas foireux que Matthieu a identifé.
 
-Avec Cascading_Exp3 ça a l'air de pas marcher non plus sur SxA. Une petite bidouille pour vérifier ça...
+Après le test de diverses heuristiques sur le GridWorld, il s'avère que que seules certaines marchent bien.
+En pratique on garde les heuristiques 4 et 6, à savoir rmin - epsilon et q(s_i,a) - min_{s,a\in S\times A} q(s,a).
+On va les tester sur le Highway voir ce que ça donne
+* Sur le pendule
+Sur le pendule, le cascading ne fonctionne pas car les features ne permettent pas au classifieur de classifier
