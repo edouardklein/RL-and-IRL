@@ -150,7 +150,7 @@ ANIRL_Exp5.exe: ANIRL_Exp5.o ../greedy.o ../utils.o ../ANIRL.o ANIRL_Exp5_mu_pi.
 	$(O2EXE) -o ANIRL_Exp5.exe ANIRL_Exp5.o ../greedy.o ../utils.o ../ANIRL.o ANIRL_Exp5_mu_pi.o
 
 ANIRL_Exp5: ANIRL_Exp5.exe  Mu_E.mat ANIRL_Exp5_mu_E_s0.mat theta2omega.py omega2mu.py
-	./ANIRL_Exp5.exe
+	./ANIRL_Exp5.exe >> ANIRL_Exp5.mat
 
 ../ANIRL.h:
 	make -C .. ANIRL.h
@@ -170,6 +170,8 @@ from numpy import *
 import scipy
 import pylab as pylab
 from Plot import *
+
+#Changer le plot pour l'afficher comme l'expert et le random
 
 D = genfromtxt( "ANIRL_Exp5.mat" )
 
