@@ -447,6 +447,8 @@ savetxt( "/dev/stdout", omega, "%e", "\n" )
   #+begin_src python :tangle Highway.py
 def HDP( R, filename ):
     return DP( R, S, s_index, A, [P(a) for a in A], lambda x:x, sa_index, filename )
+def HDPSA( R, filename ):
+    return DPSA( R, S, s_index, A, [P(a) for a in A], lambda x:x, sa_index, filename )
 
   #+end_src
 
@@ -502,6 +504,18 @@ def evaluate_theta( theta, l_psi ):
         R_theta[ i ] = dicR[ i ]
     sys.stderr.write( "Pi computation...\n" )
     Pi = HDP( R_theta, "V_agent.mat" )
+    return evaluate_Pi( Pi )
+def evaluate_thetaSA( theta, l_phi ):
+    dicR = {}
+    for s in Sgenerator():
+        for a in A:
+            index = sa_index( s,a )
+            dicR[ index ] = dot( theta.transpose(), l_phi( s, a ) )
+    R_theta = zeros(( len(dicR), 1 ))
+    for i in dicR:
+        R_theta[ i ] = dicR[ i ]
+    sys.stderr.write( "Pi computation...\n" )
+    Pi = HDPSA( R_theta, "V_agent.mat" )
     return evaluate_Pi( Pi )
 
   #+end_src
