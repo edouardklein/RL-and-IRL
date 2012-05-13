@@ -1,5 +1,390 @@
 #+TITLE: Inverted pendulum equations
+* State and Action space
+** Action space
+   #+begin_src python :tangle InvertedPendulum.py
+from numpy import *
+import scipy
+import sys
+sys.path+=['..']
 
+A = [0,1,2]
+   #+end_src
+** $\psi$ and $\phi$
+   #+begin_src python :tangle InvertedPendulum.py
+def psi( s ):
+    answer = zeros((10,1))
+    position = s[0]
+    speed = s[1]
+    index = 0
+    answer[index] = 1.
+    index+=1
+    for i in range(-1,2):
+        for j in range(-1,2):
+            d_i = i*3.141592/4.
+            answer[index] = exp(-(pow(position-d_i,2) +
+                                  pow(speed-j,2))/2.)
+            index+=1
+    return answer
+
+def phi( s, a ):
+    answer = zeros((30,1))
+    index = a*10
+    answer[ index:index+10 ] = psi( s )
+    return answer
+
+   #+end_src
+* Obtaining samples from the expert
+#+begin_src c :tangle omega_E.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "Random_Samples.mat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+//FIXME : those two are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+unsigned int g_iMax_episode_len = 3000; 
+int main( void ){
+  fprintf(stderr,"Training the expert...");
+  fflush( NULL );
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_expert = lspi( D, omega_0 );
+  g_mOmega = omega_expert;
+  fprintf(stderr,"done\n");
+
+  gsl_matrix* D_expert = inverted_pendulum_simulator( 1 );
+  fprintf(stderr,"Longueur d'un run de l'expert : %d\n",D_expert->size1);
+  if( D_expert->size1 < g_iMax_episode_len ){
+    return 1;
+  }
+  gsl_matrix_free( D_expert );
+
+  gsl_matrix_fprintf( stdout, omega_expert, "%e" );
+
+  return 0;
+}
+
+#+end_src
+
+
+#+begin_src c :tangle DE.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "Random_Samples.mat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+//FIXME : those two are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+unsigned int g_iMax_episode_len = -1; 
+int main( int argc, char** argv ){
+  g_iMax_episode_len = atoi( argv[1] );
+  unsigned int M = atoi( argv[2] );
+  gsl_matrix* omega_expert = file2matrix("omega_E.mat",1);
+  g_mOmega = omega_expert;
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  
+  gsl_matrix* D_expert = inverted_pendulum_simulator( M );
+  for( int i = 0; i < D_expert->size1 ; i++ ){
+    for( int j = 0; j < TRANS_WIDTH; j++){
+      printf("%e ",gsl_matrix_get( D_expert, i, j ) );
+    }
+    printf("\n");
+  }
+  return 0;
+}
+
+#+end_src
+
+#+srcname: InvertedPendulum_make
+#+begin_src makefile
+omega_E.mat: omega_E.exe
+	./omega_E.exe > omega_E.mat
+
+omega_E.exe: omega_E.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o InvertedPendulum.o simulator.o
+	$(O2EXE) -o omega_E.exe omega_E.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o InvertedPendulum.o ../LSPI.o simulator.o
+
+omega_E.o: omega_E.c InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../greedy.h ../RL_Globals.h phipsi.h
+	$(call c2obj,"omega_E.c")
+
+DE.exe: DE.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o ../LSPI.o InvertedPendulum.o simulator.o
+	$(O2EXE) -o DE.exe DE.o phipsi.o ../utils.o ../greedy.o ../LSTDQ.o InvertedPendulum.o ../LSPI.o simulator.o
+
+DE.o: DE.c InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../greedy.h ../RL_Globals.h phipsi.h
+	$(call c2obj,"DE.c")
+
+DE.c: InvertedPendulum.org
+	$(call tangle,"InvertedPendulum.org")
+#+end_src
+
+* Random samples
+#+begin_src c :tangle generator.c :main no
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include <gsl/gsl_matrix.h>
+#include "utils.h"
+#define NUMBER_OF_WALKS (500)
+#define MAX_WALK_LENGTH (3000)
+int main( void ){
+  srand(time(NULL)+getpid()); rand(); rand();rand();
+  for( unsigned int i = 0 ; i < NUMBER_OF_WALKS ; i++ ){
+    double state_p;//position
+    double state_v;//vitesse
+    iv_init( &state_p, &state_v );
+    int eoe = 1;
+    for( unsigned int j = 0 ; j < MAX_WALK_LENGTH && eoe == 1 ; 
+	 j++ ){
+      double next_state_p;
+      double next_state_v;
+      double reward;
+      unsigned int action = random_int( LEFT, RIGHT );
+      iv_step( state_p, state_v, action, 
+	       &next_state_p, &next_state_v, &reward, &eoe );
+      if( j == MAX_WALK_LENGTH - 1 ){
+	eoe = 0;
+      }
+      printf("%lf %lf %d %lf %lf %lf %d\n",
+	     state_p, state_v, action, 
+	     next_state_p, next_state_v, reward, eoe );
+      state_p = next_state_p;
+      state_v = next_state_v;
+    }
+  }
+  return 0;
+}
+#+end_src
+  Some rules to tangle the source files :
+  #+srcname: Generator_code_make
+  #+begin_src makefile
+generator.c: InvertedPendulum.org 
+	$(call tangle,"InvertedPendulum.org")
+  #+end_src
+
+   A rule to create the object file :
+  #+srcname: Generator_c2o_make
+  #+begin_src makefile
+generator.o: generator.c InvertedPendulum.h ../utils.h 
+	$(call c2obj,"generator.c")
+  #+end_src
+
+   A rule to create the executable from the object file :
+#+srcname: Generator_o2exe_make
+#+begin_src makefile
+generator.exe: generator.o ../utils.o InvertedPendulum.o
+	$(O2EXE) -o generator.exe generator.o ../utils.o InvertedPendulum.o
+#+end_src
+  #+srcname: Generator_make
+  #+begin_src makefile
+Random_Samples.mat: generator.exe 
+	./generator.exe > Random_Samples.mat
+  #+end_src
+
+
+   A rule to clean the mess :
+  #+srcname: Generator_clean_make
+  #+begin_src makefile
+Generator_clean:
+	find . -maxdepth 1 -iname "generator.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "generator.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "generator.o"   | xargs $(XARGS_OPT) rm
+  #+end_src
+
+
+* Evaluating policies
+** Evaluate R
+Print the length of a run for an agent trained on the provided reward.
+#+begin_src c :tangle Evaluate_theta.c
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "Random_Samples.mat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+//FIXME : those are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+unsigned int g_iMax_episode_len = 3000;
+
+int main (int argc, char *argv[]){
+  if (argc != 2){
+    printf("usage : %s <name of file with theta inside>\n (%d arguments given) ",argv[0],argc);
+    exit( 1 );
+  }
+  char* theta_file = argv[1];
+
+  gsl_matrix* theta_lafem = file2matrix( theta_file, 1 );
+  gsl_matrix* D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  gsl_matrix* new_reward = gsl_matrix_alloc( 1, 1 );
+  for( int i=0; i<D->size1; i++ ){
+    gsl_matrix_view vstate = gsl_matrix_submatrix( D, i, 0, 1, 2 );
+    gsl_matrix* mPsi = psi( &(vstate.matrix) );
+    gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, theta_lafem, mPsi, 0., new_reward );
+    gsl_matrix_set( D, i, 5, gsl_matrix_get( new_reward, 0,0 ) );
+    gsl_matrix_free( mPsi );
+  }
+
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega_lafem = lspi( D, omega_0 );
+  
+  g_mOmega = omega_lafem;
+  gsl_matrix* D_lafem = inverted_pendulum_simulator( 1 );
+  printf("%d",D_lafem->size1);
+  fflush( NULL );
+  gsl_matrix_free( D_lafem );
+
+  return 0;
+}
+
+#+end_src
+#+srcname: InvertedPendulum_make
+#+begin_src makefile
+Evaluate_theta.exe: Evaluate_theta.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o simulator.o ../LSPI.o ../LSTDQ.o
+	$(O2EXE) -o Evaluate_theta.exe Evaluate_theta.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o  simulator.o ../LSPI.o ../LSTDQ.o
+
+Evaluate_theta.o: Evaluate_theta.c InvertedPendulum.h simulator.h ../utils.h ../greedy.h ../RL_Globals.h ../IRL_Globals.h ../LSPI.h
+	$(call c2obj,"Evaluate_theta.c")
+
+Evaluate_theta.c: InvertedPendulum.org
+	$(call tangle,"InvertedPendulum.org")
+
+#+end_src
+
+
+** Evaluate omega
+Print the length of a run for an agent described by the provided omega matrix.
+#+begin_src c :tangle Evaluate_omega.c
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "greedy.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#define D_FILE_NAME "Random_Samples.mat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+
+//FIXME : those are not useful here, but it won't compile without
+double g_dGamma_lafem = 0;
+unsigned int g_iNb_episodes = -1;
+
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+gsl_matrix* g_mActions = NULL; 
+
+unsigned int g_iMax_episode_len = 3000;
+
+int main (int argc, char *argv[]){
+  if (argc != 2){
+    printf("usage : %s <name of file with omega inside>\n (%d arguments given) ",argv[0],argc);
+    exit( 1 );
+  }
+  char* omega_file = argv[1];
+
+  gsl_matrix* omega_lafem = file2matrix( omega_file, 1 );
+
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  g_mOmega = omega_lafem;
+  gsl_matrix* D_lafem = inverted_pendulum_simulator( 1 );
+  printf("%d",D_lafem->size1);
+  fflush( NULL );
+  gsl_matrix_free( D_lafem );
+
+  return 0;
+}
+
+#+end_src
+#+srcname: InvertedPendulum_make
+#+begin_src makefile
+Evaluate_omega.exe: Evaluate_omega.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o simulator.o ../LSPI.o ../LSTDQ.o
+	$(O2EXE) -o Evaluate_omega.exe Evaluate_omega.o phipsi.o ../utils.o ../greedy.o  InvertedPendulum.o  simulator.o ../LSPI.o ../LSTDQ.o
+
+Evaluate_omega.o: Evaluate_omega.c InvertedPendulum.h simulator.h ../utils.h ../greedy.h ../RL_Globals.h ../IRL_Globals.h ../LSPI.h
+	$(call c2obj,"Evaluate_omega.c")
+
+Evaluate_omega.c: InvertedPendulum.org
+	$(call tangle,"InvertedPendulum.org")
+
+#+end_src
+   
 * C Implementation
 This file hosts the code shared by both the simulator and the generator.
 
