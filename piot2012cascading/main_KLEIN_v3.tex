@@ -1,10 +1,5 @@
-% This is LLNCS.DEM the demonstration file of
-% the LaTeX macro package from Springer-Verlag
-% for Lecture Notes in Computer Science,
-% version 2.4 for LaTeX2e as of 16. April 2010
-%
-\documentclass{llncs}
-%
+\documentclass{article} % For LaTeX2e
+\usepackage{nips12submit_e,times}
 \usepackage{makeidx}  % allows for indexgeneration
 % For figures
 \usepackage{graphicx} % more modern
@@ -15,6 +10,11 @@
 \usepackage{mathtools}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsthm}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
 \usepackage{dsfont}
 \usepackage{algorithm}
 \usepackage{algorithmic}
@@ -122,19 +122,51 @@
 \newcommand{\am}{{\mathcal{A}_m}}
 \newcommand{\amj}{{\mathcal{A}_m^{+j}}}
 \newcommand{\sgn}{\operatorname{sgn}}
+\title{A cascading approach}
+\author{
+David S.~Hippocampus\thanks{ Use footnote for providing further information
+about author (webpage, alternative address)---\emph{not} for acknowledging
+funding agencies.} \\
+Department of Computer Science\\
+Cranberry-Lemon University\\
+Pittsburgh, PA 15213 \\
+\texttt{hippo@cs.cranberry-lemon.edu} \\
+\And
+Coauthor \\
+Affiliation \\
+Address \\
+\texttt{email} \\
+\AND
+Coauthor \\
+Affiliation \\
+Address \\
+\texttt{email} \\
+\And
+Coauthor \\
+Affiliation \\
+Address \\
+\texttt{email} \\
+\And
+Coauthor \\
+Affiliation \\
+Address \\
+\texttt{email} \\
+(if needed)\\
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
 \begin{document}
 
-\title{Titre}
-\titlerunning{Titre}  % abbreviated title (for running head)
-\author{Boul\inst{1} \and Bil\inst{2}
-Boul \and Bil}
-\authorrunning{} % abbreviated author list (for running head)
-%
-\institute{SUPELEC,\\
-\email{SUPELEC},\\ WWW home page:
-\texttt{SUPELEC}
-\and
-\\}
 \maketitle              % typeset the title of the contribution
 \begin{abstract}
 This paper considers the inverse reinforcement learning (IRL) problem. The IRL framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered. This reward function is seen as the most succinct description of the task, allowing for task transfer from the expert to an agent with potentially different abilities. The proposed contribution consists in cascading a classification and a regression steps to produce a non-trivial reward function for which we show the expert policy to be near optimal. In addition to being generic, this approach is model-free, it does not require solving any direct reinforcement learning problem (unlike most of IRL algorithms) and it solely relies on transitions from the expert (no need to sample trajectories according to other policies). All of this is illustrated through nontrivial experiments.
@@ -521,14 +553,14 @@ Figure \ref{Cascading_Exp1_1.fig} shows results when employing the Cascading alg
 \subsection{Pendule}
 A n'ajouter que si les résultats présentent un intérêt particulier par rapport aux deux autres problèmes.
 
- \begin{figure}
- \begin{tabular}{ccc}
- \subfigure[Abbeel and Ng IRL  with engineered features]{\includegraphics[width=.45\linewidth]{"Cascading_Exp1_fig3"}\label{Cascading_Exp1_3.fig}}&\hspace{.05\linewidth}&
- \subfigure[Cascading with engineered features]{\includegraphics[width=.45\linewidth]{"Cascading_Exp1_fig2"}\label{Cascading_Exp1_2.fig}}\\
- \subfigure[Cascading with natural features]{\includegraphics[width=.4\linewidth]{"Cascading_Exp1_fig1"}\label{Cascading_Exp1_1.fig}}&\hspace{.05\linewidth}&\includegraphics[width=0.45\linewidth]{"Cascading_Exp1_legend"}
- \end{tabular}
-\caption{Results on the Highway Driving problem. Data is shown with mean, standard deviation, minimum and maximum value over 50 runs.}
- \end{figure}
+%%  \begin{figure}
+%%  \begin{tabular}{ccc}
+%%  \subfigure[Abbeel and Ng IRL  with engineered features]{\includegraphics[width=.45\linewidth]{"Cascading_Exp1_fig3"}\label{Cascading_Exp1_3.fig}}&\hspace{.05\linewidth}&
+%%  \subfigure[Cascading with engineered features]{\includegraphics[width=.45\linewidth]{"Cascading_Exp1_fig2"}\label{Cascading_Exp1_2.fig}}\\
+%%  \subfigure[Cascading with natural features]{\includegraphics[width=.4\linewidth]{"Cascading_Exp1_fig1"}\label{Cascading_Exp1_1.fig}}&\hspace{.05\linewidth}&\includegraphics[width=0.45\linewidth]{"Cascading_Exp1_legend"}
+%%  \end{tabular}
+%% \caption{Results on the Highway Driving problem. Data is shown with mean, standard deviation, minimum and maximum value over 50 runs.}
+%%  \end{figure}
 
 \begin{itemize}
 \item description du problème
@@ -542,6 +574,6 @@ A n'ajouter que si les résultats présentent un intérêt particulier par rappo
 
 \section{Conclusion}
 
-\bibliographystyle{splncs}
+\bibliographystyle{alpha}
 \bibliography{Biblio}
 \end{document}
