@@ -21,7 +21,7 @@ Random_var = 0.57868038965027513#python Random.py to get this value
 y_min = -1
 y_max = 5
 
-#Figure 1 : ANIRL, Random and Cascading (comparison to the state of the art)
+#Figure 1 : ANIRL, Random and Classif (Concurrents...)
 pylab.figure(1)
 pylab.clf()
 [X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_ANIRL ))
@@ -40,15 +40,15 @@ filled_mean_min_max( pylab, X, Random_mean*ones(X.shape), (Random_mean-Random_va
 
 pylab.plot(X,Expert*ones(X.shape), color='cyan',label="Expert",lw=2,ls=':')
 
-[X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_C ))
-[X,Y_mean,Y_var] = map( array, mean_var( D_C ))
-filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, 'orange', 0.2,'--',None,None)
-filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, 'orange', 0.4,'-.',None,None)
+[X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_Classif ))
+[X,Y_mean,Y_var] = map( array, mean_var( D_Classif ))
+filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, 'yellow', 0.2,'--',None,None)
+filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, 'yellow', 0.4,'-.',None,None)
 
 pylab.savefig("Fig1.pdf",transparent=True)
 
-#Figure 2 : Cascading et classif pure
-pylab.figure(1)
+#Figure 2 : Cascading et moyenne de ANIRL et Classif pure (comparaison aux concurrents).
+pylab.figure(2)
 pylab.clf()
 [X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_Classif ))
 [X,Y_mean,Y_var] = map( array, mean_var( D_Classif ))
@@ -58,10 +58,14 @@ pylab.axis([x_min,x_max,y_min,y_max])
 pylab.xlabel('Number of samples from the expert')
 pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
 pylab.grid(True)
-filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, 'yellow', 0.2,'--',None,None)
-filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, 'yellow', 0.4,'-.',None,None)
 
-pylab.plot(X,Expert*ones(X.shape), color='cyan',label="Expert",lw=2,ls=':')
+[X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_ANIRL ))
+[X,Y_mean,Y_var] = map( array, mean_var( D_ANIRL ))
+pylab.plot( X, Y_mean,color='blue',lw=2)
+
+[X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_Classif ))
+[X,Y_mean,Y_var] = map( array, mean_var( D_Classif ))
+pylab.plot( X, Y_mean,color='yellow',lw=2)
 
 [X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_C ))
 [X,Y_mean,Y_var] = map( array, mean_var( D_C ))
