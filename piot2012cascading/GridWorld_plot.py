@@ -42,8 +42,8 @@ pylab.plot(X,Expert*ones(X.shape), color='cyan',label="Expert",lw=2,ls=':')
 
 [X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_Classif ))
 [X,Y_mean,Y_var] = map( array, mean_var( D_Classif ))
-filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, 'yellow', 0.2,'--',None,None)
-filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, 'yellow', 0.4,'-.',None,None)
+filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, 'green', 0.2,'--',None,None)
+filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, 'green', 0.4,'-.',None,None)
 
 pylab.savefig("Fig1.pdf",transparent=True)
 
@@ -65,7 +65,7 @@ pylab.plot( X, Y_mean,color='blue',lw=2)
 
 [X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_Classif ))
 [X,Y_mean,Y_var] = map( array, mean_var( D_Classif ))
-pylab.plot( X, Y_mean,color='yellow',lw=2)
+pylab.plot( X, Y_mean,color='green',lw=2)
 
 [X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_C ))
 [X,Y_mean,Y_var] = map( array, mean_var( D_C ))
