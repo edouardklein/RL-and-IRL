@@ -1,20 +1,19 @@
-\documentclass{article} % For LaTeX2e
-\usepackage{nips12submit_e,times}
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+\documentclass{llncs}
+%
 \usepackage{makeidx}  % allows for indexgeneration
 % For figures
 \usepackage{graphicx} % more modern
 %\usepackage[latin1]{inputenc}
 %\usepackage[francais]{babel}
 \usepackage{subfigure}
-\usepackage{tabularx}
 \usepackage{mathtools}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{amsthm}
-\newtheorem{definition}{Definition}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
-\newtheorem{remark}{Remark}
 \usepackage{dsfont}
 \usepackage{algorithm}
 \usepackage{algorithmic}
@@ -122,34 +121,19 @@
 \newcommand{\am}{{\mathcal{A}_m}}
 \newcommand{\amj}{{\mathcal{A}_m^{+j}}}
 \newcommand{\sgn}{\operatorname{sgn}}
-\title{Learning a reward function from demonstrations: a cascaded supervised
-learning approach}
-\author{Edouard Klein$^{1,2}$\\
- 1. ABC Team\\
- LORIA-CNRS, France.
-\And Bilal Piot$^{2}$\\
- 2. Supélec-Metz Campus\\
- MaLIS Research group, France\\
-\And Matthieu Geist$^1$\\
-\texttt{prenom.nom@supelec.fr}\\
-\And Olivier Pietquin$^{2,3}$\\
-3. UMI 2958 CNRS\\
-GeorgiaTech, France
-}
-
-% The \author macro works with any number of authors. There are two commands
-% used to separate the names and addresses of multiple authors: \And and \AND.
-%
-% Using \And between authors leaves it to \LaTeX{} to determine where to break
-% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
-% puts 3 of 4 authors names on the first line, and the last on the second
-% line, try using \AND instead of \And before the third author name.
-
-\newcommand{\fix}{\marginpar{FIX}}
-\newcommand{\new}{\marginpar{NEW}}
-
 \begin{document}
 
+\title{Titre}
+\titlerunning{Titre}  % abbreviated title (for running head)
+\author{Boul\inst{1} \and Bil\inst{2}
+Boul \and Bil}
+\authorrunning{} % abbreviated author list (for running head)
+%
+\institute{SUPELEC,\\
+\email{SUPELEC},\\ WWW home page:
+\texttt{SUPELEC}
+\and
+\\}
 \maketitle              % typeset the title of the contribution
 \begin{abstract}
 This paper considers the inverse reinforcement learning (IRL) problem. The IRL framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered. This reward function is seen as the most succinct description of the task, allowing for task transfer from the expert to an agent with potentially different abilities. The proposed contribution consists in cascading a classification and a regression steps to produce a non-trivial reward function for which we show the expert policy to be near optimal. In addition to being generic, this approach is model-free, it does not require solving any direct reinforcement learning problem (unlike most of IRL algorithms) and it solely relies on transitions from the expert (no need to sample trajectories according to other policies). All of this is illustrated through nontrivial experiments.
@@ -241,24 +225,6 @@ and more precisely there exists $\alpha\in]0,1[$ and $C\in\mathbb{R}_+$ such tha
 \end{theorem}
 In our framework, if $P_\pi$ is irreducible, then $\mu_\pi$ will be its stationary distribution.
 
-%Other notations will be needed in order to prove that the cascading approach is legitimate. Let's define the column-vector $\mu^{t,\pi,s}=[\mu^{t,\pi,s}_i]_{1\leq i \leq N}$ where $\mu^{t,\pi,s}_i$ is the probability of being in the state $s_i\in S$ at time $t\in\mathbb{N}$ when the start-state is $s$ and the policy followed is $\pi$ :
-%\begin{equation}
-%\mu^{t,\pi,s}=(\Delta_s^T(P_\pi)^t)^T,
-%\end{equation}
-%where $\Delta_s$ is the column-vector: $\Delta_s={\delta(s_i,s)}_{1\leq i \leq N}$ with $\delta(.,.)$ the Kronecker symbol. For a fixed policy $\pi$, the matrix $P_\pi$ is a stochastic matrix of finite dimension and if it is ergodic and recurrent positive then there exists a unique distribution probability represented by the column vector $\mu^\pi=[\mu^{\pi}_i]_{1\leq i \leq N}$ such that :
-%\begin{equation}
-%\mu_\pi=(\mu_\pi^T P_\pi)^T.
-%\end{equation}
-%In that case $\mu^\pi$ is called the stationary distribution of the policy $\pi$ and :
-%\begin{equation}
-%\forall s\in S \lim_{t\rightarrow+\infty}\mu_{t,\pi,s}=\mu_\pi.
-%\end{equation}
-%Thus in the particular case of ergodicty and recurrent positivity we can easily express $\mu_\pi^TV^\pi_R$ :
-%\begin{align}
-%\mu_\pi^TV^\pi_R&=\mu_\pi^T(R_\pi+\gamma P_\pi V^\pi_R)=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TP_\pi V^\pi_R,
-%\\
-%&=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi.
-%\end{align}
 \section{Cascading Classification and Regression for IRL}
 \label{section: Cascading}
 In this section, we propose to cascade two supervised learning (SL) approaches (namely a classifier and a regressor) to solve the IRL problem.
@@ -285,7 +251,6 @@ D_R=\{(s_{R,i},a_{R,i},s'_{R,i})\}_{1\leq i \leq D'}, D'\in\mathbb{N}^*,
 where $s'_{R,i}$ is sampled under the probability $P_{s_{R,i},a_{R,i}}$.
 Let us write:
 \begin{equation}
-\label{ri.def}
 \hat{r}_i=q(s_{R,i},a_{R,i})-\gamma q(s'_{R,i},\pi_C(s'_{R,i})), \forall i\in \{1,\dots,D'\}.
 \end{equation}
 This is an unbiased estimate of $R^C(s_{R,i},a_{R,i})$, indeed:
@@ -361,7 +326,6 @@ A possible argument to explain the fact that classification-regression still wor
 the term $\|\epsilon^C_R\|_{\infty}$ when $D_C=D_R$.
 \end{remark}
 \subsection{Proofs}
-
 \begin{proof}[Lemma \ref{lemma: calculs V}]
 Here, we use \eqref{equation: stationarity}
 \begin{align}
@@ -493,74 +457,14 @@ Finally by regrouping the results in \eqref{equation: cas3-1} and \eqref{equatio
 \mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^C_R\|_{\infty}+\mu_E^T\epsilon^E_R}{1-\gamma}.
 \end{equation}
 \end{proof}
-
 \section{Experiments}
 \label{section: experiments}
-\subsection{Instantiation of the algorithm}
-As hinted to in Section \ref{section: Cascading}, our algorithm can be instanciated in many ways, as any off-the-shelf classifier using a score function can be used in the first step, and any regression method can be used in the second step. This freedom of choice leaves room for problem dependant tweaks if needed.\\
 
-In our tests, we used a subgradient-descent based classifier and a simple regularized least square regression method. The classifier tries to minimize the risk function $R_N(q)$ :
-\begin{equation}
-  R_N(q) = {1\over N} \sum_{i=1}^N\left(\max_{a}(q(s_i,a) + l(s_i,a)) - q(s_i,a_i) \right).
-\end{equation}
-where $l$ is a user defined function whose role is to quantify the gap between the best and second to best actions. In all our tests we used the naive solution $l(s_i,a) = 1$ if $a\neq a_i$ and $l(s_i,a_i) = 0$. To minimize the risk, we introduce the parametrization 
-\begin{equation}
-  q(s,a) = \omega^T\phi(s,a).
-\end{equation}
-The risk now becomes :
-\begin{equation}
-  R_N(\omega) = {1\over N} \sum_{i=1}^N\left(\max_{a}(\omega^T\phi(s_i,a) + l(s_i,a)) - \omega^T\phi(s_i,a_i) \right).
-\end{equation}
-
-Because of the $\max$ in the expression, we can not use a simple gradiend descent on $\omega$ to minimize the risk. We have to make use of the subgradient. Let $a^* = \max_a\omega^T\phi(s,a)$, we get the following update rule :
-\begin{equation}
-  \omega_{t+1} = \omega_t -\alpha_t{1\over N}\sum_{i=1}^N\left(\phi(s_i,a^*) - \phi(s_i,a_i)\right).
-\end{equation}
-The regressor is a classical least square fitting. Given some features $\psi : S\rightarrow \mathbb{R}^p$, we define :
-\begin{eqnarray}
-\Psi &= \begin{pmatrix}\psi(s_1)^T\\\vdots\\\psi(s_N)^T\end{pmatrix}\\
-\textrm{and}
-\hat R &= \begin{pmatrix}\hat r_1 \\\vdots\\\hat r_N\end{pmatrix}\\
-\end{eqnarray}
-with $\hat r_i$ as in equation \ref{ri.def}. We then get :
-\begin{equation}
-\theta = (\Psi^T\Psi + \lambda Id)^{-1}\Psi^T\hat R,
-\end{equation}
-so that $\hat R^C(s) = \theta^T \psi(s)$.\\
-\subsection{Experimental setting}
-For both problems we test our approach with, we compare it to two baselines : the mean performance of an agent trained on a random reward and the mean performance of the policy output by the algorithm of \cite{abbeel2004apprenticeship}. This algorithm can be instanciated to work in the same dire conditions as our algorithm, that is to say using only samples from the expert. To do this, we estimate the feature expectations and solve the MDP in a batch, off policy manner thanks respectively to to LSTD$\mu$ \cite{klein2011batch} and LSPI \cite{lagoudakis2003least}. When this does not work, we fall back to a setting where everything is known, that is to say the feature expectations are computed by a dynamic programming algorithm that make use of the transition probabilities.\\
-The performance of the expert and the agents is computed with respect to the reward the expert was trained with. We use as a performance metric the mean value over the state space.
-\subsection{Gridworld}
-We first tested our approach on a simple $5\times 5$ gridworld. The expert and the agent can choose between 4 actions (down, left right, or up) that sends the player in the corresponding neighbooring cell. Trying to go off the grid will result in the player staying in its position. Each action has a probability $0.3$ of failing, in which case another randomly chosen different action is executed. The expert begins in the lower left corner and is trained to go to the higher right corner by an exact dynamic programming algorithm. The original reward is null everywhere but in the higher right corner where it is $1$.\\
-The results are shown in two figures. Figure \ref{Fig1.fig} show the baselines we compare ourselves with. Pure classification and the algorithm of \cite{abbeel2004apprenticeship} are on par with one another, both far better than training an agent on a random reward ; they both converge to a value close to the expert's given enough samples. Figure \ref{Fig2.fig} shows results of our algorithm together with the mean performance of both forementionned approaches (variance and min/max were dropped for legibility's sake). It shows the soundness of our cascading approach : when only a few samples are available, we provide a reward that lead to a better policy. When samples are widely available all approaches converge to the same value.
-  \begin{figure}
-  \begin{tabular}{ccc}
-  \subfigure[State of the art approaches on the GridWorld]{\includegraphics[width=.45\linewidth]{"Fig1"}\label{Fig1.fig}}&\hspace{.05\linewidth}&
-  \subfigure[Our new approach on the GridWorld]{\includegraphics[width=.45\linewidth]{"Fig2"}\label{Fig2.fig}}\\
-  \subfigure[All approaches on the Highway driving simulator]{\includegraphics[width=.4\linewidth]{"Fig3"}\label{Fig3.fig}}&\hspace{.05\linewidth}&\includegraphics[width=0.45\linewidth]{"Legend"}
-  \end{tabular}
-  \caption{Results on the GridWorld and Highway problems. Data is shown with mean, standard deviation, minimum and maximum value over 50 runs.}
-  \end{figure}
-
-
-
-\subsection{Highway driving simulator}
-There are problems for which pure classification just does not cut it, as the number of samples that would be needed to imitate the expert's control is dauntingly large. To illustrate this, inspired from a problem seen in \cite{syed2008apprenticeship,syed2008game}, we coded a driving simulator. The agent controls a car that can switch between the three lanes of the road, go off-road on either side and modulate between three speed levels. The first thing to note about this setting is that the direct problem (RL) problem is not trivial, as LSPI is unable to solve it using the natural features we first gave it. These feature stemmed from a discretization of the state-action space, the dimension of the features being the cardinality of this space. With each state-action pair $s,a$ we associate an index $i$ so that the $i$-th coordinate of the feature is $1$ and every other is $0$. We tried to train an agent on the reward used by the expert (which was trained using an exact dynamic programming approach), but on top of being extremely slow to run (the LSTD$Q$ subroutine implies a matrix inversion) it does not converge.\\
-As LSPI is used in our instanciation of \cite{abbeel2004apprenticeship}'s algorithm to solve the MDP, it is impossible to use the latter with the natural features. Although it proved possible to engineer features so that LSPI converges thus making the state of the art IRL algorithm work, this is outside the scope of this document. As a baseline we used an instanciation of \cite{abbeel2004apprenticeship}'s algorithm that imake use of all the information about the problem. It is displayed as an horizontal line in figure \ref{Fig3.fig} because it does not use samples from the expert, instead it uses the transition probabilities and the expert's policy to compute the exact feature expectation of the expert and every intermediate policy.\\
-As predicted, pure classification is not sample efficient enough to provide a good control whereas our approach is able to generalize from very little data and exhibits performance on par with the \emph{fully-informed} state of the art algorithm when given as few as 100 samples.\\
-Furthermore, the state of the art algorihtm make use of intermediate policies, which is computationally costly particularily when the state space gets big. Our approach computational cost scales with the number of samples we are given, which is as we demonstrated a small number. Experimentally, when producing the data for our graph, it took less time to run the cascading approach 50 times for 6 abcissa than to run \cite{abbeel2004apprenticeship}'s algorithm once.\\
 \section{Related Work}
 \label{section: related work}
-All the IRL approaches summed up in \cite{neu2009training}, namely the historical approach of \cite{ng2000algorithms} as well as for example \cite{abbeel2004apprenticeship,syed2008apprenticeship,syed2008game, ziebart2008maximum} share the same pivotal argument of trying to minimize some distance between the feature expectation of the expert and the feature expectation of another policy through successive updates of this intermediate policy. The main problem with these algorithm is that the update on the policy is done through the update of a reward function. This means that the forward problem of RL must be repeatedly solved ; this is often non trivial, and almost always computationally costly.\\
 
-Our algorithm avoid this pitfall, specifically, one needs more information to solve the forward problem than to just compute the feature expectation of the expert as our algorithm does. Even a recent contribution like \cite{boularias2011relative} still needs samples that cover a large portion of the state space although it does not explicitely require the ability to solve the forward problem.\\
-
-A recurring argument is to see the expert not only as optimal but as optimal by a certain margin. The action chosen by the expert should have a quality strictly greater than any other action. Structured planning as done in \cite{ratliff2006maximum,ratliff2007imitation, ratliff2007boosting, kolter2008hierarchical} allow some influence on the margin. Through the $l$ function of our classifier, we share the same feature.\\
-
-Finally, \cite{ratliff2007imitation} cast the imitation learnig problem as a multi class classification problem. As seen in the experimental results, the power of generalization of our approach is greater than pure classification thanks to the regression step. This allows us to be more sample efficient than any other published approach known to us.
 \section{Conclusion}
-We provide a new solution to the IRL problem that avoid most pitfalls of existing approaches. It outputs a reward function, the most succinct and transferrable description of a task without having to repeatedly solve the forward RL problem. The only information our algorithm need is provided by samples from the expert, which is to the best of our knowledge a feature that can not be found in any other published algorithm. Even recent other approaches need randomly drawn samples. We provided theoretical results showing the soundness of our approach as well as experimental benchmarks comparing it to a widely known state of the art algorithm. In a near furure, experiments on real world robotics problems will take place. We hope to benchmark our algorithm against the few other approaches shown to work in such a difficult context.
 
-\bibliographystyle{alpha}
+\bibliographystyle{splncs}
 \bibliography{Biblio}
 \end{document}

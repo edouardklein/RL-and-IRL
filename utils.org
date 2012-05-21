@@ -218,7 +218,7 @@ class Plot:
         y_min = self.ymin if self.ymin else int(min( self.Random_min,min(Y_min - Y_var) ) - 1)
         pylab.axis([x_min,x_max,y_min,y_max])
         pylab.xlabel('Number of samples from the expert')
-        pylab.ylabel('${1\over card(S)}\sum\limits_{s\in S}V(s)$')
+        pylab.ylabel('$\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{\mathcal{R}_E}(s)]$')
         pylab.grid(True)
         filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, color, 0.2,'--',None,None)
         filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, color, 0.4,'-.',None,None)
