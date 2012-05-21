@@ -122,36 +122,19 @@
 \newcommand{\am}{{\mathcal{A}_m}}
 \newcommand{\amj}{{\mathcal{A}_m^{+j}}}
 \newcommand{\sgn}{\operatorname{sgn}}
-\title{A cascading approach}
-\author{
-David S.~Hippocampus\thanks{ Use footnote for providing further information
-about author (webpage, alternative address)---\emph{not} for acknowledging
-funding agencies.} \\
-Department of Computer Science\\
-Cranberry-Lemon University\\
-Pittsburgh, PA 15213 \\
-\texttt{hippo@cs.cranberry-lemon.edu} \\
-\And
-Coauthor \\
-Affiliation \\
-Address \\
-\texttt{email} \\
-\AND
-Coauthor \\
-Affiliation \\
-Address \\
-\texttt{email} \\
-\And
-Coauthor \\
-Affiliation \\
-Address \\
-\texttt{email} \\
-\And
-Coauthor \\
-Affiliation \\
-Address \\
-\texttt{email} \\
-(if needed)\\
+\title{Learning a reward function from demonstrations: a cascaded supervised
+learning approach}
+\author{Edouard Klein$^{1,2}$\\
+ 1. ABC Team\\
+ LORIA-CNRS, France.
+\And Bilal Piot$^{2}$\\
+ 2. Supélec-Metz Campus\\
+ MaLIS Research group, France\\
+\And Matthieu Geist$^1$\\
+\texttt{prenom.nom@supelec.fr}\\
+\And Olivier Pietquin$^{2,3}$\\
+3. UMI 2958 CNRS\\
+GeorgiaTech, France
 }
 
 % The \author macro works with any number of authors. There are two commands
@@ -302,6 +285,7 @@ D_R=\{(s_{R,i},a_{R,i},s'_{R,i})\}_{1\leq i \leq D'}, D'\in\mathbb{N}^*,
 where $s'_{R,i}$ is sampled under the probability $P_{s_{R,i},a_{R,i}}$.
 Let us write:
 \begin{equation}
+\label{ri.def}
 \hat{r}_i=q(s_{R,i},a_{R,i})-\gamma q(s'_{R,i},\pi_C(s'_{R,i})), \forall i\in \{1,\dots,D'\}.
 \end{equation}
 This is an unbiased estimate of $R^C(s_{R,i},a_{R,i})$, indeed:
@@ -538,13 +522,13 @@ The regressor is a classical least square fitting. Given some features $\psi : S
 \textrm{and}
 \hat R &= \begin{pmatrix}\hat r_1 \\\vdots\\\hat r_N\end{pmatrix}\\
 \end{eqnarray}
-with $r_i$ as in equation \ref{r.def}. We then get :
+with $\hat r_i$ as in equation \ref{ri.def}. We then get :
 \begin{equation}
 \theta = (\Psi^T\Psi + \lambda Id)^{-1}\Psi^T\hat R,
 \end{equation}
-so that $\hat R_C(s) = \theta^T \psi(s)$.\\
+so that $\hat R^C(s) = \theta^T \psi(s)$.\\
 \subsection{Experimental setting}
-For both problems we test our approach with, we compare it to two baselines : the mean performance of an agent trained on a random reward and the mean performance of the policy output by the algorithm of \cite{abbeel2004apprenticeship}. This algorithm can be instanciated to work in the same dire conditions as our algorithm, that is to say using only samples from the expert. To do this, we estimate the feature expectations and solve the MDP in a batch, off policy manner thanks respectively to to LSTD$\mu$ (\cite{klein2011batch}) and LSPI (\cite{lagoudakis2003least}). When this does not work, we fall back to a setting where everything is known, that is to say the feature expectations are computed by a dynamic programming algorithm that make use of the transition probabilities.\\
+For both problems we test our approach with, we compare it to two baselines : the mean performance of an agent trained on a random reward and the mean performance of the policy output by the algorithm of \cite{abbeel2004apprenticeship}. This algorithm can be instanciated to work in the same dire conditions as our algorithm, that is to say using only samples from the expert. To do this, we estimate the feature expectations and solve the MDP in a batch, off policy manner thanks respectively to to LSTD$\mu$ \cite{klein2011batch} and LSPI \cite{lagoudakis2003least}. When this does not work, we fall back to a setting where everything is known, that is to say the feature expectations are computed by a dynamic programming algorithm that make use of the transition probabilities.\\
 The performance of the expert and the agents is computed with respect to the reward the expert was trained with. We use as a performance metric the mean value over the state space.
 \subsection{Gridworld}
 We first tested our approach on a simple $5\times 5$ gridworld. The expert and the agent can choose between 4 actions (down, left right, or up) that sends the player in the corresponding neighbooring cell. Trying to go off the grid will result in the player staying in its position. Each action has a probability $0.3$ of failing, in which case another randomly chosen different action is executed. The expert begins in the lower left corner and is trained to go to the higher right corner by an exact dynamic programming algorithm. The original reward is null everywhere but in the higher right corner where it is $1$.\\
