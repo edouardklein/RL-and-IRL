@@ -71,6 +71,33 @@ myPlot.ymax = 10
 
 myPlot.plot( D_C, 'orange', 'Cascading_Exp5_fig1.pdf' )
 myPlot.plot( D_Classif, 'yellow', 'Cascading_Exp5_fig2.pdf' )
+#The second plot is non standard, we want the results of ANIRL_Exp5 to appear as well.
+
+[X,Y_mean,Y_min,Y_max] = map( array, mean_min_max( D_Classif ))
+[X,Y_mean,Y_var] = map( array, mean_var( D_Classif ))
+pylab.figure(1)
+pylab.clf()
+x_min = min(X)
+x_max = max(X)
+y_max = myPlot.ymax
+y_min = myPlot.ymin
+pylab.axis([x_min,x_max,y_min,y_max])
+pylab.xlabel('Number of samples from the expert')
+pylab.ylabel('$\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{\mathcal{R}_E}(s)]$')
+pylab.grid(True)
+filled_mean_min_max( pylab, X, Y_mean, Y_min, Y_max, 'yellow', 0.2,'--',None,None)
+filled_mean_min_max( pylab, X, Y_mean, Y_mean - Y_var, Y_mean + Y_var, 'yellow', 0.4,'-.',None,None)
+
+filled_mean_min_max( pylab, X, myPlot.Random_mean*ones(X.shape), myPlot.Random_min*ones(X.shape), myPlot.Random_max*ones(X.shape), 'cyan',0.2,'--',"Agent trained on a random reward",None)
+filled_mean_min_max( pylab, X, myPlot.Random_mean*ones(X.shape), (myPlot.Random_mean-myPlot.Random_var)*ones(X.shape), (myPlot.Random_mean+myPlot.Random_var)*ones(X.shape), 'cyan',0.4,'-.',None,None)
+
+pylab.plot(X,myPlot.Expert*ones(X.shape), color='cyan',label="Expert",lw=2,ls=':')
+
+filled_mean_min_max( pylab, X, 7.2183449001*ones(X.shape),  7.2125435575500001*ones(X.shape), 7.2235682889100001*ones(X.shape), 'blue',0.2,'--',"ANIRL with full info",None)
+filled_mean_min_max( pylab, X, 7.2183449001*ones(X.shape), (7.2183449001-1.0470405042575963e-05)*ones(X.shape), (7.2183449001+1.0470405042575963e-05)*ones(X.shape), 'blue',0.4,'-.',None,None)
+
+pylab.savefig("Cascading_Exp5_fig2.pdf",transparent=True)
+
 #+end_src
 FIXME: Le plot concernat ANIRL devrait avoir son code dans ANIRL_Exp6.org et non ici.
 

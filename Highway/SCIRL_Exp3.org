@@ -133,7 +133,6 @@ myPlot.Random_var = 1.4465398450419833#python Random.py to get this value
 
 myPlot.ymin = -5
 myPlot.ymax = 10
-
 myPlot.plot( D, 'red', 'SCIRL_Exp3_fig1.pdf' )
 
 
