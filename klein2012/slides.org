@@ -212,7 +212,7 @@ fill=orange!20]
      }
      \only<2>{}
      #+end_latex
-
+     
 ** SCIRL Algorithm
 *** A certain class of classifiers
 **** Score function based classifiers 				    :B_block:
@@ -346,6 +346,13 @@ fill=orange!20]
     :END:
      - Only on-policy
      - Seems more robust in dire conditions
+** Inverted Pendulum
+*** Results on the Inverted Pendulum
+#+begin_latex
+\includegraphics[width=0.47\textwidth]{LAFEM_Exp3_true_R}\includegraphics[width=0.47\textwidth]{LAFEM_Exp3_lafem_R}\\
+\vspace{-30pt}
+\includegraphics[width=0.47\textwidth]{LAFEM_Exp3_Vexpert}\includegraphics[width=0.47\textwidth]{LAFEM_Exp3_Vagent}\\
+#+end_latex
 ** Highway Driving
 *** Results on the driving problem
 **** Toto 					      :BMCOL:B_ignoreheading:
