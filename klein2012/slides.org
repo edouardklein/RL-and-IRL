@@ -346,6 +346,14 @@ fill=orange!20]
     :END:
      - Only on-policy
      - Seems more robust in dire conditions
+** GridWorld
+*** Results on the GridWorld
+#+begin_latex
+\includegraphics[width=0.47\textwidth]{true_reward.pdf}\includegraphics[width=0.47\textwidth]{SCIRL_Exp1_R.pdf}
+\vspace{-30pt}
+\includegraphics[width=0.47\textwidth]{V_expert.pdf}\includegraphics[width=0.47\textwidth]{SCIRL_Exp1_V.pdf}
+#+end_latex
+
 ** Inverted Pendulum
 *** Results on the Inverted Pendulum
 #+begin_latex

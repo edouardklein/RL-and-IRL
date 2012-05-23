@@ -6,6 +6,8 @@ L'expérience est un succès : la récompense est jolie, la fonction de valeur e
 
 On peut maintenant configurer SCIRL comme prévu par le protocole, à savoir en reprenant les valeurs des paramètres obtenues dans [[file:LAFEM_Exp1.org]].
 
+FIXME: les résultats sont pas folichons, penser à changer la métrique du succès 
+
     #+begin_src python :tangle SCIRL_Exp1.py
 import sys
 sys.path+=['..']
