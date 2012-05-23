@@ -305,7 +305,7 @@ def evaluate_theta( theta, l_psi ):
     for i in dicR:
         R_theta[ i ] = dicR[ i ]
     sys.stderr.write( "Pi computation...\n" )
-    Pi = GridWorld.GWDP( R_theta, "V_agent.mat" )
+    Pi = GWDP( R_theta, "V_agent.mat" )
     return evaluate_Pi( Pi )
 
   #+end_src

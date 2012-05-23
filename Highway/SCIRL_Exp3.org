@@ -69,6 +69,7 @@ FIXME:remonter cette méthode, et LSTDmu et les autres si elles sont assez gén�
 
       #+end_src      
     On définit la fonction de perte $l$ :
+    FIXME: c'est toujours la même, faudrait la factoriser ailleurs
     #+begin_src python :tangle SCIRL_Exp3.py
     def l( self, s, a ):
         if self.dicPi_E[l2str(s)] == a:
