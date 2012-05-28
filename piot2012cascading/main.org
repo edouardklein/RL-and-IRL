@@ -1,9 +1,162 @@
 #+TITLE:Learning a reward function from demonstrations: a cascaded supervised learning approach
+#+OPTIONS: toc:nil
+#+LaTeX_Header: \usepackage{nips12submit_e,times}
+#+LaTeX_Header: \usepackage{makeidx}  % allows for indexgeneration
+#+LaTeX_Header: % For figures
+#+LaTeX_Header: \usepackage{graphicx} % more modern
+#+LaTeX_Header: %\usepackage[latin1]{inputenc}
+#+LaTeX_Header: %\usepackage[francais]{babel}
+#+LaTeX_Header: \usepackage{subfigure}
+#+LaTeX_Header: \usepackage{tabularx}
+#+LaTeX_Header: \usepackage{mathtools}
+#+LaTeX_Header: \usepackage{amsmath}
+#+LaTeX_Header: \usepackage{amssymb}
+#+LaTeX_Header: \usepackage{amsthm}
+#+LaTeX_Header: \newtheorem{definition}{Definition}
+#+LaTeX_Header: \newtheorem{theorem}{Theorem}
+#+LaTeX_Header: \newtheorem{lemma}{Lemma}
+#+LaTeX_Header: \newtheorem{remark}{Remark}
+#+LaTeX_Header: \usepackage{dsfont}
+#+LaTeX_Header: \usepackage{algorithm}
+#+LaTeX_Header: \usepackage{algorithmic}
+#+LaTeX_Header: \usepackage{hyperref}
+#+LaTeX_Header: \hypersetup{
+#+LaTeX_Header:     colorlinks,%
+#+LaTeX_Header:     citecolor=black,%
+#+LaTeX_Header:     filecolor=black,%
+#+LaTeX_Header:     linkcolor=black,%
+#+LaTeX_Header:     urlcolor=black
+#+LaTeX_Header: }
+#+LaTeX_Header: \mathtoolsset{showonlyrefs=true}
+#+LaTeX_Header: \newtheorem{hypo}{Hypothesis}
+#+LaTeX_Header: \newcommand{\argmax}{\operatorname*{argmax}}
+#+LaTeX_Header: \newcommand{\argmin}{\operatorname*{argmin}}
+#+LaTeX_Header: \newcommand{\arginf}{\operatorname*{arginf}}
+#+LaTeX_Header: \newcommand{\minp}{\operatorname*{min_+}}
+#+LaTeX_Header: \newcommand{\Ker}{\operatorname*{Ker}}
+#+LaTeX_Header: \newcommand{\trace}{\operatorname*{trace}}
+#+LaTeX_Header: \newcommand{\cov}{\operatorname{cov}}
+#+LaTeX_Header: \newcommand{\card}{\operatorname*{Card}}
+#+LaTeX_Header: \newcommand{\vect}{\operatorname*{Vect}}
+#+LaTeX_Header: \newcommand{\var}{\operatorname{Var}}
+#+LaTeX_Header: \newcommand{\diag}{\operatorname{diag}}
+#+LaTeX_Header: \newcommand{\erf}{\operatorname{erf}}
+#+LaTeX_Header: \newcommand{\bound}{\operatorname*{bound}}
+#+LaTeX_Header: \newcommand{\vpi}{\operatorname{VPI}}
+#+LaTeX_Header: \newcommand{\gn}{\operatorname{Gain}}
+#+LaTeX_Header: \newcommand{\p}{\operatorname{Pr}}
+#+LaTeX_Header: \newcommand{\mlp}{\operatorname{MLP}}
+#+LaTeX_Header: \newcommand*\tto[2]{\smash{\mathop{\longrightarrow}\limits_{#1}^{#2}}}
+#+LaTeX_Header: \newcommand*\ntto[2]{\smash{\mathop{\nrightarrow}\limits_{#1}^{#2}}}
+#+LaTeX_Header: \newcommand{\X}{\mathbf{X}}
+#+LaTeX_Header: \newcommand{\Q}{\mathbf{Q}}
+#+LaTeX_Header: \newcommand{\A}{\mathbf{A}}
+#+LaTeX_Header: \newcommand{\Z}{\mathbf{Z}}
+#+LaTeX_Header: \newcommand{\Y}{\mathbf{Y}}
+#+LaTeX_Header: \newcommand{\E}{\mathbf{E}}
+#+LaTeX_Header: \newcommand{\K}{\mathbf{K}}
+#+LaTeX_Header: \newcommand{\F}{\mathcal{F}}
+#+LaTeX_Header: \newcommand{\R}{\mathbf{R}}
+#+LaTeX_Header: \newcommand{\ba}{\mathbf{a}}
+#+LaTeX_Header: \newcommand{\bb}{\mathbf{b}}
+#+LaTeX_Header: \newcommand{\bc}{\mathbf{c}}
+#+LaTeX_Header: \newcommand{\bd}{\mathbf{d}}
+#+LaTeX_Header: \newcommand{\be}{\mathbf{e}}
+#+LaTeX_Header: \newcommand{\af}{\mathbf{f}}
+#+LaTeX_Header: \newcommand{\bg}{\mathbf{g}}
+#+LaTeX_Header: \newcommand{\bh}{\mathbf{h}}
+#+LaTeX_Header: \newcommand{\bi}{\mathbf{i}}
+#+LaTeX_Header: \newcommand{\bj}{\mathbf{j}}
+#+LaTeX_Header: \newcommand{\bk}{\mathbf{k}}
+#+LaTeX_Header: \newcommand{\bl}{\mathbf{l}}
+#+LaTeX_Header: \newcommand{\bm}{\mathbf{m}}
+#+LaTeX_Header: \newcommand{\bn}{\mathbf{n}}
+#+LaTeX_Header: \newcommand{\bo}{\mathbf{o}}
+#+LaTeX_Header: \newcommand{\bp}{\mathbf{p}}
+#+LaTeX_Header: \newcommand{\bq}{\mathbf{q}}
+#+LaTeX_Header: \newcommand{\br}{\mathbf{r}}
+#+LaTeX_Header: \newcommand{\bs}{\mathbf{s}}
+#+LaTeX_Header: \newcommand{\bt}{\mathbf{t}}
+#+LaTeX_Header: \newcommand{\bu}{\mathbf{u}}
+#+LaTeX_Header: \newcommand{\bv}{\mathbf{v}}
+#+LaTeX_Header: \newcommand{\bw}{\mathbf{w}}
+#+LaTeX_Header: \newcommand{\bx}{\mathbf{x}}
+#+LaTeX_Header: \newcommand{\by}{\mathbf{y}}
+#+LaTeX_Header: \newcommand{\bz}{\mathbf{z}}
+#+LaTeX_Header: \newcommand{\ma}{\mathbf{A}}
+#+LaTeX_Header: \newcommand{\mb}{\mathbf{B}}
+#+LaTeX_Header: \newcommand{\mc}{\mathbf{C}}
+#+LaTeX_Header: \newcommand{\md}{\mathbf{D}}
+#+LaTeX_Header: \newcommand{\me}{\mathbf{E}}
+#+LaTeX_Header: \newcommand{\mf}{\mathbf{F}}
+#+LaTeX_Header: \newcommand{\mg}{\mathbf{G}}
+#+LaTeX_Header: \newcommand{\mh}{\mathbf{H}}
+#+LaTeX_Header: \newcommand{\mi}{\mathbf{I}}
+#+LaTeX_Header: \newcommand{\mj}{\mathbf{J}}
+#+LaTeX_Header: \newcommand{\mk}{\mathbf{K}}
+#+LaTeX_Header: \newcommand{\ml}{\mathbf{L}}
+#+LaTeX_Header: \newcommand{\mm}{\mathbf{M}}
+#+LaTeX_Header: \newcommand{\mn}{\mathbf{N}}
+#+LaTeX_Header: \newcommand{\mo}{\mathbf{O}}
+#+LaTeX_Header: \newcommand{\Mp}{\mathbf{P}}
+#+LaTeX_Header: \newcommand{\mq}{\mathbf{Q}}
+#+LaTeX_Header: \newcommand{\mr}{\mathbf{R}}
+#+LaTeX_Header: \newcommand{\ms}{\mathbf{S}}
+#+LaTeX_Header: \newcommand{\mt}{\mathbf{T}}
+#+LaTeX_Header: \newcommand{\Mu}{\mathbf{U}}
+#+LaTeX_Header: \newcommand{\mv}{\mathbf{V}}
+#+LaTeX_Header: \newcommand{\mw}{\mathbf{W}}
+#+LaTeX_Header: \newcommand{\mx}{\mathbf{X}}
+#+LaTeX_Header: \newcommand{\my}{\mathbf{Y}}
+#+LaTeX_Header: \newcommand{\mz}{\mathbf{Z}}
+#+LaTeX_Header: \newcommand{\tphi}{\tilde{\Phi}}
+#+LaTeX_Header: \newcommand{\espace}{\text{ }}
+#+LaTeX_Header: \newcommand{\x}{\mathbf{x}}
+#+LaTeX_Header: \newcommand{\s}{\mathbf{s}}
+#+LaTeX_Header: \newcommand{\n}{\mathbf{n}}
+#+LaTeX_Header: \newcommand{\y}{\mathbf{y}}
+#+LaTeX_Header: \newcommand{\I}{\mathbf{I}}
+#+LaTeX_Header: \newcommand{\rr}{\mathbf{r}}
+#+LaTeX_Header: \newcommand{\0}{\mathbf{0}}
+#+LaTeX_Header: \newcommand{\1}{\mathbf{1}}
+#+LaTeX_Header: \newcommand{\am}{{\mathcal{A}_m}}
+#+LaTeX_Header: \newcommand{\amj}{{\mathcal{A}_m^{+j}}}
+#+LaTeX_Header: \newcommand{\sgn}{\operatorname{sgn}}
+#+LaTeX_Header: \title{Learning a reward function from demonstrations: a cascaded supervised
+#+LaTeX_Header: learning approach}
+#+LaTeX_Header: \author{Edouard Klein$^{1,2}$\\
+#+LaTeX_Header:  1. ABC Team\\
+#+LaTeX_Header:  LORIA-CNRS, France.
+#+LaTeX_Header: \And Bilal Piot$^{2}$\\
+#+LaTeX_Header:  2. Supélec-Metz Campus\\
+#+LaTeX_Header:  MaLIS Research group, France\\
+#+LaTeX_Header: \And Matthieu Geist$^1$\\
+#+LaTeX_Header: \texttt{prenom.nom@supelec.fr}\\
+#+LaTeX_Header: \And Olivier Pietquin$^{2,3}$\\
+#+LaTeX_Header: 3. UMI 2958 CNRS\\
+#+LaTeX_Header: GeorgiaTech, France
+#+LaTeX_Header: }
+#+LaTeX_Header: 
+#+LaTeX_Header: % The \author macro works with any number of authors. There are two commands
+#+LaTeX_Header: % used to separate the names and addresses of multiple authors: \And and \AND.
+#+LaTeX_Header: %
+#+LaTeX_Header: % Using \And between authors leaves it to \LaTeX{} to determine where to break
+#+LaTeX_Header: % the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+#+LaTeX_Header: % puts 3 of 4 authors names on the first line, and the last on the second
+#+LaTeX_Header: % line, try using \AND instead of \And before the third author name.
+#+LaTeX_Header: 
+#+LaTeX_Header: \newcommand{\fix}{\marginpar{FIX}}
+#+LaTeX_Header: \newcommand{\new}{\marginpar{NEW}}
+#+LaTeX_Header: 
+#+LaTeX_Header: 
 
-* Abstract
+
+#+begin_abstract
 This paper considers the inverse reinforcement learning (IRL) problem. This framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered. The proposed contribution consists in cascading a classification and a regression steps to produce a non-trivial reward function for which we show the expert policy to be near optimal. In addition to being generic, this approach is model-free, it does not require solving any direct reinforcement learning problem (unlike most of IRL algorithms) and, with the help of some heuristics, can be instanciated to solely rely on transitions from the expert (no need to sample trajectories according to other policies). All of this is illustrated through a standard benchmark.
-
+#Peut etre mettre benchmark au pluriel si on en met plusieurs
+#+end_abstract
 * Problem statement
+#+begin_comment
   - [X] RL is getting a policy from a reward
   - [X] But defining a good reward can be difficult
   - [X] An expert that intuitively optimizes a good reward may provide a solution to this problem
@@ -16,10 +169,10 @@ This paper considers the inverse reinforcement learning (IRL) problem. This fram
   - [X] The whole algorithm has some interesting properties (better than others)
   - [X] The reward has some properties (analysis)
   - [X] With some heuristics as illustrated in the experiment, we even have more properties (better than others)
-
+#+end_comment
 This reward function is seen as the most succinct description of the task, allowing for task transfer from the expert to an agent with potentially different abilities. 
 
-Given a sequential decision making problem posed in the Markov Decision Process (MDP) formalism, it is often difficult to specify manually a reward function in order to train an agent to fulfill a given task. However, observing an expert demonstrating this task is often possible and easier~\cite{ng2000algorithms}. That is why learning from demonstrations and more particularly Inverse Reinforcement Learning (IRL) has received more and more interest this last decade. The IRL framework, first introduced in~\cite{russell1998learning,ng2000algorithms}, assumes that an expert, demonstrating a task, is acting optimally in a MDP with respect to an unknown reward function to be discovered. Unlike direct methods of apprenticeship learning\footnote{The definition of apprenticeship learning we use is a restriction of learning from demonstration to MDP settings, where the output of the algorithm is a control policy.} which learn a mapping from states to actions via supervised learning (SL)~\cite{atkeson1997robot,pomerleau1989alvinn}, IRL methods aim at recovering a reward function. We see this reward function as the most compact and transferable way to specify a task. One can even try to derive semantic information from it, for example in biological or economical studies \cite{russell1998learning}.
+Given a sequential decision making problem posed in the Markov Decision Process (MDP) formalism, it is often difficult to specify manually a reward function in order to train an agent to fulfill a given task. However, observing an expert demonstrating this task is often possible and easier~\cite{ng2000algorithms}. That is why learning from demonstrations and more particularly Inverse Reinforcement Learning (IRL) has received more and more interest this last decade. The IRL framework, first introduced in~\cite{russell1998learning,ng2000algorithms}, assumes that an expert, demonstrating a task, is acting optimally in a MDP with respect to an unknown reward function to be discovered. Unlike direct methods of apprenticeship learning[fn:: The definition of apprenticeship learning we use is a restriction of learning from demonstration to MDP settings, where the output of the algorithm is a control policy.] which learn a mapping from states to actions via supervised learning (SL)~\cite{atkeson1997robot,pomerleau1989alvinn}, IRL methods aim at recovering a reward function. We see this reward function as the most compact and transferable way to specify a task. One can even try to derive semantic information from it, for example in biological or economical studies \cite{russell1998learning}.
 Most of the direct methods do not use the structure of the MDP (one notable exception being~\cite{melo2010learning}), hence only mimic the policy of the expert and are not able to generalize it correctly, possibly leading to incorrect behavior outside demonstrated states.
 In order to overcome this drawback, undirect methods using the IRL framework~\cite{abbeel2004apprenticeship} were introduced. Most of these methods (see~\cite{neu2009training} for a comprehensive overview) assume the dynamic of the environment known, or need an environment model (via a simulator) so as to test the effects of a policy. Moreover, most of existing undirect approaches require to solve the forward Reinforcement Learning (RL) problem (find an optimal policy knowing a given reward) several times (one notable exception is~\cite{boularias2011relative}).
 Finally, in many cases, the output of the algorithm is a policy but not a reward function (see Section \ref{section: related work} for an in-depth presentation). These constraints can lead to difficulties in real-world applications and make the problem of apprenticeship learning harder than the forward RL problem. That is why a reborn interest for direct methods which passively imitate the expert exists. More particularly the reduction of the apprenticeship learning to classification, first introduced 
@@ -29,10 +182,12 @@ and recently used
 #Est-ce qu'on rajoute ratliff ?
 in~\cite{melo2010learning}, is legitimated for finite horizons problems in~\cite{syed2010reduction},\cite{ross2010efficient}.
 Our approach tries to avoid the drawbacks of both direct and undirect methods by cascading two well-known supervised learning methods (see Section \ref{section: Cascading}): first a step of classification from data drawn by the expert provides us with a score function over the state-action space, then a step of regression introduces the MDP structure and outputs a reward function.
-Our approach doesn't require any of the following: complete trajectories from an expert, a generative model of the environment, the knowledge of the transition probabilities, the ability to compute a (near)-optimal policy for different rewards and hence solve the forward (RL) problem or even the perfect knowledge of the expert's policy. Our analysis (Section \ref{section: Analysis}) show that the expert is epsilon-optimal with respect to the resulting reward function. Moreover, our algorithm can be instanciated with any off-the-shelf score-function based classifier and any regression method. We provide such an instanciation and empirically show (Section \ref{section: experiments}) that only a small amount of expert demonstrations (not even in the form of trajectories but simple transitions) is required. Comparison to other state of the art methods is provided Section \ref{section: related work}.
+Our approach doesn't require any of the following: complete trajectories from an expert, a generative model of the environment, the knowledge of the transition probabilities, the ability to compute a (near)-optimal policy for different rewards and hence solve the forward (RL) problem or even the perfect knowledge of the expert's policy. Our analysis (Subsection \ref{section: Analysis}) show that the expert is epsilon-optimal with respect to the resulting reward function. Moreover, our algorithm can be instanciated with any off-the-shelf score-function based classifier and any regression method. We provide such an instanciation and empirically show (Section \ref{section: experiments}) that only a small amount of expert demonstrations (not even in the form of trajectories but simple transitions) is required. Comparison to other state of the art methods is provided Section \ref{section: related work}.
 
 
 * Background and notations
+\label{section: background}
+
   - RL
     - S
     - [ ] A
@@ -44,6 +199,7 @@ Our approach doesn't require any of the following: complete trajectories from an
     - [ ] Pi_E
     - [ ] R_E
 * Cascading supervised learning
+\label{section: Cascading}
 ** General algorithm
 *** Score function-based classifiers
     - Data set
@@ -57,8 +213,9 @@ Our approach doesn't require any of the following: complete trajectories from an
     - [ ] min_i r_i (heuristics)
     - [ ] complete algorithm
 ** Analysis
-   ??
+\label{section: Analysis}
 * Experimental results
+\label{section: experiments}
 ** Instanciation
    - Structured margin
    - [ ] Lest squares
@@ -66,7 +223,11 @@ Our approach doesn't require any of the following: complete trajectories from an
    - Desc of poblem
    - [ ] results
    - [ ] Regression step is useful
-* Related works
+* Related work
+\label{section: related work}
+
   Paraphraser Matthieu
 * Conclusion
   On est les meilleurs
+\bibliographystyle{alpha}
+\bibliography{Biblio}
