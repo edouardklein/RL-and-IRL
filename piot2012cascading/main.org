@@ -4,20 +4,33 @@
 This paper considers the inverse reinforcement learning (IRL) problem. This framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered. The proposed contribution consists in cascading a classification and a regression steps to produce a non-trivial reward function for which we show the expert policy to be near optimal. In addition to being generic, this approach is model-free, it does not require solving any direct reinforcement learning problem (unlike most of IRL algorithms) and, with the help of some heuristics, can be instanciated to solely rely on transitions from the expert (no need to sample trajectories according to other policies). All of this is illustrated through a standard benchmark.
 
 * Problem statement
-  - [ ] RL is getting a policy from a reward
-  - [ ] But defining a good reward can be difficult
-  - [ ] An expert that intuitively optimizes a good reward may provide a solution to this problem
-  - [ ] One can try to imitate an expert. Some people call it Learnign from demonstration.
-  - [ ] One can more precisely try to imitate the expert's policy in an MDP (apprenticeship learning)
-  - [ ] IRL has been seen as a way to do apprenticeshipe learning
-  - [ ] We do IRL because we want to extract the reward function (biological or economicakl nspiration, succinct description of a task, transfer learning)
-  - [ ] Our algorithm begins like an apprenticeship learning algorithm by using a score function based classifier to imitate the expert
-  - [ ] But we introduce the structure of the MDP in a second supervised learning step, namely a regression step.
-  - [ ] The whole algorithm has some interesting properties (better than others)
-  - [ ] The reward has some properties (analysis)
-  - [ ] With some heuristics as illustrated in the experiment, we even have more properties (better than others)
+  - [X] RL is getting a policy from a reward
+  - [X] But defining a good reward can be difficult
+  - [X] An expert that intuitively optimizes a good reward may provide a solution to this problem
+  - [X] One can try to imitate an expert. Some people call it Learnign from demonstration.
+  - [X] One can more precisely try to imitate the expert's policy in an MDP (apprenticeship learning)
+  - [X] We do IRL because we want to extract the reward function (biological or economicakl nspiration, succinct description of a task, transfer learning)
+  - [X] IRL has been seen as a way to do apprenticeshipe learning
+  - [X] Our algorithm begins like an apprenticeship learning algorithm by using a score function based classifier to imitate the expert
+  - [X] But we introduce the structure of the MDP in a second supervised learning step, namely a regression step.
+  - [X] The whole algorithm has some interesting properties (better than others)
+  - [X] The reward has some properties (analysis)
+  - [X] With some heuristics as illustrated in the experiment, we even have more properties (better than others)
 
 This reward function is seen as the most succinct description of the task, allowing for task transfer from the expert to an agent with potentially different abilities. 
+
+Given a sequential decision making problem posed in the Markov Decision Process (MDP) formalism, it is often difficult to specify manually a reward function in order to train an agent to fulfill a given task. However, observing an expert demonstrating this task is often possible and easier~\cite{ng2000algorithms}. That is why learning from demonstrations and more particularly Inverse Reinforcement Learning (IRL) has received more and more interest this last decade. The IRL framework, first introduced in~\cite{russell1998learning,ng2000algorithms}, assumes that an expert, demonstrating a task, is acting optimally in a MDP with respect to an unknown reward function to be discovered. Unlike direct methods of apprenticeship learning\footnote{The definition of apprenticeship learning we use is a restriction of learning from demonstration to MDP settings, where the output of the algorithm is a control policy.} which learn a mapping from states to actions via supervised learning (SL)~\cite{atkeson1997robot,pomerleau1989alvinn}, IRL methods aim at recovering a reward function. We see this reward function as the most compact and transferable way to specify a task. One can even try to derive semantic information from it, for example in biological or economical studies \cite{russell1998learning}.
+Most of the direct methods do not use the structure of the MDP (one notable exception being~\cite{melo2010learning}), hence only mimic the policy of the expert and are not able to generalize it correctly, possibly leading to incorrect behavior outside demonstrated states.
+In order to overcome this drawback, undirect methods using the IRL framework~\cite{abbeel2004apprenticeship} were introduced. Most of these methods (see~\cite{neu2009training} for a comprehensive overview) assume the dynamic of the environment known, or need an environment model (via a simulator) so as to test the effects of a policy. Moreover, most of existing undirect approaches require to solve the forward Reinforcement Learning (RL) problem (find an optimal policy knowing a given reward) several times (one notable exception is~\cite{boularias2011relative}).
+Finally, in many cases, the output of the algorithm is a policy but not a reward function (see Section \ref{section: related work} for an in-depth presentation). These constraints can lead to difficulties in real-world applications and make the problem of apprenticeship learning harder than the forward RL problem. That is why a reborn interest for direct methods which passively imitate the expert exists. More particularly the reduction of the apprenticeship learning to classification, first introduced 
+#VERIFIER CETTE REF
+in~\cite{zadrozny2003cost}
+and recently used 
+#Est-ce qu'on rajoute ratliff ?
+in~\cite{melo2010learning}, is legitimated for finite horizons problems in~\cite{syed2010reduction},\cite{ross2010efficient}.
+Our approach tries to avoid the drawbacks of both direct and undirect methods by cascading two well-known supervised learning methods (see Section \ref{section: Cascading}): first a step of classification from data drawn by the expert provides us with a score function over the state-action space, then a step of regression introduces the MDP structure and outputs a reward function.
+Our approach doesn't require any of the following: complete trajectories from an expert, a generative model of the environment, the knowledge of the transition probabilities, the ability to compute a (near)-optimal policy for different rewards and hence solve the forward (RL) problem or even the perfect knowledge of the expert's policy. Our analysis (Section \ref{section: Analysis}) show that the expert is epsilon-optimal with respect to the resulting reward function. Moreover, our algorithm can be instanciated with any off-the-shelf score-function based classifier and any regression method. We provide such an instanciation and empirically show (Section \ref{section: experiments}) that only a small amount of expert demonstrations (not even in the form of trajectories but simple transitions) is required. Comparison to other state of the art methods is provided Section \ref{section: related work}.
+
 
 * Background and notations
   - RL
