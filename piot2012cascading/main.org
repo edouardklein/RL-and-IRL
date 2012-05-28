@@ -324,8 +324,8 @@ In order to verify that the reward function $\hat{R}^C$ is a good candidate to r
   \label{algo:cascading}
   \emph{\textbf{Given}} a training set $D_C=\{(s_i,a_i=\pi_E(s_i)),s'_i)\}_{1\leq i \leq D}$ and another training set $D_R=\{(s_{i},a_{i},s'_{i})\}_{1\leq i \leq D'}$\;\\
   \emph{\textbf{Train}} a score function-based classifier on $D_C$, obtaining decision rule $\pi_C$ and score function $q:S\times A \rightarrow \mathbb R$\;\\
-  \emph{\textbf{Learn}} a reward function $\hat R_C$ from the dataset $\{(s_{i},a_{i},\hat{r}_i)\}_{1\leq i \leq D'}$, $\hat{r}_i=q(s_{i},a_{i})-\gamma q(s'_{i},\pi_C(s'_{i})), \forall (s_i,a_i,s'_i) \in D_R$\;\\
-  \emph{\textbf{Output}} the reward function $\hat R_{C}$ \;
+  \emph{\textbf{Learn}} a reward function $\hat R^C$ from the dataset $\{(s_{i},a_{i},\hat{r}_i)\}_{1\leq i \leq D'}$, $\hat{r}_i=q(s_{i},a_{i})-\gamma q(s'_{i},\pi_C(s'_{i})), \forall (s_i,a_i,s'_i) \in D_R$\;\\
+  \emph{\textbf{Output}} the reward function $\hat R^{C}$ \;
 \end{algorithm}
 
 #+begin_comment
@@ -336,6 +336,7 @@ In order to verify that the reward function $\hat{R}^C$ is a good candidate to r
     - [ ] complete algorithm
 #+end_comment
 *** Using only data from the expert
+    \label{heuristic.subsubsec}
     In dire conditions not covered in the anlysis, the only available data comes from the expert. In such cases, $D_C = D_R$. A good reward function can not be learnt from this data alone as no datapoint exists for tuples $(s,a,s')$ such that $a \neq \pi_E(s)$. We can use a heuristic to get a more complete dataset for the regression step ; assuming (this is quite pessimistic) that deviating from the expert's choice is the worst thing to do, we define $\hat r_{min} = \min\limits_{1\geq i\geq D=D'} \hat r_i - \epsilon, \epsilon>0$ and feed the regressor with the augmented dataset :
 \begin{equation}
 \{(s_{i},a_{i},\hat{r}_i)\}_{1\leq i \leq D'} \cup \{(s_{i},a,\hat{r}_{min})\}_{1\leq i \leq D=D',a\in A,a\neq a_i}.
@@ -537,9 +538,25 @@ Finally by regrouping the results in \eqref{equation: cas3-1} and \eqref{equatio
 * Experimental results
 \label{section: experiments}
 ** Instanciation
-   - [ ] Structured margin (en donnant le QP et en précisant qu'on utilise le sous gradient sans rentrer dans les détails (ref)). Tweaks = Bof.
-   - [ ] Least squares
-   - [ ] Heuristic
+#+begin_comment
+   - [X] Structured margin (en donnant le QP et en précisant qu'on utilise le sous gradient sans rentrer dans les détails (ref)). Tweaks = Bof.
+   - [X] Least squares
+   - [X] Heuristic
+#+end_comment
+   As a classifier, we choose a structured large margin approach \cite{taskar2005learning} which solves :
+\begin{equation}
+  \min_{\omega,\zeta}\frac{1}{2}\|\omega\|^2 +
+  \frac{\eta}{N}\sum_{i=1}^N \zeta_i \text{~~~~s.t.~~~~} \forall i,
+  \omega^T{\phi}(s_i,a_i)+\zeta_i \geq \max_a \omega^T
+  {\phi}(s_i,a) + \mathcal L (s_i,a). \label{eq:qp_taskar}
+\end{equation}
+With $\mathcal L(s_i,a_i)=0$ and $\mathcal L(s_i,a\neq a_i)=1$, using some feature function $\phi$ over the state-action space. Practically, we use a subgradient descent on an objective function in which the constraints have been moved \cite{ratliff2006maximum}.
+
+As we try to devise a reward function $\hat R^C$ using only transitions from the expert /and absolutely no other information/, we make use of the heuristic proposed in Subsubsection \ref{heuristic.subsubsec}. The augmented dataset is fed to a simple least-squares regressor using the same features $\phi$ as the classifier. Using straightforward matricial notations, this can be written :
+\begin{equation}
+\theta = (\Phi^T\Phi + \lambda Id)^{-1}\Phi^T\hat R.
+\end{equation}
+Finally, we have $\hat R^C(s,a) = \theta^t \phi(s,a)$.
 ** Results on the GridWorld
    - [ ] Desc of problems
    - [ ] Results
