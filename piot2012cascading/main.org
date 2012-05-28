@@ -1,11 +1,24 @@
 #+TITLE:Learning a reward function from demonstrations: a cascaded supervised learning approach
 
 * Abstract
+This paper considers the inverse reinforcement learning (IRL) problem. This framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered. The proposed contribution consists in cascading a classification and a regression steps to produce a non-trivial reward function for which we show the expert policy to be near optimal. In addition to being generic, this approach is model-free, it does not require solving any direct reinforcement learning problem (unlike most of IRL algorithms) and, with the help of some heuristics, can be instanciated to solely rely on transitions from the expert (no need to sample trajectories according to other policies). All of this is illustrated through a standard benchmark.
+
 * Problem statement
-  - Control
-  - RL
-  - Imitation
-  - IRL
+  - [ ] RL is getting a policy from a reward
+  - [ ] But defining a good reward can be difficult
+  - [ ] An expert that intuitively optimizes a good reward may provide a solution to this problem
+  - [ ] One can try to imitate an expert. Some people call it Learnign from demonstration.
+  - [ ] One can more precisely try to imitate the expert's policy in an MDP (apprenticeship learning)
+  - [ ] IRL has been seen as a way to do apprenticeshipe learning
+  - [ ] We do IRL because we want to extract the reward function (biological or economicakl nspiration, succinct description of a task, transfer learning)
+  - [ ] Our algorithm begins like an apprenticeship learning algorithm by using a score function based classifier to imitate the expert
+  - [ ] But we introduce the structure of the MDP in a second supervised learning step, namely a regression step.
+  - [ ] The whole algorithm has some interesting properties (better than others)
+  - [ ] The reward has some properties (analysis)
+  - [ ] With some heuristics as illustrated in the experiment, we even have more properties (better than others)
+
+This reward function is seen as the most succinct description of the task, allowing for task transfer from the expert to an agent with potentially different abilities. 
+
 * Background and notations
   - RL
     - S
