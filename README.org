@@ -14,6 +14,9 @@ Il manque juste un point de comparaison.
 
 Immédiatement, l'on va faire tourner ANIRL en mode parfait (même si ça prend des heures) pour avoir quelque chose à afficher.
 Dans un futur plus lointain, l'on va implémenter par exemlpe boularias pour avoir un point de comparaison.
+
+Je vais utiliser le code de Senthil.
+
 * Sur le GridWorld
 La baseline, ANIRL_Exp3, fonctionne vraiment pas trop mal.
 Cascading_Exp2 devrait permettre de voir que le cascading ne fonctionne pas avec une régression sur S seule. Par contre la classif seule semble marcher.

@@ -1,0 +1,46 @@
+#+TITLE:Learning a reward function from demonstrations: a cascaded supervised learning approach
+
+* Abstract
+* Problem statement
+  - Control
+  - RL
+  - Imitation
+  - IRL
+* Background and notations
+  - RL
+    - S
+    - [ ] A
+    - [ ] pi
+    - [ ] V
+    - [ ] pi star
+    - [ ] Q (fois deux)
+  - [ ] IRL
+    - [ ] Pi_E
+    - [ ] R_E
+* Cascading supervised learning
+** General algorithm
+*** Score function-based classifiers
+    - Data set
+    - Decision rule
+      - [ ] Examples
+    - [ ] pi_C
+*** Regression over reward function estimate
+    - R_C
+    - [ ] Injection eq.1
+    - [ ] ^r_i
+    - [ ] min_i r_i (heuristics)
+    - [ ] complete algorithm
+** Analysis
+   ??
+* Experimental results
+** Instanciation
+   - Structured margin
+   - [ ] Lest squares
+** Results on the highway
+   - Desc of poblem
+   - [ ] results
+   - [ ] Regression step is useful
+* Related works
+  Paraphraser Matthieu
+* Conclusion
+  On est les meilleurs
