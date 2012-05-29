@@ -187,62 +187,49 @@ Our approach doesn't require any of the following: complete trajectories from an
 
 * Background and notations
 \label{section: background}
+First, we introduce some general notations. Let $X=\{x_i\}_{1\leq i \leq I}$ be a finite set of $I\in\mathbb{N}^*$ elements, a function $g\in\mathbb{R}^X$ can also be seen as the real column vector $g=[g(i)=g(x_i)]_{1\leq i \leq I}$, $g^T$ is the transposition of $g$, and $|g|=[|g|(i)=|g(i)|]_{1\leq i \leq I}$.
+$\Delta_X$ is the set of probability distributions over $X$. Let $\mu\in\Delta_X$ and $f\in\mathbb{R}^X$, we define the $\mu$-weighted $l_1$-norm:
+\begin{equation}
+\|f\|_{\mu,1}=\sum_{x\in X}\mu(x)|f(x)|=E_{x\sim\mu}[|f(x)|]=\mu^T|f|,
+\end{equation}
+where the notation $E_{x\sim\mu}$ is the expectation with $x$ distributed according to $\mu$.
 
-#+begin_comment
-  - RL
-    - S
-    - [ ] A
-    - [ ] pi
-    - [ ] V
-    - [ ] pi star
-    - [ ] Q (fois deux)
-  - [ ] IRL
-    - [ ] Pi_E
-    - [ ] R_E
-#+end_comment
-#Plein de trucs à supprimer
-
-A (finite) MDP \cite{puterman1994markov} is a tuple $M=\{S,A,P,\gamma,R\}$ where $S=\{s_i\}_{1\leq i \leq N}$ is the finite state space with $N\in\mathbb{N}^*$ states, $A=\{a_k\}_{1\leq k \leq K}$ is the finite action space with $K\in\mathbb{N}^*$ actions, $P=\{P_{s,a}\}_{(s,a)\in S\times A}$ is the set of transition probabilities where $P_{s,a}$ is a distribution probability over $S$, $P$ represents the dynamics of the MDP and the notation $p(s,a,s')=P_{s,a}(s')$ is often used and quantifies the probability to reach $s'\in S$ knowing that the action $a \in A$ was taken in the state $s\in S$, $\gamma\in]0,1[$ is the discount factor and $R$ is a function from $S\times A$ to $\mathbb{R}$ called the reward function. A deterministic policy $\pi$ is a function from $S$ to $A$, $\Pi$ is the set of deterministic policies and the value function $V^\pi_R$ is a function from $S$ to $\mathbb{R}$ defined by:
+Now, we introduce specific notations to the MDP paradigm. A (finite) MDP~\cite{puterman1994markov} is a tuple $M=\{S,A,P,\gamma,R\}$ where $S=\{s_i\}_{1\leq i \leq N}$ is the finite state space with $N\in\mathbb{N}^*$ states, $A=\{a_k\}_{1\leq k \leq K}$ is the finite action space with $K\in\mathbb{N}^*$ actions, $P=\{P_{s,a}\}_{(s,a)\in S\times A}$ is the set of transition probabilities where $P_{s,a}$ is a distribution probability over $S$. $P$ represents the dynamics of the MDP and the notation $p(s,a,s')=P_{s,a}(s')$ quantifies the probability to reach $s'\in S$ knowing that the action $a \in A$ was taken in the state $s\in S$, $\gamma\in]0,1[$ is the discount factor and $R$ is a function from $S\times A$ to $\mathbb{R}$ called the reward function. A deterministic policy $\pi$ is a function from $S$ to $A$, the value function $V^\pi_R$ is a function from $S$ to $\mathbb{R}$ defined by:
 \begin{equation}
 V^\pi_R(s)=E^\pi_s[\sum_{t=0}^{+\infty}\gamma^tR(s_t,\pi(s_t))], \forall s \in S,
 \end{equation}
 where $E^\pi_s$ is the expectation over the distribution of the trajectories $(s_0,s_1,\dots)$ obtained by executing the policy $\pi$ starting from $s_0=s$.
 The action-value function $Q^\pi_R$ is a function from $S\times A$ to $R$ defined by:
 \begin{equation}
-Q^\pi_R(s,a)=E^\pi_{s,a}[R(s_0,a)+\sum_{t=1}^{+\infty}\gamma^tR(s_t,\pi(s_t))], \forall s \in S,\forall a \in A,
+\forall s\in S, \forall a\in A, Q^{\pi}_R(s,a)=R(s,a)+\gamma\sum_{s'\in S}P_{s,a}(s')V^{\pi}_R(s').
 \end{equation}
-where $E^\pi_{s,a}$ is the expectation over the distribution of the trajectories $(s_0,s_1,\dots)$ obtained starting from $s_0=s$, executing $a$ and then following the policy $\pi$.
-The classical results for finite MDPs are the well-known Bellman equations \cite{sutton1998reinforcement}:
-\begin{align}
+The classical result for finite MDPs is the well-known Bellman equation \cite{sutton1998reinforcement}:
+\begin{equation}
 \label{equation: Bellman}
-&V^{\pi}_R(s)=R(s,\pi(s))+\gamma\sum_{s'\in S}P_{s,\pi(s)}(s')V^{\pi}_R(s'), \forall s\in S,
-\\
-&Q^{\pi}_R(s,a)=R(s,a)+\gamma\sum_{s'\in S}P_{s,a}(s')V^{\pi}_R(s'), \forall s\in S, \forall a\in A.
-\end{align}
+\forall s\in S, V^{\pi}_R(s)=R(s,\pi(s))+\gamma\sum_{s'\in S}P_{s,\pi(s)}(s')V^{\pi}_R(s'),.
+\end{equation}
 A policy $\pi$ is said optimal for the reward $R$ when:
 \begin{equation}
 \label{equation:Voptimal}
-V^{\pi}_R(s)\geq V^{\tilde{\pi}}_R(s) , \forall s\in S, \forall \tilde{\pi}\in\Pi.
+\forall s\in S, \forall \tilde{\pi}\in A^{S}, V^{\pi}_R(s)\geq V^{\tilde{\pi}}_R(s).
 \end{equation}
 Another classical result called the Bellman optimality is: $\pi$ is an optimal policy for the reward $R$ if and only if:
 \begin{equation}
 \label{equation:Qoptimal}
-\pi(s)\in\argmax_{a\in A} Q^\pi_R(s,a), \forall s\in S.
+\forall s\in S, \pi(s)\in\argmax_{a\in A} Q^\pi_R(s,a).
 \end{equation}
 For a finite-MDP $M=\{S,A,P,\gamma,R\}$, the existence of an optimal policy for any function $R$ is shown in \cite{bertsekas2001dynamic}.
-As $S=\{s_i\}_{1\leq i \leq N}$ and $A=\{a_i\}_{1\leq i \leq K}$ are finite, a function $X$ from $S$ to $\mathbb{R}$ can be identified to the real column-vector $[X(s_i)]_{1\leq i \leq N}$ and a function $Y$ from
-$S\times A$ to $\mathbb{R}$ can be identified to the real rectangular-matrice of $N$ rows and $K$ columns  $[Y(s_i,a_k)]_{1\leq i \leq N, 1\leq k \leq K}$.
-Thus the notation $V^\pi_R$ depending on the context will be considered as a function or a column vector. Moreover if $Y$ is a function from $S\times A$ to $\mathbb{R}$ then the notation $Y_a$ will mean that $Y_a$ is the function from $S$ to $R$ that maps $s$ to $Y(s,a)$. So the notation $R_a$ can be a function or a column-vector depending on the context.
-We will also need the following matrices and column-vectors defined for any dynamic $P$, any policy $\pi$ and reward function $R$ :$P_a=[P_{s_i,a}(s_j)]_{1\leq i,j \leq N}$, $P_\pi=[P_{s_i,\pi(s_i)}(s_j)]_{1\leq i,j \leq N}$, $R_\pi=[R(s_i,\pi(s_i))]_{1\leq i,j \leq N}$. The transposition of a real column-vector $X=[X_i]_{1\leq i \leq I}$, $I\in\mathbb{N}^*$, is the real row-vector $X^T$ and $\|X\|_{\infty}=\max_{1\leq i \leq I}|X_i|$. The transposition of the real matrice $Y=[Y_{i,j}]_{1\leq i \leq I, 1\leq j \leq J}$, $(I,J)\in\mathbb{N}^2$, will be $Y^T$ and $\|Y\|_{\text{max}}=\max_{1\leq i \leq I,1\leq j \leq J}|Y_{i,j}|$.  Thanks to these vectorial notations, we can define the Bellman operator $T^\pi_R$, for a given deterministic policy $\pi$ and a given reward $R$, which is a function from $\mathbb{R}^N$ to $\mathbb{R}^N$ such that:
+For a given policy $\pi$ and a given reward function $R$, we define $R_\pi=[R_\pi(i)=R(s_i,\pi(s_i))]_{1\leq i \leq N}$, the $N\times N$-matrix $P_\pi=[P_\pi(i,j)=p(s_i,\pi(s_i),s_j]_{1\leq i,j \leq N}$ and the Bellman operator $T^\pi_R$ which is a function from $\mathbb{R}^S$ to $\mathbb{R}^S$:
 \begin{equation}
-T^\pi_RX=R_\pi+\gamma P_\pi X , \forall X\in \mathbb{R}^N.
+\forall V\in\mathbb{R}^S, T^\pi_RV=R_\pi+\gamma P_\pi V.
 \end{equation}
-It is well known that the unique fixed point of the operator $T^\pi_R$ is the column-vector $V^\pi_R$ \cite{puterman1994markov}.\\
+It is well known that the unique fixed point of the operator $T^\pi_R$ is  $V^\pi_R$ \cite{puterman1994markov}.\\
 RL consists in finding an optimal policy for the reward function $R$. Notice that the state space may be too large for an exact representation of the value function (which calls for approximate
 representation), that the model ($P$ and $R$) may be unknown (the only information being provided through rewarded transitions sampled according
-to some behavioral policy), that learning can occurs in an online or off-line setting, and so on. There exists books on the subject \cite{bertsekas2001dynamic},\cite{sutton1998reinforcement}.\\
+to some behavioral policy), that learning can occurs in an online or off-line setting, and so on. There exists books on the subject \cite{bertsekas2001dynamic},\cite{sutton1998reinforcement}.
+
 In the classical IRL paradigm \cite{ng2000algorithms}, an MDP without reward $M\backslash R =\{S,A,P,\gamma\}$ and a policy $\pi_E$ called expert-policy are given and the problem is to find
-a reward $R^*$ for which the policy $\pi_E$ is optimal. However this problem is clearly ill-posed in the sense that there is not uniqueness of the reward $R^*$ : many rewards functions are equivalent in the sense that they have the same optimal deterministic policies \cite{ng1999policyreward}, moreover the trivial zero-reward is a solution for any deterministic policy $\pi_E$ as it is shown in~\cite{ng2000algorithms}. In the literature, some solutions are proposed in order to respond to the ill-posed nature of the problem \cite{ng2000algorithms},\cite{ziebart2008maximum},\cite{boularias2011relative}.
+a reward $R^*$ for which the policy $\pi_E$ is optimal. However this problem is clearly ill-posed in the sense that there is not uniqueness of the reward $R^*$ : many rewards functions are equivalent in the sense that they have the same optimal deterministic policies \cite{ng1999policyreward}, moreover the trivial zero-reward is a solution for any deterministic policy $\pi_E$ as it is shown in\~{}\cite{ng2000algorithms}. In the literature, some solutions are proposed in order to respond to the ill-posed nature of the problem \cite{ng2000algorithms},\cite{ziebart2008maximum},\cite{boularias2011relative}.
 In our experiments, see Section \ref{section: experiments}, we assume that the solely available information is provided by transitions sampled according to the dynamics of the environnement under $\pi_E$:
 \begin{equation}
 \{(s_i,a_i=\pi_E(s_i)),s_i')\}_{1\leq i \leq D}, D\in\mathbb{N}^*,
@@ -250,38 +237,67 @@ In our experiments, see Section \ref{section: experiments}, we assume that the s
 where $s_i'$ is sampled according to the distribution $P_{s_i,a_i}$.
 The reward function is obviously unknown, but this assumption means that the dynamics ($P$) is only known through transitions $(s_i, a_i, s_i')$ and that the
 policy $\pi_E$ is only known through state-action pairs $(s_i, a_i)$.\\
-For a given deterministic policy $\pi$, a component $P_{s_i,\pi(s_i)}(s_j)$ of the matrix $P_\pi$ represents the probability to transit from $s_i$ to $s_j$ under the policy $\pi$. So $P_\pi$ can be seen as a transition matrix of a finite Markov-chain on the finite state space $S$. Thus, let us recall some basic but important results of finite-Markov chain theory.
-\begin{definition}
-Let $Y=[Y_{i,j}]_{1\leq i,j \leq M}$ be a  stochastic square matrix of size $M\in\mathbb{N}^*$. Then $Y$ is said to be irreducible if:
-\begin{equation}
-U(i,j)=\sum_{k=0}^{+\infty}Y^k(i,j)>0 ,\forall (i,j)\in \{1,\dots,M\}^2.
-\end{equation}
-\end{definition}
-\begin{theorem}[\cite{baldi2000martingales}]
-Let $Y$  be a stochastic square matrix of size $M\in\mathbb{N}^*$. $Y$ is irreducible if and only if there exists a unique and strictly positive distribution $\mu$ over $\{1,\dots,M\}$, $\mu$ is a function from $\{1,\dots,M\}$ to $\mathbb{R}$ which can be seen as a real column vector of size $M$, such that:
+For a given deterministic policy $\pi$, a component $P_{s_i,\pi(s_i)}(s_j)$ of the matrix $P_\pi$ represents the probability to transit from $s_i$ to $s_j$ under the policy $\pi$. So $P_\pi$ can be seen as a transition matrix of a finite Markov-chain on the finite state space $S$. If $P_\pi$ is irreducible then it exists a unique distribution $\mu_\pi$ (see~\cite{baldi2000martingales}) called the stationary distribution such that:
 \begin{equation}
 \label{equation: stationarity}
-\mu^T=\mu^TY.
+\mu_\pi=\mu_\pi^T P_\pi.
 \end{equation}
-$\mu$ is called the stationary distribution of $Y$.
-\end{theorem}
-\begin{definition}
-Let $Y$ be a stochastic square matrix of size $M\in\mathbb{N}^*$ and irreducible. It is aperiodic if for all $(i,j)\in {1,\dots,M}^2$ it exists $n_0\in \mathbb{N}^*$ such that for all $n\geq n_0$: $Y^n(i,j)>0$.
-\end{definition}
-\begin{theorem}[\cite{baldi2000martingales}]
-\label{theoreme : mixing exponential}
-Let $Y$ be a stochastic square matrix of size $M\in\mathbb{N}^*$. If $Y$ is irreducible and aperiodic then:
+\label{section: background}
+First, we introduce some general notations. Let $X=\{x_i\}_{1\leq i \leq I}$ be a finite set of $I\in\mathbb{N}^*$ elements, a function $g\in\mathbb{R}^X$ can also be seen as the real column vector $g=[g(i)=g(x_i)]_{1\leq i \leq I}$, $g^T$ is the transposition of $g$, and $|g|=[|g|(i)=|g(i)|]_{1\leq i \leq I}$.
+$\Delta_X$ is the set of probability distributions over $X$. Let $\mu\in\Delta_X$ and $f\in\mathbb{R}^X$, we define the $\mu$-weighted $l_1$-norm:
 \begin{equation}
-\lim_{k\rightarrow +\infty}\sum_{j=1}^{j=M}[Y^k(i,j)-\mu(j)]\rightarrow 0,\forall i\in\{1,\dots,M\},
+\|f\|_{\mu,1}=\sum_{x\in X}\mu(x)|f(x)|=E_{x\sim\mu}[|f(x)|]=\mu^T|f|,
 \end{equation}
-and more precisely there exists $\alpha\in]0,1[$ and $C\in\mathbb{R}_+$ such that:
+where the notation $E_{x\sim\mu}$ is the expectation with $x$ distributed according to $\mu$.
+
+Now, we introduce specific notations to the MDP paradigm. A (finite) MDP~\cite{puterman1994markov} is a tuple $M=\{S,A,P,\gamma,R\}$ where $S=\{s_i\}_{1\leq i \leq N}$ is the finite state space with $N\in\mathbb{N}^*$ states, $A=\{a_k\}_{1\leq k \leq K}$ is the finite action space with $K\in\mathbb{N}^*$ actions, $P=\{P_{s,a}\}_{(s,a)\in S\times A}$ is the set of transition probabilities where $P_{s,a}$ is a distribution probability over $S$. $P$ represents the dynamics of the MDP and the notation $p(s,a,s')=P_{s,a}(s')$ quantifies the probability to reach $s'\in S$ knowing that the action $a \in A$ was taken in the state $s\in S$, $\gamma\in]0,1[$ is the discount factor and $R$ is a function from $S\times A$ to $\mathbb{R}$ called the reward function. A deterministic policy $\pi$ is a function from $S$ to $A$, the value function $V^\pi_R$ is a function from $S$ to $\mathbb{R}$ defined by:
 \begin{equation}
-\sum_{j=1}^{j=M}|Y^k(i,j)-\mu(j)|\leq C\alpha^k,\forall i\in\{1,\dots,M\},\forall k\in\mathbb{N}^*.
+V^\pi_R(s)=E^\pi_s[\sum_{t=0}^{+\infty}\gamma^tR(s_t,\pi(s_t))], \forall s \in S,
 \end{equation}
-\end{theorem}
-In our framework, if $P_\pi$ is irreducible, then $\mu_\pi$ will be its stationary distribution.
+where $E^\pi_s$ is the expectation over the distribution of the trajectories $(s_0,s_1,\dots)$ obtained by executing the policy $\pi$ starting from $s_0=s$.
+The action-value function $Q^\pi_R$ is a function from $S\times A$ to $R$ defined by:
+\begin{equation}
+\forall s\in S, \forall a\in A, Q^{\pi}_R(s,a)=R(s,a)+\gamma\sum_{s'\in S}P_{s,a}(s')V^{\pi}_R(s').
+\end{equation}
+The classical result for finite MDPs is the well-known Bellman equation \cite{sutton1998reinforcement}:
+\begin{equation}
+\label{equation: Bellman}
+\forall s\in S, V^{\pi}_R(s)=R(s,\pi(s))+\gamma\sum_{s'\in S}P_{s,\pi(s)}(s')V^{\pi}_R(s'),.
+\end{equation}
+A policy $\pi$ is said optimal for the reward $R$ when:
+\begin{equation}
+\label{equation:Voptimal}
+\forall s\in S, \forall \tilde{\pi}\in A^{S}, V^{\pi}_R(s)\geq V^{\tilde{\pi}}_R(s).
+\end{equation}
+Another classical result called the Bellman optimality is: $\pi$ is an optimal policy for the reward $R$ if and only if:
+\begin{equation}
+\label{equation:Qoptimal}
+\forall s\in S, \pi(s)\in\argmax_{a\in A} Q^\pi_R(s,a).
+\end{equation}
+For a finite-MDP $M=\{S,A,P,\gamma,R\}$, the existence of an optimal policy for any function $R$ is shown in \cite{bertsekas2001dynamic}.
+For a given policy $\pi$ and a given reward function $R$, we define $R_\pi=[R_\pi(i)=R(s_i,\pi(s_i))]_{1\leq i \leq N}$, the $N\times N$-matrix $P_\pi=[P_\pi(i,j)=p(s_i,\pi(s_i),s_j]_{1\leq i,j \leq N}$ and the Bellman operator $T^\pi_R$ which is a function from $\mathbb{R}^S$ to $\mathbb{R}^S$:
+\begin{equation}
+\forall V\in\mathbb{R}^S, T^\pi_RV=R_\pi+\gamma P_\pi V.
+\end{equation}
+It is well known that the unique fixed point of the operator $T^\pi_R$ is  $V^\pi_R$ \cite{puterman1994markov}.\\
+RL consists in finding an optimal policy for the reward function $R$. Notice that the state space may be too large for an exact representation of the value function (which calls for approximate
+representation), that the model ($P$ and $R$) may be unknown (the only information being provided through rewarded transitions sampled according
+to some behavioral policy), that learning can occurs in an online or off-line setting, and so on. There exists books on the subject \cite{bertsekas2001dynamic},\cite{sutton1998reinforcement}.
 
-
+In the classical IRL paradigm \cite{ng2000algorithms}, an MDP without reward $M\backslash R =\{S,A,P,\gamma\}$ and a policy $\pi_E$ called expert-policy are given and the problem is to find
+a reward $R^*$ for which the policy $\pi_E$ is optimal. However this problem is clearly ill-posed in the sense that there is not uniqueness of the reward $R^*$ : many rewards functions are equivalent in the sense that they have the same optimal deterministic policies \cite{ng1999policyreward}, moreover the trivial zero-reward is a solution for any deterministic policy $\pi_E$ as it is shown in\~{}\cite{ng2000algorithms}. In the literature, some solutions are proposed in order to respond to the ill-posed nature of the problem \cite{ng2000algorithms},\cite{ziebart2008maximum},\cite{boularias2011relative}.
+In our experiments, see Section \ref{section: experiments}, we assume that the solely available information is provided by transitions sampled according to the dynamics of the environnement under $\pi_E$:
+\begin{equation}
+\{(s_i,a_i=\pi_E(s_i)),s_i')\}_{1\leq i \leq D}, D\in\mathbb{N}^*,
+\end{equation}
+where $s_i'$ is sampled according to the distribution $P_{s_i,a_i}$.
+The reward function is obviously unknown, but this assumption means that the dynamics ($P$) is only known through transitions $(s_i, a_i, s_i')$ and that the
+policy $\pi_E$ is only known through state-action pairs $(s_i, a_i)$.\\
+For a given deterministic policy $\pi$, a component $P_{s_i,\pi(s_i)}(s_j)$ of the matrix $P_\pi$ represents the probability to transit from $s_i$ to $s_j$ under the policy $\pi$. So $P_\pi$ can be seen as a transition matrix of a finite Markov-chain on the finite state space $S$. If $P_\pi$ is irreducible then it exists a unique distribution $\mu_\pi$ (see~\cite{baldi2000martingales}) called the stationary distribution such that:
+\begin{equation}
+\label{equation: stationarity}
+\mu_\pi=\mu_\pi^T P_\pi.
+\end{equation}
 * Cascading Classification and Regression for IRL
 \label{section: Cascading}
 #Probleme sur les refs
