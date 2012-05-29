@@ -360,24 +360,19 @@ In order to verify that the reward function $\hat{R}^C$ is a good candidate to r
 This heuristic was used with good results in the experiments described Section \ref{section: experiments}.
 * Analysis
 \label{section: Analysis}
-This section is devoted to show, under some hypotheses, that the cascading approach is legitimate. The first result is a lemma which gives a practical way to calculate $\mu_\pi^TV^{\pi}_R$ for a given policy $\pi$ and a given reward function $R$. The second result is a theorem which gives an upper bound to the term $\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}$ where $\mu_E$ is the stationary distribution of the expert policy $\pi_E$. We also give an interpretation of the term $\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}$ and explain why being able to bound this term means that our approach is legitimate.
+This section is devoted to show, under some hypotheses, that the cascading approach is legitimate. Lemma \ref{lemma: calculs V}  gives a practical way to calculate $E_{s\sim\mu_\pi}[V^\pi_R]$ for a given policy $\pi$ and a given reward function $R$. Theorem \ref{theorem : results}  gives an upper bound to the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ where $\mu_E$ is the stationary distribution of the expert policy $\pi_E$. We also give an interpretation of the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ and explain why being able to bound this term means that our approach is legitimate.
 \subsection{Results and Discussion}
 \begin{lemma}
 \label{lemma: calculs V}
 Let $\{S,A,P,\gamma,R\}$ be a finite MDP and $\pi$ a deterministic policy.
-If $P_\pi$ is reducible, then $\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi$.
+If $P_\pi$ is irreducible, then $E_{s\sim\mu_\pi}[V^\pi_R]=\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi$.
 \end{lemma}
-The first lemma gives a practical tool which will be useful in order to simplify some terms in the proof of the next theorem. Moreover it is useful
-to notice that the term  $\mu_\pi^TV^\pi_R$ can be reinterpreted as an expectation. Indeed we have:
-\begin{equation}
-\mu_\pi^TV^\pi_R=E_{s \sim \mu_\pi}[V^\pi_R(s)],
-\end{equation}
-where $E_{s \sim \mu_\pi}$ means that $s$ is distributed over the distribution $\mu_\pi$. All the results provided in the next theorem use the expectation $E_{s \sim \mu_E}$ which is the canonical expectation to consider when one wants to prove a result over the state space $S$ related to the policy of the expert $\pi_E$.\\
-Before giving an upper bound to $\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C})=E_{s \sim \mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]$, we define $\epsilon_C\in\mathbb{R}_+$ called the classification error and the function $\epsilon_R$ from $S\times A$ to $\mathbb{R}$ called the regression error such that:
+Lemma \ref{lemma: calculs V} gives a practical tool which will be useful in order to simplify some terms in the proof of Theorem \ref{theorem : results}.
+Before giving an upper bound to $\E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$, we define $\epsilon_C\in\mathbb{R}_+$ called the classification error and the function $\epsilon_R$ from $S\times A$ to $\mathbb{R}$ called the regression error such that:
 \begin{align}
 &\epsilon_C=\sum_{s\in S}\mu_{E}(s)\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}=E_{s \sim \mu_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}],
 \\
-&\epsilon_R(s,a)=\hat{R}^C(s,a)-R^C(s,a), \forall a\in A, \forall s\in S.
+&\forall a\in A, \forall s\in S, \epsilon_R(s,a)=\hat{R}^C(s,a)-R^C(s,a).
 \end{align}
 The column vectors $\epsilon^C_R=[\epsilon_R(s_i,\hat{\pi}_C(s_i))]_{1\leq i \leq N}$ and $\epsilon^E_R=[\epsilon_R(s_i,\pi_E(s_i))]_{1\leq i \leq N}$ will also be needed.
 \begin{remark}
@@ -386,43 +381,45 @@ One can notice that the classification error is defined thanks to the expectatio
 \epsilon_C=E_{s \sim \mu_{\text{Data}}}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}].
 \end{equation}
 Then one can suppose that our data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated independently thanks to $\mu_E$ but this assumption is quite strong and non-realistic.
-However it is often the case that the data provided by the expert are trajectories. In that case the theorem \ref{theoreme : mixing exponential}, which says that the rate of convergence
-to the stationary distribution is at least exponential, allows us to suppose that the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated under $\mu_E$.
+However it is often the case that the data provided by the expert are trajectories. In that case ,if $P_{\pi_E}$ is irreducible , the rate of convergence of the data distribution
+to the stationary distribution is at least exponential (this is the Doeblin theorem see~\cite{baldi2000martingales}). It allows us to suppose that the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated under $\mu_E$.
 \end{remark}
+Finally, we introduce also the first order discounted future state distribution concentration coefficient (\cite{MunosSIAM07}):
+\begin{equation}
+C_1=(1-\gamma)\sum_{t\geq0}\gamma^tc(t), \text{ with } c(t)=\max_{\pi_1,\dots,\pi_t,s}\frac{(\mu_E^TP_{\pi_1}\dots P_{\pi_t})(s)}{\mu_E(s)}.
+\end{equation}
 \begin{theorem}
 \label{theorem : results}
 Let $\{S,A,P,\gamma\}$ be a finite MDP without reward and $\pi_E$ an expert policy.
 The notations $q$, $\pi_C$, $\hat{\pi}_C$, $\hat{R}^C$ are introduced in the Section \ref{section: Cascading}.
-If $P_{\pi_E}$ is reducible, then $\mu_E$ is the stationary distribution of $\pi_E$ and:
+If $P_{\pi_E}$ is irreducible, then $\mu_E$ is the stationary distribution of $\pi_E$ and:
 \begin{enumerate}
 \item $\pi_C$ is optimal for the reward $R^C$.
-\item $\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}$.
-\item $\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C})\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^C_R\|_{\infty}+\mu_E^T\epsilon^E_R}{1-\gamma}$.
+\item $E_{s\sim\mu_E}[V^{\pi_C}_{R^C}(s)-V^{\pi_E}_{R^C}(s)]\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}$.
+\item $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^E_R\|_{\mu_E,1}+C_1\|\epsilon^C_R\|_{\mu_E,1}}{1-\gamma}$.
 \end{enumerate}
 \end{theorem}
 In order to understand why this theorem is useful, let us make some important assumptions. Let us suppose that the classification and the regression steps are perfect in the sense that $\epsilon_R(s,a)=0,\forall (s,a)\in S\times A$ and $\epsilon_C=0$. Then we obviously have, thanks to the theorem \ref{theorem : results}, that $\pi_E=\pi_C$ is optimal for $\hat{R}^C=R^C$. Thus the method is able to provide a non-trivial reward function for which the policy $\pi_E$ is optimal. Moreover if the classification step and the regression step are not perfect, the theorem \ref{theorem : results} shows, that our approach is able to provide a non trivial-reward $\hat{R}^C$ for which the policy $\pi_E$ is near-optimal in the sense that:
 \begin{equation}
-E_{s \sim \mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]\leq B[\epsilon_C+\|\epsilon^C_R\|_{\infty}+\mu_E^T\epsilon^E_R], B\in\mathbb{R}_+.
+E_{s \sim \mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]\leq \mathcal{O}(\frac{\epsilon_C+ \|\epsilon^C_R\|_{\mu_E,1}+\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma})
 \end{equation}
 \begin{remark}
 It is important to be clear about this result. If the only available data are provided by the equation \eqref{equation:data}, it is possible to control
-$\epsilon_C$ and $\mu_E^T\epsilon^E_R$ because these errors depend only on the expert policy $\pi_E$. However it is not possible to control the error $\|\epsilon^C_R\|_{\infty}$
+$\epsilon_C$ and $\|\epsilon^E_R\|_{\mu_E,1}$ because these errors depend only on the expert policy $\pi_E$. However it is not possible to control the error $\|\epsilon^C_R\|_{\mu_E,1}$
 because it depends on the policy $\hat{\pi}_C$ which can be different than the expert policy and hence do not appear in the available data \eqref{equation:data}. However
-it will be possible to obtain a control on the term $\|\epsilon^C_R\|_{\infty}$ if the data used for the regression are:
+it will be possible to obtain a control on the term $\|\epsilon^C_R\|_{\mu_E,1}$ if the data used for the regression are:
 \begin{equation}
-D_R=\{(s_{R,i},a_{R,i},s'_{R,i})\}_{1\leq i \leq D'},
+D_R=\{(s_i,a_i,s'_i)\}_{1\leq i \leq D'},
 \end{equation}
 where $(s_{R,i},a_{R,i})$ are uniformly chosen on the set $S\times A$ or sampled from other policies than the expert. So, theoretically an easy way to be sure
-to control the error $\|\epsilon^C_R\|_{\infty}$ is to be able to give a data set for the regression which is sampled from the expert policy and other policies (and more particularly $\hat{\pi}_C$). But we give examples, see Section \ref{section: experiments}, where the regression data set given by the equation \eqref{equation:data} is sufficient to obtain good results.
-A possible argument to explain the fact that classification-regression still works when $D_C=D_R$, is that $\hat{\pi}_C$ must not be so different than $\pi_E$ but we did not manage to control
-the term $\|\epsilon^C_R\|_{\infty}$ when $D_C=D_R$.
+to control the error $\|\epsilon^C_R\|_{\mu_E,1}$ is to be able to give a data set for the regression which is sampled from the expert policy and other policies (and more particularly $\hat{\pi}_C$). But we give examples, see Section \ref{section: experiments}, where the regression data set given by the equation \eqref{equation:data} is sufficient to obtain good results.
+A possible argument to explain the fact that classification-regression still works when $D_C=D_R$, is that $\hat{\pi}_C$ must not be so different than $\pi_E$. 
 \end{remark}
 \subsection{Proofs}
-
 \begin{proof}[Lemma \ref{lemma: calculs V}]
 Here, we use \eqref{equation: stationarity}
 \begin{align}
-\mu_\pi^TV^\pi_R&=\mu_\pi^T(R_\pi+\gamma P_\pi V^\pi_R)=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TP_\pi V^\pi_R,
+E_{s\sim\mu_\pi}[V^\pi_R]=\mu_\pi^TV^\pi_R&=\mu_\pi^T(R_\pi+\gamma P_\pi V^\pi_R)=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TP_\pi V^\pi_R,
 \\
 &=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi.
 \end{align}
@@ -430,38 +427,33 @@ Here, we use \eqref{equation: stationarity}
 \begin{proof}[Theorem \ref{theorem : results}]
 In order to prove the three results of the theorem \ref{theorem : results}, let us introduce the function $R_E$ from $S\times A$ to $\mathbb{R}$ such that:
 \begin{equation}
-R^E(s,a)=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_E(s')), \forall a \in A, \forall s\in S.
+\forall a \in A, \forall s\in S, R^E(s,a)=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_E(s')).
 \end{equation}
 The first step is to show that:
 \begin{align}
-&q(s,\pi_C(s))=V^{\pi_C}_{R^C}(s), \forall s\in S,
+&\forall s\in S, q(s,\pi_C(s))=V^{\pi_C}_{R^C}(s), 
 \\
-&q(s,\pi_E(s))=V^{\pi_E}_{R^E}(s), \forall s\in S.
+&\forall s\in S, q(s,\pi_E(s))=V^{\pi_E}_{R^E}(s).
 \end{align}
-This is quite straightforward because the column vector $q_{\pi_E}=[q(s,\pi_E(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_E}_{R^E}$ and  $q_{\pi_C}=[q(s,\pi_C(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_C}_{R^C}$:
+This is quite straightforward because $q_{\pi_E}=[q(s,\pi_E(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_E}_{R^E}$ and  $q_{\pi_C}=[q(s,\pi_C(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_C}_{R^C}$:
 \begin{align}
 T^{\pi_E}_{R^E}(q_{\pi_E})&=R^E_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E},
 \\
-&=q_{\pi_E}-\gamma P_{\pi_E}q_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E}=q_{\pi_E},
-\\
-T^{\pi_C}_{R^C}(q_{\pi_C})&=R^C_{\pi_C}+\gamma P_{\pi_C}q_{\pi_C},
-\\
-&=q_{\pi_C}-\gamma P_{\pi_C}q_{\pi_C}+\gamma P_{\pi_C}q_{\pi_C}=q_{\pi_C}.
+&=q_{\pi_E}-\gamma P_{\pi_E}q_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E}=q_{\pi_E}.
 \end{align}
-Moreover it is clear that $q_a=[q(s_i,a)]_{1\leq i\leq N}=Q^{\pi_C}_{R^C,a}=[Q^{\pi_C}_{R^C}(s_i,a)]_{1\leq i\leq N}$ for all $a \in A$:
+With the same calculus we show that $T^{\pi_C}_{R^C}(q_{\pi_C})=q_{\pi_E}$.
+Moreover it is clear that $\forall s\in S,\forall a\in A, q(s,a)=Q^{\pi_C}_{R^C}(s,a)$:
 \begin{align}
-Q^{\pi_C}_{R^C,a}&=R^C_a+\gamma P_a V^{\pi_C}_{R^C}, \forall a\in A,
+\forall s\in S,\forall a\in A, Q^{\pi_C}_{R^C}(s,a)&=R^C(s,a)+\gamma\sum_{s'\in S}p(s,a,s')V^{\pi_C}_{R^C}(s'),
 \\
-&=R^C_a+\gamma P_a q_{\pi_C}=q_a-\gamma P_a q_{\pi_C} + \gamma P_a q_{\pi_C}=q_a, \forall a\in A.
+&=R^C(s,a)+\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s'))
+\\
+&=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s')) + \gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s'))=q(s,a).
 \end{align}
-So $q(s,a)=Q^{\pi_C}_{R^C}(s,a),\forall s\in S,\forall a\in A$ and as:
-\begin{equation}
-\pi_C(s)\in\argmax_{a\in A}q(s,a), \forall s\in S,
-\end{equation}
-$\pi_C$ is optimal for the reward $R^C$.
+So $\forall s\in S,\forall a\in A, q(s,a)=Q^{\pi_C}_{R^C}(s,a)$ and as $\forall s\in S, \pi_C(s)\in\argmax_{a\in A}q(s,a)$, $\pi_C$ is optimal for the reward $R^C$.
 Now let us prove that:
 \begin{equation}
-\mu_E^TV^{\pi_C}_{R^C}-\mu_E^TV^{\pi_E}_{R^C}\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
+E_{s\sim\mu_E}[V^{\pi_C}_{R^C}(s)-V^{\pi_E}_{R^C}(s)]=\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
 \end{equation}
 Indeed:
 \begin{equation}
@@ -471,25 +463,17 @@ And $\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})$ is such that:
 \begin{align}
 \mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})&=\sum_{s\in S}\mu_E(s)[V^{\pi_C}_{R^C}(s)-V^{\pi_E}_{R^E}(s)],
 \\
-&=\sum_{s\in S}\mu_E(s)[q(s,\pi_C(s))-q(s,\pi_E(s))]
-\\
 &=\sum_{s\in S}\mu_E(s)[q(s,\pi_C(s))-q(s,\pi_E(s))]\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}},
-\\
-&\leq\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-q(s,\pi_E(s))),
 \\
 &\leq\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a)).
 \end{align}
-It remains to deal with the term $\mu_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})$ using the fact that $\mu_E^TP_{\pi_E}=\mu_E^T$ and the lemma \ref{lemma: calculs V}:
+It remains to deal with the term $\mu_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})$ using the fact that $\mu_E^TP_{\pi_E}=\mu_E^T$ and Lemma \ref{lemma: calculs V}:
 \begin{align}
 \mu_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})&=\frac{1}{1-\gamma}\mu_E^T(R^E_{\pi_E}-R^C_{\pi_E}),
 \\
 &=\frac{1}{1-\gamma}\mu_E^T(\gamma P_{\pi_E}q_{\pi_C}-\gamma P_{\pi_E}q_{\pi_E}),
 \\
-&=\frac{\gamma}{1-\gamma}\mu_E^T(q_{\pi_C}-q_{\pi_E}),
-\\
 &=\frac{\gamma}{1-\gamma}\sum_{s\in S}\mu_E(s)[q(s,\pi_C(s))-q(s,\pi_E(s))]\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}},
-\\
-&\leq\frac{\gamma}{1-\gamma}\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-q(s,\pi_E(s))),
 \\
 &\leq\frac{\gamma}{1-\gamma}\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a)).
 \end{align}
@@ -497,9 +481,7 @@ Finally:
 \begin{align}
 \mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})&=\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E}+V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}),
 \\
-&\leq\frac{(\gamma+1-\gamma)\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma},
-\\
-&=\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
+&\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
 \end{align}
 In order to finish the proof it remains to show that:
 \begin{equation}
@@ -511,26 +493,26 @@ We notice that:
 \end{equation}
 It is very easy to see that:
 \begin{align}
-&\|V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}\|_{+\infty}\leq\frac{\|\epsilon^C_R\|_{\infty}}{1-\gamma},
+&\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C})\leq\frac{C_1\|\epsilon^E_C\|_{\mu_E,1}}{1-\gamma},
 \\
-&\mu_E^T(V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})\leq\frac{\mu_E^T\epsilon^E_R}{1-\gamma},
+&\mu_E^T(V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})\leq\frac{\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma},
 \end{align}
-Indeed:
+Indeed via the definition of $C_1$ ($I$ is the identity matrix):
 \begin{align}
-V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\hat{\pi}_C}_{R^C}(s)&=E^{\hat{\pi}_C}_s[\sum_{t=0}^{+\infty}\gamma^t(\hat{R}^C(s_t,\hat{\pi}_C(s_t))-R^C(s_t,\hat{\pi}_C(s_t)))], \forall s\in S,
+\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\hat{\pi}_C}_{R^C}(s))&=\mu_E^T(I-\gamma P_{\hat{\pi}_C})^{-1}\epsilon^E_C
 \\
-&\leq\frac{\|\epsilon^C_R\|_{\infty}}{1-\gamma}, \forall s\in S.
+&=\mu_E^T(\sum_{t\geq0}\gamma^tP_{\hat{\pi}_C}^t)\epsilon^E_C\leq\frac{C_1\|\epsilon^E_C\|_{\mu_E,1}}{1-\gamma}.
 \end{align}
 And, thanks to the lemma \ref{lemma: calculs V}:
 \begin{align}
 \mu_E^T(V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})&=\mu_E^T(V^{\pi_E}_{\epsilon_R}),
 \\
-&\leq\frac{\mu_E^T\epsilon^E_R}{1-\gamma}.
+&\leq\frac{\mu_E^T\epsilon^E_R}{1-\gamma}\leq\frac{\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma}.
 \end{align}
 Thus:
 \begin{equation}
 \label{equation: cas3-1}
-\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}+V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})\leq\frac{\mu_E^T\epsilon^E_R+\|\epsilon^C_R\|_{\infty}}{1-\gamma}.
+\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}+V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})\leq\frac{C_1\|\epsilon^E_C\|_{\mu_E,1}+\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma}.
 \end{equation}
 It remains to deal with the term $\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})$:
 \begin{equation}
@@ -547,7 +529,180 @@ So:
 \end{equation}
 Finally by regrouping the results in \eqref{equation: cas3-1} and \eqref{equation: cas3-2}:
 \begin{equation}
-\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^C_R\|_{\infty}+\mu_E^T\epsilon^E_R}{1-\gamma}.
+\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+C_1\|\epsilon^E_C\|_{\mu_E,1}+\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma}.
+\end{equation}
+\end{proof}
+\label{section: Analysis}
+This section is devoted to show, under some hypotheses, that the cascading approach is legitimate. Lemma \ref{lemma: calculs V}  gives a practical way to calculate $E_{s\sim\mu_\pi}[V^\pi_R]$ for a given policy $\pi$ and a given reward function $R$. Theorem \ref{theorem : results}  gives an upper bound to the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ where $\mu_E$ is the stationary distribution of the expert policy $\pi_E$. We also give an interpretation of the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ and explain why being able to bound this term means that our approach is legitimate.
+\subsection{Results and Discussion}
+\begin{lemma}
+\label{lemma: calculs V}
+Let $\{S,A,P,\gamma,R\}$ be a finite MDP and $\pi$ a deterministic policy.
+If $P_\pi$ is irreducible, then $E_{s\sim\mu_\pi}[V^\pi_R]=\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi$.
+\end{lemma}
+Lemma \ref{lemma: calculs V} gives a practical tool which will be useful in order to simplify some terms in the proof of Theorem \ref{theorem : results}.
+Before giving an upper bound to $\E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$, we define $\epsilon_C\in\mathbb{R}_+$ called the classification error and the function $\epsilon_R$ from $S\times A$ to $\mathbb{R}$ called the regression error such that:
+\begin{align}
+&\epsilon_C=\sum_{s\in S}\mu_{E}(s)\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}=E_{s \sim \mu_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}],
+\\
+&\forall a\in A, \forall s\in S, \epsilon_R(s,a)=\hat{R}^C(s,a)-R^C(s,a).
+\end{align}
+The column vectors $\epsilon^C_R=[\epsilon_R(s_i,\hat{\pi}_C(s_i))]_{1\leq i \leq N}$ and $\epsilon^E_R=[\epsilon_R(s_i,\pi_E(s_i))]_{1\leq i \leq N}$ will also be needed.
+\begin{remark}
+One can notice that the classification error is defined thanks to the expectation $E_{s \sim \mu_E}$. In the classical framework of classification, the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated independently according to a distribution $\mu_{\text{Data}}$ over $S$ and hence the classical classification error must be:
+\begin{equation}
+\epsilon_C=E_{s \sim \mu_{\text{Data}}}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}].
+\end{equation}
+Then one can suppose that our data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated independently thanks to $\mu_E$ but this assumption is quite strong and non-realistic.
+However it is often the case that the data provided by the expert are trajectories. In that case ,if $P_{\pi_E}$ is irreducible , the rate of convergence of the data distribution
+to the stationary distribution is at least exponential (this is the Doeblin theorem see~\cite{baldi2000martingales}). It allows us to suppose that the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated under $\mu_E$.
+\end{remark}
+Finally, we introduce also the first order discounted future state distribution concentration coefficient (\cite{MunosSIAM07}):
+\begin{equation}
+C_1=(1-\gamma)\sum_{t\geq0}\gamma^tc(t), \text{ with } c(t)=\max_{\pi_1,\dots,\pi_t,s}\frac{(\mu_E^TP_{\pi_1}\dots P_{\pi_t})(s)}{\mu_E(s)}.
+\end{equation}
+\begin{theorem}
+\label{theorem : results}
+Let $\{S,A,P,\gamma\}$ be a finite MDP without reward and $\pi_E$ an expert policy.
+The notations $q$, $\pi_C$, $\hat{\pi}_C$, $\hat{R}^C$ are introduced in the Section \ref{section: Cascading}.
+If $P_{\pi_E}$ is irreducible, then $\mu_E$ is the stationary distribution of $\pi_E$ and:
+\begin{enumerate}
+\item $\pi_C$ is optimal for the reward $R^C$.
+\item $E_{s\sim\mu_E}[V^{\pi_C}_{R^C}(s)-V^{\pi_E}_{R^C}(s)]\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}$.
+\item $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^E_R\|_{\mu_E,1}+C_1\|\epsilon^C_R\|_{\mu_E,1}}{1-\gamma}$.
+\end{enumerate}
+\end{theorem}
+In order to understand why this theorem is useful, let us make some important assumptions. Let us suppose that the classification and the regression steps are perfect in the sense that $\epsilon_R(s,a)=0,\forall (s,a)\in S\times A$ and $\epsilon_C=0$. Then we obviously have, thanks to the theorem \ref{theorem : results}, that $\pi_E=\pi_C$ is optimal for $\hat{R}^C=R^C$. Thus the method is able to provide a non-trivial reward function for which the policy $\pi_E$ is optimal. Moreover if the classification step and the regression step are not perfect, the theorem \ref{theorem : results} shows, that our approach is able to provide a non trivial-reward $\hat{R}^C$ for which the policy $\pi_E$ is near-optimal in the sense that:
+\begin{equation}
+E_{s \sim \mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]\leq \mathcal{O}(\frac{\epsilon_C+ \|\epsilon^C_R\|_{\mu_E,1}+\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma})
+\end{equation}
+\begin{remark}
+It is important to be clear about this result. If the only available data are provided by the equation \eqref{equation:data}, it is possible to control
+$\epsilon_C$ and $\|\epsilon^E_R\|_{\mu_E,1}$ because these errors depend only on the expert policy $\pi_E$. However it is not possible to control the error $\|\epsilon^C_R\|_{\mu_E,1}$
+because it depends on the policy $\hat{\pi}_C$ which can be different than the expert policy and hence do not appear in the available data \eqref{equation:data}. However
+it will be possible to obtain a control on the term $\|\epsilon^C_R\|_{\mu_E,1}$ if the data used for the regression are:
+\begin{equation}
+D_R=\{(s_i,a_i,s'_i)\}_{1\leq i \leq D'},
+\end{equation}
+where $(s_{R,i},a_{R,i})$ are uniformly chosen on the set $S\times A$ or sampled from other policies than the expert. So, theoretically an easy way to be sure
+to control the error $\|\epsilon^C_R\|_{\mu_E,1}$ is to be able to give a data set for the regression which is sampled from the expert policy and other policies (and more particularly $\hat{\pi}_C$). But we give examples, see Section \ref{section: experiments}, where the regression data set given by the equation \eqref{equation:data} is sufficient to obtain good results.
+A possible argument to explain the fact that classification-regression still works when $D_C=D_R$, is that $\hat{\pi}_C$ must not be so different than $\pi_E$. 
+\end{remark}
+\subsection{Proofs}
+\begin{proof}[Lemma \ref{lemma: calculs V}]
+Here, we use \eqref{equation: stationarity}
+\begin{align}
+E_{s\sim\mu_\pi}[V^\pi_R]=\mu_\pi^TV^\pi_R&=\mu_\pi^T(R_\pi+\gamma P_\pi V^\pi_R)=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TP_\pi V^\pi_R,
+\\
+&=\mu_\pi^TR_\pi+ \gamma\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi.
+\end{align}
+\end{proof}
+\begin{proof}[Theorem \ref{theorem : results}]
+In order to prove the three results of the theorem \ref{theorem : results}, let us introduce the function $R_E$ from $S\times A$ to $\mathbb{R}$ such that:
+\begin{equation}
+\forall a \in A, \forall s\in S, R^E(s,a)=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_E(s')).
+\end{equation}
+The first step is to show that:
+\begin{align}
+&\forall s\in S, q(s,\pi_C(s))=V^{\pi_C}_{R^C}(s), 
+\\
+&\forall s\in S, q(s,\pi_E(s))=V^{\pi_E}_{R^E}(s).
+\end{align}
+This is quite straightforward because $q_{\pi_E}=[q(s,\pi_E(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_E}_{R^E}$ and  $q_{\pi_C}=[q(s,\pi_C(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_C}_{R^C}$:
+\begin{align}
+T^{\pi_E}_{R^E}(q_{\pi_E})&=R^E_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E},
+\\
+&=q_{\pi_E}-\gamma P_{\pi_E}q_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E}=q_{\pi_E}.
+\end{align}
+With the same calculus we show that $T^{\pi_C}_{R^C}(q_{\pi_C})=q_{\pi_E}$.
+Moreover it is clear that $\forall s\in S,\forall a\in A, q(s,a)=Q^{\pi_C}_{R^C}(s,a)$:
+\begin{align}
+\forall s\in S,\forall a\in A, Q^{\pi_C}_{R^C}(s,a)&=R^C(s,a)+\gamma\sum_{s'\in S}p(s,a,s')V^{\pi_C}_{R^C}(s'),
+\\
+&=R^C(s,a)+\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s'))
+\\
+&=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s')) + \gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s'))=q(s,a).
+\end{align}
+So $\forall s\in S,\forall a\in A, q(s,a)=Q^{\pi_C}_{R^C}(s,a)$ and as $\forall s\in S, \pi_C(s)\in\argmax_{a\in A}q(s,a)$, $\pi_C$ is optimal for the reward $R^C$.
+Now let us prove that:
+\begin{equation}
+E_{s\sim\mu_E}[V^{\pi_C}_{R^C}(s)-V^{\pi_E}_{R^C}(s)]=\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
+\end{equation}
+Indeed:
+\begin{equation}
+\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})=\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E}+V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}).
+\end{equation}
+And $\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})$ is such that:
+\begin{align}
+\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})&=\sum_{s\in S}\mu_E(s)[V^{\pi_C}_{R^C}(s)-V^{\pi_E}_{R^E}(s)],
+\\
+&=\sum_{s\in S}\mu_E(s)[q(s,\pi_C(s))-q(s,\pi_E(s))]\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}},
+\\
+&\leq\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a)).
+\end{align}
+It remains to deal with the term $\mu_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})$ using the fact that $\mu_E^TP_{\pi_E}=\mu_E^T$ and Lemma \ref{lemma: calculs V}:
+\begin{align}
+\mu_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})&=\frac{1}{1-\gamma}\mu_E^T(R^E_{\pi_E}-R^C_{\pi_E}),
+\\
+&=\frac{1}{1-\gamma}\mu_E^T(\gamma P_{\pi_E}q_{\pi_C}-\gamma P_{\pi_E}q_{\pi_E}),
+\\
+&=\frac{\gamma}{1-\gamma}\sum_{s\in S}\mu_E(s)[q(s,\pi_C(s))-q(s,\pi_E(s))]\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}},
+\\
+&\leq\frac{\gamma}{1-\gamma}\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a)).
+\end{align}
+Finally:
+\begin{align}
+\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})&=\mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E}+V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}),
+\\
+&\leq\frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
+\end{align}
+In order to finish the proof it remains to show that:
+\begin{equation}
+\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+\|\epsilon^C_R\|_{\infty}+\|\epsilon^E_R\|_{\infty}}{1-\gamma}.
+\end{equation}
+We notice that:
+\begin{equation}
+\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C})=\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}+V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C}+V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C}).
+\end{equation}
+It is very easy to see that:
+\begin{align}
+&\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C})\leq\frac{C_1\|\epsilon^E_C\|_{\mu_E,1}}{1-\gamma},
+\\
+&\mu_E^T(V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})\leq\frac{\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma},
+\end{align}
+Indeed via the definition of $C_1$ ($I$ is the identity matrix):
+\begin{align}
+\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}(s)-V^{\hat{\pi}_C}_{R^C}(s))&=\mu_E^T(I-\gamma P_{\hat{\pi}_C})^{-1}\epsilon^E_C
+\\
+&=\mu_E^T(\sum_{t\geq0}\gamma^tP_{\hat{\pi}_C}^t)\epsilon^E_C\leq\frac{C_1\|\epsilon^E_C\|_{\mu_E,1}}{1-\gamma}.
+\end{align}
+And, thanks to the lemma \ref{lemma: calculs V}:
+\begin{align}
+\mu_E^T(V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})&=\mu_E^T(V^{\pi_E}_{\epsilon_R}),
+\\
+&\leq\frac{\mu_E^T\epsilon^E_R}{1-\gamma}\leq\frac{\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma}.
+\end{align}
+Thus:
+\begin{equation}
+\label{equation: cas3-1}
+\mu_E^T(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}+V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})\leq\frac{C_1\|\epsilon^E_C\|_{\mu_E,1}+\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma}.
+\end{equation}
+It remains to deal with the term $\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})$:
+\begin{equation}
+\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})=\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_C}_{R^C}+V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C}).
+\end{equation}
+As $\pi_C$ is optimal for the reward $R^C$ then:
+\begin{equation}
+\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_C}_{R^C})\leq 0.
+\end{equation}
+So:
+\begin{equation}
+\label{equation: cas3-2}
+\mu_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})\leq \mu_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^C})\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))}{1-\gamma}.
+\end{equation}
+Finally by regrouping the results in \eqref{equation: cas3-1} and \eqref{equation: cas3-2}:
+\begin{equation}
+\mu_E^TV^{\hat{\pi}_C}_{\hat{R}^C}-\mu_E^TV^{\pi_E}_{\hat{R}^C}\leq \frac{\epsilon_C\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))+C_1\|\epsilon^E_C\|_{\mu_E,1}+\|\epsilon^E_R\|_{\mu_E,1}}{1-\gamma}.
 \end{equation}
 \end{proof}
 
