@@ -459,11 +459,9 @@ As expected, pure classification is not sample efficient enough to provide a goo
 * Related work
 \label{section: related work}
 
-First introduced in \cite{russell1998learning} and formalized in \cite{ng2000algorithms}, IRL has sometimes been seen as a way to appreticeship learning \cite{abbeel2004apprenticeship} with algorithms outputing a policy matching a measure of the expert's distribution in the state space. See \cite{neu2009training} for a survey.
+First introduced in \cite{russell1998learning} and formalized in \cite{ng2000algorithms}, IRL has sometimes been seen as a way to appreticeship learning \cite{abbeel2004apprenticeship} with algorithms outputing a policy matching a measure of the expert's distribution in the state space. See \cite{neu2009training} for a survey. Except for \cite{dvijotham2010inverse} which is suitable to linearly solvable MDPs only and for \cite{boularias2011relative} which still requires sampling trajectories from a non expert policy (our analysis requires only samples), all IRL algorithms repeatedly solve the forward RL problem, which is a costly procedure information-wise as well as computationnaly.
 
-Except for \cite{dvijotham2010inverse} which is suitable to linearly solvable MDPs only and for \cite{boularias2011relative} which still requires sampling trajectories from a non expert policy, all IRL algorithm repeatedly solve the forward RL problem, which is a costly procedure information-wise as well as computationnaly.
-
-Classification and IRL have met in the past in \cite{ratliff2006maximum}, but the labels were complete optimal policies rather than actions and the inputs were MDPs. Building on the non trivial notion of metric in an MDP, \cite{melo2010learning} built a kernel for a classification algorithm.
+Classification and IRL have met in the past in \cite{ratliff2006maximum}, but the labels were complete optimal policies rather than actions and the inputs were MDPs. Building on the non trivial notion of metric in an MDP, \cite{melo2010learning} built a structured kernel for a classification algorithm.
 
 
 * Conclusion
