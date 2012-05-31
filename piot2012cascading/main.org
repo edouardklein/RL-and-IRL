@@ -152,7 +152,7 @@
 
 
 #+begin_abstract
-This paper considers the inverse reinforcement learning (IRL) problem. This framework assumes that an expert, demonstrating a task, is acting optimally in a Markov Decision Process (MDP) with respect to an unknown reward function to be discovered. The proposed contribution consists in cascading a classification and a regression steps to produce a non-trivial reward function for which we show the expert policy to be near optimal. In addition to being generic, this approach is model-free, it does not require solving any direct reinforcement learning problem (unlike most of IRL algorithms) and, with the help of some heuristics, can be instanciated to solely rely on transitions from the expert (no need to sample trajectories according to other policies). All of this is illustrated through a standard benchmark.
+The IRL problem, that is dicovering the reward function optimized by an expert in an MDP, is addressed in this paper. The proposed generic, model-free contribution consists in cascading a classification and a regression steps to produce a non-trivial reward function. We prove the expert policy to be near optimal with respect to this reward. The proposed algorithm does not require solving any direct reinforcement learning problem (unlike most of IRL algorithms) and, with the help of some heuristics, can be instanciated to solely rely on transitions from the expert (no need to sample trajectories according to other policies). All of this is illustrated through a standard benchmark.
 #Peut etre mettre benchmark au pluriel si on en met plusieurs
 #+end_abstract
 * Problem statement
