@@ -466,7 +466,7 @@ Classification and IRL have met in the past in \cite{ratliff2006maximum}, but th
 
 * Conclusion
   
-  The proposed approach of cascading two supervised learning algorithms (a classifier and a regressor) is able to learn a reward function from observed behavior for which the expert is provably near optimal. Going further than the analysis, experiments showed the approach (with the help of a simple heuristics) to be sample efficient enough to work with samples from the expert only, giving better results and being more computationnaly efficient than a state-of-the-art algorithm. Our approach will be confronted to real world robotics problems in a near future.
+  The proposed approach of cascading two supervised learning algorithms (a classifier and a regressor) is able to learn a reward function from observed behaviors for which the expert is provably near-optimal. Going further than the analysis, experiments showed the approach (with the help of a simple heuristics) to be sample-efficient enough to work with samples from the expert only, giving better results and being more computationnaly efficient than a state-of-the-art algorithm. Our approach will be confronted to real world robotics problems in a near future.
 
 \bibliographystyle{plain}
 \bibliography{Biblio}
