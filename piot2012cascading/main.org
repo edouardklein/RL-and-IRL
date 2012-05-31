@@ -241,13 +241,13 @@ The first SL step in our algorithm is to train a classifer over a set
 \begin{equation}
 \label{equation:data}
 D_C=\{(s_i,a_i=\pi_E(s_i)),s'_i)\}_{1\leq i \leq D}, D\in\mathbb{N}^*,
-\end{equation} where $s'_{i}$ is sampled according to the distribution $P_{s_{i},a_{i}}$. The actions $a_i$ are seen as labels for the inputs $s_i$. We restrict ourselves to the use of score-function based classifiers for which the classification rule is of the form $\forall s \in S, \pi_C(s) \in \arg\max_{a\in A} q(s,a)$. Most classifiers, from $k$-nearest neighboors to multi-class-SVMs and structured margin approaches, fall into this category. The classification rule of this broad range of classifiers can be seen as a deterministic policy. After noticing the similarity between the definition of $\pi_C$ and equation \eqref{equation:Qoptimal}, it is easy and natural to identify the score function $q:S\times A \rightarrow \mathbb{R}$ with a state-action value function with respect to a certain reward function $R^C$ for which $\pi_C$ is an optimal policy (explained and proven in Section \ref{section: Analysis}).\\
+\end{equation} where $s'_{i}$ is sampled according to the distribution $P_{s_{i},a_{i}}$. The actions $a_i$ are seen as labels for the inputs $s_i$. We restrict ourselves to the use of score-function based classifiers for which the classification rule is of the form $\forall s \in S, \pi_C(s) \in \arg\max_{a\in A} q(s,a)$. Most classifiers, from $k$-nearest neighboors to multi-class-SVMs and structured margin approaches, fall into this category. The classification rule of this broad range of classifiers can be seen as a deterministic policy. After noticing the similarity between the definition of $\pi_C$ and equation \eqref{equation:Qoptimal}, it is easy and natural to identify the score function $q:S\times A \rightarrow \mathbb{R}$ with a state-action value function with respect to a certain reward function $R^C$ (equation \eqref{RC.eq}) for which $\pi_C$ is an optimal policy (explained and proven in Section \ref{section: Analysis}).\\
 As the model is often unknown, it is not possible to directly compute $R^C$. We can however use a new dataset $D_R=\{(s_{i},a_{i},s'_{i})\}_{1\leq i \leq D'}, D'\in\mathbb{N}^*$, where $s'_{i}$ is sampled under the probability $P_{s_{i},a_{i}}$. In $D_R$, we don't necessarily have $a_i = \pi_E(s_i)$ as we had in dataset $D_C$. We can write :
 \begin{equation}
 \label{ri.def}
  \forall i\in \{1,\dots,D'\},\hat{r}_i=q(s_{i},a_{i})-\gamma q(s'_{i},\pi_C(s'_{i})).
 \end{equation}
-Therefore, it is possible to build an estimate $\hat{R}^C$, which is a function from $S\times A$ to $\mathbb{R}$, of $R^C$ using a regressor trained on the dataset:$\{(s_{i},a_{i},\hat{r}_i)\}_{1\leq i \leq D'}$.
+An unbiased estimator of $R^C(s_i,a_i)$ is $\hat r_i$. It is possible to build an estimate $\hat{R}^C$, which is a function from $S\times A$ to $\mathbb{R}$, of $R^C$ using a regressor trained on the dataset:$\{(s_{i},a_{i},\hat{r}_i)\}_{1\leq i \leq D'}$.
 
 The whole approach is summed up algorithm \ref{algo:cascading}. We see $\hat{R}^C$ as an approximation of $R^C$ and 
 #Nécessaire de définir pi_C ?
@@ -274,7 +274,7 @@ In order to verify that the reward function $\hat{R}^C$ is a good candidate to r
 #+end_comment
 * Analysis
 \label{section: Analysis}
-This section is devoted to show, under some hypotheses, that the cascading approach is legitimate. Lemma \ref{lemma: calculs V}  gives a practical way to calculate $E_{s\sim\mu_\pi}[V^\pi_R]$ for a given policy $\pi$ and a given reward function $R$. Theorem \ref{theorem : results}  gives an upper bound to the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ where $\mu_E$ is the stationary distribution of the expert policy $\pi_E$. We also give an interpretation of the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ and explain why being able to bound this term means that our approach is legitimate.
+This section is devoted to show, under some hypotheses, that the cascading approach is legitimate. Lemma \ref{lemma: calculs V}  gives a practical way to compute $E_{s\sim\mu_\pi}[V^\pi_R]$ for a given policy $\pi$ and a given reward function $R$. Theorem \ref{theorem : results}  gives an upper bound to the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ where $\mu_E$ is the stationary distribution of the expert policy $\pi_E$. We also give an interpretation of the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ and explain why being able to bound this term means that our approach is legitimate.
 \subsection{Results and Discussion}
 \begin{lemma}
 \label{lemma: calculs V}
@@ -282,10 +282,11 @@ Let $\{S,A,P,\gamma,R\}$ be a finite MDP and $\pi$ a deterministic policy.
 If $P_\pi$ is irreducible, then $E_{s\sim\mu_\pi}[V^\pi_R]=\mu_\pi^TV^\pi_R=\frac{1}{1-\gamma}\mu_\pi^TR_\pi$.
 \end{lemma}
 Lemma \ref{lemma: calculs V} gives a practical tool which will be useful in order to simplify some terms in the proof of Theorem \ref{theorem : results}.
-Before giving an upper bound to $\E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$, we define $\epsilon_C\in\mathbb{R}_+$ called the classification error and the function $\epsilon_R$ from $S\times A$ to $\mathbb{R}$ called the regression error such that:
+Before giving an upper bound to $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$, we define $\epsilon_C\in\mathbb{R}_+$ called the classification error, $R^C\in \mathbb{R}^{S\times A}$ the reward function for which $\pi_C$ is optimal (see Theorem \ref{theorem : results}) and the function $\epsilon_R$ from $S\times A$ to $\mathbb{R}$ called the regression error such that:
 \begin{align}
 &\epsilon_C=\sum_{s\in S}\mu_{E}(s)\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}=E_{s \sim \mu_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}],
 \\
+&\forall a\in A, \forall s\in S,R^C(s,a)=\sum_{s'\in S}p(s,a,s')[q(s,a)-\gamma q(s',\pi_C(s'))],\label{RC.eq}\\
 &\forall a\in A, \forall s\in S, \epsilon_R(s,a)=\hat{R}^C(s,a)-R^C(s,a).
 \end{align}
 We define $\epsilon^C_R=[\epsilon_R(s_i,\hat{\pi}_C(s_i))]_{1\leq i \leq N}$ and $\epsilon^E_R=[\epsilon_R(s_i,\pi_E(s_i))]_{1\leq i \leq N}$.
@@ -293,7 +294,7 @@ We define $\epsilon^C_R=[\epsilon_R(s_i,\hat{\pi}_C(s_i))]_{1\leq i \leq N}$ and
 One can notice that the classification error is defined thanks to the expectation $E_{s \sim \mu_E}$. In the classical framework of classification, the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated independently according to a distribution $\mu_{\text{Data}}$ over $S$ and hence the classical classification error must be $\epsilon_C=E_{s \sim \mu_{\text{Data}}}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}]$.
 Then one can suppose that our data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated independently thanks to $\mu_E$ but this assumption is quite strong and non-realistic.
 However it is often the case that the data provided by the expert are trajectories. In that case ,if $P_{\pi_E}$ is irreducible , the rate of convergence of the data distribution
-to the stationary distribution is at least exponential (this is the Doeblin theorem see \cite{baldi2000martingales}). It allows us to suppose that the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated under $\mu_E$.
+to the stationary distribution is at least exponential (this is the Doeblin theorem see \cite{stroock2005introduction}). It allows us to suppose that the data $\{s_i,a_i=\pi_E(s_i)\}_{1\leq i \leq D}$ are generated under $\mu_E$.
 \end{remark}
 Finally, we introduce also the first order discounted future state distribution concentration coefficient (\cite{MunosSIAM07}):
 \begin{equation}
@@ -340,11 +341,11 @@ The first step is to show that: $\forall s\in S, q(s,\pi_C(s))=V^{\pi_C}_{R^C}(s
 
 This is quite straightforward because $q_{\pi_E}=[q(s,\pi_E(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_E}_{R^E}$ and  $q_{\pi_C}=[q(s,\pi_C(s))]_{1\leq i\leq N}$ is the fixed point of the operator $T^{\pi_C}_{R^C}$:
 \begin{align}
-T^{\pi_E}_{R^E}(q_{\pi_E})&=R^E_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E},
+T^{\pi_E}_{R^E}q_{\pi_E}&=R^E_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E},
 \\
 &=q_{\pi_E}-\gamma P_{\pi_E}q_{\pi_E}+\gamma P_{\pi_E}q_{\pi_E}=q_{\pi_E}.
 \end{align}
-With the same calculus, we show that $T^{\pi_C}_{R^C}(q_{\pi_C})=q_{\pi_E}$.
+With the same calculus, we show that $T^{\pi_C}_{R^C}q_{\pi_C}=q_{\pi_E}$.
 Moreover it is clear that $\forall s\in S,\forall a\in A, q(s,a)=Q^{\pi_C}_{R^C}(s,a)$ and as $R^C(s,a)=q(s,a)-\gamma\sum_{s'\in S}p(s,a,s')q(s',\pi_C(s'))$:
 \begin{align}
 \forall s\in S,\forall a\in A, Q^{\pi_C}_{R^C}(s,a)&=R^C(s,a)+\gamma\sum_{s'\in S}p(s,a,s')V^{\pi_C}_{R^C}(s'),
