@@ -241,11 +241,7 @@ The first SL step in our algorithm is to train a classifer over a set
 \begin{equation}
 \label{equation:data}
 D_C=\{(s_i,a_i=\pi_E(s_i)),s'_i)\}_{1\leq i \leq D}, D\in\mathbb{N}^*,
-\end{equation} where $s'_{i}$ is sampled according to the distribution $P_{s_{i},a_{i}}$. The actions $a_i$ are seen as labels for the inputs $s_i$. We restrict ourselves to the use of score-function based classifiers for which the classification rule is of the form $\forall s \in S, \pi_C(s) \in \arg\max_{a\in A} q(s,a)$. Most classifiers, from $k$-nearest neighboors to multi-class-SVMs and structured margin approaches, fall into this category. The classification rule of this broad range of classifiers can be seen as a deterministic policy. After noticing the similarity between the definition of $\pi_C$ and equation \eqref{equation:Qoptimal}, it is easy and natural to identify the score function $q:S\times A \rightarrow \mathbb{R}$ with a state-action value function with respect to a certain reward function $R^C$ for which $\pi_C$ is an optimal policy (proven in Section \ref{section: Analysis}) :
-\begin{equation}
-\forall i\in \{1,\dots,D'\}, R^C(s_{i},a_{i})=\sum_{s'\in S}p(s_{i},a_{i},s')[q(s_{i},a_{i})-\gamma q(s',\pi_C(s'))].
-\end{equation}
-
+\end{equation} where $s'_{i}$ is sampled according to the distribution $P_{s_{i},a_{i}}$. The actions $a_i$ are seen as labels for the inputs $s_i$. We restrict ourselves to the use of score-function based classifiers for which the classification rule is of the form $\forall s \in S, \pi_C(s) \in \arg\max_{a\in A} q(s,a)$. Most classifiers, from $k$-nearest neighboors to multi-class-SVMs and structured margin approaches, fall into this category. The classification rule of this broad range of classifiers can be seen as a deterministic policy. After noticing the similarity between the definition of $\pi_C$ and equation \eqref{equation:Qoptimal}, it is easy and natural to identify the score function $q:S\times A \rightarrow \mathbb{R}$ with a state-action value function with respect to a certain reward function $R^C$ for which $\pi_C$ is an optimal policy (explained and proven in Section \ref{section: Analysis}).\\
 As the model is often unknown, it is not possible to directly compute $R^C$. We can however use a new dataset $D_R=\{(s_{i},a_{i},s'_{i})\}_{1\leq i \leq D'}, D'\in\mathbb{N}^*$, where $s'_{i}$ is sampled under the probability $P_{s_{i},a_{i}}$. In $D_R$, we don't necessarily have $a_i = \pi_E(s_i)$ as we had in dataset $D_C$. We can write :
 \begin{equation}
 \label{ri.def}
@@ -276,8 +272,6 @@ In order to verify that the reward function $\hat{R}^C$ is a good candidate to r
     - [ ] min_i r_i (heuristics)
     - [ ] complete algorithm
 #+end_comment
-    In dire conditions not covered in the anlysis, the only available data comes from the expert. In such cases, $D_C = D_R$. A good reward function can not be learnt from this data alone as no datapoint exists for tuples $(s,a,s')$ such that $a \neq \pi_E(s)$. We can use a heuristic to get a more complete dataset for the regression step ; assuming (this is quite pessimistic) that deviating from the expert's choice is the worst thing to do, we define $\hat r_{min} = \min\limits_{1\geq i\geq D=D'} \hat r_i - \epsilon, \epsilon>0$ and feed the regressor with the augmented dataset $\{(s_{i},a_{i},\hat{r}_i)\}_{1\leq i \leq D=D'} \cup \{(s_{i},a,\hat{r}_{min})\}_{1\leq i \leq D=D',a\in A,a\neq a_i}$.
-This heuristic was used with good results in the experiments described Section \ref{section: experiments}.
 * Analysis
 \label{section: Analysis}
 This section is devoted to show, under some hypotheses, that the cascading approach is legitimate. Lemma \ref{lemma: calculs V}  gives a practical way to calculate $E_{s\sim\mu_\pi}[V^\pi_R]$ for a given policy $\pi$ and a given reward function $R$. Theorem \ref{theorem : results}  gives an upper bound to the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ where $\mu_E$ is the stationary distribution of the expert policy $\pi_E$. We also give an interpretation of the term $E_{s\sim\mu_E}[V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ and explain why being able to bound this term means that our approach is legitimate.
@@ -447,7 +441,7 @@ Finally by regrouping the results in \eqref{equation: cas3-1} and \eqref{equatio
 \end{equation}
 With $\mathcal L(s_i,a_i)=0$ and $\mathcal L(s_i,a\neq a_i)=1$, using some feature function $\phi$ over the state-action space. Practically, we use a subgradient descent on an objective function in which the constraints have been moved \cite{ratliff2006maximum}. When comparing our algorithm to pure classification we used the output of this classifier.
 
-As we try to devise a reward function $\hat R^C$ using /only/ transitions from the expert, we make use of the heuristic proposed in Section \ref{section: Cascading}. The augmented dataset is fed to a simple least-squares regressor using the same features $\phi$ as the classifier. Using straightforward matricial notations, this can be written $\theta = (\Phi^T\Phi + \lambda Id)^{-1}\Phi^T\hat R$.
+As we try to devise a reward function $\hat R^C$ using /only/ transitions from the expert (case not covered in the anlysis), we have $D_C = D_R$. A good reward function can not be learnt from this data alone as no datapoint exists for tuples $(s,a,s')$ such that $a \neq \pi_E(s)$. We can use a heuristic to get a more complete dataset for the regression step ; assuming (this is quite pessimistic) that deviating from the expert's choice is the worst thing to do, we define $\hat r_{min} = \min\limits_{1\geq i\geq D=D'} \hat r_i - \epsilon, \epsilon>0$ and create the augmented dataset $\{(s_{i},a_{i},\hat{r}_i)\}_{1\leq i \leq D=D'} \cup \{(s_{i},a,\hat{r}_{min})\}_{1\leq i \leq D=D',a\in A,a\neq a_i}$ which is then fed to a simple least-squares regressor using the same features $\phi$ as the classifier. Using straightforward matricial notations, this can be written $\theta = (\Phi^T\Phi + \lambda Id)^{-1}\Phi^T\hat R$.
 Finally, we have $\hat R^C(s,a) = \theta^t \phi(s,a)$.
 
 ** Results on the GridWorld
