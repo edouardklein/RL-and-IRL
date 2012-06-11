@@ -1,8 +1,13 @@
 all:main.pdf
 
-main.pdf: main_KLEIN_v3.tex Biblio.bib Fig1.pdf Fig2.pdf Fig3.pdf Legend.pdf
-	pdflatex main_KLEIN_v3.tex && bibtex main_KLEIN_v3 && pdflatex main_KLEIN_v3.tex && pdflatex main_KLEIN_v3.tex
-	mv main_KLEIN_v3.pdf main.pdf
+tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs >/dev/null 2>/dev/null
+
+main.tex: main.org 
+	$(call tangle,"main.org")
+
+
+main.pdf: main.tex Biblio.bib Fig1.pdf Fig2.pdf Fig3.pdf Legend.pdf
+	pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
 	evince main.pdf
 
 Fig1.pdf: Fig2.pdf
