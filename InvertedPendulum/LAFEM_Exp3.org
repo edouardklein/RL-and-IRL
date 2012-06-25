@@ -1,34 +1,6 @@
-#+TITLE: Expérience simple pour valider LAFEM
-* Description
+#+TITLE: SCIRL, Pendule, Dégradé
 
-  Dans cette troisième expérience, un expert est entraîné sur le problème du pendule inversé. Il fournit quelques transitions, le calcul de $\mu_E$ est est effectué grâce à LSTD$\mu$, une fonction de perte simple ($1$ en cas de désaccord avec l'expert, $0$ sinon), une initialisation de la récompense à une valeur négative partout.
-
-  Le but de l'expérience est de savoir si LAFEM est en mesure de fournir une récompense permettant à l'agent de balancer le pendule avec pour seules et uniques données celles fournies au début.
-
-  Si elle est concluante, des expériences futures étudieront l'influence des différents paramètres sur les performances de l'algorithme.
-
-  Si elle n'est pas concluante, on essaiera de trouver une valeur dans l'erreur de l'estimation de $\mu$ à partir de laquelle cela cesse de fonctionner.
-
-  Il y a beaucoup de code commun avec la [[file:LAFEM_Exp2.org][seconde expérience]], on reprend notamment certains targets du Makefile.
-
-  L'expérience se déroule comme suit :
-  - [ ] Créer une base de données $D_0$ de transitions aléatoires.
-  - [ ] Entraîner un expert en utilisant LSPI nourri avec ces transitions ($\pi_E : S\rightarrow A$)
-  - [ ] Vérifier que l'expert est en mesure de balancer le pendule durant 3000 pas de temps
-  - [ ] Créer une base de données $D_E$ de transitions de l'expert. L'expérience sur LSTD$\mu$ a prouvé qu'une seule trajectoire était suffisante. On en prend une dizaine pour être sûrs.
-  - [ ] Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$.
-  - [ ] Définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
-  - [ ] Définir $D$ à partir des transitions $D_E$ en enlevant l'état d'arrivée
-  - [ ] Initialiser $\theta_0 = [-1...-1]^T$
-  - [ ] Fixer $T=20$ (pifomètre)
-  - [ ] Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) =  \omega^T_{\pi_E}\phi(s,a), \omega_{\pi_E} = LSTD\mu(D_E)$
-  - [ ] Faire tourner LAFEM
-  - [ ] Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
-  - [ ] Regarder durant combien de pas de temps l'agent arrrive à faire tenir le pendule. Comparer à l'expert et à une politique aléatoire
-  - [ ] Afficher la fonction de valeur de l'expert
-  - [ ] Afficher la fonction de valeur de l'agent
-  - [ ] Afficher la fonction de récompense sur laquelle l'expert a été entraîné
-  - [ ] Afficher la fonction de récompense retrouvée par LAFEM
+On reprend une expérience précédente pour l'intégrer dans le [[file:../Protocoles.org]].
 
 * Code								       :code:
 ** Experiment targets
@@ -79,10 +51,8 @@ return NULL;
 }
 
 
-int main( void ){
-  g_mOmega = file2matrix( "omega_expert.mat", 1 );
-  g_mActions = file2matrix( ACTION_FILE, g_iA );
-  gsl_matrix* D = file2matrix( "D_expert.mat", TRANS_WIDTH );
+int main( int argc, char** argv ){
+  gsl_matrix* D = file2matrix( argv[1], TRANS_WIDTH );
 
   gsl_matrix* D_mu = gsl_matrix_alloc( D->size1, g_iS + g_iA + g_iS + g_iP + 1 );
 
@@ -105,7 +75,7 @@ int main( void ){
     gsl_matrix_memcpy( &(eoe_dst.matrix), &(eoe_src.matrix) );    
   }
   
-  gsl_matrix* omega_pi = lstd_mu_omega( D_mu, &greedy_policy );
+  gsl_matrix* omega_pi = lstd_mu_op_omega( D_mu );
   
   for( int i = 0; i < omega_pi->size1; i++ ){
     for( int j = 0; j < omega_pi->size2; j++ ){
@@ -130,9 +100,6 @@ LAFEM_Exp3_LSTDmu.o: LAFEM_Exp3_LSTDmu.c InvertedPendulum.h ../LSTDmu.h ../utils
 LAFEM_Exp3_LSTDmu.c: LAFEM_Exp3.org
 	$(call tangle,"LAFEM_Exp3.org")
 
-omega_mu_E.mat: LAFEM_Exp3_LSTDmu.exe omega_expert.mat D_expert.mat
-	./LAFEM_Exp3_LSTDmu.exe > omega_mu_E.mat
-
 #+end_src
 
 *** Configuring LAFEM
@@ -142,6 +109,8 @@ import sys
 sys.path+=['..']
 from a2str import *
 from LAFEM import *
+import InvertedPendulum
+from subprocess import call
 
 class LAFEM_Exp3( LAFEM ):
     omega_mu_E = []
@@ -150,11 +119,11 @@ class LAFEM_Exp3( LAFEM ):
     A = [0,1,2]
 
     def __init__( self ):
-        D_E = genfromtxt("D_expert.mat")
+        D_E = genfromtxt(sys.argv[1])
         for trans in D_E:
             self.dicPi_E[l2str(trans[0:2])] = trans[2:3][0]
             self.data = self.data +[[ trans[0:2], trans[2:3][0]]]
-        self.omega_mu_E = genfromtxt( "omega_mu_E.mat" )
+        self.omega_mu_E = genfromtxt( sys.argv[2] )
 
 #+end_src
      
@@ -168,51 +137,35 @@ class LAFEM_Exp3( LAFEM ):
             return 1
 #+end_src
      
-     $\mu_E$ is computed thanks to the data stored earlier by the program using LSTD$\mu$. We first have to redefine $\phi$ in python because it is simpler than wrapping the C code (present in [[file:plot.org]]). 
-
-#+begin_src python :tangle LAFEM_Exp3.py
-    def phi( self, s, a ):
-        answer = zeros((30,1))
-        position = s[0]
-        speed = s[1]
-        action = a
-        index = action*10
-        answer[index] = 1.
-        index+=1
-        for i in range(-1,2):
-            for j in range(-1,2):
-                d_i = i*3.141592/4.
-                d_j = j
-                answer[index] = exp(-(pow(position-d_i,2) +
-                                      pow(speed-d_j,2))/2.)
-                index+=1
-        return answer
-        
-#+end_src
      Then we use the  $\mu_E(s,a) = \omega^T_{\pi_E}\phi(s,a)$ formula :
 #+begin_src python :tangle LAFEM_Exp3.py
     def mu_E( self, s, a ):
-        answer = dot( self.omega_mu_E.transpose(), self.phi( s, a ) )
+        answer = dot( self.omega_mu_E.transpose(), InvertedPendulum.phi( s, a ) )
         return answer
         #return (zeros((1,10)) + answer).transpose() #Ugly hack to get a column vector and not a line vector
 
     def alpha( self, t ):
-        return 3000./(t+1.)
+        return 10./(t+1.)
 
-    theta_0 = zeros( (10, 1) ) - 1.
+    theta_0 = zeros( (10, 1) ) 
 
-    Threshold = 0.1
+    Threshold = 0.2
     T = 20
 
 #+end_src
 
-*** Running LAFEM
-    FIXME: s/omega/theta/avec discernement
+*** Running SCIRL
 
  #+begin_src python :tangle LAFEM_Exp3.py
 lafem = LAFEM_Exp3()
-omega_lafem = lafem.run()
-print a2str(omega_lafem)
+theta_lafem = lafem.run()
+
+savetxt( "LAFEM_Exp3_theta.mat", theta_lafem, "%e", "\n" );
+
+print "%d\t"%len( lafem.data ),
+sys.stdout.flush()
+call([ "./Evaluate_theta.exe","LAFEM_Exp3_theta.mat"])
+print
 #+end_src
 
 #+srcname: LAFEM_Exp3_make
@@ -220,141 +173,51 @@ print a2str(omega_lafem)
 LAFEM_Exp3.py: LAFEM_Exp3.org
 	$(call tangle,"LAFEM_Exp3.org")
 
-theta_lafem_mu.mat: LAFEM_Exp3.py ../a2str.py ../LAFEM.py omega_mu_E.mat D_expert.mat
-	python LAFEM_Exp3.py > theta_lafem_mu.mat
+LAFEM_Exp3: LAFEM_Exp3.py InvertedPendulum.py ../Cascading.py ../LAFEM.py DE.exe ../a2str.py Random_Samples.mat Evaluate_omega.exe Evaluate_theta.exe LAFEM_Exp3_LSTDmu.exe
+	for i in $(LM_VALUES); \
+	do \
+	./DE.exe $$i > DE.mat; \
+	./LAFEM_Exp3_LSTDmu.exe DE.mat > omega_mu_E.mat; \
+	python LAFEM_Exp3.py DE.mat omega_mu_E.mat >> LAFEM_Exp3.mat; \
+	done
 
 #+end_src
-
-*** Comparative results between the expert and the agent
-
-
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-omega_lafem_mu.mat: LAFEM_Exp2_Results.exe theta_lafem_mu.mat
-	./LAFEM_Exp2_Results.exe theta_lafem_mu.mat > omega_lafem_mu.mat
-
-#+end_src
-
 *** Plotting
-The relevant makefile rules.
+#+begin_src python :tangle LAFEM_Exp3_plot.py
+from matplotlib import rc
+rc('text', usetex=True)
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import pylab as pylab
+from Plot import *
 
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_true_R.mat: LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat 
-	./LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat LAFEM_Exp3
+D = genfromtxt( "LAFEM_Exp3.mat" )
+myPlot = Plot()
+myPlot.Expert = 4.11057591 #python Expert.py to get this value
+myPlot.Random_mean = 0.48848324670295395#See Highway.org about Random.py for information on these values
+myPlot.Random_min = 0.069469005947400006#python Random.py to get this value
+myPlot.Random_max = 3.2720195801399998#python Random.py to get this value
+myPlot.Random_var = 0.57868038965027513#python Random.py to get this value
 
-LAFEM_Exp3_lafem_R.mat: LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat
-	./LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat LAFEM_Exp3
+myPlot.ymin = -1
+myPlot.ymax = 5
 
-LAFEM_Exp3_Vexpert.mat: LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat 
-	./LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat LAFEM_Exp3
-
-LAFEM_Exp3_Vagent.mat: LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat 
-	./LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat LAFEM_Exp3
-
-
-
-#+end_src
-
-The gnuplot instructions to plot all this, along with the relevant makefile rules :
-#+begin_src gnuplot :tangle LAFEM_Exp3_true_R.gp
-set pm3d map
-set output "LAFEM_Exp3_true_R.ps"
-set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
-set xlabel "Position"
-set ylabel "Speed"
-splot "LAFEM_Exp3_true_R.dat" notitle
+myPlot.plot( D, 'red', 'LAFEM_Exp3_fig1.pdf' )
 
 #+end_src
 
 #+srcname: LAFEM_Exp3_make
 #+begin_src makefile
-LAFEM_Exp3_true_R.gp: LAFEM_Exp3.org
+LAFEM_Exp3_plot.py: LAFEM_Exp3.org
 	$(call tangle,"LAFEM_Exp3.org")
 
-LAFEM_Exp3_true_R.pdf: LAFEM_Exp3_true_R.gp LAFEM_Exp3_true_R.mat
-	gnuplot LAFEM_Exp3_true_R.gp
-	ps2pdf LAFEM_Exp3_true_R.ps
-	rm LAFEM_Exp3_true_R.ps
-
-#+end_src
-
-#+begin_src gnuplot :tangle LAFEM_Exp3_lafem_R.gp
-
-set output "LAFEM_Exp3_lafem_R.ps"
-set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
-set xlabel "Position"
-set ylabel "Speed"
-set parametric
-set style line 2 lt 1 lw 1 pt 1 linecolor rgb "green"
-set pm3d map
-splot "LAFEM_Exp3_lafem_R.dat" notitle w pm3d, "D_expert.mat" u 1:2:(0.0) w points ls 2 notitle
-#+end_src
-
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_lafem_R.gp: LAFEM_Exp3.org
-	$(call tangle,"LAFEM_Exp3.org")
-
-LAFEM_Exp3_lafem_R.pdf: LAFEM_Exp3_lafem_R.gp LAFEM_Exp3_lafem_R.mat
-	gnuplot LAFEM_Exp3_lafem_R.gp
-	ps2pdf LAFEM_Exp3_lafem_R.ps
-	rm LAFEM_Exp3_lafem_R.ps
-
+LAFEM_Exp3_fig1.pdf: LAFEM_Exp3_plot.py LAFEM_Exp3.mat ../Plot.py
+	python LAFEM_Exp3_plot.py
 #+end_src
 
 
-#+begin_src gnuplot :tangle LAFEM_Exp3_Vexpert.gp
-set pm3d map
-set output "LAFEM_Exp3_Vexpert.ps"
-set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
-set xlabel "Position"
-set ylabel "Speed"
-splot "LAFEM_Exp3_Vexpert.dat" notitle
-
-#+end_src
-
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_Vexpert.gp: LAFEM_Exp3.org
-	$(call tangle,"LAFEM_Exp3.org")
-
-LAFEM_Exp3_Vexpert.pdf: LAFEM_Exp3_Vexpert.gp LAFEM_Exp3_Vexpert.mat
-	gnuplot LAFEM_Exp3_Vexpert.gp
-	ps2pdf LAFEM_Exp3_Vexpert.ps
-	rm LAFEM_Exp3_Vexpert.ps
-
-#+end_src
-
-#+begin_src gnuplot :tangle LAFEM_Exp3_Vagent.gp
-set pm3d map
-set output "LAFEM_Exp3_Vagent.ps"
-set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
-set xlabel "Position"
-set ylabel "Speed"
-splot "LAFEM_Exp3_Vagent.dat" notitle
-
-#+end_src
-
-#+srcname: LAFEM_Exp3_make
-#+begin_src makefile
-LAFEM_Exp3_Vagent.gp: LAFEM_Exp3.org
-	$(call tangle,"LAFEM_Exp3.org")
-
-LAFEM_Exp3_Vagent.pdf: LAFEM_Exp3_Vagent.gp LAFEM_Exp3_Vagent.mat
-	gnuplot LAFEM_Exp3_Vagent.gp
-	ps2pdf LAFEM_Exp3_Vagent.ps
-	rm LAFEM_Exp3_Vagent.ps
-
-#+end_src
 
 ** Cleaning
    A rule to clean the mess :
@@ -363,9 +226,9 @@ LAFEM_Exp3_Vagent.pdf: LAFEM_Exp3_Vagent.gp LAFEM_Exp3_Vagent.mat
 LAFEM_Exp3_clean:
 	find . -maxdepth 1 -iname "LAFEM_Exp3_*"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "LAFEM_Exp3.py"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "omega_mu_E.mat"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "omega_lafem_mu.mat"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "theta_lafem_mu.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp3_omega_mu_E.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp3_omega_lafem_mu.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp3_theta_lafem_mu.mat"   | xargs $(XARGS_OPT) rm
   #+end_src
 
 * Résultats

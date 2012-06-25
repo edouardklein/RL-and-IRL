@@ -104,6 +104,7 @@ omega_lafem = lafem.run()
 print a2str(omega_lafem)
 #+end_src
 
+FIXME: Conflit de notations entre ce fichier et LAFEM_Exp3.org, sur les règles makefiles theta_lafem_mu.mat et omega_lafem_mu.mat
 #+srcname: LAFEM_Exp5_make
 #+begin_src makefile
 LAFEM_Exp5.py: LAFEM_Exp5.org

@@ -43,6 +43,7 @@ PlayFast_saspsie_X.mat : PlayFast_X.dat sa2saspsie.py phipsi.py
 PlaySafe_saspsie_X.mat : PlaySafe_X.dat sa2saspsie.py phipsi.py
 	for i in $(N_VALUES); do python sa2saspsie.py PlaySafe_$$i.dat PlaySafe_saspsie_$$i.mat ; done
 	touch PlaySafe_saspsie_X.mat
+
 #+end_src
 
 Now, using the C function for $\phi$ defined in [[file:Main.org]], it is possible to run the LSTD$\mu$ algorithm.
@@ -198,7 +199,7 @@ class SCIRL_Exp6( LAFEM ):
 
     theta_0 = zeros( (3, 1) ) - 1.
 
-    Threshold = 0.01
+    Threshold = 0.001
     T = 100
 #+end_src
 
@@ -274,6 +275,7 @@ al_code/scirl_fast_policy_X.txt: al_code/make_THETA.m al_code/make_F.m al_code/o
 al_code/scirl_safe_policy_X.txt: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m theta_lafem_Safe_X.mat
 	for i in $(N_VALUES); do pushd al_code; octave optimal_policy.m ../theta_lafem_Safe_$$i.mat ; perl post.pl ; mv policy.txt scirl_safe_policy_$$i.txt ; popd; done
 	touch al_code/scirl_safe_policy_X.txt
+
 #+end_src
 
 

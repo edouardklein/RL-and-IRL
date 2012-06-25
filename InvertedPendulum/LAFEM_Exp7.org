@@ -117,10 +117,10 @@ En s'inspirant du code présent dans [[file:LAFEM_Exp2.org]], l'on va tester le 
 
 #define GRID_V_SIZE 20
 #define GRID_P_SIZE 20
-#define P_MIN (-PI)
-#define P_MAX (PI)
-#define V_MIN (-PI)
-#define V_MAX (PI)
+#define P_MIN (-PI/3.)
+#define P_MAX (PI/3.)
+#define V_MIN (-PI/2.)
+#define V_MAX (PI/2.)
 
 
 //FIXME : those are not useful here, but it won't compile without
@@ -279,11 +279,11 @@ The gnuplot instructions to plot all this, along with the relevant makefile rule
 set pm3d map
 set output "LAFEM_Exp7_Vphi.ps"
 set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
+set xrange [-1.05:1.05]
+set yrange [-1.55:1.55]
 set xlabel "Position"
 set ylabel "Speed"
-splot "LAFEM_Exp7_Vphi.dat" notitle
+splot "LAFEM_Exp7_Vphi.dat" notitle,  "D_expert.mat" u 1:2:(0.0) w points ls 2 notitle
 
 #+end_src
 
@@ -291,11 +291,11 @@ splot "LAFEM_Exp7_Vphi.dat" notitle
 set pm3d map
 set output "LAFEM_Exp7_Vmu.ps"
 set term postscript enhanced color
-set xrange [-3.15:3.15]
-set yrange [-3.15:3.15]
+set xrange [-1.05:1.05]
+set yrange [-1.55:1.55]
 set xlabel "Position"
 set ylabel "Speed"
-splot "LAFEM_Exp7_Vmu.dat" notitle
+splot "LAFEM_Exp7_Vmu.dat" notitle,  "D_expert.mat" u 1:2:(0.0) w points ls 2 notitle
 
 #+end_src
 

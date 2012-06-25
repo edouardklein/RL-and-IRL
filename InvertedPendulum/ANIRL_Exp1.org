@@ -1,0 +1,168 @@
+#+TITLE:ANIRL, Pendule, Parfait
+
+Cette expérience s'inscrit dans une démarche de test plus grande : [[file:../Protocoles.org]]. On va essayer de faire tourner ANIRL sur le pendule.\\
+
+Grâce à l'expérience ayant permis de fixer la longueur du Monte-Carlo ([[file:MCLength.org]]), on sait que la norme 2 de $\mu_E(s_0)$ est à peu près 20. On fixe donc $\epsilon_{ANIRL}$ à $0.2$ comme nous l'avions prévu dans le protocole. Pour passer sous ce seuil, parfois deux itérations suffisent, parfois il en faut jusqu'à 10. On fixe donc le nombre d'itération maximum à 100, comme prévu par le protocole.\\
+
+L'expérience est un succès puisque l'agent parvient systématiquement à balancer le pendule 3000 pas de temps. Pour lancer l'expérience : make ANIRL_Exp1 dans le dossier racine.\\
+
+Les données de l'expert sont tirées du code d'une autre expérience ([[file:LAFEM_Exp2.org]]) :
+#+srcname: ANIRL_Exp1_make
+#+begin_src makefile
+L_MCip=30
+ANIRL_Exp1_D_expert.mat: D_expert.mat
+	head -n $(L_MCip) D_expert.mat > ANIRL_Exp1_D_expert.mat
+
+#+end_src
+
+Début du code C pour cette expérience :
+#+begin_src c :tangle ANIRL_Exp1.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "InvertedPendulum.h"
+#include "simulator.h"
+#include "utils.h"
+#include "LSPI.h"
+#include "abbeel2004apprenticeship.h"
+#include "ANIRL.h"
+#include "greedy.h"
+#include "phipsi.h"
+
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+#define D_FILE_NAME "Samples.dat"
+#define TRANS_WIDTH 7
+#define ACTION_FILE "actions.mat"
+#define EXPERT_FILE "ANIRL_Exp1_D_expert.mat"
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+unsigned int g_iIt_max_lspi = 50;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+double g_dLambda_lstdQ = 0.1;
+double g_dGamma_lstdq =  0.9;
+double g_dEpsilon_lspi = 0.01;
+double g_dLambda_lstdmu = 0.1;
+double g_dGamma_anirl = 0.9;
+double g_dEpsilon_anirl = 0.2;
+unsigned int g_iIt_max_anirl = 100;
+gsl_matrix* g_mActions = NULL; 
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
+gsl_matrix* (*g_fSimulator)(int) = &inverted_pendulum_simulator;
+gsl_matrix* (*g_fS_0)(void) = NULL;
+//L_{MCip}
+unsigned int g_iMax_episode_len = 30;
+gsl_matrix* D_E = NULL;
+gsl_matrix* D = NULL;
+unsigned int M = 1; //M_{MCip}
+
+//FIXME: Useless but defined anyway in order to compile
+double g_dGamma_lafem = -1;
+unsigned int g_iNb_episodes = -1;
+#+end_src
+
+Les sous routines utilisées pour ANIRL sont :
+ - Monte-Carlo pour le calcul des /feature expectations/ :
+   #+begin_src c :tangle ANIRL_Exp1.c :main no
+gsl_matrix* mu_pi(gsl_matrix* omega){
+  g_mOmega = omega;
+  gsl_matrix* trans = g_fSimulator( M );
+  gsl_matrix* mu = monte_carlo_mu( trans ); //FIXME: bouger cette fonction dans un truc genre Mu.org, qui contiendrait les différentes manières de calculer mu. Peut-être pas la meilleure idée, mais tuojours mieux que abbeel2004apprenticeship.org comme c'est le cas à l'heure actuelle
+  gsl_matrix_free( trans );
+  return mu;
+}
+
+gsl_matrix* mu_E(){
+  return monte_carlo_mu( D_E );
+}
+
+gsl_matrix* (*g_fMu_pi)(gsl_matrix*) = &mu_pi;
+gsl_matrix* (*g_fMu_E)() = &mu_E;
+
+   #+end_src
+ - LSPI en tant que solveur de MDP :
+   #+begin_src c :tangle ANIRL_Exp1.c :main no
+gsl_matrix* lspi_wrapper(gsl_matrix* theta){
+  for( unsigned int i = 0 ; i < D->size1 ; i++ ){
+    gsl_matrix_view state = 
+      gsl_matrix_submatrix( D, i, 0, 1, g_iS );
+    gsl_matrix* psi_s = g_fPsi( &state.matrix );
+    gsl_matrix_view r = 
+      gsl_matrix_submatrix( D, i, 2*g_iS+g_iA, 1, 1 );
+    gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, 
+		    theta, psi_s, 0.0, &r.matrix );
+    gsl_matrix_free( psi_s );
+    }
+  gsl_matrix* omega_0 = gsl_matrix_calloc( g_iK, 1 );
+  gsl_matrix* omega = lspi( D, omega_0 );
+  gsl_matrix_free( omega_0 );
+  return omega;
+}
+
+gsl_matrix* (*g_fMDP_solver)(gsl_matrix*) = &lspi_wrapper;
+   #+end_src
+
+
+
+#+begin_src c :tangle ANIRL_Exp1.c :main no
+int main( void ){
+  D = file2matrix( D_FILE_NAME, TRANS_WIDTH );
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  D_E = file2matrix( EXPERT_FILE, TRANS_WIDTH );
+  //There must be at least one trajectory for monte_carlo_mu() to work. We have a truncated trajectory, but we mark it as complete.
+  gsl_matrix_set( D_E, D_E->size1-1, g_iS+g_iA+g_iS+1, 0. );
+
+#+end_src
+
+On lance ANIRL :
+#+begin_src c :tangle ANIRL_Exp1.c :main no
+    gsl_matrix* omega_mc =proj_ANIRL();
+#+end_src
+
+Puis on vérifie que le contrôle obtenu tient la route :
+#+begin_src c :tangle ANIRL_Exp1.c :main no
+  g_mOmega = omega_mc;
+  g_iMax_episode_len = 3000;
+  gsl_matrix* D_agent = inverted_pendulum_simulator( 1 );
+  printf("Longueur du run de l'agent : %d\n",D_agent->size1);
+  if( D_agent->size1 != 3000 ){
+    return 1;
+  }
+  return 0;
+}
+#+end_src
+
+Tout cela se compile de la sorte :
+#+srcname: ANIRL_Exp1_make
+#+begin_src makefile
+ANIRL_Exp1.c: ANIRL_Exp1.org InvertedPendulum.h simulator.h ../utils.h ../LSPI.h ../abbeel2004apprenticeship.h ../criteria.h ../greedy.h phipsi.h ../RL_Globals.h ../IRL_Globals.h ../ANIRL.h
+	$(call tangle,"ANIRL_Exp1.org")
+ANIRL_Exp1.o: ANIRL_Exp1.c
+	$(call c2obj,"ANIRL_Exp1.c")
+ANIRL_Exp1.exe: ANIRL_Exp1.o ../LSPI.o phipsi.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o simulator.o ../utils.o ../criteria.o InvertedPendulum.o ../ANIRL.o
+	$(O2EXE) -o ANIRL_Exp1.exe ANIRL_Exp1.o ../LSPI.o phipsi.o ../greedy.o ../LSTDQ.o ../abbeel2004apprenticeship.o ../utils.o simulator.o ../criteria.o InvertedPendulum.o ../ANIRL.o
+
+ANIRL_Exp1: ANIRL_Exp1.exe Samples.dat ANIRL_Exp1_D_expert.mat
+	./ANIRL_Exp1.exe
+
+../ANIRL.h:
+	make -C .. ANIRL.h
+
+../ANIRL.o:
+	make -C .. ANIRL.o
+
+#+end_src
+
+  #+srcname: ANIRL_Exp1_clean_make
+  #+begin_src makefile
+ANIRL_Exp1_clean:
+	find . -maxdepth 1 -iname "ANIRL_Exp1.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp1.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "ANIRL_Exp1.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp1.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp1.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp1.pdf"   | xargs $(XARGS_OPT) rm
+  #+end_src

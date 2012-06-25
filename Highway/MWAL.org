@@ -61,8 +61,8 @@ root = Tk()
 app = App(root)
 app.autopilot = 'original'
 app.read_policy( sys.argv[1] )
-app.transitions=30
-app.trajectories=10
+app.transitions=300
+app.trajectories=1
 root.mainloop()
 
    #+end_src
@@ -89,7 +89,7 @@ The first filter takes care of the first transition which is not in the same for
 
 #+srcname: MWAL_make
 #+begin_src makefile
-N_VALUES=30 90 150 300
+N_VALUES=30 100 150 300
 
 PlayFast_X.dat: PlayFast_stripped.dat #Dummy target
 	for i in $(N_VALUES); do head -n $$i PlayFast_stripped.dat > PlayFast_$$i.dat; done

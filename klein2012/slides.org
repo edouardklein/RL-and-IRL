@@ -1,0 +1,398 @@
+#+LaTeX_CLASS: beamer
+
+#+LaTeX_HEADER: \usetheme[secheader]{Boadilla}
+#+LaTeX_HEADER: \usepackage[english]{babel}
+#+LaTeX_HEADER: \setbeamercolor{title}{fg=black,bg=black!10!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{block body}{fg=black,bg=black!10!brown!30}
+#+LaTeX_HEADER: \setbeamercolor{block title}{fg=black,bg=black!30!brown!40}
+
+#+LaTeX_HEADER: \setbeamercolor{frametitle}{fg=black,bg=black!30!brown!50}
+#+LaTeX_HEADER: \beamersetaveragebackground{brown!50!black!20}
+
+#+LaTeX_HEADER: \setbeamercolor{author in head/foot}{fg=black,bg=black!30!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{title in head/foot}{fg=black,bg=black!20!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{date in head/foot}{fg=black,bg=black!10!brown!50}
+
+#+LaTeX_HEADER: \setbeamercolor{section in head/foot}{fg=black,bg=black!30!brown!30}
+#+LaTeX_HEADER: \setbeamercolor{subsection in head/foot}{fg=black,bg=black!20!brown!30}
+
+#+LaTeX_HEADER: \usepackage{animate} %need the animate.sty file 
+
+#+LaTeX_HEADER: \usepackage{color}
+#+LaTeX_HEADER: \usepackage[ruled]{algorithm2e}
+
+
+#+LaTeX_HEADER: \include{headertikz}
+#+LaTeX_HEADER: \usetikzlibrary{decorations.pathmorphing,shapes.misc}
+
+#+BEAMER_HEADER_EXTRA: \title[SCIRL]{Classification structurée pour l'apprentissage par renforcement inverse}
+#+BEAMER_HEADER_EXTRA: \author[Edouard Klein]{\underline{Edouard Klein}$^{\dag\ddag}$, Bilal Piot$^{\dag}$, Matthieu Geist$^\dag$ and Olivier Pietquin$^\dag$\\\texttt{firstname.lastname@supelec.fr}}\institute[Supélec]{$\dag$Supélec UMI 2958 (GeorgiaTech - CNRS), France\\$\ddag$Equipe ABC UMR 7503 (LORIA-CNRS), France}
+
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+OPTIONS: toc:nil
+#+BEAMER_FRAME_LEVEL: 3
+#+TITLE: Classification structurée pour l'apprentissage par renforcement inverse
+#+AUTHOR: Edouard Klein and and Bilal Piot and Matthieu Geist and Olivier Pietquin
+
+#+Begin_LaTeX
+\tikzstyle{state}=[circle,
+thick,
+minimum size=1.0cm,
+draw=blue!80,
+fill=blue!20]
+\tikzstyle{action}=[rectangle,thick,
+minimum size=1.0cm,
+draw=orange!80,
+fill=orange!20]
+\tikzstyle{element}=[rectangle,
+thick,
+minimum size=1.0cm,
+draw=blue!80,
+fill=blue!20]
+\tikzstyle{action}=[rectangle,thick,
+minimum size=1.0cm,
+draw=orange!80,
+fill=orange!20]
+#+end_LaTeX
+* Non-technical Abstract
+** Context
+*** Reinforcement Learning
+**** Toto					     :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_col: 0.4
+    :BEAMER_env: ignoreheading
+    :END:
+     [[file:ML.png]]
+**** Notions						     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_col: 0.4
+    :BEAMER_env: block
+    :END:
+     - Agent
+     - Task
+     - Environment
+*** Imitation: Expert
+     #+BEGIN_LaTeX
+     \animategraphics[autoplay,loop,height=5cm]{1}{Expert00}{1}{9} 
+     #+END_LaTeX
+*** Imitation: Generalization
+**** Null					     :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_col: .4\textwidth
+    :BEAMER_env: ignoreheading
+    :END:
+      #+BEGIN_LaTeX
+      \animategraphics[autoplay,loop,height=5cm]{1}{Agent}{001}{014} 
+      #+END_LaTeX
+**** Apprenticeship learning				     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .4\textwidth
+    :END:
+     Reward inference
+** Contribution
+*** Contribution 
+**** SCIRL 							    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :ORDERED:  t
+    :END:
+     - SCIRL Algorithm
+       - Classification with the structure of the MDP
+       - Only needs data from the expert
+       - Can use other data if available
+       - Different subroutines for different settings
+     - Theoretical results
+     - Experimental results
+* IRL
+** RL
+*** Quick definitions
+     #+BEGIN_LaTeX
+       \begin{columns}
+    \begin{column}{4cm}
+      \begin{block}{}
+        \begin{overlayarea}{\textwidth}{4.4cm}
+          \only<1>{\input{img/MDP1.tex}}
+          \only<2>{\input{img/MDP2.tex}}
+          \only<3>{\input{img/MDP3.tex}}
+          \only<4->{\input{img/MDP4.tex}}
+        \end{overlayarea}
+      \end{block}
+    \end{column}
+    \begin{column}{4cm}
+      \begin{block}{Notions}
+        \begin{itemize}
+          \item<1-> State $s_t\in S$
+          \item<2-> Action $a_t \in A$
+          \item<3-> Reward $r_t \in \mathbb{R}$
+          \item<4-> Transition $(s_t,a_t,s_{t+1},r_t)\in S\times A\times S\times\mathbb{R}$
+        \end{itemize}
+      \end{block}
+      \begin{block}<1->{Markovian criterion}
+        Past states are irrelevant
+      \end{block}
+    \end{column}
+  \end{columns}
+  \begin{alertblock}<5>{Policy}
+    $\pi: S\rightarrow A$
+  \end{alertblock}
+     #+END_LaTeX
+
+*** RL problem and solution
+**** Value function						   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     \begin{equation}
+     \label{eqn:V}
+     V^\pi(s_t) = E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]
+     \end{equation}
+**** Goal							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     #+begin_latex
+     Optimal policy $\pi^* = \arg\max\limits_\pi V^\pi$ \hfill \uncover<2>{$\pi^*(s) = \arg\max\limits_{a} Q^{\pi^*}(s,a)$}
+     #+end_latex
+**** Value function approximation				   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     $\hat V^\pi(s_t) = \omega^T\psi (s_t)$ \hfill $\hat Q^\pi(s_t,a) = \omega'^T\phi (s_t,a)$
+** IRL
+*** IRL problem and solutions
+**** Goal							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     Finding the reward $R$ so that the observed behavior is optimal
+**** Ill-posed 						      :B_alertblock:
+    :PROPERTIES:
+    :BEAMER_env: alertblock
+    :END:
+     The null reward $\forall s, R(s) = 0$ is a solution
+**** Approximation of the reward 				   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     $R = \theta^T\psi(s)$
+*** IRL solutions
+**** Introduction of the expected, cumulative, discounted feature values :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     \scriptsize
+     #+begin_latex
+     \alt<1>{
+     \begin{eqnarray*}
+     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]\\
+     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\psi(s_{t+i})\right|\pi\right]\\
+     V^\pi(s_t) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \psi(s_{t+i})\right|\pi\right]}_{\mu^\pi(s_t)}\\
+     V^\pi(s_t) &=& \theta^T\mu^\pi(s_t)
+     \end{eqnarray*}
+     }{
+     \begin{columns}
+     \begin{column}{0.45\linewidth}
+     \begin{eqnarray*}
+     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right] \\
+     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\psi(s_{t+i})\right|\pi\right]\\
+     V^\pi(s_t) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \psi(s_{t+i})\right|\pi\right]}_{\mu^\pi(s_t)}\\
+     V^\pi(s_t) &=& \theta^T\mu^\pi(s_t)
+     \end{eqnarray*}
+     \end{column}
+     \begin{column}{0.45\linewidth}
+     \begin{eqnarray*}
+     Q^\pi(s_t,a) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right] \\
+     Q^\pi(s_t,a) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\psi(s_{t+i})\right|\pi,s_t,a\right]\\
+     Q^\pi(s_t,a) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \psi(s_{t+i})\right|\pi,s_t,a\right]}_{\mu^\pi(s_t,a)}\\
+     Q^\pi(s_t,a) &=& \theta^T\mu^\pi(s_t,a)
+     \end{eqnarray*}
+     \end{column}
+     \end{columns}
+     }
+     \only<2>{}
+     #+end_latex
+     
+** SCIRL Algorithm
+*** A certain class of classifiers
+**** Score function based classifiers 				    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     - Classifier : map inputs $x\in \mathcal{X}$ to labels $y \in \mathcal{Y}$
+     - Data : $\{(x_i,y_i)_{1\leq i \leq N}\}$
+     - Decision rule : $g\in\mathcal{Y}^\mathcal{X}$
+     - Score function : $g_s(x) \in \arg\max\limits_{y\in\mathcal{Y}}s(x,y)$
+     
+**** Linearly parameterized score function 			    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     \begin{equation}
+     s(x,y) = \theta^T \phi(x,y)
+     \end{equation}
+     
+*** The idea behind SCIRL
+#+begin_latex
+\uncover<2->{
+\begin{alertblock}{Putting it all together}
+    \uncover<2->{$\mathcal{X} \equiv S$}, \uncover<3->{$\mathcal{Y} \equiv A$}, \uncover<4->{$s\equiv Q^{\pi_E}} \uncover<5->{\Rightarrow \phi \equiv \mu^{\pi_E}}$
+\end{alertblock}
+}
+#+end_latex
+**** Linearly parametrized score function based classifiers 	    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .45
+    :END:
+     - $g_s(x) \in \arg\max\limits_{y\in\mathcal{Y}}s(x,y)$
+     - $s(x,y) = \theta^T \phi(x,y)$
+     - $g_s(x) \in \arg\max\limits_{y\in\mathcal{Y}}\theta^T\phi(x,y)$
+     
+**** Règle de décision de l'expert 				    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .45
+    :END:
+     - $\pi_E(s) = \arg\max\limits_{a} Q^{\pi_E}(s,a)$
+     - $Q^\pi(s_t,a) = \theta^T\mu^\pi(s_t,a)$
+     - $\pi_E(s) = \arg\max\limits_{a} \theta^T\mu^{\pi_E}(s,a)$
+     
+*** SCIRL Pseudo-code
+#+begin_latex
+\begin{algorithm}[H]%[tbh]
+    %\small
+  %\SetVline
+  \caption{SCIRL algorithm}
+  \label{algo:scirl}
+  %
+  \BlankLine
+  \emph{\textbf{Given}} a training set $\mathcal{D} = \{(s_i,a_i=\pi_E(s_i))_{1\leq i\leq N}\}$,
+  an estimate $\hat{\mu}^{\pi_E}$ of the expert feature expectation $\mu^{\pi_E}$ and a classification algorithm\;
+  %
+  \BlankLine
+  \emph{\textbf{Compute}} the parameter vector $\theta_c$ using the
+  classification algorithm
+  fed with the training set $\mathcal{D}$ and considering the parameterized score function
+  $\theta^T\hat{\mu}^{\pi_E}(s,a)$\;
+  %
+  \BlankLine
+  \emph{\textbf{Output}} the reward function $R_{\theta_c}(s) = \theta_c^T\psi(s)$ \;
+\end{algorithm}
+#+end_latex
+
+* Theoretical results
+** Analysis
+*** Error bound
+#+begin_latex
+\begin{block}{Definitions}
+\begin{itemize}
+     \item<1-> $C_f = (1-\gamma)\sum\limits_{t\geq 0} \gamma^t c(t) \text{ with } c(t) =  \max\limits_{\pi_1,\dots,\pi_t,s\in S}\frac{(\rho_E^T P_{\pi_1}\dots  P_{\pi_t})(s)}{\rho_E(s)}$
+     \item<2-> $\epsilon_c = \mathop{E}\limits_{s\sim\rho_E}[\mathbf{1}_{\{\pi_c(s)\neq\pi_E(s)\}}] \in [0,1]$
+     \item<3-> \uncover<3->{$\epsilon_{\mu} = \hat{\mu}^{\pi_E} - \mu^{\pi_E}:S\times A \rightarrow  \mathbb{R}^p$} \hfill \uncover<4->{$\epsilon_Q = \theta_c^T\epsilon_\mu:S\times A\rightarrow\mathbb{R}$}
+     \item<5-> $\bar{\epsilon}_Q = \mathop{E}\limits_{s\sim\rho_E}[\max\limits_{a\in A}\epsilon_Q(s,a) - \min\limits_{a\in A}\epsilon_Q(s,a)]\geq 0$
+\end{itemize}
+\end{block}
+\begin{alertblock}<6->{Theorem}
+  \begin{equation}
+    0\leq
+    \mathop{E}_{s\sim\rho_E}[V^*_{R_{\theta_c}}-V^{\pi_E}_{R_{\theta_c}}]
+    \leq \frac{C_f}{1-\gamma}\left(\bar{\epsilon}_Q +
+    \epsilon_c\frac{2\gamma\|R_{\theta_c}\|_\infty}{1-\gamma}
+    \right)
+  \end{equation}
+\end{alertblock}
+#+end_latex
+* Experimental results
+** Instanciation
+*** Classifier
+**** Taskar, Ratliff
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+\begin{equation}
+  J(\theta) = \frac{1}{N}\sum_{i=1}^N \max_a \theta^T
+  \hat{\mu}^{\pi_E}(s_i,a) + \mathcal{L}(s_i,a) -
+  \theta^T\hat{\mu}^{\pi_E}(s_i,a_i) +
+  \frac{\lambda}{2}\|\theta\|^2.
+\end{equation}
+   - $\mathcal{L}(s_i,a) = 1$ si $a \neq a_i$, $0$ sinon
+   - Descente de sous-gradient
+
+*** Computing $\mu^{\pi_E}$
+**** LSTD-$\mu$						     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_col: .35
+    :BEAMER_env: block
+    :END:
+     Based on already known /Least-square temporal differences/ method
+**** Characteristics 						    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     - Can be fed with mere transitions
+     - No need for a model
+     - Off or on policy evaluation
+**** Monte carlo with heuristics 			      :B_block:BMCOL:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .55
+    :END:
+     - $\hat\mu^\pi(s_0,a_0) = {1\over M}\sum\limits_{j=1}^M\sum\limits_{i\geq 0}\gamma^i\phi(s^j_i)$
+     - $\hat\mu^\pi(s_0,a\neq a_0) = \gamma \hat\mu^\pi(s_0,a_0)$
+**** Characteristics 						    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     - Only on-policy
+     - Seems more robust in dire conditions
+** GridWorld
+*** Results on the GridWorld
+#+begin_latex
+\includegraphics[width=0.47\textwidth]{true_reward.pdf}\includegraphics[width=0.47\textwidth]{SCIRL_Exp1_R.pdf}
+\vspace{-30pt}
+\includegraphics[width=0.47\textwidth]{V_expert.pdf}\includegraphics[width=0.47\textwidth]{SCIRL_Exp1_V.pdf}
+#+end_latex
+
+** Inverted Pendulum
+*** Results on the Inverted Pendulum
+#+begin_latex
+\includegraphics[width=0.47\textwidth]{LAFEM_Exp3_true_R}\includegraphics[width=0.47\textwidth]{LAFEM_Exp3_lafem_R}\\
+\vspace{-30pt}
+\includegraphics[width=0.47\textwidth]{LAFEM_Exp3_Vexpert}\includegraphics[width=0.47\textwidth]{LAFEM_Exp3_Vagent}\\
+#+end_latex
+** Highway Driving
+*** Results on the driving problem
+**** Toto 					      :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+#+begin_latex
+     \uncover<2->{
+\includegraphics[width=0.47\textwidth]{Cascading_Exp5_fig2}
+     \includegraphics[width=0.47\textwidth]{SCIRL_Exp3_fig1}
+}
+#+end_latex
+**** Description 						    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     - Widespread benchmark
+     - Goal of the expert : avoid other cars, do not go off-road, go fast
+     - Using only data from the expert and natural features
+     - Non trivial (State of the art does not work)
+
+* Opening and future work
+** Future work
+*** Possible future work
+**** Real-world problem (Come to eNTERFACE'12 ! )
+**** Task Transfer (same state space, different action space)
+*** Thank you...
+    ... for your attention
+
+#* Corrections
+#** TODO Petits textes en bas
+#** TODO Expliquer d'où vient mu
+#** TODO Mettre des uncover dans le .tex
+#** TODO Commiter le tout
+

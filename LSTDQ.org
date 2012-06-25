@@ -2,6 +2,31 @@
   LSTDQ is an off-policy approximator for the Q function based 
   on LSTD (\cite{bertsekas1996temporal}) introduced in 
   \cite{lagoudakis2003least}.
+* LSTDQ header
+** Détails techniques
+#+begin_src C
+#include "LSTDQ.h"
+
+unsigned int g_iK = -1;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = NULL;
+unsigned int g_iS = -1;
+unsigned int g_iA = -1;
+double g_dLambda_lstdQ = -1;
+double g_dGamma_lstdq = -1;;
+
+gsl_matrix* omega = lstd_q( gsl_matrix* D, 
+		    gsl_matrix* (*pi)(gsl_matrix*) );
+
+#+end_src
+** Entrées
+   - =D= : Matrice de transitions dont chaque ligne est de la forme $s,a,s',r,eoe$ ($eoe$ vaut 0 en fin d'épisode, 1 sinon).
+   - =pi= : politique qui a un état associe une action
+** Sortie
+   - Matrice $\omega$ de taille $k \times 1$ telle que la fonction de qualité de la politique considérée peut être approximée par $\hat Q(s,a) = \omega^T\phi(s,a)$
+** Paramètres
+   - =g_fPhi= : feature de $S\times A$ dans $\mathbb{R}^k$
+   - =g_dLambda_lstdQ= : coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+   - =g_dGamma_lstdq= : Coefficient d'amortissement utilisé lors de l'estimation de la fonction de qualité
 * C implementation
 ** Externals
     The C implementation follows quite closely the pseudo code given in \cite{lagoudakis2003least}.
