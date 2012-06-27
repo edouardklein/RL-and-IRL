@@ -12,6 +12,7 @@
 \usepackage{pifont}
 \usepackage{slashbox}
 \usepackage{marvosym}
+\usepackage[ruled]{algorithm2e}
 \include{headertikz}
 \usetikzlibrary{through,shapes,arrows,decorations.pathmorphing,backgrounds,positioning,fit} 
 
@@ -92,10 +93,10 @@ fill=orange!20]
 
 
 \conf{European workshop on reinforcement learning}
-\title{Inverse Reinforcement Learning through Structured Classification}
-\author{\underline{Edouard Klein}$^{\dag\ddag}$, Matthieu Geist$^\dag$ and Olivier Pietquin$^{\dag\textrm{\Ankh}}$\\\texttt{firstname.lastname@supelec.fr}}
+\title{Structured Classification for Inverse Reinforcement Learning}
+\author{\underline{Edouard Klein}$^{\dag\ddag}$, Bilal Piot$^{\dag\textrm{\Ankh}}$, Matthieu Geist$^\dag$ and Olivier Pietquin$^{\dag\textrm{\Ankh}}$\\\texttt{firstname.lastname@supelec.fr}}
 \date{\today}
-\institute[Supélec]{$\dag$Equipe MaLIS (Supélec), France\\$\ddag$Equipe ABC UMR 7503 (LORIA-CNRS), France\\\Ankh UMI 2958 (GeorgiaTech - CNRS)}
+\institute[Supélec]{$\dag$Equipe IMS/MaLIS (Supélec), France\\$\ddag$Equipe ABC UMR 7503 (Loria-CNRS), France\\\Ankh UMI 2958 (GeorgiaTech-CNRS)}
 \newlength{\columnheight}
 \setlength{\columnheight}{105cm}
 
@@ -104,15 +105,14 @@ fill=orange!20]
 \begin{frame}
 
 %%%%%%%%%%%%% DEBUT PREMIERE LIGNE %%%%%%%%%%%%%%%%%
-\begin{WholeWidthBox}{Introduction}
-  Apprenticeship learning can be defined as learning control policies from demonstration by an expert. An efficient framework for it is inverse reinforcement learning
-  (IRL). Based on the assumption that the expert maximizes a utility function, IRL aims at learning the underlying reward from example trajectories. Many IRL algorithms rely on the computation of \emph{feature expectations}, which is done through Monte Carlo simulation. In this paper, we introduce a temporal difference method, namely LSTD-$\mu$, to compute these feature expectations. This allows extending apprenticeship learning to a batch and off-policy setting.
+\begin{WholeWidthBox}{1. Introduction}
+  The inverse reinforcement learning (IRL) problem can be defined as inferring a reward for which a demonstrated expert behavior is optimal. We introduce a new algorithm, SCIRL, whose principle is to use the so-called feature expectation of the expert as the parameterization of the score function of a multi-class classifier. This approach produces a reward function for which the expert policy is provably near-optimal. Contrary to most of existing IRL algorithms, SCIRL does not require solving a single time the direct RL problem. Moreover, up to the use of some heuristic, it may work with only trajectories sampled according to the expert behavior. This is illustrated on toy problems.
 \end{WholeWidthBox}
 
 \vfill
 %%%%%%%%%%%% DEBUT DEUXIEME LIGNE %%%%%%%%%%%%%%%%%%
 
-\TwoBoxes{.48}{Setting}{
+\TwoBoxes{.48}{2. Setting}{
   \begin{columns}
     \begin{column}{.48\textwidth}
       \includegraphics{Agent003.png}
@@ -120,21 +120,15 @@ fill=orange!20]
     \begin{column}{.48\textwidth}
       \begin{itemize}
       \item Expert's trace
-      \item MDP : 
-        \begin{itemize}
-        \item State space $S$
-        \item Action space $A$
-        \item Unknown reward being maximized by the expert $R$
-        \item Discount factor $\gamma$
-        \item Transition probabilities $P$
-        \end{itemize}
-      \item Agent implementing a policy $\pi : S\rightarrow A$
+      \item $MDP\backslash R $
+      \item $\pi^*(s) \in \arg\max_{a\in A}Q^*(s,a)$
+      \item $R(s) = \theta^T\psi(s)$
       \end{itemize}
       
     \end{column}
   \end{columns}
 }
-{.48}{Assumptions and Goal}{
+{.48}{3. Assumptions and Goal}{
   \begin{itemize}
   \item Assumptions
     \begin{itemize}
@@ -152,88 +146,134 @@ fill=orange!20]
 }
 {15cm}
 \vfill
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TROISIEME LIGNE
-\TwoBoxes{.38}{Feature Expectation}{
-  \begin{equation*}
-    V^\pi(s_t) = E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right] = \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \phi(s_{t+i})\right|\pi\right]}_{\mu^\pi(s_t)}
-  \end{equation*}
-}{.58}{Importance of $\Delta \mu$}{
-  \begin{equation*}
-    \Delta V = |V^E(s_0) - V^\pi(s_0)| = |\theta^T\left(\mu_E(s_0) - \mu^\pi(s_0)\right)| \leq  ||\mu_E(s_0) - \mu^\pi(s_0)||_2 = \Delta\mu
-  \end{equation*}
-}
-{6cm}
-\vfill
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Quatrième ligne
-  \begin{columns}
-    \begin{column}{.48\textwidth}
-    \begin{block}{LPSFBC}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TROISIEME, quatrième, cinquième et sixième LIGNES
+\begin{columns}
+  \begin{column}{.48\textwidth}
+    \begin{block}{4. Expert}
       \begin{columns}
         \begin{column}{0.001\textwidth}
           \vspace{8cm}
         \end{column}
         \begin{column}{\textwidth}
-          \centering
-          Laius sur les classifieurs
+          \begin{itemize}
+          \item The expert is optimal : $\pi_E(s) = \arg\max\limits_{a} Q^{\pi_E}(s,a)$
+          \item w.r.t. a linearly parametrized reward : $Q^\pi(s_t,a) = \theta^T\mu^\pi(s_t,a)$
+          \item thus : \tikz{\node[fill=red!30,draw=red,ultra thick,rounded corners]{$\pi_E(s) \in \arg\max\limits_{a} \theta^T\mu^{\pi_E}(s,a)$};}
+          \end{itemize}
         \end{column}
-      \end{columns}       
-      
+      \end{columns}
     \end{block}
-    \end{column}
-    
-    \begin{column}{.48\textwidth}
-\begin{block}{Expert}
-  \begin{columns}
-    \begin{column}{0.001\textwidth}
-      \vspace{8cm}
-    \end{column}
-    \begin{column}{\textwidth}
-      \centering
-      Parallèle sur l'expert
-    \end{column}
-  \end{columns}
-\end{block}
-
-    \end{column}
-  \end{columns}
+    \vspace{1cm}
+    \begin{block}{6. Linearly parametrized score function based classifiers}
+      \begin{columns}
+        \begin{column}{0.001\textwidth}
+          \vspace{8cm}
+        \end{column}
+        \begin{column}{\textwidth}
+          \begin{itemize}
+          \item A score function : $g_s(x) \in \arg\max\limits_{y\in\mathcal{Y}}s(x,y)$
+          \item which is linearly parametrized : $s(x,y) = \theta^T \phi(x,y)$
+          \item gives : \tikz{\node[fill=red!30,draw=red,ultra thick,rounded corners]{$g_s(x) \in \arg\max\limits_{y\in\mathcal{Y}}\theta^T\phi(x,y)$};}
+          \end{itemize}
+        \end{column}
+      \end{columns}             
+    \end{block}
+    \vspace{1cm}
+    %% \begin{block}{Putting it all together}
+    %%   \begin{equation*}
+    %%     \mathcal{X} \equiv S, \mathcal{Y} \equiv A, s\equiv Q^{\pi_E} \Rightarrow \phi \equiv \mu^{\pi_E}
+    %%   \end{equation*}
+    %% \end{block}
+    \vfill
+    \begin{block}{7. Pseudo-code}
+      \resizebox{.95\columnwidth}{!}{
+        \begin{algorithm}[H]%[tbh]
+          %\small
+          %\SetVline
+          \caption{SCIRL algorithm}
+          \label{algo:scirl}
+          %
+          \BlankLine
+          \emph{\textbf{Given}} a training set $\mathcal{D} = \{(s_i,a_i=\pi_E(s_i))_{1\leq i\leq N}\}$,
+          an estimate $\hat{\mu}^{\pi_E}$ of the expert feature expectation $\mu^{\pi_E}$ and a classification algorithm\;
+          %
+          \BlankLine
+          \emph{\textbf{Compute}} the parameter vector $\theta_c$ using the
+          classification algorithm
+          fed with the training set $\mathcal{D}$ and considering the parameterized score function
+          $\theta^T\hat{{ \mu}}^{\pi_E}(s,a)$\;
+          %
+          \BlankLine
+          \emph{\textbf{Output}} the reward function $R_{\theta_c}(s) = \theta_c^T\psi(s)$ \;
+        \end{algorithm}
+      }
+    \end{block}
+  \end{column}
+  \begin{column}{.48\textwidth}
+    \begin{block}{5. Feature Expectation}
+        \begin{equation*}
+          Q^\pi(s_t,a) = E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi,s_t,a\right] = \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \psi(s_{t+i})\right|\pi,s_t,a\right]}_{\color{red}\mu^\pi(s_t,a)}
+        \end{equation*}
+    \end{block}
+    \vfill
+    \begin{block}{8. Error bound}
+      With concentration coefficient $C_f$, classification error $\epsilon_C$ and $\bar{\epsilon}_Q$ a measure of the quality of our estimate of $\mu^{\pi_E}$ :
+      \begin{equation*}
+        0\leq
+        \mathop{E}_{s\sim\rho_E}[V^*_{R_{\theta_c}}-V^{\pi_E}_{R_{\theta_c}}]
+        \leq \frac{C_f}{1-\gamma}\left(\bar{\epsilon}_Q +
+        \epsilon_c\frac{2\gamma\|R_{\theta_c}\|_\infty}{1-\gamma}
+        \right)
+      \end{equation*}
+    \end{block}
+    \vfill
+    \begin{block}{9. Highway}
+      \begin{columns}
+        \begin{column}{0.001\textwidth}
+          \vspace{7cm}
+        \end{column}
+        \begin{column}{\textwidth}
+          \centering
+          \fontsize{11pt}{11pt}\selectfont
+          \resizebox{.95\columnwidth}{!}{\includegraphics[width=0.47\textwidth]{Cascading_Exp5_fig2}
+            \includegraphics[width=0.47\textwidth]{SCIRL_Exp3_fig1}}
+        \end{column}
+      \end{columns}             
+    \end{block}
+  \end{column}
+\end{columns}
 \vfill
-%%%%%%%%%%%%%%%%%%%%%%Cinquième ligne
-
-\begin{WholeWidthBox}{Putting it all together}
-  \centering
-  Blah blah blah
-\end{WholeWidthBox}
-
-%%%%%%%%%%%%%%%%%%%%%%Sixième ligne
+%%%%%%%%%%%%% Septième ligne
   \begin{columns}
     \begin{column}{.48\textwidth}
-      \begin{block}{Pseudo-code}
+      \begin{block}{10. GridWorld}
         \centering
-        \fontsize{11pt}{11pt}\selectfont
-        \resizebox{.55\columnwidth}{!}{\includegraphics[width=\textwidth]{LAFEM_Exp3_Vagent.pdf}}
+%        \fontsize{11pt}{11pt}\selectfont
+%        \resizebox{.95\columnwidth}{!}{
+%         Bli\\
+\vspace{-70pt}
+          \includegraphics[width=.52\textwidth]{true_reward.pdf}\hspace{-100pt}\includegraphics[width=.52\textwidth]{SCIRL_Exp1_R.pdf}\\
+%          Blah
+\vspace{-110pt}
+          \includegraphics[width=.52\textwidth]{V_expert.pdf}\hspace{-100pt}\includegraphics[width=.52\textwidth]{SCIRL_Exp1_V.pdf}
+\vspace{-90pt}
+%}
       \end{block}
     \end{column}
     \begin{column}{.48\textwidth}
-      \begin{block}{Highway}
+      \begin{block}{11. Inverted Pendulum}
         \centering
         \fontsize{11pt}{11pt}\selectfont
-        \resizebox{.55\columnwidth}{!}{\includegraphics[width=\textwidth]{SCIRL_Exp3_fig1.pdf}}
-      \end{block}
-    \end{column}
-  \end{columns}
-  \begin{columns}
-    \begin{column}{.48\textwidth}
-      \begin{block}{GridWorld}
-        \centering
-        \fontsize{11pt}{11pt}\selectfont
-        \resizebox{.55\columnwidth}{!}{\includegraphics[width=\textwidth]{LAFEM_Exp3_Vexpert.pdf}}
-      \end{block}
-    \end{column}
-    \begin{column}{.48\textwidth}
-      \begin{block}{Inverted Pendulum}
-        \centering
-        \fontsize{11pt}{11pt}\selectfont
-        \resizebox{.55\columnwidth}{!}{\includegraphics[width=\textwidth]{LAFEM_Exp3_lafem_R.pdf}}
+        \resizebox{.95\columnwidth}{!}{
+
+}
+\vspace{-70pt}
+          \includegraphics[width=.52\textwidth]{LAFEM_Exp3_true_R}\hspace{-100pt}\includegraphics[width=.52\textwidth]{LAFEM_Exp3_lafem_R}\\
+%          Blah
+\vspace{-110pt}
+          \includegraphics[width=.52\textwidth]{LAFEM_Exp3_Vexpert}\hspace{-100pt}\includegraphics[width=.52\textwidth]{LAFEM_Exp3_Vagent}
+\vspace{-90pt}
+%}
       \end{block}
     \end{column}
   \end{columns}
