@@ -25,13 +25,13 @@
 #+LaTeX_HEADER: \include{headertikz}
 #+LaTeX_HEADER: \usetikzlibrary{decorations.pathmorphing,shapes.misc}
 
-#+BEAMER_HEADER_EXTRA: \title[SCIRL]{Classification structurée pour l'apprentissage par renforcement inverse}
+#+BEAMER_HEADER_EXTRA: \title[SCIRL]{Structured Classification for Inverse Reinforcement Learning}
 #+BEAMER_HEADER_EXTRA: \author[Edouard Klein]{\underline{Edouard Klein}$^{\dag\ddag}$, Bilal Piot$^{\dag}$, Matthieu Geist$^\dag$ and Olivier Pietquin$^\dag$\\\texttt{firstname.lastname@supelec.fr}}\institute[Supélec]{$\dag$Supélec UMI 2958 (GeorgiaTech - CNRS), France\\$\ddag$Equipe ABC UMR 7503 (LORIA-CNRS), France}
 
 #+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
 #+OPTIONS: toc:nil
 #+BEAMER_FRAME_LEVEL: 3
-#+TITLE: Classification structurée pour l'apprentissage par renforcement inverse
+#+TITLE: Structured Classification for Inverse Reinforcement Learning
 #+AUTHOR: Edouard Klein and and Bilal Piot and Matthieu Geist and Olivier Pietquin
 
 #+Begin_LaTeX
@@ -316,8 +316,8 @@ fill=orange!20]
   \theta^T\hat{\mu}^{\pi_E}(s_i,a_i) +
   \frac{\lambda}{2}\|\theta\|^2.
 \end{equation}
-   - $\mathcal{L}(s_i,a) = 1$ si $a \neq a_i$, $0$ sinon
-   - Descente de sous-gradient
+   - $\mathcal{L}(s_i,a) = 1$ if $a \neq a_i$, $0$ otherwise
+   - Sub-gradient descent
 
 *** Computing $\mu^{\pi_E}$
 **** LSTD-$\mu$						     :BMCOL:B_block:
@@ -385,7 +385,7 @@ fill=orange!20]
 * Opening and future work
 ** Future work
 *** Possible future work
-**** Real-world problem (Come to eNTERFACE'12 ! )
+**** Real-world problem (eNTERFACE'12)
 **** Task Transfer (same state space, different action space)
 *** Thank you...
     ... for your attention
