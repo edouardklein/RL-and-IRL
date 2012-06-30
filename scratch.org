@@ -1,0 +1,4 @@
+#+TITLE: Branch eNTERFACE12
+Travail produit durant l'école d'été à Supélec.
+* Slides pour la présentation de Laurent
+  [[file:eNTERFACE12/LaurentSlides.org]]
