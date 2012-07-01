@@ -25,8 +25,10 @@
 #+LaTeX_HEADER: \include{headertikz}
 #+LaTeX_HEADER: \usetikzlibrary{decorations.pathmorphing,shapes.misc}
 
-#+BEAMER_HEADER_EXTRA: \title[SCIRL]{Structured Classification for Inverse Reinforcement Learning}
-#+BEAMER_HEADER_EXTRA: \author[Edouard Klein]{\underline{Edouard Klein}$^{\dag\ddag}$, Bilal Piot$^{\dag}$, Matthieu Geist$^\dag$ and Olivier Pietquin$^\dag$\\\texttt{firstname.lastname@supelec.fr}}\institute[Supélec]{$\dag$Supélec UMI 2958 (GeorgiaTech - CNRS), France\\$\ddag$Equipe ABC UMR 7503 (LORIA-CNRS), France}
+#+BEAMER_HEADER_EXTRA:\title{Structured Classification for Inverse Reinforcement Learning}
+#+BEAMER_HEADER_EXTRA:\author{{\Small European Workshop on Reinforcement Learning}\\\underline{Edouard Klein}$^{\dag\ddag}$, Bilal Piot$^{\dag\textrm{\Ankh}}$, Matthieu Geist$^\dag$ and Olivier Pietquin$^{\dag\textrm{\Ankh}}$\\\texttt{firstname.lastname@supelec.fr}}
+#+BEAMER_HEADER_EXTRA:\institute[Supélec]{$\dag$Equipe IMS/MaLIS (Supélec), France\\$\ddag$Equipe ABC UMR 7503 (Loria-CNRS), France\\\Ankh UMI 2958 (GeorgiaTech-CNRS)}
+
 
 #+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
 #+OPTIONS: toc:nil
@@ -56,38 +58,31 @@ fill=orange!20]
 #+end_LaTeX
 * Non-technical Abstract
 ** Context
-*** Reinforcement Learning
-**** Toto					     :BMCOL:B_ignoreheading:
-    :PROPERTIES:
-    :BEAMER_col: 0.4
-    :BEAMER_env: ignoreheading
-    :END:
-     [[file:ML.png]]
-**** Notions						     :BMCOL:B_block:
-    :PROPERTIES:
-    :BEAMER_col: 0.4
-    :BEAMER_env: block
-    :END:
-     - Agent
-     - Task
-     - Environment
 *** Imitation: Expert
-     #+BEGIN_LaTeX
-     \animategraphics[autoplay,loop,height=5cm]{1}{Expert00}{1}{9} 
-     #+END_LaTeX
-*** Imitation: Generalization
+
 **** Null					     :BMCOL:B_ignoreheading:
     :PROPERTIES:
     :BEAMER_col: .4\textwidth
     :BEAMER_env: ignoreheading
     :END:
-      #+BEGIN_LaTeX
-      \animategraphics[autoplay,loop,height=5cm]{1}{Agent}{001}{014} 
-      #+END_LaTeX
-**** Apprenticeship learning				     :BMCOL:B_block:
+     #+BEGIN_LaTeX
+     \begin{overlayarea}{\textwidth}{5cm}
+     \only<1>{\animategraphics[autoplay,loop,height=5cm]{1}{Expert00}{1}{9} }
+     \only<2>{ \animategraphics[autoplay,loop,height=5cm]{1}{Agent}{001}{014} }
+     \end{overlayarea}
+     #+END_LaTeX
+
+**** Expert 						      :BMCOL:B_block:
     :PROPERTIES:
     :BEAMER_env: block
     :BEAMER_col: .4\textwidth
+    :END:
+     - The expert is an optimal agent in an MDP
+     - Its behavior is observed
+
+**** Apprenticeship learning				     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
     :END:
      Reward inference
 ** Contribution
@@ -112,10 +107,7 @@ fill=orange!20]
     \begin{column}{4cm}
       \begin{block}{}
         \begin{overlayarea}{\textwidth}{4.4cm}
-          \only<1>{\input{img/MDP1.tex}}
-          \only<2>{\input{img/MDP2.tex}}
-          \only<3>{\input{img/MDP3.tex}}
-          \only<4->{\input{img/MDP4.tex}}
+          \only<1->{\input{img/MDP4.tex}}
         \end{overlayarea}
       \end{block}
     \end{column}
@@ -123,9 +115,10 @@ fill=orange!20]
       \begin{block}{Notions}
         \begin{itemize}
           \item<1-> State $s_t\in S$
-          \item<2-> Action $a_t \in A$
-          \item<3-> Reward $r_t \in \mathbb{R}$
-          \item<4-> Transition $(s_t,a_t,s_{t+1},r_t)\in S\times A\times S\times\mathbb{R}$
+          \item<1-> Action $a_t \in A$
+          \item<1-> Reward $r_t \in \mathbb{R}$
+          \item<1-> Transition $(s_t,a_t,s_{t+1},r_t)\in S\times A\times S\times\mathbb{R}$
+     \item     $\pi: S\rightarrow A$
         \end{itemize}
       \end{block}
       \begin{block}<1->{Markovian criterion}
@@ -133,9 +126,6 @@ fill=orange!20]
       \end{block}
     \end{column}
   \end{columns}
-  \begin{alertblock}<5>{Policy}
-    $\pi: S\rightarrow A$
-  \end{alertblock}
      #+END_LaTeX
 
 *** RL problem and solution
@@ -152,7 +142,7 @@ fill=orange!20]
     :BEAMER_env: block
     :END:
      #+begin_latex
-     Optimal policy $\pi^* = \arg\max\limits_\pi V^\pi$ \hfill \uncover<2>{$\pi^*(s) = \arg\max\limits_{a} Q^{\pi^*}(s,a)$}
+     Optimal policy $\pi^* = \arg\max\limits_\pi V^\pi$ \hfill \uncover<1>{$\pi^*(s) = \arg\max\limits_{a} Q^{\pi^*}(s,a)$}
      #+end_latex
 **** Value function approximation				   :B_block:
     :PROPERTIES:
@@ -183,34 +173,12 @@ fill=orange!20]
     :END:
      \scriptsize
      #+begin_latex
-     \alt<1>{
      \begin{eqnarray*}
-     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right]\\
-     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\psi(s_{t+i})\right|\pi\right]\\
-     V^\pi(s_t) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \psi(s_{t+i})\right|\pi\right]}_{\mu^\pi(s_t)}\\
-     V^\pi(s_t) &=& \theta^T\mu^\pi(s_t)
-     \end{eqnarray*}
-     }{
-     \begin{columns}
-     \begin{column}{0.45\linewidth}
-     \begin{eqnarray*}
-     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right] \\
-     V^\pi(s_t) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\psi(s_{t+i})\right|\pi\right]\\
-     V^\pi(s_t) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \psi(s_{t+i})\right|\pi\right]}_{\mu^\pi(s_t)}\\
-     V^\pi(s_t) &=& \theta^T\mu^\pi(s_t)
-     \end{eqnarray*}
-     \end{column}
-     \begin{column}{0.45\linewidth}
-     \begin{eqnarray*}
-     Q^\pi(s_t,a) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi\right] \\
+     Q^\pi(s_t,a) &=& E\left[\left.\sum\limits_{i}\gamma^i r_{t+i}\right|\pi,s_t,a\right] \\
      Q^\pi(s_t,a) &=& E\left[\left.\sum\limits_{i}\gamma^i \theta^T\psi(s_{t+i})\right|\pi,s_t,a\right]\\
-     Q^\pi(s_t,a) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \psi(s_{t+i})\right|\pi,s_t,a\right]}_{\mu^\pi(s_t,a)}\\
+     Q^\pi(s_t,a) &=& \theta^T\underbrace{E\left[\left.\sum\limits_{i}\gamma^i \psi(s_{t+i})\right|\pi,s_t,a\right]}_{\textrm{\large\color{red}$\mu^\pi(s_t,a)$} }\\
      Q^\pi(s_t,a) &=& \theta^T\mu^\pi(s_t,a)
      \end{eqnarray*}
-     \end{column}
-     \end{columns}
-     }
-     \only<2>{}
      #+end_latex
      
 ** SCIRL Algorithm
@@ -285,15 +253,7 @@ fill=orange!20]
 ** Analysis
 *** Error bound
 #+begin_latex
-\begin{block}{Definitions}
-\begin{itemize}
-     \item<1-> $C_f = (1-\gamma)\sum\limits_{t\geq 0} \gamma^t c(t) \text{ with } c(t) =  \max\limits_{\pi_1,\dots,\pi_t,s\in S}\frac{(\rho_E^T P_{\pi_1}\dots  P_{\pi_t})(s)}{\rho_E(s)}$
-     \item<2-> $\epsilon_c = \mathop{E}\limits_{s\sim\rho_E}[\mathbf{1}_{\{\pi_c(s)\neq\pi_E(s)\}}] \in [0,1]$
-     \item<3-> \uncover<3->{$\epsilon_{\mu} = \hat{\mu}^{\pi_E} - \mu^{\pi_E}:S\times A \rightarrow  \mathbb{R}^p$} \hfill \uncover<4->{$\epsilon_Q = \theta_c^T\epsilon_\mu:S\times A\rightarrow\mathbb{R}$}
-     \item<5-> $\bar{\epsilon}_Q = \mathop{E}\limits_{s\sim\rho_E}[\max\limits_{a\in A}\epsilon_Q(s,a) - \min\limits_{a\in A}\epsilon_Q(s,a)]\geq 0$
-\end{itemize}
-\end{block}
-\begin{alertblock}<6->{Theorem}
+\begin{alertblock}<1->{Theorem}
   \begin{equation}
     0\leq
     \mathop{E}_{s\sim\rho_E}[V^*_{R_{\theta_c}}-V^{\pi_E}_{R_{\theta_c}}]
@@ -304,56 +264,6 @@ fill=orange!20]
 \end{alertblock}
 #+end_latex
 * Experimental results
-** Instanciation
-*** Classifier
-**** Taskar, Ratliff
-    :PROPERTIES:
-    :BEAMER_env: block
-    :END:
-\begin{equation}
-  J(\theta) = \frac{1}{N}\sum_{i=1}^N \max_a \theta^T
-  \hat{\mu}^{\pi_E}(s_i,a) + \mathcal{L}(s_i,a) -
-  \theta^T\hat{\mu}^{\pi_E}(s_i,a_i) +
-  \frac{\lambda}{2}\|\theta\|^2.
-\end{equation}
-   - $\mathcal{L}(s_i,a) = 1$ if $a \neq a_i$, $0$ otherwise
-   - Sub-gradient descent
-
-*** Computing $\mu^{\pi_E}$
-**** LSTD-$\mu$						     :BMCOL:B_block:
-    :PROPERTIES:
-    :BEAMER_col: .35
-    :BEAMER_env: block
-    :END:
-     Based on already known /Least-square temporal differences/ method
-**** Characteristics 						    :B_block:
-    :PROPERTIES:
-    :BEAMER_env: block
-    :END:
-     - Can be fed with mere transitions
-     - No need for a model
-     - Off or on policy evaluation
-**** Monte carlo with heuristics 			      :B_block:BMCOL:
-    :PROPERTIES:
-    :BEAMER_env: block
-    :BEAMER_col: .55
-    :END:
-     - $\hat\mu^\pi(s_0,a_0) = {1\over M}\sum\limits_{j=1}^M\sum\limits_{i\geq 0}\gamma^i\phi(s^j_i)$
-     - $\hat\mu^\pi(s_0,a\neq a_0) = \gamma \hat\mu^\pi(s_0,a_0)$
-**** Characteristics 						    :B_block:
-    :PROPERTIES:
-    :BEAMER_env: block
-    :END:
-     - Only on-policy
-     - Seems more robust in dire conditions
-** GridWorld
-*** Results on the GridWorld
-#+begin_latex
-\includegraphics[width=0.47\textwidth]{true_reward.pdf}\includegraphics[width=0.47\textwidth]{SCIRL_Exp1_R.pdf}
-\vspace{-30pt}
-\includegraphics[width=0.47\textwidth]{V_expert.pdf}\includegraphics[width=0.47\textwidth]{SCIRL_Exp1_V.pdf}
-#+end_latex
-
 ** Inverted Pendulum
 *** Results on the Inverted Pendulum
 #+begin_latex
@@ -380,7 +290,6 @@ fill=orange!20]
      - Widespread benchmark
      - Goal of the expert : avoid other cars, do not go off-road, go fast
      - Using only data from the expert and natural features
-     - Non trivial (State of the art does not work)
 
 * Opening and future work
 ** Future work

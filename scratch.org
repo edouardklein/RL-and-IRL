@@ -1,0 +1,4 @@
+#+TITLE: Branch EWRL12
+Papier klein2012structured
+* Slides pour la présentation à EWRL
+[[file:klein2012/slides.org]]
