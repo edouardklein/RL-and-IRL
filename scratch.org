@@ -2,3 +2,8 @@
 Travail produit durant l'école d'été à Supélec.
 * Slides pour la présentation de Laurent
   [[file:eNTERFACE12/LaurentSlides.org]]
+* Simulation pour tester le principe de l'agent IRL au sein du pipeline BCI
+  Le schéma est sur mon ZapBook, l'implémentation du pipeline d'entraînement est dans 
+  [[file:eNTERFACE12/TrainingPipeline.py]]
+  Ca fonctionne, un appel à cet exécutable génère les données s,a pour un épisode.
+
