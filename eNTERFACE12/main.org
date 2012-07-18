@@ -1,0 +1,26 @@
+* Génération des données d'entrainement
+
+  Grâce au pipeline d'entrainement
+
+  #+begin_src makefile :tangle Makefile
+NBTRAININGEP=10
+
+all:
+	if [ -f TrainingSA-1.mat ]; then rm TrainingSA-*.mat; fi
+	for i in `seq 1 $(NBTRAININGEP)`; do ./TrainingPipeline.py >> TrainingSA-$$i.mat; done
+  #+end_src
+
+  On passe du format s,a à s,a,s',r,eoe attendu par le code de SCIRL
+  #+begin_src makefile :tangle Makefile
+	./sa2sasreoe.py $(NBTRAININGEP)
+  #+end_src
+  
+
+* Exécution de SCIRL sur ces données 
+  #+begin_src makefile :tangle Makefile
+	./SCIRL.py TrainingSASREOE.mat
+  #+end_src
+  
+* Optimisation de la récompense en une politique
+  
+  
