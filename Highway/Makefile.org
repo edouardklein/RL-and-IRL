@@ -14,8 +14,8 @@ Those who do not fit in the others categories (because they fit in more than one
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
-tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs  >/dev/null 2>/dev/null
-  #+end_src
+tangle=tangle $1
+#+end_src
 ** C source to .o file
   #+begin_src make :tangle Makefile :noweb yes
   CFLAGS+= -I..
