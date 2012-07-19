@@ -162,3 +162,47 @@ LSTDQ_clean:
 	find . -maxdepth 1 -iname "LSTDQ.c"   | xargs $(XARGS_OPT) rm 
 	find . -maxdepth 1 -iname "LSTDQ.o"   | xargs $(XARGS_OPT) rm
   #+end_src
+
+* Python implementation
+#+begin_src python :tangle LSTDQ.py 
+from pylab import *
+def LSTDQ( D, s_dim, a_dim, pi, phi, phi_dim ):
+    
+#+end_src
+  - $\tilde A \leftarrow 0$
+#+begin_src python :tangle LSTDQ.py 
+    A = zeros( [phi_dim, phi_dim ] )
+#+end_src
+  - $\tilde b \leftarrow 0$
+#+begin_src python :tangle LSTDQ.py 
+    b = zeros([phi_dim, 1])
+#+end_src
+  - for each $(s,a,s',r,eoe) \in D$
+#+begin_src python :tangle LSTDQ.py 
+    for line in D:
+#+end_src
+     - $\tilde A \leftarrow \tilde A + \phi(s,a)\left(\phi(s,a) - \gamma \phi(s',\pi(s'))\right)^T$
+#+begin_src python :tangle LSTDQ.py
+        s = line[ 0:s_dim ]
+        a = line[ s_dim:s_dim+a_dim]
+        s_dash = line[ s_dim+a_dim:s_dim+a_dim+s_dim ]
+        phi_sa = phi( s,a )
+        a_dash = pi( s_dash )
+        phi_dash = phi( s_dash, a_dash )
+        if line[ s_dim+a_dim+s_dim+1 ] == 0:
+            phi_dash = zeros([phi_dim,1]) #eoe
+        A += dot( phi_sa, (phi_sa - 0.9*phi_dash).transpose())
+ #+end_src
+     - $\tilde b \leftarrow \tilde b + \phi(s,a)r$
+ #+begin_src python :tangle LSTDQ.py 
+        r = line[ s_dim+a_dim+s_dim ]
+        b += r*phi_sa
+ #+end_src
+  - $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+#+begin_src python :tangle LSTDQ.py 
+    omega_pi = dot( inv( A + 0.1*identity( phi_dim ) ),b)
+#+end_src
+    - return $\tilde \omega_\pi$
+#+begin_src python :tangle LSTDQ.py 
+    return omega_pi;
+#+end_src

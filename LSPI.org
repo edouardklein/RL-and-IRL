@@ -117,3 +117,37 @@ LSPI_clean:
 	find . -maxdepth 1 -iname "LSPI.c"   | xargs $(XARGS_OPT) rm 
 	find . -maxdepth 1 -iname "LSPI.o"   | xargs $(XARGS_OPT) rm
   #+end_src
+* Python implementation
+  - $\omega'\leftarrow \omega_0$
+#+begin_src python :tangle LSPI.py 
+from LSTDQ import *
+from pylab import *
+from DP import *
+def LSPI( D, s_dim, a_dim, phi, phi_dim, actions, epsilon, max_it ):
+    nb_iterations = 0;
+    omega = zeros( [phi_dim, 1] )
+    omega_dash = zeros( [phi_dim, 1] )
+#+end_src
+  - Repeat : 
+#+begin_src python :tangle LSPI.py 
+    while True:
+#+end_src
+     - $\omega \leftarrow \omega'$
+ #+begin_src python :tangle LSPI.py 
+        omega = omega_dash.copy()
+ #+end_src
+     - $\omega' \leftarrow lstdQ(D,\pi_\omega)$
+ #+begin_src python :tangle LSPI.py 
+        pi = lambda s: greedy_policy( s, omega, phi, actions )
+        omega_dash = LSTDQ( D, s_dim, a_dim, pi, phi, phi_dim )
+ #+end_src
+     - until $||\omega'-\omega|| < \epsilon_{LSPI}$ or the number of iteration is too high
+ #+begin_src python :tangle LSPI.py 
+        nb_iterations+=1
+        if norm( omega_dash-omega ) < epsilon or nb_iterations > max_it:
+            break
+ #+end_src
+    - return $\omega'$
+#+begin_src python :tangle LSPI.py 
+    return omega_dash
+#+end_src
