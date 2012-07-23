@@ -22,5 +22,18 @@ all:
   #+end_src
   
 * Optimisation de la récompense en une politique
-  
-  
+   LSPI a besoin de samples couvrant tout l'espace d'état
+  #+begin_src makefile :tangle Makefile
+	./RandomPipeline.py > RandomSamples.mat
+	./ourLSPI.py
+  #+end_src
+* Test de la politique
+  #+begin_src makefile :tangle Makefile
+	for i in `seq 1 10`; do ./TestingPipeline.py ; done
+  #+end_src
+
+* Cleaning rule
+  #+begin_src makefile :tangle Makefile
+clean:
+	rm omega_expert.mat *.pyc RandomSamples.mat theta_scirl.mat Training*.mat 
+  #+end_src
