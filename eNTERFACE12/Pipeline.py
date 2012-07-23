@@ -14,7 +14,7 @@ def command( goal, pos ):
     return answer
 
 #Add a certain level and kind of noise to the given command
-g_fCommandNoiseLevel = 0.1
+g_fCommandNoiseLevel = 1.5
 def add_noise( command ):
     answer = command + random_sample( command.shape )*g_fCommandNoiseLevel
     answer /= norm( answer, 1 )
@@ -40,7 +40,7 @@ g_aUpdate = [[[1],[0]],[[0],[1]],[[-1],[0]],[[0],[-1]]] #Encodes which commands 
 g_fUpdateScale = 0.1
 g_fUpdateNoiseLevel = 0.05
 def update_position( aPosition, aCommand ):
-    command_index = filter( lambda i: aCommand[i],range(0,len(aCommand)))
+    command_index = filter( lambda i: aCommand[i]==1,range(0,len(aCommand)))
     assert( len( command_index ) == 1 )
     command_index = command_index[0]
     update = array( map( lambda l: [float(l[0])], g_aUpdate[ command_index ] ) )
