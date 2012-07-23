@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from pylab import *
 import sys
-STATE_DIM = 8
+from phipsi import *
 
 g_iNbEpisodes = int(sys.argv[1])
 

@@ -10,6 +10,6 @@ ACTION_FILE = "actions.mat"
 print "Training the expert..."
 D = genfromtxt( D_FILE_NAME )
 actions = genfromtxt( ACTION_FILE )
-omega_expert = LSPI( D, 8, 1, phi, PHI_DIM, actions, 0.01, 50 )
+omega_expert = LSPI( D, STATE_DIM, 1, phi, PHI_DIM, actions, 0.01, 50 )
 savetxt( "omega_expert.mat", omega_expert )
 
