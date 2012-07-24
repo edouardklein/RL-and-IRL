@@ -25,7 +25,9 @@ all:
    LSPI a besoin de samples couvrant tout l'espace d'état
   #+begin_src makefile :tangle Makefile
 	./RandomPipeline.py > RandomSamples.mat
-	./ourLSPI.py
+	 gcc -I.. --std=c99 `pkg-config --cflags gsl` ourLSPI.c -c
+	 gcc `pkg-config --libs gsl` ../LSPI.o ../LSTDQ.o ../greedy.o ourLSPI.o ../utils.o -o ourLSPI.exe
+	./ourLSPI.exe theta_scirl.mat > omega_expert.mat
   #+end_src
 * Test de la politique
   #+begin_src makefile :tangle Makefile
