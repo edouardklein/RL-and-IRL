@@ -173,7 +173,7 @@ print
 LAFEM_Exp3.py: LAFEM_Exp3.org
 	$(call tangle,"LAFEM_Exp3.org")
 
-LAFEM_Exp3: LAFEM_Exp3.py InvertedPendulum.py ../Cascading.py ../LAFEM.py DE.exe ../a2str.py Random_Samples.mat Evaluate_omega.exe Evaluate_theta.exe LAFEM_Exp3_LSTDmu.exe
+LAFEM_Exp3: LAFEM_Exp3.py InvertedPendulum.py ../Cascading.py ../LAFEM.py DE.exe ../a2str.py Random_Samples.mat Evaluate_omega.exe Evaluate_theta.exe LAFEM_Exp3_LSTDmu.exe omega_E.mat
 	for i in $(LM_VALUES); \
 	do \
 	./DE.exe $$i > DE.mat; \
