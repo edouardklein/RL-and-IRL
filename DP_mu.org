@@ -61,7 +61,7 @@ def monte_carlo_mu( traj, gamma, psi ):
     assert( len( traj.shape ) == 2 )
     #except AssertionError: #Trajectory with only one transition
     #    return psi( traj )
-    mGamma = map( lambda i: pow( 0.9,i),range(0,traj.shape[0]) )
+    mGamma = map( lambda i: pow( gamma,i),range(0,traj.shape[0]) )
     mPsi = map( psi, traj )
     mDiscountedPsi = map( lambda gamma, psi : gamma*psi, mGamma, mPsi )
     return sum( mDiscountedPsi, 0 )
