@@ -1,8 +1,6 @@
 #+TITLE: Tutorial for using SCIRL
 
-SCIRL is an algorithm for Inverse Reinforcement Learning (IRL). Published papers about SCIRL
-* TODO Add ref and link to EWRL Paper
-* TODO Add ref and link to CAp Paper
+SCIRL is an algorithm for Inverse Reinforcement Learning (IRL). \cite{klein2012}.
 * On a discrete problem (GridWorld)
   A classical toy problem in IRL is the GridWorld. Please refer to \cite{ng2000algorithms} for a description of the setting.
   
