@@ -13,6 +13,9 @@ SCIRL is an algorithm for Inverse Reinforcement Learning (IRL). \cite{klein2012}
   Invoking 
  : python SCIRL_GridWorld.py D_GW.mat
   on the command line should print the reward on the standard output and some information about the gradient descent at the heart of SCIRL on the standard error. You may want to redirect the standard output to a file with =>=.
+
+  Alternatively, one can invoke 
+  : make SCIRL_GW
 ** A note about the computation of $\mu_E$
    The data needed by SCIRL alone need not be trajectories. Mere $(s_i,a_i)$ couples suffice. However, one must give SCIRL a estimate of $\mu_E$ for every couple $(s_i,a\in A)$, where $s_i$ are the states in the data given to SCIRL. The technique (discussed in the papers) used here is a simple heuristic based on a Monte-Carlo estimation.
 
@@ -23,3 +26,23 @@ SCIRL is an algorithm for Inverse Reinforcement Learning (IRL). \cite{klein2012}
      
    The =data= member of the SCIRL class is built using the first three columns of the data file, that is to say only the $s$ and $a$ fields of each transitions. The estimate of $mu_E$, however, makes use of the information of $eoe$ as well. For every $(s,a)$ couple in the file, every trajectory is cut from $(s,a)$ (if it appears in the trajectory at all) onwards, and this subtajectory is added in a database. Then, a simple Monte-Carlo estimation gives an estimate for every couple $(s_i, a_i)$ in the datafile. The heuristics happens when SCIRL request a $\mu_E$ estimate for a couple $(s_i,a\neq a_i)$ : we answer $\gamma \hat \mu_E(s_i,a_i)$. The rationale behind this is to say that using a non expert transition will make the agent "loose some time" and thus we multiply the estimate by the discount factor.
 * On a continuous problem (Inverted Pendulum)
+  Looking for a toy problem the state space of which is continuous, we settled on the Inverted Pendulum problem, a classical benchmark in the Reinforcement Learning litterature, a torough description of which can be found in \cite{lagoudakis2003least}.
+
+  The dimensionality of the state space is 2 (position and speed), and the action space has a dimensionality of 1 and a cardinality of 3 (Right, Left, or Nothing).
+
+  The input of the algorithm is a matrix of transitions from the expert [[file:D_IP.mat]]. The non-commented python source file (see the example on the GridWorld for comments) [[file:SCIRL_InvertedPendulum.py]] show how to use the code of the algorithm (which can be found in [[file:LAFEM.py]]) to output a reward. The estimate of $\mu_E$ is done with the LSTD$\mu$ algorithm in its on-policy form, the code of which lies in file:LSTDmu.c.
+
+  For the same reasons as on the GridWorld, we only output the reward but do not train an agent on it.
+ 
+  Invoking 
+  : make SCIRL_IP
+  on the command line will compile the C code for LSTDMu and run it, and then run SCIRL.
+
+** Note on the estimation of $\mu_E$
+   For this problem, unlike what has been done on the GridWorld, $\mu_E$ is evaluated with an algorithm called LSTD$\mu$ \cite{klein2011batch}. This is well suited for problems with e.g. spatial coherence.
+* Further Work and things susceptible to change
+  The LSTD$\mu$ algorithm should be implemented in python in order to avoid having to write the feature function both in C and python.
+
+ Both the Monte-Carlo heuristics and the LSTD-$\mu$ algorithm implementations should be moved in the parent class with an easy to set option to choose which one to use or to let the uer implement his/her own.
+\bibliographystyle{plain}
+\bibliography{../../Biblio/Biblio.bib}
