@@ -89,8 +89,17 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
 	$(MAKE) -C Highway clean
+	$(MAKE) -C klein2012structured_NIPS clean
     #+end_src
 * End results
+** Published papers
+*** SCIRL
+**** NIPS
+    #+begin_src makefile :tangle Makefile
+SCIRL_NIPS:
+	make -C klein2012structured_NIPS && evince klein2012structured_NIPS/scirl_nips_cr.pdf
+    #+end_src
+
 ** LAFEM
    - LAFEM_Exp1 (GridWorld)
     #+begin_src makefile :tangle Makefile

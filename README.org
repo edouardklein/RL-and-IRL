@@ -1,12 +1,12 @@
 * Tentatvie de nettoyage (Archéologie numérique).
 
-On commence par obtenir un truc propre avec git, pas de fichiers à la con qui ne sont pas dans l'index.
-
-Ensuite on modifie les Makefiles pour qu'il utilisent la commande =tangle= (de org-utils) et non emacs.
-
 Quand c'est fait on le push sur GitHub histoire de pas perdre ces modifs.
 
 Le but ensuite est de rajouter à la branche master toutes les ressources, actuellement éparpillées dans plein de branches, qui ont servi dans des papiers publiés.
 
 On commitera et pushera au fur et à mesure où on retrouve ces ressources.
 
+* Targets
+| article | conf | papier | poster | slides | exp    | target     |
+| SCIRL   | NIPS | OK     | inex   | inex   | en dur | SCIRL_NIPS |
+|         |      |        |        |        |        |            |
