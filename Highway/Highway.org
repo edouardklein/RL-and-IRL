@@ -564,4 +564,15 @@ Playomega.py: Highway.org
 Highway_clean: 
 	find . -maxdepth 1 -iname "Highway.py"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "phipsi.*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Expert.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Random.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "DE.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Highway.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega2mu.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "theta2omega.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Playomega.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "EvaluateOmega.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "EvaluateOmegaN.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "RandomPlay.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "RandomResults.py"   | xargs $(XARGS_OPT) rm
   #+end_src

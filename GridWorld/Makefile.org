@@ -42,11 +42,18 @@ O2EXE=gcc $(LFLAGS)
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
 <<LAFEM_Exp1_clean_make>>
+<<SCIRL_Exp1_clean_make>>
+<<LSPI_Exp1_clean_make>>
+<<ANIRL_Exp2_clean_make>>
+<<ANIRL_Exp3_clean_make>>
+<<Cascading_Exp2_clean_make>>
+<<Cascading_Exp3_clean_make>>
 <<LSTDmu_Exp_clean_make>>
 <<Generator_clean_make>>
 <<Simulator_clean_make>>
 <<TT_Exp1_clean_make>>
-clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulator_clean TT_Exp1_clean
+<<REntropy_Exp1_make>>
+clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulator_clean TT_Exp1_clean ANIRL_Exp2_clean ANIRL_Exp3_clean Cascading_Exp3_clean Cascading_Exp2_clean REntropy_Exp1_clean LSPI_Exp1_clean SCIRL_Exp1_clean
 
 <<LSTDmu_Exp_nuke_make>>
     #+end_src

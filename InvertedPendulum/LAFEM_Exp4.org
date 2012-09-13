@@ -182,7 +182,7 @@ LAFEM_Exp4_clean: LAFEM_Exp3_clean LAFEM_Exp2_clean
 	find . -maxdepth 1 -iname "D_expert_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "omega_mu_E_*.mat"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "theta_lafem_*.mat"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "LAFEM_Exp4_quality.*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp4_*"   | xargs $(XARGS_OPT) rm
   #+end_src
 
 * Résultats

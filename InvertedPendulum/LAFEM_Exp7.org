@@ -318,3 +318,13 @@ LAFEM_Exp7_Vmu.pdf: LAFEM_Exp7_Vagent.gp LAFEM_Exp7_Vmu.dat
 
 #+end_src
 
+
+
+** Cleaning
+   A rule to clean the mess :
+  #+srcname: LAFEM_Exp7_clean_make
+  #+begin_src makefile
+LAFEM_Exp7_clean: LAFEM_Exp3_clean LAFEM_Exp2_clean
+	find . -maxdepth 1 -iname "LAFEM_Exp7_*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp7.py"   | xargs $(XARGS_OPT) rm
+  #+end_src

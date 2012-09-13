@@ -112,12 +112,17 @@ O2EXE=gcc $(LFLAGS)
 <<Generator_clean_make>>
 <<InvertedPendulum_clean_make>>
 <<Simulator_clean_make>>
+<<ANIRL_Exp1_clean_make>>
+<<ANIRL_Exp4_clean_make>>
 <<LSTDmu_Exp_clean_make>>
 <<LAFEM_Exp2_clean_make>>
 <<LAFEM_Exp3_clean_make>>
 <<LAFEM_Exp4_clean_make>>
+<<LAFEM_Exp7_clean_make>>
+<<MCLength_clean_make>>
+<<Cascading_Exp4_clean_make>>
 <<LAFEM_Exp5_clean_make>>
-clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean LAFEM_Exp2_clean LAFEM_Exp3_clean LAFEM_Exp4_clean LAFEM_Exp5_clean
+clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean LAFEM_Exp2_clean LAFEM_Exp3_clean LAFEM_Exp4_clean LAFEM_Exp5_clean ANIRL_Exp1_clean ANIRL_Exp4_clean Cascading_Exp4_clean LAFEM_Exp7_clean MCLength_clean
 
     #+end_src
 
