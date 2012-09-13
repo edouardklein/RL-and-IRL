@@ -8,21 +8,38 @@
 \firstpagenumber{9}
 
 % \title[short header title]{title}
-\title{Classification structurée pour l'apprentissage par renforcement}
-\author[1]{first name 1}{last name 1}
-\author[2]{first name 2}{last name 2}
+\title[SCIRL]{Classification structurée pour l'apprentissage par renforcement}
+\author[1,2]{Edouard}{Klein}
+\author[2]{Bilal}{Piot}
+\author[2,3]{Matthieu}{Geist}
+\author[2,3]{Olivier}{Pietquin}
+
 
 % addresses are automatically numbered
-\address{...\\...\\
-         ..., country}
-        {e-mail 1}
-\address{...\\...\\
-         ..., country}
-        {e-mail 1}
+\address{LORIA -- team ABC\\
+Nancy, France
+}{}
+\address{Supélec -- IMS-MaLIS Research Group\\
+Metz, France}
+        {prenom.nom@supelec.fr}
+\address{ UMI 2958 (GeorgiaTech-CNRS)\\
+Metz, France}{}
 
-\abstract{}
+\abstract{  This paper adresses the inverse reinforcement learning (IRL) problem, that
+  is inferring a reward for which a demonstrated expert behavior is
+  optimal. We introduce a new algorithm, SCIRL, whose principle is to use
+  the so-called feature expectation of the expert as the
+  parameterization of the score function of a multi-class
+  classifier. This approach produces a reward function for which the
+  expert policy is provably near-optimal. Contrary to most of
+  existing IRL algorithms, SCIRL does not require solving the
+  direct RL problem. Moreover, with an appropriate heuristic, it can succeed with only trajectories sampled
+  according to the expert behavior. This is illustrated on a car
+  driving simulator.}
+\resume{Cette contribution traite du problème de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse (\emph{ARI}). Dans ce contexte, un expert accomplit une tâche qu'un agent artificiel doit essayer de reproduire. L'ARI part du postulat que l'expert optimise avec succès une fonction de récompense ; le problème consiste à deviner cette fonction à partir de  traces du comportement de l'expert. Les algorithmes d'ARI existants nécessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires complètes de la part de l'expert, un modèle génératif pour les estimations de type Monte-Carlo, la connaissance des probabilités de transition, la capacité de résoudre le problème direct (celui de l'apprentissage par renforcement) de manière répétée ou l'accès à la strategie complète de l'expert. Notre contribution consiste en un nouvel algorithme d'ARI levant l'ensemble de ces contraintes. En utilisant une méthode supervisée dans laquelle nous introduisons implicitement la structure du processus décisionnel de Markov ({\it PDM}) sous-jacent, nous créons un algorithme basé sur une descente de sous-gradient, possèdant une faible complexité tant en échantillons que calculatoire et surtout ne nécessitant pas la résolution du problème direct.}
 
-\keywords{Apprentissage par Renforcement, Apprentissage par Renforcement Inverse}
+\keywords{Reinforcement Learning, Inverse Reinforcement Learning}
+\motscles{Apprentissage par Renforcement, Apprentissage par Renforcement Inverse}
 
 
 \begin{document}
