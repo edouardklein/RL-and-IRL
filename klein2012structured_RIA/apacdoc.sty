@@ -1,0 +1,481 @@
+%%
+%% This is file `apacdoc.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% apacite.dtx  (with options: `docpkg')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 1994-8888 Erik Meijer and any individual authors listed
+%% elsewhere in this file.
+%% 
+%% This file is part of the `apacite' package.
+%% -------------------------------------------
+%% 
+%% It may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either
+%% version 1.3 of this license or (at your option) any later
+%% version.  The latest version of this license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.3 or later is part of all distributions of
+%% LaTeX version 2005/12/01 or later.
+%% 
+%% The `apacite' package consists of the files apacite.dtx and
+%% apacite.ins, and the following generated files:
+%% apacite.sty, apacdoc.sty,  apacite.drv,
+%% apacite.bst, apacitex.bst, apacann.bst,  apacannx.bst,
+%% apa5ex.bib,  apacxmpl.tex,
+%% english.apc, dutch.apc,    finnish.apc,  french.apc,
+%% german.apc,  ngerman.apc,  greek.apc,    norsk.apc,
+%% spanish.apc, swedish.apc.
+%% 
+%% This work has the LPPL maintenance status `maintained'
+%% 
+%% The Current Maintainer of this work is Erik Meijer
+%% 
+%% This file may only be distributed together with a copy of the
+%% source files of the apacite package, i.e., apacite.dtx and
+%% apacite.ins. You may however distribute the apacite package without
+%% the generated files.
+%% 
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{apacdoc}
+   [2012/02/25 v6.01 apacite documentation style]
+%%
+%% apacdoc.sty : Style package that is used for the apacite documentation.
+%% Written by Erik Meijer
+\newif\if@APACdoc@AX
+\DeclareOption{makeAX}{\@APACdoc@AXtrue}%
+\@APACdoc@AXfalse
+\ProcessOptions
+%% \DeclareRobustCommand{\bibliteral}[1]{\string\bibliteral{#1}}
+%% \newcommand{\bibliteral}[1]{#1}
+%% \newcommand{\bibliteral}[1]{\string\bibliteral{#1}}
+\newcommand{\bibliteral}[1]{\string\bibliteral\space{#1}}
+\DeclareRobustCommand{\bibinitial}[1]{\string#1}
+%% \newcommand{\bibinitial}{\string\bibinitial\space}
+\newcommand{\bibnodot}[1]{}
+\newcommand{\SwapArgs}[2]{#2#1}
+\newcommand{\bibreftext}[2]{#2}
+\newcommand{\Dutchvon}[2]{#2}
+\DeclareRobustCommand{\bibeditortype}[1]{\relax }%
+\def\renewbibeditortype{%
+  \def\oldBED{}%
+  \def\oldBEDS{}%
+  \DeclareRobustCommand{\bibeditortype}[1]{%
+    \global\let\oldBED\BED
+    \global\let\oldBEDS\BEDS
+    \global\def\BED{##1\global\let\BED\oldBED  \global\let\BEDS\oldBEDS}%
+    \global\def\BEDS{##1\global\let\BED\oldBED \global\let\BEDS\oldBEDS}%
+  }%
+}
+\newcommand{\bibInstring}[1]{%
+  \global\let\oldBIn\BIn
+  \global\def\BIn{#1\global\let\BIn\oldBIn}%
+}
+\newcommand{\BOn}{On}
+\global\def\BAbstractRetrieved#1{Abstract retrieved {#1}, from\ }%
+\DeclareRobustCommand{\BmakeAbstractRetrieved}{%
+  \global\def\oldBRetrieved{}%
+  \global\let\oldBRetrieved\BRetrieved
+  \global\def\BRetrieved##1{%
+     \BAbstractRetrieved{##1}%
+     \global\let\BRetrieved\oldBRetrieved%
+  }%
+}
+\DeclareRobustCommand{\noedition}{%
+  \global\def\oldBEd{}%
+  \global\let\oldBEd\BEd
+  \global\def\BEd{%
+     \unskip
+     \global\let\BEd\oldBEd
+  }%
+}
+\def\swallownext#1{\relax}
+\def\swallowdot{%
+    \@ifnextchar.%
+      {\swallownext}%
+      {\relax}%
+}
+%% \def\bibskipbracenodot{\string\bibskipbracenodot}
+%% \def\bibskipbracenodot{\aftergroup\swallowdot}
+%% \let\bibskipbracenodot\relax
+\def\bibskipbracenodot{\noexpand\bibskipbracenodot}
+\def\indexskipbracenodot{\noexpand\indexskipbracenodot}
+\newcommand{\APACmanBeforeBib}{%
+    \renewcommand{\bibreftext}[2]{##1}%
+    \renewcommand{\Dutchvon}[2]{##1}%
+    \renewbibeditortype
+    \global\let\oldbibskipbracenodot\bibskipbracenodot
+    \global\def\bibskipbracenodot{\aftergroup\swallowdot}%
+    \global\let\oldbibliteral\bibliteral
+    \renewcommand{\bibliteral}[1]{##1}%
+    \global\let\oldbibinitial\bibinitial
+    \renewcommand{\bibinitial}[1]{##1}%
+}
+\def\APACbibstyle{%
+  \if@APAC@index
+    apacitex% with index option
+  \else
+    apacite% without index option
+  \fi
+}
+\newcommand{\APACmanBeforeIndex}{%
+    \clearpage
+    \renewcommand{\bibeditortype}[1]{}%
+    \renewcommand{\bibliteral}[1]{\unskip}%
+    \global\let\indexskipbracenodot\bibskipbracenodot
+}
+\newcommand{\APACmanAfterIndex}{%
+    \global\let\bibskipbracenodot\oldbibskipbracenodot
+    \global\def\indexskipbracenodot{\noexpand\indexskipbracenodot}%
+    \APACdocindex
+}
+\newcommand{\SetupAPACdocPrologues}{%
+  \@ifundefined{IndexPrologue}{}{%
+    \IndexPrologue{%
+      \clearpage\section*{{Code Index}}%
+      \addcontentsline{toc}{section}{Code Index}%
+      \markboth{{Code Index}}{{Code Index}}%
+      Numbers written in italic refer to the page where the corresponding
+      entry is described; numbers underlined refer to the
+      \ifcodeline@index
+        code line of the
+      \fi
+      definition; numbers in roman refer to the
+      \ifcodeline@index
+        code lines
+      \else
+        pages
+      \fi
+      where the entry is used.
+    }%
+  }%
+  \@ifundefined{GlossaryPrologue}{}{%
+    \GlossaryPrologue{\section{{Change History}}%
+      \markboth{{Change History}}{{Change History}}%
+    }%
+  }%
+}
+\def\APACdocindex{%
+    \ifhave@multicol
+      \renewenvironment{theindex}
+        {\begin{multicols}\c@IndexColumns[\index@prologue][\IndexMin]%
+          \IndexParms \let\item\@idxitem \ignorespaces}%
+        {\end{multicols}}
+    \else
+      \typeout{Can't find multicol.sty -- will use normal index layout if
+         necessary.}
+      \def\theindex{\@restonecoltrue\if@twocolumn\@restonecolfalse\fi
+        \columnseprule \z@  \columnsep 35\p@
+        \twocolumn[\index@prologue]%
+        \IndexParms \let\item\@idxitem \ignorespaces}
+      \def\endtheindex{\if@restonecol\onecolumn\else\clearpage\fi}
+    \fi
+}
+\def\bibleversion#1{\gdef\@bibleversion{#1}}
+\def\@bibleversion{Revised Standard Version}
+\def\bibleciteA#1{%
+   {\@ifundefined{flag@bible}%
+      {\fullbibleciteA{#1}}%
+      {\shortbibleciteA{#1}}%
+   }%
+}
+\def\fullbibleciteA#1{%
+   {#1}%
+   { \BBOP\@bibleversion\BBCP}%
+   {\global\expandafter\def\csname flag@bible\endcsname{DUMMY}}%
+}
+\def\shortbibleciteA#1{%
+   {#1}%
+   {\global\expandafter\def\csname flag@bible\endcsname{DUMMY}}%
+}
+\def\biblecite#1{%
+   {\@ifundefined{flag@bible}%
+      {\fullbiblecite{#1}}%
+      {\shortbiblecite{#1}}%
+   }%
+}
+\def\fullbiblecite#1{%
+   {\BBOP}%
+   {#1}%
+   {\BBAY{} \@bibleversion}%
+   {\BBCP}%
+   {\global\expandafter\def\csname flag@bible\endcsname{DUMMY}}%
+}
+\def\shortbiblecite#1{%
+   {\BBOP}%
+   {#1}%
+   {\BBCP}%
+   {\global\expandafter\def\csname flag@bible\endcsname{DUMMY}}%
+}
+\def\bibleciteNP#1{%
+   {\@ifundefined{flag@bible}%
+      {\fullbibleciteNP{#1}}%
+      {\shortbibleciteNP{#1}}%
+   }%
+}
+\def\fullbibleciteNP#1{%
+   {#1}%
+   {\BBAY{} \@bibleversion}%
+   {\global\expandafter\def\csname flag@bible\endcsname{DUMMY}}%
+}
+\def\shortbibleciteNP#1{%
+   {#1}%
+   {\global\expandafter\def\csname flag@bible\endcsname{DUMMY}}%
+}
+\newcommand{\bibsong}[4]{}
+\newcommand{\citeAsong}[1]{%
+  \def\bibsong##1##2##3##4{%
+    \APACciteatitle{##3} {\BBOP}{##1}{\BBAY}{##2}{\BBN}{##4}{\BBCP}%
+  }%
+  \citeauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\newcommand{\fullciteAsong}[1]{%
+  \def\bibsong##1##2##3##4{%
+    \APACciteatitle{##3} {\BBOP}{##1}{\BBAY}{##2}{\BBN}{##4}{\BBCP}%
+  }%
+  \fullciteauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\newcommand{\shortciteAsong}[1]{%
+  \def\bibsong##1##2##3##4{%
+    \APACciteatitle{##3} {\BBOP}{##1}{\BBAY}{##2}{\BBN}{##4}{\BBCP}%
+  }%
+  \shortciteauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\newcommand{\citesong}[1]{%
+  \def\bibsong##1##2##3##4{%
+    {\BBOP}\APACciteatitle{##3},{\BAP}{##1}{\BBAY}{##2}{\BBN}{##4}%
+    {\BBCP}%
+  }%
+  \citeauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\newcommand{\fullcitesong}[1]{%
+  \def\bibsong##1##2##3##4{%
+    {\BBOP}\APACciteatitle{##3},{\BAP}{##1}{\BBAY}{##2}{\BBN}{##4}%
+    {\BBCP}%
+  }%
+  \fullciteauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\newcommand{\shortcitesong}[1]{%
+  \def\bibsong##1##2##3##4{%
+    {\BBOP}\APACciteatitle{##3},{\BAP}{##1}{\BBAY}{##2}{\BBN}{##4}%
+    {\BBCP}%
+  }%
+  \shortciteauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\newcommand{\citesongNP}[1]{%
+  \def\bibsong##1##2##3##4{%
+    \APACciteatitle{##3},{\BAP}{##1}{\BBAY}{##2}{\BBN}{##4}%
+  }%
+  \citeauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\newcommand{\fullcitesongNP}[1]{%
+  \def\bibsong##1##2##3##4{%
+    \APACciteatitle{##3},{\BAP}{##1}{\BBAY}{##2}{\BBN}{##4}%
+  }%
+  \fullciteauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\newcommand{\shortcitesongNP}[1]{%
+  \def\bibsong##1##2##3##4{%
+    \APACciteatitle{##3},{\BAP}{##1}{\BBAY}{##2}{\BBN}{##4}%
+  }%
+  \shortciteauthor{#1}%
+  \def\bibsong##1##2##3##4{}%
+}
+\DeclareRobustCommand{\bibDSM}[4]{#1}
+\newcommand\origbibDSM{}
+\let\origbibDSM\bibDSM
+\newcommand{\DSMauthor}[1]{%
+  \def\bibDSM##1##2##3##4{##1}%
+  \citeauthor{#1}%
+  \let\bibDSM\origbibDSM
+}
+\newcommand{\DSMfulltitle}[1]{%
+  \def\bibDSM##1##2##3##4{##2}%
+  \citeauthor{#1}%
+  \let\bibDSM\origbibDSM
+}
+\newcommand{\DSMshorttitle}[1]{%
+  \def\bibDSM##1##2##3##4{##4}%
+  \citeauthor{#1}%
+  \let\bibDSM\origbibDSM
+}
+\newcommand{\DSMedition}[1]{%
+  \def\bibDSM##1##2##3##4{##3}%
+  \citeauthor{#1}%
+  \let\bibDSM\origbibDSM
+}
+\newcommand{\DSMciteA}[1]{%
+    \@for\@citeb:=#1\do{%
+      \edef\@citeb{\expandafter\@firstofone\@citeb}%
+      \@ifundefined{flag@\@citeb\APAC@extra@b@citeb}%
+         {\DSMfullciteA{#1}}%
+         {\DSMshortciteA{#1}}%
+    }%
+}
+\newcommand{\DSMfullciteA}[1]{%
+  \APACcitebtitle{\DSMfulltitle{#1}}
+  \BBOP
+  \DSMedition{#1};
+  \APACcitebtitle{\DSMshorttitle{#1}};
+  \citeNP{#1}%
+  \BBCP
+}
+\newcommand{\DSMshortciteA}[1]{%
+  \APACcitebtitle{\DSMshorttitle{#1}}%
+}
+\newcommand{\DSMcite}[1]{%
+    \@for\@citeb:=#1\do{%
+      \edef\@citeb{\expandafter\@firstofone\@citeb}%
+      \@ifundefined{flag@\@citeb\APAC@extra@b@citeb}%
+         {\DSMfullcite{#1}}%
+         {\DSMshortcite{#1}}%
+    }%
+}
+\newcommand{\DSMfullcite}[1]{%
+  \BBOP
+  \APACcitebtitle{\DSMfulltitle{#1}},
+  \DSMedition{#1};
+  \APACcitebtitle{\DSMshorttitle{#1}};
+  \citeNP{#1}%
+  \BBCP
+}
+\newcommand{\DSMshortcite}[1]{%
+  \BBOP\APACcitebtitle{\DSMshorttitle{#1}}\BBCP
+}
+\newcommand{\DSMciteNP}[1]{%
+    \@for\@citeb:=#1\do{%
+      \edef\@citeb{\expandafter\@firstofone\@citeb}%
+      \@ifundefined{flag@\@citeb\APAC@extra@b@citeb}%
+         {\DSMfullciteNP{#1}}%
+         {\DSMshortciteNP{#1}}%
+    }%
+}
+\newcommand{\DSMfullciteNP}[1]{%
+  \APACcitebtitle{\DSMfulltitle{#1}},
+  \DSMedition{#1};
+  \APACcitebtitle{\DSMshorttitle{#1}};
+  \citeNP{#1}%
+}
+\newcommand{\DSMshortciteNP}[1]{%
+  \APACcitebtitle{\DSMshorttitle{#1}}%
+}
+\newcommand{\SetupAPACdoc}{%
+  \newcommand{\MiKTeX}{MiK\TeX}
+  \@ifundefined{BibTeX}{%
+    \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+        T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}% from bibtex.web
+  }{}
+  \newcommand{\MakeIndex}{\textit{MakeIndex}}
+  \newcommand{\latextohtml}{\textup{\LaTeX2\texttt{HTML}}}% from html.sty
+  \newcommand{\LaTeXrtf}{\textup{\LaTeX2RTF}}%
+  \newcommand{\TeXht}{\textup{\TeX4ht}}%
+  \newcommand{\Perl}{\textsl{Perl}}%
+  \newcommand{\EM}{\ensuremath{\triangleright\quad}}
+  \newcommand{\APACversiondate}[1]{\relax [##1]}
+  \newcommand{\LC}{\mbox{${}^{\dag}$}}% \LaTeX{} Companion
+  \newcommand{\X}{\ensuremath{\times}}% for one table
+  \newcommand{\Y}{\ensuremath{c}}% for one table
+  \newcommand{\A}{\ensuremath{a}}% for one table
+  \newcommand{\pkg}[1]{\textsf{##1}}% package name
+  \newcommand{\fname}[1]{\texttt{##1}}% file name
+  \newcommand{\fieldname}[1]{\texttt{##1}}% field name
+  \newcommand{\entryname}[1]{\texttt{##1}}% entry type name
+  \newcommand{\pkgoption}[1]{\texttt{##1}}% package option
+  \newcommand{\envirname}[1]{\texttt{##1}}% environment name
+  \AtBeginDocument{%
+    \@ifundefined{cmd}{%
+      \newcommand{\cmd}[1]{\texttt{\string##1}}% command, incl. `\'
+    }{}%
+  }
+  \newcommand{\bs}{{\ttfamily \@backslashchar}}% backslash
+  \newcommand{\opt}[1]{$\langle${\itshape ##1}$\rangle$}% generic text
+  \newcommand{\cmdtwo}[2]{{\mdseries\bs\texttt{##1\{}\opt{##2}%
+                          \texttt{\}}}}%
+  \newcommand{\cmdthree}[3]{{\mdseries\bs\texttt{##1[}\opt{##2}%
+                          \texttt{]\{}\opt{##3}%
+                          \texttt{\}}}}%
+  \newcommand{\cmdthreepre}[3]{{\mdseries\bs\texttt{##1<}\opt{##2}%
+                          \texttt{>\{}\opt{##3}%
+                          \texttt{\}}}}%
+  \newcommand{\cmdthreealt}[3]{{\mdseries\bs\texttt{##1[}\opt{##2}%
+                          \texttt{]\{##3\}}}}%
+  \newcommand{\cmdfour}[4]{{\mdseries\bs\texttt{##1<}\opt{##2}%
+                          \texttt{>[}\opt{##3}%
+                          \texttt{]\{}\opt{##4}%
+                          \texttt{\}}}}%
+  \AtBeginDocument{%
+    \@ifundefined{flqq}{%
+      \newcommand{\flqq}{%
+        {\fontencoding{T1}\fontfamily{cmr}\selectfont\symbol{19}}}%
+      \newcommand{\frqq}{%
+        {\fontencoding{T1}\fontfamily{cmr}\selectfont\symbol{20}}}%
+    }{}%
+  }%
+  \newcommand{\simpleguillemots}{%
+    \renewcommand{\flqq}{\raisebox{2.5pt}{%
+      \tiny{\ensuremath{\mathord{<\!\!<}}}}}%
+    \renewcommand{\frqq}{\raisebox{2.5pt}{%
+      \tiny{\ensuremath{\mathord{>\!\!>}}}}}%
+  }%
+  \newcommand{\APACdocPageLayout}{%
+      \normalsize
+      \let\oldhoffset\hoffset
+      \let\oldvoffset\voffset
+      \let\oldoddsidemargin\oddsidemargin
+      \let\oldevensidemargin\evensidemargin
+      \let\oldtopmargin\topmargin
+      \let\oldheadheight\headheight
+      \let\oldheadsep\headsep
+      \let\oldtextheight\textheight
+      \let\oldfootskip\footskip
+      \let\oldtextwidth\textwidth
+      \let\oldlinewidth\linewidth
+      \let\oldmarginparsep\marginparsep
+      \let\oldmarginparwidth\marginparwidth
+      \let\oldmarginparpush\marginparpush
+      %%
+      %% \setlength{\hoffset}{-1in} % top-left reference point is
+      \setlength{\voffset}{-1in} % the top-left corner of the page
+      %% \setlength{\oddsidemargin}{1.3in}
+      %% \setlength{\evensidemargin}{1.3in}
+      \setlength{\topmargin}{1.35in}
+      %% %% \setlength{\headheight}{\baselineskip}
+      \setlength{\headheight}{0.12in}
+      \setlength{\headsep}{0.24in}
+      \setlength{\textheight}{7.9in}
+      \setlength{\footskip}{30pt}
+      %% \setlength{\textwidth}{5.9in}
+      %% \setlength{\linewidth}{\textwidth}
+      %% \setlength{\marginparsep}{0pt}
+      %% \setlength{\marginparwidth}{0pt}
+      %% \setlength{\marginparpush}{0pt}
+  }
+  \newcommand{\APACcodePageLayout}{%
+      \let\hoffset\oldhoffset
+      \let\oddsidemargin\oldoddsidemargin
+      \let\evensidemargin\oldevensidemargin
+      \let\textwidth\oldtextwidth
+      \let\linewidth\oldlinewidth
+      \let\marginparsep\oldmarginparsep
+      \let\marginparwidth\oldmarginparwidth
+      \let\marginparpush\oldmarginparpush
+  }
+}
+%%
+\endinput
+%%
+%% End of file `apacdoc.sty'.

@@ -1,0 +1,252 @@
+%%
+%% This is file `french.apc',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% apacite.dtx  (with options: `french')
+%% 
+%% This is a generated file.
+%% 
+%% Copyright (C) 1994-8888 Erik Meijer and any individual authors listed
+%% elsewhere in this file.
+%% 
+%% This file is part of the `apacite' package.
+%% -------------------------------------------
+%% 
+%% It may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either
+%% version 1.3 of this license or (at your option) any later
+%% version.  The latest version of this license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.3 or later is part of all distributions of
+%% LaTeX version 2005/12/01 or later.
+%% 
+%% The `apacite' package consists of the files apacite.dtx and
+%% apacite.ins, and the following generated files:
+%% apacite.sty, apacdoc.sty,  apacite.drv,
+%% apacite.bst, apacitex.bst, apacann.bst,  apacannx.bst,
+%% apa5ex.bib,  apacxmpl.tex,
+%% english.apc, dutch.apc,    finnish.apc,  french.apc,
+%% german.apc,  ngerman.apc,  greek.apc,    norsk.apc,
+%% spanish.apc, swedish.apc.
+%% 
+%% This work has the LPPL maintenance status `maintained'
+%% 
+%% The Current Maintainer of this work is Erik Meijer
+%% 
+%% This file may only be distributed together with a copy of the
+%% source files of the apacite package, i.e., apacite.dtx and
+%% apacite.ins. You may however distribute the apacite package without
+%% the generated files.
+%% 
+%%
+%% french.apc - french version of apacite elements
+%% Adapted from english.apc by \'Eric Raufaste
+%%
+\edef\APACrestoreAtCode{%
+   \catcode`@=\the\catcode`@\relax
+}%
+\makeatletter
+\renewcommand{\onemaskedcitationmsg}[1]{%
+    \emph{(#1\ citation removed for masked review)}}% !!! CHANGE
+\renewcommand{\maskedcitationsmsg}[1]{%
+    \emph{(#1\ citations removed for masked review)}}% !!! CHANGE
+%%
+\renewcommand{\refname}{R\'ef\'erences}% Name of ref. list if it's a section.
+\renewcommand{\bibname}{R\'ef\'erences}% Name of ref. list if it's a chapter.
+%% The name (heading) of the Author Index
+\renewcommand{\authorindexname}{Index des auteurs}%
+%%
+%% A note before the references if a meta-analysis is reported.
+\renewcommand{\APACmetaprenote}{%
+  Les r\'ef\'erences marqu\'ees d'un ast\'erisque indiquent des \'etudes
+  incluses dans la m\'eta-analyse.}%
+%%
+%% Commands for specific types of @misc entries.
+\renewcommand{\bibmessage}{Msg}%
+\renewcommand{\bibcomputerprogram}{Logiciel}%
+\renewcommand{\bibcomputerprogrammanual}{Manuel de logiciel}%
+\renewcommand{\bibcomputerprogramandmanual}{Logiciel et manuel}%
+\renewcommand{\bibcomputersoftware}{Logiciel}%
+\renewcommand{\bibcomputersoftwaremanual}{Manuel de logiciel}%
+\renewcommand{\bibcomputersoftwareandmanual}{Logiciel et manuel}%
+\renewcommand{\bibprogramminglanguage}{Langage de programmation}%
+%%
+%% Other labels
+\renewcommand{\bibnodate}{s.~d.\hbox{}}%         ``no date''
+\renewcommand{\BIP}{sous presse}%                ``in press''
+\renewcommand{\BOthers}[1]{et al.\hbox{}}%       ``and others''
+\renewcommand{\BOthersPeriod}[1]{et al.\hbox{}}% ``and others'' with a period
+\renewcommand{\BIn}{In}%                 % for ``In'' editor...
+\renewcommand{\Bby}{par}%                % for ``by'' editor... (in reprints)
+\renewcommand{\BED}{Ed.\hbox{}}%            % editor
+\renewcommand{\BEDS}{Eds.\hbox{}}%          % editors
+\renewcommand{\BTRANS}{Trad.\hbox{}}%       % translator
+\renewcommand{\BTRANSS}{Trad.\hbox{}}%      % translators
+\renewcommand{\BTRANSL}{trad.\hbox{}}%      % translation, for the year field
+\renewcommand{\BCHAIR}{Pr\'es.\hbox{}}%     % chair of symposium
+\renewcommand{\BCHAIRS}{Pr\'es}%            % chairs
+\renewcommand{\BVOL}{Vol.\hbox{}}%          % volume
+\renewcommand{\BVOLS}{Vols.\hbox{}}%        % volumes
+\renewcommand{\BNUM}{N\textsuperscript{o}}% % number
+\renewcommand{\BNUMS}{N\textsuperscript{os}}% numbers
+\renewcommand{\BEd}{\'ed.\hbox{}}%          % edition
+\renewcommand{\BCHAP}{chap.\hbox{}}%        % chapter
+\renewcommand{\BCHAPS}{chap.\hbox{}}%       % chapters
+\renewcommand{\BPG}{p.\hbox{}}%             % page
+\renewcommand{\BPGS}{pp.\hbox{}}%           % pages
+%% Default technical report type name.
+\renewcommand{\BTR}{Rapport technique}%
+%% Default PhD thesis type name.
+\renewcommand{\BPhD}{Th\`ese de doctorat}%
+%% Default unpublished PhD thesis type name.
+\renewcommand{\BUPhD}{Th\`ese de doctorat non publi\'ee}%
+%% Default master's thesis type name.
+\renewcommand{\BMTh}{M\'emoire de Master}%
+%% Default unpublished master's thesis type name.
+\renewcommand{\BUMTh}{M\'emoire de Master non publi\'e}%
+%%
+\renewcommand{\BAuthor}{Auteur}%% Used if publisher = author
+\renewcommand{\BOWP}{\OE uvre originale publi\'ee en}%
+\renewcommand{\BREPR}{R\'eimprim\'e \`a partir de}%
+\renewcommand{\BAvailFrom}{Disponible sur\ }%      Websites; note the space.
+%% Websites; note the space.
+%% The argument is the date on which it was last checked.
+\renewcommand{\BRetrieved}[1]{Consult\'e le {#1}, sur\ }%
+\renewcommand{\BRetrievedFrom}{Consult\'e sur\ }%
+\renewcommand{\BMsgPostedTo}{Message post\'e sur\ }% Messages; note the space.
+%%
+%% Punctuation
+\renewcommand{\BBOP}{(}%   opening parenthesis
+\renewcommand{\BBCP}{)}%   closing parenthesis
+\renewcommand{\BBOQ}{}%    opening quote for article title
+\renewcommand{\BBCQ}{}%    closing quote for article title
+\renewcommand{\BBAA}{\&}%  between authors in parenthetical cites and ref. list
+\renewcommand{\BBAB}{et}%  between authors in text
+\renewcommand{\BAnd}{\&}%  for ``Ed. \& Trans.'' in ref. list
+\DeclareRobustCommand{\BPBI}{.~}% Period between initials
+\DeclareRobustCommand{\BHBI}{.-}% Hyphen between initials
+\renewcommand{\BAP}{ }%   after prefix, before first citation
+\renewcommand{\BBAY}{, }% between author(s) and year
+\renewcommand{\BBYY}{, }% between years of multiple citations with same author
+\renewcommand{\BBC}{~; }% between cites
+\renewcommand{\BBN}{, }%  before note
+\renewcommand{\BCBT}{,}%  comma between authors in ref. list when no. of
+                      %%  authors = 2
+\renewcommand{\BCBL}{,}%  comma before last author when no. of authors > 2
+%%
+%% Date formatting
+\renewcommand{\APACmonth}[1]{\ifcase #1\or janvier\or f\'evrier\or mars\or
+    avril\or mai\or juin\or juillet\or ao\^ut\or septembre\or octobre\or
+    novembre\or d\'ecembre\or hiver\or printemps\or \'et\'e\or automne\else
+    {#1}\fi}%
+%% Structure taken from definition of \today in frenchb.dtx
+\makeatletter
+\renewcommand{\APACrefYearMonthDay}[3]{%
+  {\BBOP}{#1}%          year (+ addendum); should not be empty
+  \ifx\@empty#3\@empty
+    \ifx\@empty#2\@empty
+    \else
+      \unskip, {#2}%    month
+    \fi
+  \else
+    \unskip, {#3}%      day
+    \edef\APAC@tempa{#3}%
+    \edef\APAC@tempb{1}%
+    \ifx\APAC@tempa\APAC@tempb\@empty {\ier}\fi
+    \let\APAC@tempa\@undefined
+    \let\APAC@tempb\@undefined
+    %%
+    \ifx\@empty#2\@empty
+    \else
+      \unskip~{#2}%     month
+    \fi
+  \fi
+  {\BBCP}%              closing parenthesis
+}%
+%%
+%% Some macros that transform a number (say, `2') to an ordinal one (`2nd')
+\DeclareRobustCommand{\APACfirst}{1\iere}%
+\DeclareRobustCommand{\PrintOrdinalMale}[1]{%
+    \DeclareRobustCommand{\APACfirst}{1\ier}%
+    \PrintOrdinal{#1}%
+    \DeclareRobustCommand{\APACfirst}{1\iere}%
+}%
+\renewcommand{\PrintOrdinal}[1]{%
+    \afterassignment\print@ordinal
+    \count@ 0#1\relax\@nil
+}%
+\def\print@ordinal#1#2\@nil{%
+    \ifx\relax#1\relax
+        \ifnum\count@>\@ne
+            \CardinalNumeric\count@
+        \else
+            \ifnum1=\count@
+                {\APACfirst}%
+            \else
+                ??{\ieme}%
+            \fi
+        \fi
+    \else
+        \ifnum \count@>\z@ \number\count@ \fi
+        #1#2\relax
+    \fi
+}%
+\renewcommand{\CardinalNumeric}[1]{%
+    \number#1\relax
+    \if
+        \ifnum#1<14
+            \ifnum#1>\thr@@ T\else F\fi
+        \else
+            F%
+        \fi
+        T%
+        {\ieme}%
+    \else
+        \@xp\keep@last@digit\@xp#1\number#1\relax
+        \ifcase#1{\ieme}\else {\ieme}\fi
+    \fi
+}%
+%%
+%% In French, there should be a space before a colon `:', so we have to
+%% redefine a few macros that insert a colon.
+\renewcommand{\APACaddressPublisher}[2]{%
+  \ifx\@empty#1\@empty
+      %% publisher
+    \ifx\@empty#2\@empty
+    \else
+      {#2}%
+    \fi
+      %%
+  \else
+      %% address
+    {#1}%
+      %% publisher
+    \ifx\@empty#2\@empty
+    \else
+      \unskip{} : {#2}%
+    \fi
+      %%
+  \fi
+}%
+\let\APACaddressInstitution\APACaddressPublisher
+\renewcommand{\APACaddressPublisherEqAuth}[2]{%
+  \ifx\@empty#1\@empty
+      %% Publisher. This cannot be empty, because it is equal to the
+      %% author.
+    {\BAuthor{}}%
+      %%
+  \else
+      %% Address and publisher. These are not empty.
+    {#1\unskip{} : \BAuthor{}}%
+      %%
+  \fi
+}%
+\let\APACaddressInstitutionEqAuth\APACaddressPublisherEqAuth
+\APACrestoreAtCode
+\endinput
+%%
+%% End of file `french.apc'.
