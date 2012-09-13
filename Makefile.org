@@ -1,10 +1,5 @@
 * Introduction
   In this directory lies the code I use when I work on my PhD.
-  
-  This file describes the technical use of each file of this directory. It is tangled as the Makefile by running :
- #+begin_src sh
-emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
-#+end_src
 
 
   The [[End results]] produced by this Makfile have their own dedicated section.
@@ -26,7 +21,7 @@ Those who do not fit in the others categories (because they fit in more than one
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
-tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
+tangle=tangle $1 
 
 <<LSPI_code_make>>
 <<LSTDQ_code_make>>
@@ -71,7 +66,7 @@ org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.em
     #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-t
+export XARGS_OPT=-tr
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -189,6 +184,6 @@ Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tang
   #+begin_src makefile :tangle Makefile :noweb yes
 SUB_DIRS=ChainWalk GridWorld InvertedPendulum  Highway
 Makefile:
-	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
+	cat *.org > All.org; tangle All.org; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 
     #+end_src
