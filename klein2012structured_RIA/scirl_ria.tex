@@ -477,17 +477,13 @@ La fonction objectif est minimisée en utilisant une descente de sous-gradient. 
 %to produce a non-trival reward for which the expert policy is the
 %unique optimal policy, et this without solving any direct problem.
 
-\section{Related Works}
+\section{Travaux connexes}
 \label{sec:relatedWorks}
 
-The notion of IRL has first been introduced in~\cite{Russell:1998}
-and first been formalized in~\cite{Ng:2000}. A classic approach to
-IRL, initiated in~\cite{Abbeel:2004}, consists in finding a policy
-(through some reward function) such that its feature expectation (or
-more generally some measure of the underlying trajectories'
-distribution) matches the one of the expert policy.
+La notion d'ARI a été pour la première fois introduite dans~\cite{Russell:1998}
+puis formalisée dans~\cite{Ng:2000}. Une approche classique, initiée par~\cite{Abbeel:2004}, consiste à trouver une politique (à travers une recherche dans l'espace des fonctions de récompense) telle que son attribut moyen (ou de manière plus générale une mesure de la distribution sous jacente aux trajectoires) s'approche de celui de la politique de l'expert.
 %
-See~\cite{Neu:2010} for a review.
+Voir~\cite{Neu:2010} pour un survey.
 %
 %This can be done based on game theory~\cite{Syed:2008:game}, linear
 %programming~\cite{Syed:2008:lp}, maximum
@@ -495,10 +491,7 @@ See~\cite{Neu:2010} for a review.
 %maximization~\cite{Ramachandran:2007}, \textit{etc}. Some of these
 %approaches et others are nicely reviewed in~\cite{Neu:2010}.
 %
-Notice that related algorithms are not always able to output a
-reward function, even if they may make use of IRL as an intermediate
-step. In such case, they are usually refereed to as apprenticeship
-learning algorithms.
+Certains algorithmes mentionnés ne sont pas capable de renvoyer une fonction de récompense, bien qu'ils utilisent l'ARI comme étape. On parle de généralement de ces algorithmes comme d'algorithmes d'appretissage par imitation.
 %
 %Notice that related algorithms do not always output a reward
 %function (\textit{e.g.}, in~\cite{Abbeel:2004}, the algorithm
@@ -508,42 +501,14 @@ learning algorithms.
 %as ``apprenticeship learning'' algorithms (they may make use of IRL
 %as intermediate steps but do not output a reward).
 
-Closer to our contribution, some approaches also somehow introduce a
-structure in a classification
-procedure~\cite{Melo:2010}\cite{Ratliff:2006}. In~\cite{Melo:2010},
-a metric induced by the MDP is used to build a kernel which is used
-in a classification algorithm, showing improvements compared to a
-non-structured kernel. However, this approach is not an IRL
-algorithm, et more important assessing the metric of an MDP is a
-quite involved problem. In~\cite{Ratliff:2006}, a classification
-algorithm is also used to produce a reward function. However,
-instead of associating actions to states, as we do, it associates
-optimal policies (labels) to MDPs (inputs), which is how the
-structure is incorporated. This involves solving many MDPs.
+Plus proche de notre contribution, quelques approches introduisent également en quelque sorte de la structure dans la classification~\cite{Melo:2010}\cite{Ratliff:2006}. Dans~\cite{Melo:2010},
+une métrique induite par le PDM est utilisée pour construire un noyau qui sera utilisé par l'algorithme de classification, permettant des améliorations par rapport à un noyau non structuré. Cette approche n'est cependant pas un algorithme d'ARI, et plus important l'évaluation d'une métrique dans un PDM n'est pas une mince affaire. Dans~\cite{Ratliff:2006}, un algorithme de classification est utilisé pour fournir une fonction de récompense. Au lieu d'associer des actions à des états comme nous le faisons, cette algorithme associe des politiques optimales (qui jouent le rôle de labels) ) des PDM (entrées), ce qui permet d'incorporer la structure, au prix de la résolution d'un grand nombre de PDM.
 
-As far as we know, all IRL algorithms require solving the direct RL
-problem repeatedly, except~\cite{Dvij:2010,boularias:2011}.
-\cite{Dvij:2010} applies to linearly-solvable MDPs (where the
-control is done by imposing any dynamic to the system).
-In~\cite{boularias:2011}, based on a relative entropy argument, some
-utility function is maximized using a subgradient ascent. Estimating
-the subgradient requires sampling trajectories according to the
-policy being optimal for the current estimated reward. This is
-avoided thanks to the use of importance sampling. Still, this
-requires sampling trajectories according to a non-expert policy and
-the direct problem remains at the core of the approach (even if
-solving it is avoided).
+Tous les algorithmes d'ARI à notre connaissance requierent la résolution du problème direct de l'AR de manière répétée, à l'exception de~\cite{Dvij:2010,boularias:2011}.
+\cite{Dvij:2010} ne s'applique qu'aux PDM solvables linéairement (où le contrôle se fait en imposant une dynamique au système).
+Dans~\cite{boularias:2011}, en utilisant l'argument de l'entropie relative, on maximise une fonction objectif via une montée de sous gradient. Estimer la valeur du sous gradient demande des trajectoires échantillonnées selon la politique optimale pour la fonction de récompense courante. On peut contourner le problème grâce à l'\emph{importance sampling}. Cela requière cependant d'échantillonner des trajectoires selon une politique différente de celle de l'expert, et la du problème direct se maintient au coeur de l'approche (même si on évite sa résolution).
 
-SCIRL does not require solving the direct problem, just estimating
-the feature expectation of the expert policy. In other words,
-instead of solving multiple policy optimization problems, we only
-solve one policy evaluation problem. This comes with theoretical
-guarantees (which is not the case of all IRL algorithms,
-\textit{e.g.}~\cite{boularias:2011}). Moreover, using heuristics
-which go beyond our analysis, SCIRL may rely solely on data provided
-by expert trajectories. We demonstrate this empirically in the next
-section. To the best of our knowledge, no other IRL algorithm can
-work in such a restrictive case.
+SCIRL n'a pas besoin de résoudre le problème direct, mais uniquement d'estimer l'attribut moyen de la politique de l'expert. Autrement dit, plutôt que de résoudre plusieurs fois le problème de l'optimisation d'une politique, nous ne résolvons qu'une fois un problème d'évaluation de la politique. Cela amène des garanties théoriques (ce qui n'est pas le cas de tous les algorithmes d'ARI \textit{e.g.}~\cite{boularias:2011}). De plus par l'utilisation d'une heuristique qui dépassent le cadre de notre analyse, il est possible à SCIRL de se contenter de données fournies par l'expert. La prochaine section présente une démonstration empirique de cela. Nous ne connaissons aucun autre algorithme d'ARI en mesure de fonctionner dans des conditions si drastiques.
 
 
 \section{Experiments}
