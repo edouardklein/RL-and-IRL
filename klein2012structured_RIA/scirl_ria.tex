@@ -70,114 +70,61 @@ Metz, France}{}
 
 \begin{document}
 \newtheorem{prop}[theorem]{Proposition}
-\cite{Ng:2000}
 \maketitle
 
 \newpage
 
-\section{Background and Notations}
+\section{Contexte et notations}
 \label{sec:background}
 
-\subsection{(Inverse) Reinforcement Learning}
+\subsection{Apprentissage par Renforcement (Inverse)}
 \label{subsec:background:irl}
 
-A Markov Decision process (MDP)~\cite{Puterman:1994} is a tuple
-$\{\s,\A,\p,\R,\gamma\}$ where $\s$ is the finite state
-space\footnote{This work can be extended to compact state spaces, up
-to some technical aspects.}, $\A$ the finite actions space, $\p =
-\{P_a = (p(s'|s,a))_{1\leq s,s'\leq |\s|}, a\in\A\}$ the set of
-Markovian transition probabilities, $\R\in\mathbb{R}^\s$ the
-state-dependent reward function and $\gamma$ the discount factor. A
-deterministic policy $\pi\in\s^\A$ defines the behavior of an agent.
-The quality of this control is quantified by the value function
-$v_\R^\pi\in\mathbb{R}^\s$, associating to each state the cumulative
-discounted reward for starting in this state and following the
-policy $\pi$ afterwards: $v_\R^\pi(s) = \E[\sum_{t\geq 0} \gamma^t
-\R(S_t)|S_0=s,\pi]$. An optimal policy $\pi_\R^*$ (according to the
-reward function $\R$) is a policy of associated value function
-$v^*_\R$ satisfying $v_\R^* \geq v_\R^\pi$, for any policy $\pi$ and
-componentwise.
+Un Processus Décisionnel de Markov (PDM)~\cite{Puterman:1994} est un ensemble $\{\s,\A,\p,\R,\gamma\}$ avec $\s$ l'espace d'état fini\footnote{Cette contribution peut être étendue aux espaces d'état compacts moyennant le traitement de certains détails techniques.}, $\A$ l'espace d'action fini, $\p =
+\{P_a = (p(s'|s,a))_{1\leq s,s'\leq |\s|}, a\in\A\}$ l'ensemble des probabilités de transition markoviennes, $\R\in\mathbb{R}^\s$ la fonction de récompense sur les états et $\gamma$ le facteur d'oubli.
+Une politique déterministe $\pi\in\s^\A$ définit le comportement d'un agent. On quantifie la qualité de ce comportement par le biais de la fonction de valeur $v_\R^\pi\in\mathbb{R}^\s$ qui à chaque état associe la récompense pondérée cumulée recueillie par l'agent lorsqu'il part de cet état et suit la politique $\pi$ par la suite : $v_\R^\pi(s) = \E[\sum_{t\geq 0} \gamma^t \R(S_t)|S_0=s,\pi]$. Une politique optimale $\pi_\R^*$ (vis-à-vis de la fonction de récompense $\R$) est une politique dont la fonction de valeur $v^*_\R$ satisfait $v_\R^* \geq v_\R^\pi$, composante par composante, pour toute politique $\pi$.
 
-Let $P_\pi$ be the stochastic matrix $P_\pi =
-(p(s'|s,\pi(s)))_{1\leq s,s'\leq |\s|}$. With a slight abuse of
-notation, we may write $a$ the policy which associates the action
-$a$ to each state $s$. The Bellman evaluation (resp. optimality)
-operators $T^\pi_\R\text{ (resp. $T^*_\R$)}:\mathbb{R}^\s
-\rightarrow \mathbb{R}^\s$ are defined as $T^\pi_\R v = \R + \gamma
+Soit $P_\pi$ la matrice stochastique $P_\pi =
+(p(s'|s,\pi(s)))_{1\leq s,s'\leq |\s|}$. Un léger abus de notation nous permet de nommer $a$ la politique associant l'action $a$ à chaque état $s$. Les opérateurs d'évaluation (resp. d'optimalité) de Bellman $T^\pi_\R\text{ (resp. $T^*_\R$)}:\mathbb{R}^\s
+\rightarrow \mathbb{R}^\s$ sont définis par $T^\pi_\R v = \R + \gamma
 P_\pi v$ and $T_\R^*v = \max_\pi T_\R^\pi v$.
 %\begin{equation}
 %  T^\pi_\R v = \R + \gamma P_\pi v \text{ and } T_\R^*v = \max_\pi T_\R^\pi v.
 %\end{equation}
-These operators are contractions and $v_\R^\pi$ and $v^*_\R$ are
-their respective fixed-points: $v_\R^\pi = T^\pi_\R v_\R^\pi$ and
-$v^*_\R = T^*_\R v^*_\R$. The action-value function
-$Q^\pi\in\mathbb{R}^{\s\times \A}$ adds a degree of freedom on the
-choice of the first action, it is formally defined as $Q_\R^\pi(s,a)
-= [T^a_\R v^\pi_\R](s)$. We also write $\rho_\pi$ the stationary
-distribution of the policy $\pi$ (satisfying $\rho_\pi^\top P_\pi =
-\rho_\pi^\top$).
+Ces opérateurs sont des contractions qui admettent $v_\R^\pi$ et $v^*_\R$ comme points fixes respectifs : $v_\R^\pi = T^\pi_\R v_\R^\pi$ et $v^*_\R = T^*_\R v^*_\R$.
+La fonction de qualité $Q^\pi\in\mathbb{R}^{\s\times \A}$ ajoute à $v$ un degré de liberté dans le choix de la première action, on la définit formellement par $Q_\R^\pi(s,a)
+= [T^a_\R v^\pi_\R](s)$. On note $\rho_\pi$ la distribution stationnaire de la politique $\pi$ (qui satisfait $\rho_\pi^\top P_\pi = \rho_\pi^\top$).
 
-Reinforcement learning and approximate dynamic programming aim at
-estimating the optimal control policy $\pi^*_\R$ when the model
-(transition probabilities and the reward function) is unknown (but
-observed through interactions with the system to be controlled) and
-when the state space is too large to allow exact representations of
-the objects of interest (as value functions or
-policies)~\cite{Bertsekas:1996,Sutton:1998,szepesvari2010c}.
+L'Apprentissage par Renforcement (AR) et la programmation dynamique approchée cherchent à estimer la politique de contrôle optimale lorsque le modèle (les probabilités de transition et la fonction de récompense) est inconnu (mais observé par interaction avec le système à contrôler) et quand l'espace d'état est trop grand pour qu'une représentation exacte des objets concernés (fonctions de valeur, politiques) soit possible~\cite{Bertsekas:1996,Sutton:1998,szepesvari2010c}.
 %
-We refer to this as the direct problem.
+On appelle cela le problème direct.
 %
-On the contrary, (approximate) inverse reinforcement
-learning~\cite{Ng:2000} aim at estimating a reward function for
-which an observed policy is (nearly) optimal.
+L'Apprentissage par Renforcement Inverse (approché)~\cite{Ng:2000} cherche à estimer la fonction de récompense pour laquelle une politique observée est optimale.
 %
-Let us call this policy the expert policy, denoted $\pi_E$. We may
-assume that it optimizes some unknown reward function $\R_E$. The
-aim of IRL is to compute some reward $\hat{\R}$ such that the expert
-policy is (close to be) optimal, that is such that $v^*_{\hat{\R}}
+On nomme cette politique la politique de l'expert, notée $\pi_E$. On suppose qu'elle est optimale vis-à-vis d'une certaine fonction de récompense $R_E$ inconnue. Le but de l'ARI est de calculer une fonction de récompense $\hat{\R}$ telle que la politique de l'expert soit (quasiment) optimale, c'est-à-dire telle que $v^*_{\hat{\R}}
 \approx v^{\pi_E}_{\hat{\R}}$.
 %
-We refer to this as the inverse problem.
+On appelle cela le problème inverse.
 
-Similarly to the direct problem, the state space may be too large
-for the reward function to admit a practical exact representation.
-Therefore, we restrict our search of a good reward among linearly
-parameterized functions. Let $\phi(s) = (\phi_1(s)  \dots
+De la même manière que pour le problème direct, l'espace d'état peut être trop grand pour que la fonction de récompense admette une représentation exacte exploitable. On se limite donc de fait à la recherche d'une bonne fonction de récompense paramétrée linéairement. Soit $\phi(s) = (\phi_1(s)  \dots
 \phi_p(s))^\top$
 %\begin{pmatrix}
 %  \phi_1(s) & \dots & \phi_p(s)
 %\end{pmatrix}^\top$
-be a feature vector composed of $p$ basis function
-$\phi_i\in\mathbb{R}^\s$, we define the  parameterized reward
-functions as $\R_\theta(s) = \theta^\top \phi(s) = \sum_{i=1}^p
+un vecteur d'attributs composé de $p$ fonctions de base $\phi_i\in\mathbb{R}^\s$, on définit les fonctions de récompense paramétrées par $\R_\theta(s) = \theta^\top \phi(s) = \sum_{i=1}^p
 \theta_i \phi_i(s)$.
 %\begin{equation}
 %  \R_\theta(s) = \theta^\top \phi(s) = \sum_{i=1}^p \theta_i \phi_i(s).
 %\end{equation}
-Searching a good reward thus reduces to searching a good parameter
-vector $\theta \in\mathbb{R}^p$. Notice that we will use
-interchangeably $\R_\theta$ and $\theta$ as subscripts
-(\textit{e.g.}, $v_\theta^\pi$ for $v_{\R_\theta}^\pi$).
-Parameterizing the reward this way implies a related
-parameterization for the action-value function:
+La recherche d'une bonne récompense est donc ramenée à la recherche d'un bon vecteur de paramètres vector $\theta \in\mathbb{R}^p$. Nous utiliserons indifféremment $\R_\theta$ et $\theta$ comme indices (\textit{e.g.}, $v_\theta^\pi$ pour $v_{\R_\theta}^\pi$).
+Cette paramétrisation de la récompense implique une paramétrisation similaire de la fonction de qualité :
 \begin{equation}
   Q^\pi_\theta(s,a) = \theta^\top \mu^\pi(s,a) \text{ with }
   \mu^\pi(s,a) = \E[\sum_{t\geq 0} \gamma^t
   \phi(S_t)|S_0=s,A_0=a,\pi].
   \label{eq:def:mu}
 \end{equation}
-Therefore, the action-value function shares the parameter vector of
-the reward function, with an associated feature vector $\mu^\pi$
-called the \emph{feature expectation}. This notion will be of
-primary importance for the contribution of this paper. Notice that
-each component $\mu_i^\pi$ of this feature vector is actually the
-action-value function of the policy $\pi$ assuming the reward is
-$\phi_i$: $\mu_i^\pi(s,a) = Q^\pi_{\phi_i}(s,a)$. Therefore, any
-algorithm designed for estimating an action-value function may be
-used to estimate the feature expectation, such as Monte-Carlo
-rollouts or temporal difference learning~\cite{Klein:2011}.
-
-
+Conséquemment, la fonction de qualité partage son vecteur de paramètres avec la fonction de récompense, mais en relation avec un vecteur d'attributs $\mu^\pi$ appelé l'attribut moyen. Cette notion est de prime importance à notre contribution. Chaque composante $\mu_i^\pi$ de ce vecteur d'attributs est en réalité une fonction de qualité de la politique $\pi$ où la récompense serait $\phi_i$: $\mu_i^\pi(s,a) = Q^\pi_{\phi_i}(s,a)$. De fait, tout algorithme d'estimation de la fonction de qualité peut être utilisé pour estimer l'attribut moyen, comme une estimation de Monte-Carlo ou un algorithme aux différences temporelles~\cite{Klein:2011}.
 
 \subsection{Classification with Linearly Parameterized Score
 Functions} \label{subsec:background:classif}
@@ -197,7 +144,7 @@ y)$, where $\chi$ denotes the indicator function.
 Here, we consider a more restrictive set of classification
 algorithms. We assume that the decision rule associates to an input
 the argument which maximizes a related score function, this score
-function being linearly parameterized and the associated parameters
+function being linearly parameterized et the associated parameters
 being learnt by the algorithm. More formally, let $\psi(s,a) =
 (\psi_1(x,y)  \dots  \psi_d(x,y))^\top\in \mathbb{R}^d$
 %\begin{pmatrix}   \psi_1(x,y) & \dots & \psi_d(x,y)
@@ -232,12 +179,12 @@ Learning} \label{sec:scirl}
 
 Consider the classification framework of
 Sec.~\ref{subsec:background:classif}. The input $x$ may be seen as a
-state and the label $y$ as an action. Then, the decision rule
+state et the label $y$ as an action. Then, the decision rule
 $g_w(x)$ can be interpreted as a policy which is greedy according to
 the score function $w^\top \psi(x,y)$, which may itself be seen as
 an action-value function. Making the parallel with
 Eq.~\eqref{eq:def:mu}, if $\psi(x,y)$ is the feature expectation of
-some policy $\pi$ which produces labels of the training set, and if
+some policy $\pi$ which produces labels of the training set, et if
 the classification error is small, then $w$ will be the parameter
 vector of a reward function for which we may hope the policy $\pi$
 to be near optimal. Based on these remarks, we're ready to present
@@ -260,7 +207,7 @@ policy), as noted in Sec.~\ref{subsec:background:irl}. Assume also
 that an MC$^2$ algorithm has been chosen. The proposed algorithm
 simply consists in choosing $\theta^\top\hat{\mu}^{\pi_E}(s,a)$ as
 the linearly parameterized score function, training the classifier
-on $\D$ which produces a parameter vector $\theta_c$, and outputting
+on $\D$ which produces a parameter vector $\theta_c$, et outputting
 the reward function $\R_{\theta_c}(s) = \theta_c^\top \phi(s)$.
 
 \begin{algorithm2e}%[tbh]
@@ -271,12 +218,12 @@ the reward function $\R_{\theta_c}(s) = \theta_c^\top \phi(s)$.
   %
   \BlankLine
   \emph{\textbf{Given}} a training set $\D = \{(s_i,a_i=\pi_E(s_i))_{1\leq i\leq N}\}$,
-  an estimate $\hat{\mu}^{\pi_E}$ of the expert feature expectation $\mu^{\pi_E}$ and an MC$^2$ algorithm\;
+  an estimate $\hat{\mu}^{\pi_E}$ of the expert feature expectation $\mu^{\pi_E}$ et an MC$^2$ algorithm\;
   %
   \BlankLine
   \emph{\textbf{Compute}} the parameter vector $\theta_c$ using the
   MC$^2$ algorithm
-  fed with the training set $\D$ and considering the parameterized score function
+  fed with the training set $\D$ et considering the parameterized score function
   $\theta^\top\hat{\mu}^{\pi_E}(s,a)$\;
   %
   \BlankLine
@@ -287,7 +234,7 @@ The proposed approach is summarized in Alg.~\ref{algo:scirl}. We
 call this Structured Classification-based IRL because using the
 (estimated) expert feature expectation as the feature vector for the
 classifier somehow implies taking into account the MDP structure
-into the classification problem and allows outputting a reward
+into the classification problem et allows outputting a reward
 vector. Notice that contrary to most of existing IRL
 %and apprenticeship learning
 algorithms, SCIRL does not require solving the direct problem. If it
@@ -297,7 +244,7 @@ optimization issue involved by the direct problem. This is further
 discussed in Sec.~\ref{sec:relatedWorks}.
 %
 %Now, we formally show that the proposed approach makes sens, as long
-%as $\mu^{\pi_E}$ is well estimated and as long as the classification
+%as $\mu^{\pi_E}$ is well estimated et as long as the classification
 %error is small.
 
 
@@ -309,7 +256,7 @@ be optimal according to the reward function $\R_{\theta_c}$, more
 precisely that
 $\E_{s\sim\rho_E}[v^*_{\theta_c}(s)-v^{\pi_E}_{\theta_c}(s)]$ is
 small. Before stating our main result, we need to introduce some
-notations and to define some objects.
+notations et to define some objects.
 
 We will use the first order discounted future state distribution
 concentration coefficient $C_f$~\cite{Munos:2007}:
@@ -341,10 +288,10 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
   \label{th}
   Let $\R_{\theta_c}$ be the reward function outputted by
   Alg.~\ref{algo:scirl}. Let also the quantities $C_f$, $\epsilon_c$
-  and $\bar{\epsilon}_Q$ be defined as above. We have
+  et $\bar{\epsilon}_Q$ be defined as above. We have
   %
 %  the concentration coefficient $C_f$,
-%  the classification error $\epsilon_c$ and the mean-max
+%  the classification error $\epsilon_c$ et the mean-max
 %  action-value function error $\bar{\epsilon}_Q$ be defined as
 %  above. Then, we have
   \begin{equation}
@@ -379,9 +326,9 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
     P_{\pi^*})^{-1} (T^* v^{\pi_E} - v^{\pi_E}).
   \end{align}
   Inequality $(a)$ holds because $T^{\pi^*} v^{\pi_E}\leq T^*
-  v^{\pi_E}$ and inequality $(b)$ holds thanks
+  v^{\pi_E}$ et inequality $(b)$ holds thanks
   to~\cite[Lemma~4.2]{Munos:2007}. Moreover, $v^*$ being optimal we
-  have that $v^*-v^{\pi_E}\geq 0$ and $T^*$ being the Bellman
+  have that $v^*-v^{\pi_E}\geq 0$ et $T^*$ being the Bellman
   optimality operator, we have $T^* v^{\pi_E}\geq
   T^{\pi_E}v^{\pi_E}=v^{\pi_E}$. Additionally, remark that
   $(I-\gamma P_{\pi^*})^{-1} = \sum_{t\geq 0}\gamma^t P_{\pi^*}^t$.
@@ -402,7 +349,7 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
     \label{eq:proof:decomposition}
   \end{equation}
   we will bound $\E_{s\sim\rho_E}[[T^* v^{\pi_E}](s) - [T^{\pi_c}v^{\pi_E}](s)]$
-  and $\E_{s\sim\rho_E}[[T^{\pi_c}v^{\pi_E}](s) - v^{\pi_E}(s)]$.
+  et $\E_{s\sim\rho_E}[[T^{\pi_c}v^{\pi_E}](s) - v^{\pi_E}(s)]$.
 
   The policy $\pi_c$ (the decision rule of the classifier) is greedy
   with respect to
@@ -425,7 +372,7 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
     v^{\pi_E}](s) + \max_{a\in \A}\epsilon_Q(s,a)-\min_{a\in
     \A}\epsilon_Q(s,a).
   \end{align}
-  Taking the expectation according to $\rho_E$ and noticing that
+  Taking the expectation according to $\rho_E$ et noticing that
   $T^* v^{\pi_E}\geq v^{\pi_E}$, we bound the first
   term:
   \begin{equation}
@@ -443,7 +390,7 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
     T^{\pi_c}v = \R + \gamma M P_{\pi_c} v + \gamma (I-M)P_{\pi_E} v
     = \R + \gamma P_{\pi_E} v + \gamma M (P_{\pi_c}-P_{\pi_E})v.
   \end{equation}
-  Applying this operator to $v^{\pi_E}$ and recalling that $\R +
+  Applying this operator to $v^{\pi_E}$ et recalling that $\R +
   \gamma P_{\pi_E} v^{\pi_E} = T^{\pi_E} v^{\pi_E} = v^{\pi_E}$, we
   get:
   \begin{equation}
@@ -478,11 +425,11 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
 This result shows that if the expert feature expectation is well
 estimated (in the sense that the estimation error $\epsilon_\mu$ is
 small for states sampled according to the expert stationary policy
-and for all actions) and if the classification error $\epsilon_c$ is
+and for all actions) et if the classification error $\epsilon_c$ is
 small, then the proposed generic algorithm outputs a reward function
 $\R_{\theta_c}$ for which the expert policy will be near optimal. A
 direct corollary of Th.~\ref{th} is that given the true expert
-feature expectation $\mu^{\pi_E}$ and a perfect classifier
+feature expectation $\mu^{\pi_E}$ et a perfect classifier
 ($\epsilon_c=0$), $\pi_E$ is the unique optimal policy for
 $\R_{\theta_c}$.
 
@@ -490,7 +437,7 @@ One may argue that this bounds trivially holds for the null reward
 function (a reward often exhibited to show that IRL is an ill-posed
 problem), obtained if $\theta_c=0$. However, recall that the
 parameter vector $\theta_c$ is computed by the classifier. With
-$\theta_c=0$, the decision rule would be a random policy and we
+$\theta_c=0$, the decision rule would be a random policy et we
 would have $\epsilon_c = \frac{|\A|-1}{|\A|}$, the worst possible
 classification error. This case is really unlikely. Therefore, we
 advocate that the proposed approach somehow allows disambiguating
@@ -508,11 +455,11 @@ error depends on the hypothesis space spanned by the chosen score
 function basis functions for the MC$^2$ algorithm (here
 $\hat{\mu}^{\pi_E}$). Nevertheless, provided a good representation
 for the reward function (that is a good choice of basis functions
-$\phi_i$) and a small estimation error, this should not be a
+$\phi_i$) et a small estimation error, this should not be a
 practical problem.
 
 Finally, if our bound relies on the generalization errors
-$\epsilon_c$ and $\bar{\epsilon}_Q$, the classifier will only use
+$\epsilon_c$ et $\bar{\epsilon}_Q$, the classifier will only use
 $(\hat{\mu}^{\pi_E}(s_i,a))_{1\leq i\leq N,a\in\A}$ in the training
 phase, where $s_i$ are the states from the set $\D$. It outputs
 $\theta_c$, seen as a reward function, thus the estimated feature
@@ -534,7 +481,7 @@ An already made key observation is that each component of
 $\mu^{\pi_E}$ is the action-value function of $\pi_E$ for a reward
 function $\phi_i$: $\mu_i^{\pi_E}(s,a) = Q^{\pi_E}_{\phi_i}(s,a) =
 [T^a_{\phi_i} v^{\pi_E}_{\phi_i}](s)$. We briefly review its exact
-computation and possible estimation approaches, and consider
+computation et possible estimation approaches, et consider
 possible heuristics.
 %possibly considering some heuristics.
 
@@ -591,14 +538,14 @@ $\hat{\mu}^{\pi_E}(s,a) = \Xi^\top \psi(s,a)$.
 %\begin{equation}
 %  \Xi = \left(\tilde{\Psi}^\top(\tilde{\Psi} - \gamma
 %  \tilde{\Psi}')\right)^{-1}\tilde{\Psi}^\top \tilde{\Phi}
-%  \text{ and } \hat{\mu}^{\pi_E}(s,a) = \Xi^\top \psi(s,a).
+%  \text{ et } \hat{\mu}^{\pi_E}(s,a) = \Xi^\top \psi(s,a).
 %\end{equation}
 As for the exact case, the costly part (computing the inverse
 matrix) is shared by all feature expectation components, the
 computational cost is reasonable (same order as LSTD).
 
 %
-Provided a simulator and the ability to sample according to the
+Provided a simulator et the ability to sample according to the
 expert policy, the expert feature expectation may also be estimated
 using Monte-Carlo rollouts for a given state-action pair (as noted
 in Sec.~\ref{subsec:scirl:analysis}, $\hat{\mu}^{\pi_E}$ need only
@@ -608,7 +555,7 @@ method would require $KN|\A|$ rollouts.
 
 In order to have a small error $\bar{\epsilon}_Q$, one may learn
 using transitions whose starting state is sampled according to
-$\rho_E$ and whose actions are uniformly distributed. However, it
+$\rho_E$ et whose actions are uniformly distributed. However, it
 may happen that only transitions of the expert are available: $\T =
 \{(s_i,a_i=\pi_E(s_i),s'_i)_{1\leq i \leq N}\}$. If the state-action
 couples $(s_i,a_i)$ may be used to feed the classifier, the
@@ -629,7 +576,7 @@ above). We may adopt an optimistic point of view by assuming that
 applying a non-expert action just delays the effect of the expert
 action. More formally, we associate to each state $s$ a virtual
 state $s_\text{v}$ for which $p(.|s_\text{v},a)=p(.|s,\pi_E(s))$ for
-any action $a$ and for which the reward feature expectation is the
+any action $a$ et for which the reward feature expectation is the
 null vector, $\phi(s_v) = 0$. In this case, we have
 $\mu^{\pi_E}(s,a\neq\pi_E(s)) = \gamma \mu^{\pi_E}(s,\pi_E(s))$.
 Applying this idea to the available estimate (recalling that the
@@ -650,17 +597,17 @@ Assume that the set $\T$ consists of one long trajectory, that is
 $s'_i = s_{i+1}$ (thus $\T =
 \{s_1,a_1,s_2,\dots,s_{N-1},a_{N-1},s_N,a_N\}$). We may estimate
 $\mu^{\pi_E}(s_i,a_i)$ using the single rollout available in the
-training set and use the proposed heuristic for other actions:
+training set et use the proposed heuristic for other actions:
 \begin{equation}
   \forall 1\leq i \leq N,\; \hat{\mu}^{\pi_E}(s_i,a_i) =
-  \sum_{j=i}^N \gamma^{j-i}\phi(s_j) \text{ and }
+  \sum_{j=i}^N \gamma^{j-i}\phi(s_j) \text{ et }
   \hat{\mu}^{\pi_E}(s_i,a\neq a_i) = \gamma
   \hat{\mu}^{\pi_E}(s_i,a_i).
   \label{eq:mc_plus_heuristic}
 \end{equation}
 
 To sum up, the expert feature expectation may be seen as a vector of
-action-value functions (for the same policy $\pi_E$ and different
+action-value functions (for the same policy $\pi_E$ et different
 reward functions $\phi_i$). Consequently, any action-value function
 evaluation algorithm may be used to estimate $\mu^\pi(s,a)$.
 Depending on the available data, one may have to rely on some
@@ -682,7 +629,7 @@ As stated before, any MC$^2$ algorithm may be used. Here, we choose
 the structured large margin approach~\cite{Taskar:2005}. Let
 $\lc:\s\times\A\rightarrow\mathbb{R}_+$ be a user-defined margin
 function satisfying $\lc(s,\pi_E(s))\leq \lc(s,a)$ (here,
-$\lc(s_i,a_i)=0$ and $\lc(s_i,a\neq a_i)=1$). The MC$^2$ algorithm
+$\lc(s_i,a_i)=0$ et $\lc(s_i,a\neq a_i)=1$). The MC$^2$ algorithm
 solves:% the following quadratic problem:
 \begin{equation}
   \min_{\theta,\zeta}\frac{1}{2}\|\theta\|^2 +
@@ -713,7 +660,7 @@ described in Eq.~\eqref{eq:mc_plus_heuristic}.
 %constraints of Eq.~\eqref{eq:qp_taskar} can be satisfied for all
 %state-action couples. This means that the proposed approach is able
 %to produce a non-trival reward for which the expert policy is the
-%unique optimal policy, and this without solving any direct problem.
+%unique optimal policy, et this without solving any direct problem.
 
 \section{Related Works}
 \label{sec:relatedWorks}
@@ -731,7 +678,7 @@ See~\cite{Neu:2010} for a review.
 %programming~\cite{Syed:2008:lp}, maximum
 %entropy~\cite{Ziebart:2008}, Bayesian posterior
 %maximization~\cite{Ramachandran:2007}, \textit{etc}. Some of these
-%approaches and others are nicely reviewed in~\cite{Neu:2010}.
+%approaches et others are nicely reviewed in~\cite{Neu:2010}.
 %
 Notice that related algorithms are not always able to output a
 reward function, even if they may make use of IRL as an intermediate
@@ -752,7 +699,7 @@ procedure~\cite{Melo:2010}\cite{Ratliff:2006}. In~\cite{Melo:2010},
 a metric induced by the MDP is used to build a kernel which is used
 in a classification algorithm, showing improvements compared to a
 non-structured kernel. However, this approach is not an IRL
-algorithm, and more important assessing the metric of an MDP is a
+algorithm, et more important assessing the metric of an MDP is a
 quite involved problem. In~\cite{Ratliff:2006}, a classification
 algorithm is also used to produce a reward function. However,
 instead of associating actions to states, as we do, it associates
@@ -791,9 +738,9 @@ We illustrate the proposed approach on a car driving simulator,
 similar to~\cite{Abbeel:2004,Syed:2008:game}. The goal si to drive a
 car on a busy three-lane highway with randomly generated traffic
 (driving off-road is allowed on both sides). The car can move left
-and right, accelerate, decelerate and keep a constant speed. The
+and right, accelerate, decelerate et keep a constant speed. The
 expert optimizes a handcrafted reward $\R_E$ which favours speed,
-punish off-road, punish collisions even more  and is neutral
+punish off-road, punish collisions even more  et is neutral
 otherwise.
 
 We compare SCIRL as instantiated in
@@ -802,13 +749,13 @@ unstructured classifier (using the same classification algorithm)
 and to the algorithm of~\cite{Abbeel:2004} (called here PIRL for
 Projection IRL). We also consider the optimal behavior according to
 a randomly sampled reward function as a baseline (using the same
-reward feature vector as SCIRL and PIRL, the associated parameter
+reward feature vector as SCIRL et PIRL, the associated parameter
 vector is randomly sampled).
 
-For SCIRL and PIRL we use a discretization of the state space as the
+For SCIRL et PIRL we use a discretization of the state space as the
 reward feature vector, $\phi\in\mathbb{R}^{729}$: $9$ horizontal
-positions for the user's car, $3$ horizontal and $9$ vertical
-positions for the closest traffic's car and $3$ speeds. Notice that
+positions for the user's car, $3$ horizontal et $9$ vertical
+positions for the closest traffic's car et $3$ speeds. Notice that
 these features are much less informative than the ones used
 in~\cite{Abbeel:2004,Syed:2008:game}. Actually,
 in~\cite{Syed:2008:game} features are so informative that sampling a
@@ -822,19 +769,19 @@ $400$ transitions). Each experiment is repeated 50 times. The
  classifier uses the same data. PIRL is an iterative
 algorithm, each iteration requiring to solve the MDP for some reward
 function. It is run for 70 iterations, all required objects (a
-feature expectations for a non-expert policy and an optimal policy
+feature expectations for a non-expert policy et an optimal policy
 according to some reward function at each iteration) are computed
 exactly using the model. We measure the performance of each approach
 with $\E_{s\sim \mathcal{U}}[v^\pi_{\R_E}(s)]$, where $\mathcal{U}$
 is the uniform distribution (this allows measuring the
 generalization capability of each approach for states infrequently
-encountered), $\R_E$ is the expert reward and $\pi$ is one of the
+encountered), $\R_E$ is the expert reward et $\pi$ is one of the
 following polices: the optimal policy for $\R_E$ (upper baseline),
 the optimal policy for a random reward (lower baseline), the optimal
 policy for $\R_{\theta_c}$ (SCIRL), the policy produced by PIRL and
 the classifier decision rule.
 
-\begin{figure}[fig:res]{Highway problem. The highest line is the expert value. For each curves, we show the mean (plain line), the standard deviation (dark color) and the min-max values (light color). The policy corresponding to the random reward is in blue, the policy outputted by the  classifier is in yellow and the optimal policy according the SCIRL's reward is in red. PIRL is the dark blue line.}
+\begin{figure}[fig:res]{Highway problem. The highest line is the expert value. For each curves, we show the mean (plain line), the standard deviation (dark color) et the min-max values (light color). The policy corresponding to the random reward is in blue, the policy outputted by the  classifier is in yellow et the optimal policy according the SCIRL's reward is in red. PIRL is the dark blue line.}
 \begin{minipage}[l]{0.45\linewidth}
 \centering
   \centerline{\includegraphics[width=.92\linewidth]{fig_classif.pdf}}
@@ -862,7 +809,7 @@ for $70$ iteration.
 %Recall that for SCIRL the instantiation of
 %Sec.~\ref{subsec:practicalApproach:instantiation} is considered,
 %with a single Monte-Carlo rollout for estimating
-%$\hat{\mu}^{\pi_E}(s_i,a_i)$ and using the proposed heuristic for
+%$\hat{\mu}^{\pi_E}(s_i,a_i)$ et using the proposed heuristic for
 %$\hat{\mu}^{\pi_E}(s_i,a\neq a_i)$, which goes beyond our analysis.
 %To our knowledge, it is the only algorithm working (at least on this
 %benchmark) only with data from the expert.
@@ -877,19 +824,19 @@ classification algorithm with an estimate of the expert feature
 expectation. This outputs a reward function for which we have shown
 the expert to be near optimal, provided a small classification error
 and a good expert feature expectation estimate. How to practically
-estimate this quantity has been  discussed and we have introduced a
+estimate this quantity has been  discussed et we have introduced a
 heuristic for the case where only transitions from the expert are
 available, along with a specific instantiation of the SCIRL
 algorithm. We have shown on a car driving simulator benchmark that
 the proposed approach works well (even combined with the introduced
-heuristic), much better than the unstructured classifier and as well
+heuristic), much better than the unstructured classifier et as well
 as a state-of-the-art algorithm making use of the model (and with a
 much lower computational time). In the future, we plan to deepen the
 theoretical properties of SCIRL (notably regarding possible
-heuristics) and to apply it to real-world robotic problems.
+heuristics) et to apply it to real-world robotic problems.
 
 \acknowledgements{This research was partly funded by the EU FP7 project ILHAIRE (grant
-n$\deg$270780), by the EU INTERREG IVa project ALLEGRO and by the Région
+n$\deg$270780), by the EU INTERREG IVa project ALLEGRO et by the Région
 Lorraine (France).}
 
 \newpage
