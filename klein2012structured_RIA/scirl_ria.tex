@@ -148,66 +148,30 @@ Notre étude est valable pour tout algorithme de classification tant qu'il opèr
 \label{subsec:scirl:algo}
 
 On se place dans le cadre de la classification décrit en Sec.~\ref{subsec:background:classif}. L'entrée $x$ oeut être vue comme un état et le label $y$ comme une action. Il s'ensuit que l'on peut interpréter la règle de décision 
-$g_w(x)$ comme une politique gloutonne vis-à-vis de la fonction de score $w^\top \psi(x,y)$, qui peut elle même être vue comme une fonction de qualité. Making the parallel with
-Eq.~\eqref{eq:def:mu}, if $\psi(x,y)$ is the feature expectation of
-some policy $\pi$ which produces labels of the training set, et if
-the classification error is small, then $w$ will be the parameter
-vector of a reward function for which we may hope the policy $\pi$
-to be near optimal. Based on these remarks, we're ready to present
-the proposed Structured Classification-based IRL (SCIRL) algorithm.
+$g_w(x)$ comme une politique gloutonne vis-à-vis de la fonction de score $w^\top \psi(x,y)$, qui peut elle même être vue comme une fonction de qualité. On peut alors tirer le parallèle avec l'Eq.~\eqref{eq:def:mu}, si $\psi(x,y)$ est l'attribut moyen d'une politique $\pi$ qui a fourni les labels du set d'entraînement, et si l'erreur de classification est faible, alors $w$ est le vecteur de paramètres de la fonction de récompense vis-à-vis de laquelle on espère que la politique $\pi$ est quasi-optimale. 
+Ces remarques nous permettent maintenant d'introduire notre algorithme d'ARI par classification structurée (SCIRL pour \emph{Structured Classification-based Inverse Reinforcement Learning}).
 
-Let $\pi_E$ be the expert policy from which we would like to recover
-a reward function. Assume that we have a training set $\D =
-\{(s_i,a_i=\pi_E(s_i))_{1\leq i\leq N}\}$ where states are sampled
-according to the expert stationary distribution\footnote{For
-example, if the Markov chain induced by the expert policy is
-fast-mixing, sampling a trajectory will quickly lead to sample
-states according to this distribution.} $\rho_E = \rho_{\pi_E}$.
-Assume also that we have an estimate $\hat{\mu}^{\pi_E}$ of the
-expert feature expectation $\mu^{\pi_E}$ defined in
-Eq.~\eqref{eq:def:mu}. How to practically estimate this quantity is
-postponed to Sec.~\ref{subsec:practicalApproach:muE}; however,
-recall that estimating $\mu^{\pi_E}$ is simply a \emph{policy
-evaluation} problem (estimating the action-value function of a given
-policy), as noted in Sec.~\ref{subsec:background:irl}. Assume also
-that an MC$^2$ algorithm has been chosen. The proposed algorithm
-simply consists in choosing $\theta^\top\hat{\mu}^{\pi_E}(s,a)$ as
-the linearly parameterized score function, training the classifier
-on $\D$ which produces a parameter vector $\theta_c$, et outputting
-the reward function $\R_{\theta_c}(s) = \theta_c^\top \phi(s)$.
+Soit $\pi_E$ la politique de l'expert à partir de laquelle on souhaite inférer une fonction de récompense. Supposons l'existence d'un set d'entraînement $\D = \{(s_i,a_i=\pi_E(s_i))_{1\leq i\leq N}\}$ où les états sont échantillonnés selon la distribution stationnaire de l'expert\footnote{Par exemple, si la chaîne de Markov induite par la politique de l'expert est \emph{fast-mixing}, l'échantillonnage d'une trajectoire donnera rapidement des échantillons tirés d'après cette distribution.} $\rho_E = \rho_{\pi_E}$.
+Supposons également que nous avons à notre disposition une estimée $\hat{\mu}^{\pi_E}$ de l'attribut moyen de l'expert $\mu^{\pi_E}$ défini à l'équation Eq.~\eqref{eq:def:mu}. Une description de la manière d'estimer cette quantité en pratique est remise à la Sec.~\ref{subsec:practicalApproach:muE}; rappelons en revanche qu'estimer $\mu^{\pi_E}$ est simplement un problème d'\emph{évaluation de la politique} (estimation de la fonction de qualité d'une politique), comme signalé Sec.~\ref{subsec:background:irl}. Supposons enfin qu'un algorithme de MC$^2$ a été choisi. L'algorithme formant notre contribution consiste simplement à choisir $\theta^\top\hat{\mu}^{\pi_E}(s,a)$ comme la fonction de score paramétrée linéairement, puis à entraîner le classifieur sur $\D$, ce qui produit un vecteyr de paramètres $\theta_c$, et enfin à renvoyer la fonction de récompense $\R_{\theta_c}(s) = \theta_c^\top \phi(s)$.
 
 \begin{algorithm2e}%[tbh]
     %\small
   \SetAlgoVlined
-  \caption{SCIRL algorithm}
+  \caption{Algorithme SCIRL}
   \label{algo:scirl}
   %
   \BlankLine
-  \emph{\textbf{Given}} a training set $\D = \{(s_i,a_i=\pi_E(s_i))_{1\leq i\leq N}\}$,
-  an estimate $\hat{\mu}^{\pi_E}$ of the expert feature expectation $\mu^{\pi_E}$ et an MC$^2$ algorithm\;
+  \emph{\textbf{Etant donné}} un set d'entraînement $\D = \{(s_i,a_i=\pi_E(s_i))_{1\leq i\leq N}\}$,
+  une estimée $\hat{\mu}^{\pi_E}$ de l'attridut moyen de l'expert $\mu^{\pi_E}$ et an un algorithme de MC$^2$\;
   %
   \BlankLine
-  \emph{\textbf{Compute}} the parameter vector $\theta_c$ using the
-  MC$^2$ algorithm
-  fed with the training set $\D$ et considering the parameterized score function
-  $\theta^\top\hat{\mu}^{\pi_E}(s,a)$\;
+  \emph{\textbf{Calculer}} le vecteur de paramètres $\theta_c$ en utilisant l'algorithme de MC$^2$ auquel sont fournis le set d'entraînement $\D$ et la paramétrisation de la fonction de score : $\theta^\top\hat{\mu}^{\pi_E}(s,a)$\;
   %
   \BlankLine
-  \emph{\textbf{Output}} the reward function $\R_{\theta_c}(s) = \theta_c^\top\phi(s)$ \;
+  \emph{\textbf{Renvoyer}} la fonction de récompense $\R_{\theta_c}(s) = \theta_c^\top\phi(s)$ \;
 \end{algorithm2e}
 
-The proposed approach is summarized in Alg.~\ref{algo:scirl}. We
-call this Structured Classification-based IRL because using the
-(estimated) expert feature expectation as the feature vector for the
-classifier somehow implies taking into account the MDP structure
-into the classification problem et allows outputting a reward
-vector. Notice that contrary to most of existing IRL
-%and apprenticeship learning
-algorithms, SCIRL does not require solving the direct problem. If it
-possibly requires estimating the expert feature expectation, it is
-just a policy evaluation problem, less difficult than the policy
-optimization issue involved by the direct problem. This is further
-discussed in Sec.~\ref{sec:relatedWorks}.
+L'approche proposée est résumé en Alg.~\ref{algo:scirl}. Le nom de l'algorithme (Classification structurée pour l'ARI) vient de l'utilisation de l'attribut moyen de l'expert dans le classifieur, ce qui revient d'une certaine manière à prendre en compte la structure du MDP dans le problème de classification et permet le calcul du vecteur de paramètres de la récompense. Contrairement à la plupart des algorithmes d'ARI existants, SCIRL n'a pas besoin de résoudre le problème direct. Cet algorithme requiert une estimation de l'attribut moyen de l'expert mais il ne s'agit là que d'un problème d'évaluation de la politique, notoirement moins difficile que la recherche d'une politique optimale qu'implique la résolution du problème direct. Cela est discuté plus en détail en Sec.~\ref{sec:relatedWorks}.
 %
 %Now, we formally show that the proposed approach makes sens, as long
 %as $\mu^{\pi_E}$ is well estimated et as long as the classification
