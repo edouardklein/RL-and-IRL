@@ -349,34 +349,25 @@ $\theta_c$, vu comme une fonction de récompense, donc l'estimée de l'attribut 
 $\hat{\mu}^{\pi_E}$ correctement pour les couples état-action $(s_i,a)_{1\leq i\leq
 N,a\in\A}$, ce qui permet d'envisager une simple estimation de Monte-Carlo par exemple.
 
-\section{A Practical Approach}
+\section{Mise en pratique}
 \label{sec:practicalApproach}
 
-\subsection{Estimating the Expert Feature Expectation}
+\subsection{Estimation de l'attribut moyen de l'expert}
 \label{subsec:practicalApproach:muE}
 
-SCIRL relies on an estimate $\hat{\mu}^{\pi_E}$ of the expert
-feature expectation. Basically, this is a policy evaluation problem.
-An already made key observation is that each component of
-$\mu^{\pi_E}$ is the action-value function of $\pi_E$ for a reward
-function $\phi_i$: $\mu_i^{\pi_E}(s,a) = Q^{\pi_E}_{\phi_i}(s,a) =
-[T^a_{\phi_i} v^{\pi_E}_{\phi_i}](s)$. We briefly review its exact
-computation et possible estimation approaches, et consider
-possible heuristics.
-%possibly considering some heuristics.
+SCIRL a besoin d'une estimée $\hat{\mu}^{\pi_E}$ de l'attribut moyen de l'expert. C'est un problème similaire à une évaluation de politique. Répétons l'observation-clef : chaque composante de 
+$\mu^{\pi_E}$ est une fonction de qualité pour $\pi_E$ vis-à-vis d'une fonction de récompense $\phi_i$: $\mu_i^{\pi_E}(s,a) = Q^{\pi_E}_{\phi_i}(s,a) =
+[T^a_{\phi_i} v^{\pi_E}_{\phi_i}](s)$. Nous présentons une revue rapide de méthodes de calcul exacte et approchées ainsi qu'une heuristique.
 
-If the model is known, the feature expectation can be computed
-explicitly. Let $\Phi\in\mathbb{R}^{|\s|\times p}$ be the feature
-matrix whose rows contain the feature vectors $\phi(s)^\top$ for all
+Si le modèle est connu, il est possible de calculer l'attribut moyen de manière exacte. Soit $\Phi\in\mathbb{R}^{|\s|\times p}$ la matrice d'attributs donc les lignes contiennent les vecteurs d'attributs $\phi(s)^\top$ pour tout
 $s\in\s$.
 %
 %(equivalently, whose columns contain the basis functions $\phi_i$
 %for $1\leq i\leq p$).
 %
-For a fixed $a\in A$, let $\Mu^{\pi_E}_a \in\mathbb{R}^{|\s|\times
-p}$ be the feature expectation matrix whose rows are the expert
-feature vectors, that is $(\mu^{\pi_E}(s,a))^\top$ for any $s\in\s$.
-With these notations, we have $\Mu_a^{\pi_E} = \Phi + \gamma
+Pour un certain $a\in A$, soit $\Mu^{\pi_E}_a \in\mathbb{R}^{|\s|\times
+p}$ la matrice des attributs moyens dont les lignes sont les attributs moyens de l'expert, c'est-à-dire  $(\mu^{\pi_E}(s,a))^\top$ pour chaque $s\in\s$.
+Ces notations nous permettent d'écrire $\Mu_a^{\pi_E} = \Phi + \gamma
 P_a(I-\gamma P_{\pi_E})^{-1} \Phi$.
 %\begin{equation}
 %  \forall a\in\A,\; \Mu_a^{\pi_E} = \Phi + \gamma P_a(I-\gamma
@@ -384,85 +375,49 @@ P_a(I-\gamma P_{\pi_E})^{-1} \Phi$.
 %\end{equation}
 %Therefore, knowing the model (the dynamic), the expert feature
 %expectation can be easily computed.
-Moreover, the related computational cost is the same order of
-magnitude as evaluating a single policy (as the costly part,
-computing $(I-\gamma P_{\pi_E})^{-1}$, is shared by all components).
+Ajoutons que le coût computationel de cette méthode est du même ordre de grandeur que l'évaluation d'une seule politique, en effet la partie coûteuse (le calcul de $(I-\gamma P_{\pi_E})^{-1}$) est partagée par toutes les composantes.
 
-If the model is unknown, any temporal difference learning algorithm
-can be used to estimate the expert feature
-expectation~\cite{Klein:2011}, as LSTD (Least-Squares Temporal
-Differences)~\cite{Bradtke:1996}. Let $\psi:\s\times \A \rightarrow
-\mathbb{R}^d$ be a feature vector composed of $d$ basis functions
-$\psi_i \in\mathbb{R}^{\s\times \A}$. Each component $\mu_i^{\pi_E}$
-of the expert feature expectation is parameterized by a vector
+Si le modèle est inconnu, tous les algorithmes d'apprentissage par différences temporelles peuvent être utilisés pour obtenir une estimation de l'attribut moyen de l'expert~\cite{Klein:2011}, comme par exemple LSTD (Least-Squares Temporal
+Differences)~\cite{Bradtke:1996}. Soit $\psi:\s\times \A \rightarrow
+\mathbb{R}^d$ un vecteur d'attributs composé de $d$ fonctions de base
+$\psi_i \in\mathbb{R}^{\s\times \A}$. Chaque composante $\mu_i^{\pi_E}$
+ de l'attribut moyen de l'expert est paramétrisée par un vecteur
 $\xi_i\in\mathbb{R}^d$: $\mu_i^{\pi_E}(s,a)\approx \xi_i^\top
-\psi(s,a)$. Assume that we have a training set
-$\{(s_i,a_i,s'_i,a'_i=\pi_E(s'_i))_{1\leq i \leq M}\}$ with actions
-$a_i$ not necessarily sampled according to policy $\pi_E$
-(\textit{e.g.}, this may be obtained by sampling trajectories
-according to an expert-based $\epsilon$-greedy policy), the aim
-being to have a better variability of tuples (non-expert actions
-should be tried). Let $\tilde{\Psi}\in \mathbb{R}^{M\times d}$
-(resp. $\tilde{\Psi}'$) be the feature matrix whose rows are the
-feature vectors $\psi(s_i,a_i)^\top$ (resp. $\psi(s'_i,a'_i)^\top$).
-Let also $\tilde{\Phi}\in \mathbb{R}^{M\times p}$ be the feature
-matrix whose rows are the reward's feature vectors $\phi(s_i)^\top$.
-Finally, let $\Xi =
+\psi(s,a)$. Supposons que l'on dispose d'un set d'entraînement
+$\{(s_i,a_i,s'_i,a'_i=\pi_E(s'_i))_{1\leq i \leq M}\}$ dont les actions 
+$a_i$ ne sont pas nécessairement échantillonnées selon la politique $\pi_E$
+(\textit{e.g.}, on peut par exemple utiliser des trajectoires obtenues par un agent suivant une politique $\epsilon$-greedy), le but est d'obtenir une meilleure représentativité des données (des actions sous optimales devraient être essayées). Soit $\tilde{\Psi}\in \mathbb{R}^{M\times d}$
+(resp. $\tilde{\Psi}'$) la matrice d'attributs dont les lignes sont les vecteurs d'attributs $\psi(s_i,a_i)^\top$ (resp. $\psi(s'_i,a'_i)^\top$).
+Soit $\tilde{\Phi}\in \mathbb{R}^{M\times p}$ la matrive d'attributs dont les lignes sont les vecteurs d'attributs de la récompense $\phi(s_i)^\top$.
+Enfin, soit $\Xi =
 \begin{bmatrix}   \xi_1 & \dots & \xi_p
-\end{bmatrix}\in\mathbb{R}^{d\times p}$ be the matrix of all
-parameter vectors. Applying LSTD to each component of the feature
-expectation gives the LSTD-$\mu$ algorithm~\cite{Klein:2011}: $\Xi =
+\end{bmatrix}\in\mathbb{R}^{d\times p}$ la matrice de tous les vecteurs de paramètres. Appliquer LSTD sur chacune des composantes de l'attribut moyen donne l'algorithme LSTD-$\mu$~\cite{Klein:2011}: $\Xi =
 (\tilde{\Psi}^\top(\tilde{\Psi} - \gamma
-\tilde{\Psi}'))^{-1}\tilde{\Psi}^\top \tilde{\Phi}$ and
+\tilde{\Psi}'))^{-1}\tilde{\Psi}^\top \tilde{\Phi}$ et
 $\hat{\mu}^{\pi_E}(s,a) = \Xi^\top \psi(s,a)$.
 %\begin{equation}
 %  \Xi = \left(\tilde{\Psi}^\top(\tilde{\Psi} - \gamma
 %  \tilde{\Psi}')\right)^{-1}\tilde{\Psi}^\top \tilde{\Phi}
 %  \text{ et } \hat{\mu}^{\pi_E}(s,a) = \Xi^\top \psi(s,a).
 %\end{equation}
-As for the exact case, the costly part (computing the inverse
-matrix) is shared by all feature expectation components, the
-computational cost is reasonable (same order as LSTD).
+De la même manière que pour le cas exact, la partie coûteuse de l'algorithme (inverser la matrice) est partagée par toutes les composantes. Le coût reste donc raisonnable (du même ordre que LSTD).
 
 %
-Provided a simulator et the ability to sample according to the
-expert policy, the expert feature expectation may also be estimated
-using Monte-Carlo rollouts for a given state-action pair (as noted
-in Sec.~\ref{subsec:scirl:analysis}, $\hat{\mu}^{\pi_E}$ need only
-be known on $(s_i,a)_{1\leq i\leq N,a\in\A}$). Assuming that $K$
-trajectories are sampled for each required state-action pair, this
-method would require $KN|\A|$ rollouts.
+Si l'on dispose d'un simulateur permettant d'échantillonner selon la politique de l'expert, l'attribut moyen de l'expert peut également être estimé via une méthode de Monte-Carlo pour chaque couple état-action (comme signalé en Sec.~\ref{subsec:scirl:analysis}, $\hat{\mu}^{\pi_E}$ ne doit être connu que pour $(s_i,a)_{1\leq i\leq N,a\in\A}$). Si $K$
+trajectoires sont échantillonnées pour chaque couple, cette méthode requiert $KN|\A|$ simulations.
 
-In order to have a small error $\bar{\epsilon}_Q$, one may learn
-using transitions whose starting state is sampled according to
-$\rho_E$ et whose actions are uniformly distributed. However, it
-may happen that only transitions of the expert are available: $\T =
-\{(s_i,a_i=\pi_E(s_i),s'_i)_{1\leq i \leq N}\}$. If the state-action
-couples $(s_i,a_i)$ may be used to feed the classifier, the
-transitions $(s_i,a_i,s'_i)$ are not enough to provide an accurate
-estimate of the feature expectation. In this case, we can still
-expect an accurate estimate of $\mu^{\pi_E}(s,\pi_E(s))$, but there
-is little hope for $\mu^{\pi_E}(s,a\neq\pi_E(s))$. However, one can
-still rely on some heuristic; this does not fit the analysis of
-Sec.~\ref{subsec:scirl:analysis}, but it can still provide good
-experimental results, as illustrated in Sec.~\ref{sec:experiments}.
+Pour minimiser l'erreur $\bar{\epsilon}_Q$, il est possible d'utiliser des transitions dont l'état de départ est tiré selon 
+$\rho_E$ et dont les actions sont uniformément distribuées. Cependant parfois seules les transitions issues de l'expert sont disponibles : $\T =
+\{(s_i,a_i=\pi_E(s_i),s'_i)_{1\leq i \leq N}\}$. Bien que le couple état-action $(s_i,a_i)$ puisse être exploité par le classifieur, les transitions $(s_i,a_i,s'_i)$ ne sont pas seules suffisantes pour une estimation précise de l'attribut moyen. Il est toujours possible de rester précis sur l'estimation de $\mu^{\pi_E}(s,\pi_E(s))$, mais il y a peu d'espoir de l'être pour $\mu^{\pi_E}(s,a\neq\pi_E(s))$. Il est heureusement possible d'utiliser une heuristique; ce cas ne rentre pas dans l'analyse présentée en 
+Sec.~\ref{subsec:scirl:analysis}, mais peut malgré tout fournir de bons résultats expérimentaux comme illustré en Sec.~\ref{sec:experiments}.
 
 
-We propose such a heuristic. Assume that only data $\T$ is available
-and that we use it to provide an (accurate) estimate
-$\hat{\mu}^{\pi_E}(s,\pi_E(s))$ (this basically means estimating a
-value function instead of an action-value function as described
-above). We may adopt an optimistic point of view by assuming that
-applying a non-expert action just delays the effect of the expert
-action. More formally, we associate to each state $s$ a virtual
-state $s_\text{v}$ for which $p(.|s_\text{v},a)=p(.|s,\pi_E(s))$ for
-any action $a$ et for which the reward feature expectation is the
-null vector, $\phi(s_v) = 0$. In this case, we have
+Nous proposons une telle heuristique. Supposons que  $\T$ soient les seules données disponibles, que nous utilisons pour fournir une estimation (précise)
+$\hat{\mu}^{\pi_E}(s,\pi_E(s))$ (cela revient à estimer non plus une fonction de qualité comme décrit ci-dessus, mais simplement une fonction de valeur). Un point de vue optimiste suppose que choisir une action différente de celle de l'expert ne fait que retarder l'effet de l'action de l'expert. Plus formellement, nous associons à chaque état $s$ un état virtuel $s_\text{v}$ pour lequel $p(.|s_\text{v},a)=p(.|s,\pi_E(s))$ pour toute action $a$ et pour lequel l'attribut (de récompense) moyen est le vecteur nul, $\phi(s_v) = 0$. Dans ce cas, on a
 $\mu^{\pi_E}(s,a\neq\pi_E(s)) = \gamma \mu^{\pi_E}(s,\pi_E(s))$.
-Applying this idea to the available estimate (recalling that the
-classifiers only requires evaluating $\hat{\mu}^{\pi_E}$ on
-$(s_i,a)_{1\leq i\leq N,a\in \A}$) provides the proposed heuristic:
-for $1\leq i\leq N$, $\hat{\mu}^{\pi_E}(s_i,a\neq a_i) = \gamma
+Appliquer cette idée sur l'estimation effectivement disponible (rappelons que le classifieur n'a besoin d'évaluer  $\hat{\mu}^{\pi_E}$ qu'en
+$(s_i,a)_{1\leq i\leq N,a\in \A}$) fournit l'heuristique que nous proposons :
+pour $1\leq i\leq N$, $\hat{\mu}^{\pi_E}(s_i,a\neq a_i) = \gamma
 \hat{\mu}^{\pi_E}(s_i,a_i)$.
 %\begin{equation}
 %  \forall 1\leq i \leq N,\;
@@ -471,13 +426,11 @@ for $1\leq i\leq N$, $\hat{\mu}^{\pi_E}(s_i,a\neq a_i) = \gamma
 %  \label{eq:heuristic}
 %\end{equation}
 
-We may even push this idea further, to get the simpler estimate of
-the expert feature expectation (but with the weakest guarantees).
-Assume that the set $\T$ consists of one long trajectory, that is
-$s'_i = s_{i+1}$ (thus $\T =
-\{s_1,a_1,s_2,\dots,s_{N-1},a_{N-1},s_N,a_N\}$). We may estimate
-$\mu^{\pi_E}(s_i,a_i)$ using the single rollout available in the
-training set et use the proposed heuristic for other actions:
+Il est également possible de pousser cette idée plus loin afin d'obtenir une estimation plus simple (mais offrant de moindres garanties) de l'attribut moyen de l'expert.
+Supposons que  $\T$ consiste en une longue trajectoire, c'est-à-dire
+$s'_i = s_{i+1}$ (donc $\T =
+\{s_1,a_1,s_2,\dots,s_{N-1},a_{N-1},s_N,a_N\}$). On peut estimer
+$\mu^{\pi_E}(s_i,a_i)$ en utilisant la seule trajectoire disponible et en utilisant l'heuristique précedente pour les autres actions :
 \begin{equation}
   \forall 1\leq i \leq N,\; \hat{\mu}^{\pi_E}(s_i,a_i) =
   \sum_{j=i}^N \gamma^{j-i}\phi(s_j) \text{ et }
@@ -486,49 +439,31 @@ training set et use the proposed heuristic for other actions:
   \label{eq:mc_plus_heuristic}
 \end{equation}
 
-To sum up, the expert feature expectation may be seen as a vector of
-action-value functions (for the same policy $\pi_E$ et different
-reward functions $\phi_i$). Consequently, any action-value function
-evaluation algorithm may be used to estimate $\mu^\pi(s,a)$.
-Depending on the available data, one may have to rely on some
-heuristic to assess the feature expectation for a unexperienced
-(non-expert) action. Also, this expert feature expectation estimate
-is only required for training the classifier, so it is sufficient to
-estimate on state-action couples $(s_i,a)_{1\leq i \leq N,a\in \A}$.
-In any case, estimating $\mu^{\pi_E}$ is not harder than estimating
-the action-value function of a given policy in the on-policy case,
-which is much easier than computing an optimal policy for an
-arbitrary reward function (as required by most of existing IRL
-algorithms, see Sec.~\ref{sec:relatedWorks}).
+Pour résumer, l'attribut moyen de l'expert peut être vu comme un vecteur de fonctions de qualité (pour une même politique  $\pi_E$ et pour différentes fonctions de récompense $\phi_i$). En conséquence, tout algorithme d'évaluation de la fonction de qualité peut être utilisé pour estimer $\mu^\pi(s,a)$.
+Selon la quantité et la nature des données disponibles, l'on peut avoir recours à une heuristique pour évaluer l'attribut moyen pour une action différente de celle de l'expert. Cette estimation n'est nécessaire que pour entraîner les classifieur, il est donc suffisant de disposer de valeurs uniquement pour les couples état-action $(s_i,a)_{1\leq i \leq N,a\in \A}$.
+En tous cas, estimer  $\mu^{\pi_E}$ n'est pas plus coûteux que d'estimer la fonction de qualité d'une politique donnée, dans le cas \emph{on-policy}, ce qui est rappelons-le moins coûteux que de trouver la politique optimale pour une fonction de récompense arbitraire (comme l'exigent la plupart des algorithmes d'ARI existants, voir Sec.~\ref{sec:relatedWorks}).
 
 
-\subsection{An Instantiation}
+\subsection{Instanciation}
 \label{subsec:practicalApproach:instantiation}
 
-As stated before, any MC$^2$ algorithm may be used. Here, we choose
-the structured large margin approach~\cite{Taskar:2005}. Let
-$\lc:\s\times\A\rightarrow\mathbb{R}_+$ be a user-defined margin
-function satisfying $\lc(s,\pi_E(s))\leq \lc(s,a)$ (here,
-$\lc(s_i,a_i)=0$ et $\lc(s_i,a\neq a_i)=1$). The MC$^2$ algorithm
-solves:% the following quadratic problem:
+Comme précisé précedemment, tout algorithme de MC$^2$ peut être utilisé. Ici nous choisissons l'approche à marges structurées de ~\cite{Taskar:2005}. Soit
+$\lc:\s\times\A\rightarrow\mathbb{R}_+$ une fonction de marge définie par l'utilisateur satisfaisant $\lc(s,\pi_E(s))\leq \lc(s,a)$ (ici,
+$\lc(s_i,a_i)=0$ et $\lc(s_i,a\neq a_i)=1$). L'algorithme MC$^2$ résoud :% the following quadratic problem:
 \begin{equation}
   \min_{\theta,\zeta}\frac{1}{2}\|\theta\|^2 +
   \frac{\eta}{N}\sum_{i=1}^N \zeta_i \text{~~~~s.t.~~~~} \forall i,
   \theta^\top\hat{\mu}^{\pi_E}(s_i,a_i)+\zeta_i \geq \max_a \theta^\top
   \hat{\mu}^{\pi_E}(s_i,a) + \lc(s_i,a). \label{eq:qp_taskar}
 \end{equation}
-Following~\cite{Ratliff:2006}, we express the equivalent hinge-loss
-form (noting that the slack variables $\zeta_i$ are tight, which
-allows moving the constraints in the objective function):
+Comme dans~\cite{Ratliff:2006}, nous fournissons la forme \emph{hinge-loss} équivalente (avec les variables d'ajustement $\zeta_i$ serrées, ce qui permet de déplacer les contraintes dans la fonction objectif) :
 \begin{equation}
   J(\theta) = \frac{1}{N}\sum_{i=1}^N \max_a \theta^\top
   \hat{\mu}^{\pi_E}(s_i,a) + \lc(s_i,a) -
   \theta^\top\hat{\mu}^{\pi_E}(s_i,a_i) +
   \frac{\lambda}{2}\|\theta\|^2.
 \end{equation}
-This objective function is minimized using a subgradient descent.
-The expert feature expectation is estimated using the scheme
-described in Eq.~\eqref{eq:mc_plus_heuristic}.
+La fonction objectif est minimisée en utilisant une descente de sous-gradient. L'attribut moyen de l'expert est estimé en utilisant le principe décrit Eq.~\eqref{eq:mc_plus_heuristic}.
 
 %This is the instantiation we use in Sec.~\ref{sec:experiments}, but
 %our approach is more general: other choices could have been done for
