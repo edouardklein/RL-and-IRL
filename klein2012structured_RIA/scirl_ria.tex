@@ -178,37 +178,28 @@ L'approche proposée est résumé en Alg.~\ref{algo:scirl}. Le nom de l'algorith
 %error is small.
 
 
-\subsection{Analysis}
+\subsection{Analyse}
 \label{subsec:scirl:analysis}
 
-In this section, we show that the expert policy $\pi_E$ is close to
-be optimal according to the reward function $\R_{\theta_c}$, more
-precisely that
-$\E_{s\sim\rho_E}[v^*_{\theta_c}(s)-v^{\pi_E}_{\theta_c}(s)]$ is
-small. Before stating our main result, we need to introduce some
-notations et to define some objects.
+Dans cette section, nous montrons que la politique de l'expert $\pi_E$ est quasi-optimale vis-à-vis de la fonction de récompense $\R_{\theta_c}$, plus précisément que 
+$\E_{s\sim\rho_E}[v^*_{\theta_c}(s)-v^{\pi_E}_{\theta_c}(s)]$ est faible.
+Avant de présenter le résultat principal, il nous faut introduire quelques notations et définir quelques objets.
 
-We will use the first order discounted future state distribution
-concentration coefficient $C_f$~\cite{Munos:2007}:
+Nous allons utiliser le coefficient de concentration de la distribution pondérée du premier ordre pour l'état futur $C_f$~\cite{Munos:2007}:
 \begin{equation}
   C_f = (1-\gamma)\sum_{t\geq 0} \gamma^t c(t) \text{ with } c(t) =
   \max_{\pi_1,\dots,\pi_t,s\in\s}\frac{(\rho_E^\top P_{\pi_1}\dots
   P_{\pi_t})(s)}{\rho_E(s)}.
 \end{equation}
-We note $\pi_c$ the decision rule of the classifier: $\pi_c(s) \in
-\argmax_{a\in \A} \theta_c^\top\hat{\mu}^{\pi_E}(s,a)$. The
-classification error is therefore $\epsilon_c =
-\E_{s\sim\rho_E}[\chi_{\{\pi_c(s)\neq\pi_E(s)\}}] \in [0,1]$. We
-write $\hat{Q}^{\pi_E}_{\theta_c} = \theta_c^\top \hat{\mu}^{\pi_E}$
-the score function computed from the training set $\D$ (which can be
-interpreted as an approximate action-value function). Let also
+On note $\pi_c$ la règle de décision du classifieur : $\pi_c(s) \in
+\argmax_{a\in \A} \theta_c^\top\hat{\mu}^{\pi_E}(s,a)$. L'erreur de classification est donc $\epsilon_c =
+\E_{s\sim\rho_E}[\chi_{\{\pi_c(s)\neq\pi_E(s)\}}] \in [0,1]$. On écrit $\hat{Q}^{\pi_E}_{\theta_c} = \theta_c^\top \hat{\mu}^{\pi_E}$ la fonction de score calculée à partir du set d'entraînement $\D$ (celle-ci peut être interprétée comme une fonction de qualité approchée). Soit 
 $\epsilon_{\mu} = \hat{\mu}^{\pi_E} - \mu^{\pi_E}:\s\times\A
-\rightarrow  \mathbb{R}^p$ be the feature expectation error.
-Consequently, we define the action-value function error as
+\rightarrow  \mathbb{R}^p$ l'erreur sur l'estimation de l'attribut moyen.
+En conséquence, on définit l'erreur sur la fonction de qualité par 
 $\epsilon_Q = \hat{Q}^{\pi_E}_{\theta_c} - Q^{\pi_E}_{\theta_c} =
 \theta_c^\top(\hat{\mu}^{\pi_E} - \mu^{\pi_E}) = \theta_c^\top
-\epsilon_\mu:\s\times\A\rightarrow\mathbb{R}$. We finally define the
-mean delta-max action-value function error as $\bar{\epsilon}_Q =
+\epsilon_\mu:\s\times\A\rightarrow\mathbb{R}$. Finalement, on définit le delta-max moyen de l'erreur sur la fonction de qualité par $\bar{\epsilon}_Q =
 \E_{s\sim\rho_E}[\max_{a\in\A}\epsilon_Q(s,a) -
 \min_{a\in\A}\epsilon_Q(s,a)]\geq 0$.
 
@@ -216,9 +207,8 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
 
 \begin{theorem}
   \label{th}
-  Let $\R_{\theta_c}$ be the reward function outputted by
-  Alg.~\ref{algo:scirl}. Let also the quantities $C_f$, $\epsilon_c$
-  et $\bar{\epsilon}_Q$ be defined as above. We have
+  Soit $\R_{\theta_c}$ la fonction de récompense renvoyée par l'Alg.~\ref{algo:scirl}. Soient $C_f$, $\epsilon_c$
+  et $\bar{\epsilon}_Q$ les quantités définies ci-dessus. On a
   %
 %  the concentration coefficient $C_f$,
 %  the classification error $\epsilon_c$ et the mean-max
@@ -235,16 +225,13 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
   \end{equation}
 \end{theorem}
 \begin{proof}
-  As the proof only relies on the reward $\R_{\theta_c}$, we
-  omit the related subscripts to keep the notations simple
-  (\textit{e.g.}, $v^\pi$ for
-  $v^\pi_{\theta_c}=v^\pi_{\R_{\theta_c}}$ or $\R$ for $\R_{\theta_c}$). First, we link
-  the error $\E_{s\sim\rho_E}[v^*(s)-v^{\pi_E}(s)]$ to the
-  Bellman residual $\E_{s\sim\rho_E}[[T^*v^{\pi_E}](s)-v^{\pi_E}(s)]$.
+  La démonstration repose uniquement sur la récompense $\R_{\theta_c}$, on omet donc par soucis de clarté des notations certains indices relatifs à la récompense 
+  (\textit{e.g.}, $v^\pi$ pour
+  $v^\pi_{\theta_c}=v^\pi_{\R_{\theta_c}}$ ou $\R$ pour $\R_{\theta_c}$). Tout d'abord, l'on relie  l'erreur $\E_{s\sim\rho_E}[v^*(s)-v^{\pi_E}(s)]$ au résidu de Bellman $\E_{s\sim\rho_E}[[T^*v^{\pi_E}](s)-v^{\pi_E}(s)]$.
   %
   % A second step consists in bounding this residual.
   %
-  Componentwise, we have that:
+  Composante par composante, on a :
   \begin{align}
     v^* - v^{\pi_E} &= T^* v^*  - T^{\pi^*}v^{\pi_E} +
     T^{\pi^*}v^{\pi_E} - T^* v^{\pi_E} + T^* v^{\pi_E} - v^{\pi_E}
@@ -255,36 +242,30 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
     \stackrel{(b)}{\leq} (I-\gamma
     P_{\pi^*})^{-1} (T^* v^{\pi_E} - v^{\pi_E}).
   \end{align}
-  Inequality $(a)$ holds because $T^{\pi^*} v^{\pi_E}\leq T^*
-  v^{\pi_E}$ et inequality $(b)$ holds thanks
-  to~\cite[Lemma~4.2]{Munos:2007}. Moreover, $v^*$ being optimal we
-  have that $v^*-v^{\pi_E}\geq 0$ et $T^*$ being the Bellman
-  optimality operator, we have $T^* v^{\pi_E}\geq
-  T^{\pi_E}v^{\pi_E}=v^{\pi_E}$. Additionally, remark that
+  L'inégalité $(a)$ est valable car $T^{\pi^*} v^{\pi_E}\leq T^*
+  v^{\pi_E}$ et l'inégalité $(b)$ l'est aussi grâce à~\cite[Lemma~4.2]{Munos:2007}. De plus, $v^*$ étant optimale, l'on voit que  $v^*-v^{\pi_E}\geq 0$ et avec $T^*$ l'opérateur d'optimalité de Bellman, on a $T^* v^{\pi_E}\geq
+  T^{\pi_E}v^{\pi_E}=v^{\pi_E}$. De plus, on remarque que 
   $(I-\gamma P_{\pi^*})^{-1} = \sum_{t\geq 0}\gamma^t P_{\pi^*}^t$.
-  Therefore, using the definition of the concentration coefficient
-  $C_f$, we have that:
+  Donc, d'après la définition du coefficient de concentration 
+  $C_f$, on a :
   \begin{equation}
     0\leq\E_{s\sim\rho_E}[v^*(s)-v^{\pi_E}(s)] \leq \frac{C_f}{1-\gamma}
     \E_{s\sim\rho_E}\left[[T^*v^{\pi_E}](s) - v^{\pi_E}(s)\right].
     \label{eq:proof:residual}
   \end{equation}
-  This results actually follows closely the one
-  of~\cite[Theorem~4.2]{Munos:2007}. There remains to bound the
-  Bellman residual $\E_{s\sim\rho_E}[[T^*v^{\pi_E}](s) -
-  v^{\pi_E}(s)]$. Considering the following decomposition,
+  Ce résultat est similaire à celui de~\cite[Theorem~4.2]{Munos:2007}. Il reste à borner le résidu de Bellman $\E_{s\sim\rho_E}[[T^*v^{\pi_E}](s) -
+  v^{\pi_E}(s)]$. Considérons la décomposition
   \begin{equation}
     T^* v^{\pi_E} - v^{\pi_E} = T^* v^{\pi_E} - T^{\pi_c}v^{\pi_E}
     + T^{\pi_c}v^{\pi_E}- v^{\pi_E},
     \label{eq:proof:decomposition}
   \end{equation}
-  we will bound $\E_{s\sim\rho_E}[[T^* v^{\pi_E}](s) - [T^{\pi_c}v^{\pi_E}](s)]$
+  on va borner  $\E_{s\sim\rho_E}[[T^* v^{\pi_E}](s) - [T^{\pi_c}v^{\pi_E}](s)]$
   et $\E_{s\sim\rho_E}[[T^{\pi_c}v^{\pi_E}](s) - v^{\pi_E}(s)]$.
 
-  The policy $\pi_c$ (the decision rule of the classifier) is greedy
-  with respect to
-  $\hat{Q}^{\pi_E}=\theta_c^\top\hat{\mu}^{\pi_E}$. Therefore, for any state-action couple
-  $(s,a)\in\s\times \A$ we have:
+  La politique $\pi_c$ (la règle de décision du classifieur) est gloutonne vis-à-vis de 
+  $\hat{Q}^{\pi_E}=\theta_c^\top\hat{\mu}^{\pi_E}$. Donc, pour chaque couple état-action
+  $(s,a)\in\s\times \A$ on a:
   \begin{equation}
     \hat{Q}^{\pi_E}(s,\pi_c(s))\geq
     \hat{Q}^{\pi_E}(s,a)
@@ -292,8 +273,8 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
     Q^{\pi_E}(s,a) \leq Q^{\pi_E}(s,\pi_c(s)) +
     \epsilon_Q(s,\pi_c(s)) - \epsilon_Q(s,a).
   \end{equation}
-  By definition, $Q^{\pi_E}(s,a) = [T^a v^{\pi_E}](s)$ and
-  $Q^{\pi_E}(s,\pi_c(s)) = [T^{\pi_c} v^{\pi_E}](s)$. Therefore, for $s\in\s$:
+  Par définition, $Q^{\pi_E}(s,a) = [T^a v^{\pi_E}](s)$ et
+  $Q^{\pi_E}(s,\pi_c(s)) = [T^{\pi_c} v^{\pi_E}](s)$. Donc, pour $s\in\s$:
   \begin{align}
     \forall a\in A,\; [T^a v^{\pi_E}](s) &\leq [T^{\pi_c}
     v^{\pi_E}](s) + \epsilon_Q(s,\pi_c(s))-\epsilon_Q(s,a)
@@ -302,44 +283,38 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
     v^{\pi_E}](s) + \max_{a\in \A}\epsilon_Q(s,a)-\min_{a\in
     \A}\epsilon_Q(s,a).
   \end{align}
-  Taking the expectation according to $\rho_E$ et noticing that
-  $T^* v^{\pi_E}\geq v^{\pi_E}$, we bound the first
-  term:
+  En passant à l'espérance selon $\rho_E$ et tout en remarquant que 
+  $T^* v^{\pi_E}\geq v^{\pi_E}$, on borne le premier terme
   \begin{equation}
     0 \leq \E_{s\sim\rho_E}\left[ [T^* v^{\pi_E}](s) - [T^{\pi_c}
     v^{\pi_E}](s)\right] \leq \bar{\epsilon}_Q.
     \label{eq:proof:b1}
   \end{equation}
-  There finally remains to bound the term $\E_{s\sim\rho_E}[[T^{\pi_c}v^{\pi_E}](s) -
+  Il reste enfin à borner le terme $\E_{s\sim\rho_E}[[T^{\pi_c}v^{\pi_E}](s) -
   v^{\pi_E}(s)]$.
 
-  Let us write $M\in\mathbb{R}^{|\s|\times |\s|}$ the diagonal matrix
-  defined as $M = \diag (\chi_{\{\pi_c(s)\neq\pi_E(s)\}})$. Using
-  this, the Bellman operator $T^{\pi_c}$ may be written as, for any $v\in\mathbb{R}^\s$:
+  On écrit $M\in\mathbb{R}^{|\s|\times |\s|}$ la matrice diagonale définie par $M = \diag (\chi_{\{\pi_c(s)\neq\pi_E(s)\}})$. En utilisant cela, l'opérateur de Bellman $T^{\pi_c}$ peut s'écrire, pour tout $v\in\mathbb{R}^\s$:
   \begin{equation}
     T^{\pi_c}v = \R + \gamma M P_{\pi_c} v + \gamma (I-M)P_{\pi_E} v
     = \R + \gamma P_{\pi_E} v + \gamma M (P_{\pi_c}-P_{\pi_E})v.
   \end{equation}
-  Applying this operator to $v^{\pi_E}$ et recalling that $\R +
-  \gamma P_{\pi_E} v^{\pi_E} = T^{\pi_E} v^{\pi_E} = v^{\pi_E}$, we
-  get:
+  En appliquant cet opérateur à  $v^{\pi_E}$ et en utilisant le fait que $\R +
+  \gamma P_{\pi_E} v^{\pi_E} = T^{\pi_E} v^{\pi_E} = v^{\pi_E}$, on obtient :
   \begin{equation}
     T^{\pi_c}v^{\pi_E} - v^{\pi_E} = \gamma M
     (P_{\pi_c}-P_{\pi_E})v^{\pi_E}
     \Rightarrow |\rho_E^\top (T^{\pi_c}v^{\pi_E} - v^{\pi_E})| = \gamma
     |\rho_E^\top M (P_{\pi_c}-P_{\pi_E})v^{\pi_E}|.
   \end{equation}
-  One can easily see that $\|(P_{\pi_c}-P_{\pi_E})v^{\pi_E}\|_\infty
-  \leq \frac{2}{1-\gamma}\|\R\|_\infty$, which allows bounding the
-  last term:
+  On peut facilement voir que $\|(P_{\pi_c}-P_{\pi_E})v^{\pi_E}\|_\infty
+  \leq \frac{2}{1-\gamma}\|\R\|_\infty$, ce qui permet de borner le dernier terme
   \begin{equation}
     |\E_{s\sim\rho_E}[[T^{\pi_c}v^{\pi_E}](s) - v^{\pi_E}(s)]| \leq
     \epsilon_c \frac{2\gamma}{1-\gamma} \|\R\|_\infty.
     \label{eq:proof:b2}
   \end{equation}
-  Injecting bounds of Eqs.~\eqref{eq:proof:b1}
-  and~\eqref{eq:proof:b2} into Eq.~\eqref{eq:proof:residual} gives the
-  stated result.%, which concludes the proof.
+  Injecter les bornes des Eqs.~\eqref{eq:proof:b1}
+  and~\eqref{eq:proof:b2} dans l'Eq.~\eqref{eq:proof:residual} montre le résultat proposé.%, which concludes the proof.
 %  Injecting bounds of Eqs.~\eqref{eq:proof:b1}
 %  and~\eqref{eq:proof:b2} into Eq.~\eqref{eq:proof:residual} using the
 %  decomposition of Eq.~\eqref{eq:proof:decomposition} gives the
@@ -352,52 +327,27 @@ mean delta-max action-value function error as $\bar{\epsilon}_Q =
 %  This concludes the proof.
 \end{proof}
 
-This result shows that if the expert feature expectation is well
-estimated (in the sense that the estimation error $\epsilon_\mu$ is
-small for states sampled according to the expert stationary policy
-and for all actions) et if the classification error $\epsilon_c$ is
-small, then the proposed generic algorithm outputs a reward function
-$\R_{\theta_c}$ for which the expert policy will be near optimal. A
-direct corollary of Th.~\ref{th} is that given the true expert
-feature expectation $\mu^{\pi_E}$ et a perfect classifier
-($\epsilon_c=0$), $\pi_E$ is the unique optimal policy for
+Ce résultat montre que si l'attribut moyen de l'expert est bien estimé (dans le sens d'une faible erreur d'estumation $\epsilon_\mu$ pour les états échantillonnés selon la politique stationnaire de l'expert et pour toutes les actions) et si l'erreur de classification $\epsilon_c$ et également faible alors l'algorithme générique proposé fournit une fonction de récompense 
+$\R_{\theta_c}$ vis-à-vis de laquelle l'expert sera quasi-optimal. Un corollaire direct du Th.~\ref{th} stipule qu'avec le vrai attribut moyen de l'expert $\mu^{\pi_E}$ et un classifieur parfait 
+($\epsilon_c=0$), $\pi_E$ est l'unique politique optimale pour 
 $\R_{\theta_c}$.
 
-One may argue that this bounds trivially holds for the null reward
-function (a reward often exhibited to show that IRL is an ill-posed
-problem), obtained if $\theta_c=0$. However, recall that the
-parameter vector $\theta_c$ is computed by the classifier. With
-$\theta_c=0$, the decision rule would be a random policy et we
-would have $\epsilon_c = \frac{|\A|-1}{|\A|}$, the worst possible
-classification error. This case is really unlikely. Therefore, we
-advocate that the proposed approach somehow allows disambiguating
-the IRL problem (at least, it does not output trivial reward
-functions such as the null vector).
+L'on pourrait arguer que ces bornes sont triviallement valables pour la fonction de récompense nulle (fonction régulièrement citée en exemple de la nature mal posée du problème de l'ARI) correspondant au cas $\theta_c=0$. Cependant il faut se rappeler que le vecteur de paramètres $\theta_c$ est choisi par le classifieur. Avec 
+$\theta_c=0$, la règle de décision serait une politique aléatoire et nous aurions $\epsilon_c = \frac{|\A|-1}{|\A|}$, c'est-à-dire la pire erreur de classification possible. Ce cas est donc très improbable. De fait nous affirmons que notre approche permet, d'une certaine manière, de lever l'ambiguité du problème de l'ARI (au moins, l'algorithme ne renvoie pas de récompense triviales comme la récompense nulle).
 %
-Also, this bound is scale-invariant: one could impose
-$\|\theta_c\|=1$ or normalize (action-) value functions by
+On peut également noter que cette borne est invariante par dilatation. L'on pourrait imposer 
+$\|\theta_c\|=1$ ou normaliser la fonction de valeur (ou de qualité) par 
 $\|\R_{\theta_c}\|_\infty^{-1}$.
 
-One should notice that there is a hidden dependency of the
-classification error $\epsilon_c$ to the estimated expert feature
-expectation $\hat{\mu}^{\pi_E}$. Indeed, the minimum classification
-error depends on the hypothesis space spanned by the chosen score
-function basis functions for the MC$^2$ algorithm (here
-$\hat{\mu}^{\pi_E}$). Nevertheless, provided a good representation
-for the reward function (that is a good choice of basis functions
-$\phi_i$) et a small estimation error, this should not be a
-practical problem.
+On remarquera une dépendance caché de l'erreur de classification  $\epsilon_c$ à l'estimation de l'attribut moyen de l'expert  $\hat{\mu}^{\pi_E}$. En effet, l'erreur de classification minimale dépend de l'espace d'hypothèses généré par les fonctions de base de la fonction de score de l'algorithme de MC$^2$ (ici, 
+$\hat{\mu}^{\pi_E}$). Néanmoins, avec une bonne représentation de la fonction de récompense (c'est-à-dire un choix judicieux de fonctions de base $\phi_i$) et une faible erreur d'estimation, cela ne devrait poser aucun problème en pratique.
 
-Finally, if our bound relies on the generalization errors
-$\epsilon_c$ et $\bar{\epsilon}_Q$, the classifier will only use
-$(\hat{\mu}^{\pi_E}(s_i,a))_{1\leq i\leq N,a\in\A}$ in the training
-phase, where $s_i$ are the states from the set $\D$. It outputs
-$\theta_c$, seen as a reward function, thus the estimated feature
-expectation $\hat{\mu}^{\pi_E}$ is no longer required. Therefore,
-practically it should be sufficient to estimate well
-$\hat{\mu}^{\pi_E}$ on state-action couples $(s_i,a)_{1\leq i\leq
-N,a\in\A}$, which allows envisioning Monte-Carlo rollouts for
-example.
+Finalement, si notre borne se base sur les erreurs en généralisation 
+$\epsilon_c$ et $\bar{\epsilon}_Q$, le classifieur n'utilisera 
+$(\hat{\mu}^{\pi_E}(s_i,a))_{1\leq i\leq N,a\in\A}$ que lors de la phase d'entraînement, où les $s_i$ sont les états présents dans $\D$. Il renvoie 
+$\theta_c$, vu comme une fonction de récompense, donc l'estimée de l'attribut moyen $\hat{\mu}^{\pi_E}$ n'est plus nécessaire. Donc en pratique il est satisfaisant d'estimer 
+$\hat{\mu}^{\pi_E}$ correctement pour les couples état-action $(s_i,a)_{1\leq i\leq
+N,a\in\A}$, ce qui permet d'envisager une simple estimation de Monte-Carlo par exemple.
 
 \section{A Practical Approach}
 \label{sec:practicalApproach}
