@@ -511,57 +511,23 @@ Dans~\cite{boularias:2011}, en utilisant l'argument de l'entropie relative, on m
 SCIRL n'a pas besoin de résoudre le problème direct, mais uniquement d'estimer l'attribut moyen de la politique de l'expert. Autrement dit, plutôt que de résoudre plusieurs fois le problème de l'optimisation d'une politique, nous ne résolvons qu'une fois un problème d'évaluation de la politique. Cela amène des garanties théoriques (ce qui n'est pas le cas de tous les algorithmes d'ARI \textit{e.g.}~\cite{boularias:2011}). De plus par l'utilisation d'une heuristique qui dépassent le cadre de notre analyse, il est possible à SCIRL de se contenter de données fournies par l'expert. La prochaine section présente une démonstration empirique de cela. Nous ne connaissons aucun autre algorithme d'ARI en mesure de fonctionner dans des conditions si drastiques.
 
 
-\section{Experiments}
+\section{Expériences}
 \label{sec:experiments}
 
-We illustrate the proposed approach on a car driving simulator,
-similar to~\cite{Abbeel:2004,Syed:2008:game}. The goal si to drive a
-car on a busy three-lane highway with randomly generated traffic
-(driving off-road is allowed on both sides). The car can move left
-and right, accelerate, decelerate et keep a constant speed. The
-expert optimizes a handcrafted reward $\R_E$ which favours speed,
-punish off-road, punish collisions even more  et is neutral
-otherwise.
+Nous illustrons l'approche proposée sur un simulateur de conduite similaire à~\cite{Abbeel:2004,Syed:2008:game}.  Le but est de conduire une voiture sur une autoroute à trois voies dont le traffic est généré aléatoirement (les sorties de route sont possible des deux côtés). La voiture peut se déplacer vers la gauche ou la droite, accélérer ou ralentir et conserver sa vitesse. L'expert optimise une récompense définie par nos soins $\R_E$ qui récompense la vitesse, punit les sorties de route, punit sévèrement les collisions et no donne pas d'information dans les autres cas.
 
-We compare SCIRL as instantiated in
-Sec.~\ref{subsec:practicalApproach:instantiation} to the
-unstructured classifier (using the same classification algorithm)
-and to the algorithm of~\cite{Abbeel:2004} (called here PIRL for
-Projection IRL). We also consider the optimal behavior according to
-a randomly sampled reward function as a baseline (using the same
-reward feature vector as SCIRL et PIRL, the associated parameter
-vector is randomly sampled).
+Nous avons comparé SCIRL tel qu'instancié comme décrit en
+Sec.~\ref{subsec:practicalApproach:instantiation} à un classifieur non structuré (en utilisant le même algorithme de classification que celui placé au coeur de SCIRL) ainsi qu'à l'algorithme de~\cite{Abbeel:2004} (appelé ici PIRL pour \emph{
+Projection Inverse Reinforcement Learning}). Nous nous préoccupons également du comportement optimal vis-à-vis d'une récompense tirée aléatoirement (en utilisant la même paramétrisation que SCIRL et PIRL, le vecteur de paramètres est tiré selon une loi uniforme) afin de disposer d'un point de comparaison.
 
-For SCIRL et PIRL we use a discretization of the state space as the
-reward feature vector, $\phi\in\mathbb{R}^{729}$: $9$ horizontal
-positions for the user's car, $3$ horizontal et $9$ vertical
-positions for the closest traffic's car et $3$ speeds. Notice that
-these features are much less informative than the ones used
-in~\cite{Abbeel:2004,Syed:2008:game}. Actually,
-in~\cite{Syed:2008:game} features are so informative that sampling a
-random positive parameter vector $\theta$ already gives an
-acceptable behavior. The discount factor is $\gamma = 0.9$. The
-classifier uses the same feature vector reproduced for each action.
+Pour SCIRL et PIRL on discrétise l'espace d'état en un vecteur d'attribut pour la récompense, $\phi\in\mathbb{R}^{729}$: $9$ positions horizontales pour la voiture du joueur, $3$ positions horizontales et $9$ verticales pour la voiture la plus proche de celle du joueur et $3$ vitesses. Ces attributs sont bien moins informatifs que ceux utilisés dans~\cite{Abbeel:2004,Syed:2008:game}. Les attributs de~\cite{Syed:2008:game} sont si informatifs que tirer aléatoirement un vecteur de paramètres $\theta$ positifs pour la récompense donne lieu à un comportement acceptable. Le facteur d'oubli est $\gamma = 0.9$. Le classifieur utilise le même vecteur d'attribut reproduit pour chaque action.
 
-SCIRL is fed with $n$ trajectories of length $n$ (started in a
-random state) with $n$ varying from $3$ to $20$ (so fed with $9$ to
-$400$ transitions). Each experiment is repeated 50 times. The
- classifier uses the same data. PIRL is an iterative
-algorithm, each iteration requiring to solve the MDP for some reward
-function. It is run for 70 iterations, all required objects (a
-feature expectations for a non-expert policy et an optimal policy
-according to some reward function at each iteration) are computed
-exactly using the model. We measure the performance of each approach
-with $\E_{s\sim \mathcal{U}}[v^\pi_{\R_E}(s)]$, where $\mathcal{U}$
-is the uniform distribution (this allows measuring the
-generalization capability of each approach for states infrequently
-encountered), $\R_E$ is the expert reward et $\pi$ is one of the
-following polices: the optimal policy for $\R_E$ (upper baseline),
-the optimal policy for a random reward (lower baseline), the optimal
-policy for $\R_{\theta_c}$ (SCIRL), the policy produced by PIRL and
-the classifier decision rule.
+On donne à SCIRL $n$ trajectoires de longueur $n$ (débutant dans un état choisi aléatoirement), $n$ allant de  $3$ à $20$ (ce qui donne de $9$ à
+$400$ transitions). Chaque expérience est répétée 50 fois. Le classifieur utilise les mêmes données que SCIRL. PIRL est un algorithme itératif dont chaque itération implique la résolution du PDM pour une fonction de récompense arbitraire. Nous l'avons fait fonctionner pendant 70 itérations, tous les objets requis (l'attribut moyen de politiques différentes de celles de l'expert et la politique optimale pour une fonction de récompense à chaque itération) ont été calculées de manière éxacte en utilisant le modèle. Nous mesurons les performances de chacune des approches grâce à $\E_{s\sim \mathcal{U}}[v^\pi_{\R_E}(s)]$, avec $\mathcal{U}$
+la distribution uniforme (ce qui permet de tester la capacité de généralisation de chaque approche même pour des états infrequemment recontrés), $\R_E$ est la récompense de l'expert et $\pi$ est l'une des politiques suivantes: la politique optimale pour $\R_E$ (point de référence haut),
+la politique optimale pour une récompense aléatoire (point de référence bas), la politique optimale pour $\R_{\theta_c}$ (SCIRL), et la politique produite par PIRL et la règle de décision du classifieur.
 
-\begin{figure}[fig:res]{Highway problem. The highest line is the expert value. For each curves, we show the mean (plain line), the standard deviation (dark color) et the min-max values (light color). The policy corresponding to the random reward is in blue, the policy outputted by the  classifier is in yellow et the optimal policy according the SCIRL's reward is in red. PIRL is the dark blue line.}
+\begin{figure}[fig:res]{Problème de la conduite. La ligne la plus haute est la valeur de l'expert. Pour chaque courbe, nous dessinons la moyenne (trait plein), l'écart-type (foncé) et les valeurs min et max (plus clair). La pôlitique correspondant à une récompense aléatoire est en bleu, la politique retournée par le classifieur est en jaune et la politique optimale pour la récompense trouvée par SCIRL's est en rouge. La ligne bleue foncée correspond à PIRL.}
 \begin{minipage}[l]{0.45\linewidth}
 \centering
   \centerline{\includegraphics[width=.92\linewidth]{fig_classif.pdf}}
@@ -572,17 +538,7 @@ the classifier decision rule.
 \end{minipage}
 \end{figure}
 
-Fig.~\ref{fig:res} shows the performance of each approach as a
-number of used expert transitions (except PIRL which uses the
-model). We can see that the classifier does not work well on this
-example. Increasing the number of samples would improve its
-performance, but after 400 transitions it does not work as well as
-SCIRL with only a ten of transitions. SCIRL works pretty well here:
-after only a hundred of transitions it reaches the performance of
-PIRL, both being close to the expert value. We do not report exact
-computational times, but running SCIRL one time with $400$
-transitions is approximately hundred time faster than running PIRL
-for $70$ iteration.
+La Fig.~\ref{fig:res} montre la performance de chacune des approche en fonction du nombre de transitions de l'expert utilisées (sauf pour PIRL qui a utilisé le modèle). On peut voir que le classifieur ne fonctionne pas bien sur ce problème. Augmenter le nombre de transitions améliorerait ses performances, mais après 400 transitions, il ne fonctionne pas aussi bien que SCIRL avec uniquement une dizaine de transition. SCIRL fonctionne particulièrement bien ici: après seulement une centaine de transitions il atteint les performances de PIRL. Ces deux algorithmes sont proches de la valeur de l'expert. Nous ne fournissons pas de données exactes en ce qui concerne les temps de calcul, mais faire fonctionner SCIRL une fois avec $400$ transitions en entrée est environ une centaine de fois plus rapide que de faire fonctionner PIRL pour $70$ itérations.
 %
 % (this is due to the need to repeatedly solve MDPs for PIRL).
 
@@ -598,25 +554,10 @@ for $70$ iteration.
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have introduced a new way to perform IRL by structuring a
-linearly parameterized score function-based multi-class
-classification algorithm with an estimate of the expert feature
-expectation. This outputs a reward function for which we have shown
-the expert to be near optimal, provided a small classification error
-and a good expert feature expectation estimate. How to practically
-estimate this quantity has been  discussed et we have introduced a
-heuristic for the case where only transitions from the expert are
-available, along with a specific instantiation of the SCIRL
-algorithm. We have shown on a car driving simulator benchmark that
-the proposed approach works well (even combined with the introduced
-heuristic), much better than the unstructured classifier et as well
-as a state-of-the-art algorithm making use of the model (and with a
-much lower computational time). In the future, we plan to deepen the
-theoretical properties of SCIRL (notably regarding possible
-heuristics) et to apply it to real-world robotic problems.
+Nous avons introduit un nouveau moyen de résoudre le problème de l'ARI en structurant un classifieur à fonction de score linéairement paramétrée avec une estimée de l'attribut moyen de l'expert. Il renvoie une fonction de récompense pour laquelle nous avons montré que l'expert est quasi optimal, pour peu que l'erreur de classification soit faible et que l'estimation de l'attribut moyen de l'expert soit bonne. Des méthodes pratiques pour l'estimation de cette grandeur ont été présentées et nous avons introduit une heuristique pour le cas où les seules données disponibles proviennent de l'expert, ainsi qu'une instanciation spécifique de l'algorithme SCIRL. Nous avons exhibé grâce à un simulateur de conduite sur autoroute que l'approche proposée fonctionne bien (même combinée à l'heuristique discutée), bien mieux qu'un classifieur non structuré et aussi bien que la méthode de l'état de l'art qui avait accès au modèle (et avec un coût computationel moindre). Nous prévoyons de poursuivre notre analyse des propritétés théoriques de SCIRL (notamment en vue de l'utilisation avec des heuristiques) et l'appliquer à des problèmes robotiques réels.
 
-\acknowledgements{This research was partly funded by the EU FP7 project ILHAIRE (grant
-n$\deg$270780), by the EU INTERREG IVa project ALLEGRO et by the Région
+\acknowledgements{Ces travaux ont été en partie financés par le projet EU FP7 ILHAIRE (grant
+n$\deg$270780), par le projet EU INTERREG IVa  ALLEGRO et par la Région
 Lorraine (France).}
 
 \newpage
