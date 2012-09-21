@@ -73,6 +73,15 @@ Metz, France}{}
 \maketitle
 
 \newpage
+\section{Introduction}
+\label{sec:intro}
+
+L'Apprentissage par Renforcement Inverse (ARI)~\cite{Russell:1998} est le problème lié à la recherche, à partir de démonstrations d'un expert, d'une fonction de récompense telle que le comportement de l'expert est optimal. Beaucoup d'algorithmes d'ARI (que nous décrirons succintement Sec.~\ref{sec:relatedWorks}) cherchent une fonction de récompense dont la politique optimale associée génère une distribution sur les trajectoires (ou une grandeur liée à cette distribution) qui suit celle générée par l'expert. Souvent, cette distribution est caractérisée par ce que l'on appelle l'attribut moyen (voir Sec.~\ref{subsec:background:irl}) : étant donnée une fonction de récompense linéairement paramétrée par un vecteur d'attributs, il s'agit de l'espérance de la somme pondérée des vecteurs d'attributs sachant que l'on commence dans un certain état en choisissant une certaine action avant de suivre la politique concernée.
+
+Dans cette publication, nous choisissons une autre option. Il est possible d'imiter le comportement de l'expert via un algorithme d'apprentissage supervisé généralisant l'association des actions aux états. Nous considérons ici les classifieurs multi-classes qui à partir d'un set d'entraînement calculent les paramètres d'une fonction de score paramétrée linéairement ; la règle de décision pour une état est l'argument (l'action) qui maximise la fonction de score pour cet état (voir Sec.~\ref{subsec:background:classif}). L'idée de base de l'algorithme SCIRL que nous proposons est simplement d'estimer l'attribut moyen de l'expert comme la paramétrisation de la fonction de score (voir Sec.~\ref{subsec:scirl:algo}). Le vecteur de paramètres ainsi calculé définit une fonction de récompense dont on montre qu'elle admet pour politique quasi-optimale la politique de l'expert (voir Sec.~\ref{subsec:scirl:analysis}).
+
+Un grand avantage de SCIRL est qu'il ne requiert pas, contrairement à la plupart des algorithmes d'ARI, la résolution répétée du problème direct, celui de l'apprentissage par renforcement. Il nécessit d'estimer l'attribut moyen de l'expert, mais ceci est équivalent un problème d'évaluation de la politique (pour une politique observée, ce qui est moins problématique que l'optimisation répétée d'une politique), voir Sec.~\ref{sec:practicalApproach}.
+De plus, à l'aide d'une heuristique, SCIRL peut s'éxécuter en utilisant uniquement en utilisant des transitions issues de la politique de l'expert (il n'y a pas besoin d'échantilloner la dynamique complète). Nous illustrons cela sur un simulateur de conduite Sec.~\ref{sec:experiments}.
 
 \section{Contexte et notations}
 \label{sec:background}
