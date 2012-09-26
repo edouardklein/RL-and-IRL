@@ -17,6 +17,6 @@ lines += ax.plot([-1,-1],[-1,-2], color='blue',label="Abbeen \& Ng IRL",lw=2,lin
 lines += ax.plot([-1,-1],[-1,-2], color='cyan',label="Agent trained on a random reward",lw=2,linestyle='-')
 lines += ax.plot([-1,-1],[-1,-2], color='black',label="min, max",lw=1,linestyle='--')
 lines += ax.plot([-1,-1],[-1,-2], color='black',label="Standard deviation",lw=1,linestyle='-.')
-lines += ax.plot([-1,-1],[-1,-2], color='cyan',label="Expert",lw=2,linestyle=':')
+lines += ax.plot([-1,-1],[-1,-2], color='red',label="Expert",lw=2,linestyle='-')
 figlegend.legend(lines,("Cascading IRL","Pure Classification","Abbeel \& Ng IRL","Agent trained on a random reward","min, max","Standard deviation","Expert"),"center")
 figlegend.savefig("Legend.pdf")
