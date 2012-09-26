@@ -39,8 +39,6 @@ Cascading_Exp3: Cascading_Exp3.py GridWorld.py ../DP.py Mu_E.mat ../Cascading.py
 	done
 
 
-../Cascading.py:
-	make -C .. Cascading.py
 
 #+end_src
 

@@ -362,4 +362,7 @@ GridWorld.py: GridWorld.org
 
 GridWorld_clean:
 	find . -maxdepth 1 -iname "GridWorld.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "EvaluateOmega.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Expert.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Random.py"   | xargs $(XARGS_OPT) rm
   #+end_src

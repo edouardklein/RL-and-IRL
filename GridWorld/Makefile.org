@@ -60,7 +60,6 @@ O2EXE=gcc $(LFLAGS)
 <<TT_Exp1_clean_make>>
 <<REntropy_Exp1_make>>
 clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulator_clean TT_Exp1_clean ANIRL_Exp2_clean ANIRL_Exp3_clean Cascading_Exp3_clean Cascading_Exp2_clean REntropy_Exp1_clean LSPI_Exp1_clean SCIRL_Exp1_clean
->>>>>>> master
 
 <<LSTDmu_Exp_nuke_make>>
     #+end_src
