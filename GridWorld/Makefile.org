@@ -19,7 +19,7 @@ Those who do not fit in the others categories (because they fit in more than one
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
-tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs  >/dev/null 2>/dev/null
+tangle=tangle $1
 
 <<LAFEM_Exp1_code_make>>
 <<LSTDmu_Exp_code_make>>
@@ -48,17 +48,19 @@ O2EXE=gcc $(LFLAGS)
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
 <<LAFEM_Exp1_clean_make>>
+<<SCIRL_Exp1_clean_make>>
+<<LSPI_Exp1_clean_make>>
+<<ANIRL_Exp2_clean_make>>
+<<ANIRL_Exp3_clean_make>>
+<<Cascading_Exp2_clean_make>>
+<<Cascading_Exp3_clean_make>>
 <<LSTDmu_Exp_clean_make>>
 <<Generator_clean_make>>
 <<Simulator_clean_make>>
 <<TT_Exp1_clean_make>>
-<<ANIRL_Exp2_clean_make>>
-<<ANIRL_Exp3_clean_make>>
-<<LSPI_Exp1_clean_make>>
-<<SCIRL_Exp1_clean_make>>
-<<Cascading_Exp2_clean_make>>
-<<Cascading_Exp3_clean_make>>
-clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulator_clean TT_Exp1_clean ANIRL_Exp2_clean LSPI_Exp1_clean ANIRL_Exp3_clean SCIRL_Exp1_clean Cascading_Exp2_clean Cascading_Exp3_clean
+<<REntropy_Exp1_make>>
+clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulator_clean TT_Exp1_clean ANIRL_Exp2_clean ANIRL_Exp3_clean Cascading_Exp3_clean Cascading_Exp2_clean REntropy_Exp1_clean LSPI_Exp1_clean SCIRL_Exp1_clean
+>>>>>>> master
 
 <<LSTDmu_Exp_nuke_make>>
     #+end_src
@@ -68,5 +70,5 @@ clean: GridWorld_clean LAFEM_Exp1_clean LSTDmu_Exp_clean Generator_clean Simulat
    #+begin_src makefile :tangle Makefile :noweb yes
 
 Makefile:
-	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
+	cat *.org > All.org; tangle All.org; rm All.org
    #+end_src

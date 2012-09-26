@@ -86,7 +86,7 @@ Those who do not fit in the others categories (because they fit in more than one
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
-tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs >/dev/null 2>/dev/null
+tangle=tangle $1
 
 <<Generator_code_make>>
 <<InvertedPendulum_code_make>>
@@ -117,17 +117,22 @@ O2EXE=gcc $(LFLAGS)
 <<Generator_clean_make>>
 <<InvertedPendulum_clean_make>>
 <<Simulator_clean_make>>
+<<ANIRL_Exp1_clean_make>>
+<<ANIRL_Exp4_clean_make>>
 <<LSTDmu_Exp_clean_make>>
 <<LAFEM_Exp2_clean_make>>
 <<LAFEM_Exp3_clean_make>>
 <<LAFEM_Exp4_clean_make>>
+<<LAFEM_Exp7_clean_make>>
+<<MCLength_clean_make>>
+<<Cascading_Exp4_clean_make>>
 <<LAFEM_Exp5_clean_make>>
 <<MCLength_clean_make>>
 <<ANIRL_Exp1_clean_make>>
 <<ANIRL_Exp4_clean_make>>
 <<Cascading_Exp4_clean_make>>
 <<Generator_make>>
-clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean LAFEM_Exp2_clean LAFEM_Exp3_clean LAFEM_Exp4_clean LAFEM_Exp5_clean MCLength_clean ANIRL_Exp1_clean ANIRL_Exp4_clean Cascading_Exp4_clean
+clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean LAFEM_Exp2_clean LAFEM_Exp3_clean LAFEM_Exp4_clean LAFEM_Exp5_clean ANIRL_Exp1_clean ANIRL_Exp4_clean Cascading_Exp4_clean LAFEM_Exp7_clean MCLength_clean
 
     #+end_src
 
@@ -136,5 +141,5 @@ clean: Generator_clean InvertedPendulum_clean Simulator_clean LSTDmu_Exp_clean L
 
    #+begin_src makefile :tangle Makefile :noweb yes
 Makefile:
-	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
+	cat *.org > All.org; tangle All.org; rm All.org
    #+end_src

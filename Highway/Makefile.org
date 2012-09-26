@@ -14,7 +14,7 @@ Those who do not fit in the others categories (because they fit in more than one
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
-tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs  >/dev/null 2>/dev/null
+tangle=tangle $1
   #+end_src
 ** C source to .o file
   #+begin_src make :tangle Makefile :noweb yes
@@ -29,15 +29,21 @@ O2EXE=gcc $(LFLAGS)
 
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-<<Highway_clean_make>>
 <<SCIRL_Exp2_clean_make>>
+<<SCIRL_clean_make>>
+<<Cascading_Exp1_clean_make>>
+<<Cascading_Exp5_clean_make>>
 <<SCIRL_Exp3_clean_make>>
 <<ANIRL_Exp5_clean_make>>
 <<ANIRL_Exp6_clean_make>>
-<<Cascading_Exp1_clean_make>>
-<<Cascading_Exp5_clean_make>>
+<<Highway_clean_make>>
+<<Simulator_clean_make>>
+<<Comparison_clean_make>>
+<<MWAL_clean_make>>
+<<Main_clean_make>>
+<<RandomSamples_clean_make>>
 
-clean: Highway_clean SCIRL_Exp2_clean ANIRL_Exp5_clean SCIRL_Exp3_clean ANIRL_Exp6_clean Cascading_Exp1_clean Cascading_Exp5_clean
+clean: SCIRL_clean Cascading_Exp1_clean Cascading_Exp5_clean SCIRL_Exp2_clean SCIRL_Exp3_clean Comparison_clean Simulator_clean MWAL_clean Main_clean RandomSamples_clean ANIRL_Exp5_clean ANIRL_Exp6_clean Highway_clean
 	find . -maxdepth 1 -iname "*~"   | xargs $(XARGS_OPT) rm
 
     #+end_src
@@ -47,5 +53,5 @@ clean: Highway_clean SCIRL_Exp2_clean ANIRL_Exp5_clean SCIRL_Exp3_clean ANIRL_Ex
 
    #+begin_src makefile :tangle Makefile :noweb yes
 Makefile:
-	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org
+	cat *.org > All.org; tangle All.org; rm All.org
    #+end_src

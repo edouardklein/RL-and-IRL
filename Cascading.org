@@ -164,3 +164,9 @@ def shape_as_sasa( D ):
 Cascading.py: Cascading.org
 	$(call tangle,"Cascading.org")
 #+end_src
+
+#+srcname: Cascading_clean_make
+#+begin_src makefile
+Cascading_clean: 
+	find . -maxdepth 1 -iname "Cascading.py*"   | xargs $(XARGS_OPT) rm 
+#+end_src

@@ -1,5 +1,8 @@
 * Introduction
-#FIXME: Passer lint ou un autre outil d'analyse statique de code sur tout. Pychecker pour python. Quand j'aurais le temps.
+  In this directory lies the code I use when I work on my PhD.
+
+
+  The [[End results]] produced by this Makfile have their own dedicated section.
   
 * Makefiles rules
   The rules are written in the file they affect. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
@@ -19,7 +22,7 @@ Those who do not fit in the others categories (because they fit in more than one
 ** Code extraction
 
   #+begin_src makefile :tangle Makefile :noweb yes
-tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs >/dev/null 2>/dev/null
+tangle=tangle $1 
 
 <<LSPI_code_make>>
 <<LSTDQ_code_make>>
@@ -77,14 +80,24 @@ export XARGS_OPT=-tr
 <<ANIRL_clean_make>>
 <<criteria_clean_make>>
 <<greedy_clean_make>>
+<<ANIRL_clean_make>>
+<<Cascading_clean_make>>
 
-clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean ANIRL_clean
+clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean ANIRL_clean Cascading_clean
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
 	$(MAKE) -C Highway clean
+	$(MAKE) -C klein2012structured_NIPS clean
     #+end_src
 * End results
+** Published papers
+*** SCIRL
+**** NIPS
+    #+begin_src makefile :tangle Makefile
+SCIRL_NIPS:
+	make -C klein2012structured_NIPS && evince klein2012structured_NIPS/scirl_nips_cr.pdf
+    #+end_src
 ** Published Work
 *** Papers
 **** TODO Retrouver tous ces papiers et s'assurer qu'on peut les recompiler
@@ -293,6 +306,6 @@ Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tang
   #+begin_src makefile :tangle Makefile :noweb yes
 SUB_DIRS=ChainWalk GridWorld InvertedPendulum  Highway
 Makefile:
-	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
+	cat *.org > All.org; tangle All.org; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 
     #+end_src
