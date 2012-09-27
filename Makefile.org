@@ -18,6 +18,7 @@ Those who do not fit in the others categories (because they fit in more than one
 <<TT_Test1_make>>
 <<TT_Test2_make>>
 <<TT_Test3_make>>
+<<GD_make>>
   #+end_src
 ** Code extraction
 
@@ -81,8 +82,8 @@ export XARGS_OPT=-tr
 <<greedy_clean_make>>
 <<ANIRL_clean_make>>
 <<Cascading_clean_make>>
-
-clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean ANIRL_clean Cascading_clean
+<<GD_clean_make>>
+clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean ANIRL_clean Cascading_clean GD_clean
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
