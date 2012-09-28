@@ -1,0 +1,111 @@
+* Algo Merged from Bilal
+  cf draft de Bilal.
+  C'est une descente de gradient.
+  Le gradient de l'expression est, dans le cas où seules les données de l'expert sont disponibles (on utilise une heuristique) : 
+  $$
+  \delta_{\theta_i} L^M(\theta_C,\theta_R) = {1-\lambda\over D} \sum_{D} \bar \phi(s_i,a^*) - \bar \phi( s_i,a_i)\\
+  + {\lambda\over D} \sum_{D} \left(\bar \phi(s_i,a_i) - \gamma \bar \phi( s_i',a'^*) - \underline{\psi}(s_i,a_i)\right)\cdot sign(s_i,a_i,s'_i)\\
+  - {\lambda\over D'- D} \sum_{D'\backslash D} \underline{\psi}(s_i,a_i)\cdot sign(g(s_i,a_i))\\
+  $$
+avec
+
+$$
+sign( s_i,a_i,s'_i) = sign( \theta_C^T\phi(s_i,a_i) - \gamma\theta_C^T\phi(s'_i,a'^*)- \theta_R^T\psi(s_i,a_i))
+$$
+$$
+sign( s_i,a_i) = sign( - \theta_R^T\psi(s_i,a_i))
+$$
+
+Dans le cas où des données échantillonnées plus largement sont disponibles, cela devient :
+  $$
+  \delta_{\theta_i} L^M(\theta_C,\theta_R) = {1-\lambda\over D} \sum_{D} \bar \phi(s_i,a^*) - \bar \phi( s_i,a_i)\\
+  + {\lambda\over D+D'} \sum_{D\cup D'} \left(\bar \phi(s_i,a_i) - \gamma \bar \phi( s_i',a'^*) - \underline{\psi}(s_i,a_i)\right)\cdot sign(s_i,a_i,s'_i)\\
+  $$
+avec :
+
+$$
+sign( s_i,a_i,s'_i) = sign( \theta_C^T\phi(s_i,a_i) - \gamma\theta_C^T\phi(s'_i,a'^*)- \theta_R^T\psi(s_i,a_i))
+$$
+
+
+* Implémentation
+
+#+begin_src python :tangle Merged.py
+from numpy import *
+import scipy
+import DP.py
+
+class Merged( GradientDescent ):
+    def alpha( self, t ):
+        return 1./(t+1.)
+    Threshold = 0.01
+    T = 1000
+    sign = -1
+
+    theta_C = zeros( phi.shape )
+    theta_R = zeros( psi.shape )
+    
+    def grad( self, theta ):
+        self.theta_C,self.theta_R = self.decompose( theta )
+        grad_Lc = self.compute_grad_Lc( self.data, self.phi, self.A )
+        if not self.b_data_dash: #Had to construct it
+            grad_Lr_plus = self.compute_grad_Lr_plus( self.data, self.phi, 
+                                                      self.psi, self.A )
+            grad_Lr_minus = self.compute_grad_Lr_minus( self.data_dash, self.psi )
+        else: #was given
+            grad_Lr_plus = self.compute_grad_Lr_plus( self.data + self.data_dash,
+                                                          self.phi, self.psi, self.A )
+            grad_Lr_minus = 0
+        grad = (1 - self.d_lambda)*grad_Lc + \
+            self.d_lambda*(grad_Lr_plus - grad_Lr_minus)
+        return grad
+
+    def run( self, data, phi, A, psi=None, data_dash=None ):
+        self.phi = phi
+        if not psi:
+            self.psi = phi
+        else:
+            self.psi = psi
+        if not data_dash:
+            self.data_dash = self.construct_data_dash()
+        else:
+            self.data_dash = data_dash
+        s_0,a_0 = data[0][0:2]
+        self.theta_0 = zeros( (phi(s_0,a_0).shape[0]+psi(s_0,a_0).shape[0],1) )
+        return super(Merged, self).run( self.grad )
+
+    def compute_grad_Lc( self, data, phi, A ):
+        D = 0.
+        v_sum = zeros( self.theta_C.shape )
+        for s,a,s_dash in data:
+            a_star = greedy_policy( s, self.theta_C, phi, A )
+            v_sum += phi( s, a_star ) - phi( s, a )
+            D+=1.
+        answer = zeros( self.theta_0.shape )
+        answer[0:self.theta_C.shape[0]] = v_sum
+        return answer/D
+
+    def compute_grad_Lr_plus( self, data, phi, psi, A ):
+        D = 0.
+        answer = zeros( self.theta_0.shape )
+        for s,a,s_dash in data:
+            a_star = greedy_policy( s_dash, self.theta_C, phi, A )
+            d_sign = sign( dot( self.theta_C,phi(s,a) - self.gamma*phi(s_dash, a_star)) - dot( self.theta_R,psi(s,a) ))
+            answer[0:self.theta_C.shape[0]] += (phi( s, a ) - self.gamma*phi(s_dash,a_star))* d_sign
+            answer[self.theta_C.shape[0]:self.theta_0.shape[0]] -= psi(s,a)*d_sign
+            D+=1.           
+        return answer/D
+
+    def compute_grad_Lr_minus( self, data, psi ):
+        D = 0.
+        answer = zeros( self.theta_0.shape )
+        for s,a,s_dash in data:
+            d_sign = sign( - dot( self.theta_R,psi(s,a) ))
+            answer[self.theta_C.shape[0]:self.theta_0.shape[0]] += psi(s,a)*d_sign
+            D+=1.           
+        return answer/D
+
+
+        
+
+#+end_src
