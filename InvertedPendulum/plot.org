@@ -32,7 +32,7 @@ We set some constants
 #define ACTION_FILE "actions.mat"
 #+end_src
 
-We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
+We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^k$ and $\psi: S\rightarrow \mathbb{R}^p$.
 #+begin_src c :tangle phipsi.h :main no
 gsl_matrix* phi( gsl_matrix* sa );
 gsl_matrix* psi( gsl_matrix* s );
@@ -225,6 +225,7 @@ plot 'threshold_lstd.dat-0' u 1:2 w lines title 'LSTD' ls 1, 'threshold_lstd.dat
 
 ErrorBars: conf.py threshold_lstd.dat threshold_mc.dat
 	../../Utils/ErrorBars.py
+
   #+end_src
 
   The python file that configures this script for our setting is :
@@ -330,11 +331,11 @@ plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbe
 *** Generating the data :
   #+srcname: LSTDmu_Exp_make
   #+begin_src makefile
-plot.dat: plot.samples plot.exe
+plot.dat: Samples.dat plot.exe
 	./plot.exe > plot.dat
 
-plot.samples: generator.exe 
-	./generator.exe > Samples.dat && touch plot.samples
+Samples.dat: generator.exe 
+	./generator.exe > Samples.dat 
 
 #+end_src
 *** Sensitivity of the quality of the policy to the number of samples fed to LSPI (No error bars)

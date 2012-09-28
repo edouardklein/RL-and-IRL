@@ -32,8 +32,8 @@ The code is very similar to the one in [[file:generator.org]]. The only subtlety
 gsl_matrix* gridworld_simulator( int nbEpisodes ){
   srand(time(NULL)+getpid()); rand(); rand();rand();
   gsl_matrix* transitions = gsl_matrix_alloc( nbEpisodes*MAX_EPISODE_LENGTH, TRANS_WIDTH );
-  unsigned int state_x = 1;
-  unsigned int state_y = 1;
+  int state_x = 0;
+  int state_y = GRID_HEIGHT-1;
   gsl_matrix* state = gsl_matrix_alloc( 1, 2 );
   unsigned int j = 0; //Index in transitions
   for( unsigned int i = 0 ; i < nbEpisodes ; i++ ){
@@ -47,8 +47,8 @@ gsl_matrix* gridworld_simulator( int nbEpisodes ){
       }
       gsl_matrix_set( state, 0, 0, (double)state_x );
       gsl_matrix_set( state, 0, 1, (double)state_y );
-      unsigned int next_state_x = state_x;
-      unsigned int next_state_y = state_y;
+      int next_state_x = state_x;
+      int next_state_y = state_y;
       gsl_matrix* mAction = greedy_policy( state );
       unsigned int action = 
 	(unsigned int)gsl_matrix_get( mAction, 0, 0 );
@@ -59,34 +59,34 @@ gsl_matrix* gridworld_simulator( int nbEpisodes ){
 	true_action = random_int( 1, 4 );
       }
       switch( true_action ){
-      case UP:
+      case DOWN:
 	next_state_y++;
-	if( next_state_y > GRID_HEIGHT ){
-	  next_state_y = GRID_HEIGHT;
+	if( next_state_y >= GRID_HEIGHT ){
+	  next_state_y = GRID_HEIGHT - 1;
 	}
 	break;
-      case DOWN:
+      case UP:
 	next_state_y--;
-	if( next_state_y < 1 ){
-	  next_state_y = 1;
+	if( next_state_y < 0 ){
+	  next_state_y = 0;
 	}
 	break;
       case RIGHT:
 	next_state_x++;
-	if( next_state_x > GRID_WIDTH ){
-	  next_state_x = GRID_WIDTH;
+	if( next_state_x >= GRID_WIDTH ){
+	  next_state_x = GRID_WIDTH-1;
 	}
 	break;
       case LEFT:
 	next_state_x--;
-	if( next_state_x < 1 ){
-	  next_state_x = 1;
+	if( next_state_x < 0 ){
+	  next_state_x = 0;
 	}
 	break;
       }
       int reward = 0;
-      if( state_x == GRID_WIDTH && 
-	  state_y == GRID_HEIGHT ){
+      if( state_x == GRID_WIDTH-1 && 
+	  state_y == 0 ){
 	reward = 1;
 	eoe = 0;
       }
@@ -102,8 +102,8 @@ gsl_matrix* gridworld_simulator( int nbEpisodes ){
 	state_x = next_state_x;
 	state_y = next_state_y;
       }else{
-	state_x = 1;
-	state_y = 1;
+	state_x = 0;
+	state_y = GRID_HEIGHT-1;
       }
     }
   }
@@ -114,6 +114,7 @@ gsl_matrix* gridworld_simulator( int nbEpisodes ){
   gsl_matrix_free( transitions );
   return answer;
 }
+
 #+end_src
 
 * Makefile rules

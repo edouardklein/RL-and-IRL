@@ -8,7 +8,22 @@
 #+LaTeX_HEADER: \newtheorem{theorem}{Theorem}
 #+LaTeX_HEADER: \newtheorem{definition}{Definition}
 #+LaTeX_HEADER: \newtheorem{lemma}{Lemma}
+* Dynamic programming header
+** Détails techniques
+#+begin_src python
+from DP import *
 
+pi = DP( Reward, Actions )
+#ou
+pi = DP_txt( Reward, Actions, "VPi.mat" )
+#+end_src
+** Entrées
+   - =Reward= : Vecteur de taille $|S|$ donnant la récompense $R(s)$
+   - =Actions= : Tableau de matrices, la matrice à l'index $i$ étant la matrice de probabilité de transitions pour l'action $a_i$.
+** Sorties
+   - =pi= : Politique optimale pour la récompense et les actions fournies. Se présente sous la forme d'une matrice de probabilité de transitions
+** Paramètres
+   Non.
 * Context
 
   In the /Reinforcement Learning/ (RL) framework, an agent is left to find the behavior that maximizes a cumulative reward in the long run. By correctly defining the reward, one can use the RL framewrk to make an agent fulfil a certain task.\\
@@ -521,101 +536,7 @@ TT_Exp3_clean:
 ** Main code
 *** Dynamic programming
     We need a MDP solver. This quick and dirty dynamic programming implementation will do the trick :
-    #+begin_src python :tangle DP.py
-from numpy import *
-import scipy
-import pdb
-
-g_vReward = []
-g_vActions = []
-g_vV = []
-g_vPi = []
-g_fGamma = 0.9
-
-def Q( s, a ):
-    return g_vReward[s] + 0.9 * dot( (g_vActions[ a ])[s], g_vV.transpose() )
-
-def DP( Reward, Actions ):
-    "Returns the probability matrix corresponding to the optimal policy with respect to the given reward and the given actions. Actions are given in the form of a probability matrix. Probability matrices are so that the $(i,j)$ element gives the probability of transitioning to state $j$ upon taking action $a$ in state $i$"
-    #pdb.set_trace()
-    global g_vReward
-    global g_vActions
-    global g_vV
-    global g_vPi
-    n = len( Reward )
-    m = len( Actions )
-    g_vReward = Reward
-    g_vActions = Actions
-    g_vPi = map( int, floor( scipy.rand( n )*m ) )
-    g_vV = scipy.rand( n )
-    #While things change,
-    changed = True
-    while changed:
-        changed = 0
-        #For each state
-        for s in range(0,n):
-            old_pi = g_vPi[ s ]
-            old_V = g_vV[ s ]
-            chosen_a = 0
-            max_Q = Q( s, chosen_a )
-            #Select the action that maximizes Q
-            for a in range(0,m):
-                fQ = Q( s, a )
-                if( fQ > max_Q ):
-                    max_Q = fQ
-                    chosen_a = a
-            g_vPi[ s ] = chosen_a
-            g_vV[ s ] = max_Q
-            if( g_vPi[ s ] != old_pi or g_vV[ s ] != old_V ):
-                changed = 1
-    #Construct the pobability matrix from the policy
-    Ppi = zeros((n,n))
-    for s in range(0,n):
-        Ppi[s] = (g_vActions[ g_vPi[s] ])[s]
-    return Ppi
-
-
-def DP_txt( Reward, Actions, Filename ):
-    "Same as DP, mais sauve la fonction de valeur dans un fichier."
-    #pdb.set_trace()
-    global g_vReward
-    global g_vActions
-    global g_vV
-    global g_vPi
-    n = len( Reward )
-    m = len( Actions )
-    g_vReward = Reward
-    g_vActions = Actions
-    g_vPi = map( int, floor( scipy.rand( n )*m ) )
-    g_vV = scipy.rand( n )
-    #While things change,
-    changed = True
-    while changed:
-        changed = 0
-        #For each state
-        for s in range(0,n):
-            old_pi = g_vPi[ s ]
-            old_V = g_vV[ s ]
-            chosen_a = 0
-            max_Q = Q( s, chosen_a )
-            #Select the action that maximizes Q
-            for a in range(0,m):
-                fQ = Q( s, a )
-                if( fQ > max_Q ):
-                    max_Q = fQ
-                    chosen_a = a
-            g_vPi[ s ] = chosen_a
-            g_vV[ s ] = max_Q
-            if( g_vPi[ s ] != old_pi or g_vV[ s ] != old_V ):
-                changed = 1
-    #Construct the pobability matrix from the policy
-    Ppi = zeros((n,n))
-    for s in range(0,n):
-        Ppi[s] = (g_vActions[ g_vPi[s] ])[s]
-    savetxt( Filename, g_vV, "%e", "\t" )
-    return Ppi
-
-    #+end_src
+    #FIXME: moved in DP.org
 *** Finding the BFS
    This code finds the coordinates of the vertices of the polytope, also known as the /basic feasible solutions/.\\
 
@@ -1147,8 +1068,6 @@ TT_Test23_clean:
   Tangling : 
   #+srcname: TT_code_make
   #+begin_src makefile
-DP.py:TaskTransfer.org
-	$(call tangle,"TaskTransfer.org")
 
 TaskTransfer.py:TaskTransfer.org
 	$(call tangle,"TaskTransfer.org")

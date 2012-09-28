@@ -1,17 +1,17 @@
 #+TITLE: Expérience simple pour valider LAFEM
 * Description
-  La première expérience consiste à entraîner un expert sur un gridworld de 5 cases par 5 case, avec la récompense en haut à droite, puis à faire tourner LAFEM sur un set de données couvrant la totalité de l'espace d'état, un calcul exact de $\mu_E$, une fonction de perte extrêmement simple ($1$ en cas de désaccord avec l'expert, $0$ sinon) et une initialisation de la récompense à $0$ partout. Comme le problème est discret, la représentation est tabulaire.
+  La première expérience consiste à entraîner un expert sur un gridworld de 5 cases par 5 case, avec la récompense en haut à droite, puis à faire tourner LAFEM sur un set de données couvrant la totalité de l'espace d'état, un calcul exact de $\mu_E$, une fonction de perte extrêmement simple ($1$ en cas de désaccord avec l'expert, $0$ sinon) et une initialisation de la récompense à $0$ partout. Comme le problème est discret, la représentation est tabulaire. Les paramètres propres de LAFEM ont été trouvés conformément à la méthode décrite dans [[file:Protocoles.org]].
 
 
   L'expérience se déroule comme suit :
   - Entraîner un expert sur le problème du gridworld, i.e. définir $\pi_E : S\rightarrow A$
   - Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon
-  - définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
+  - définir $\alpha(t) = {10\over t+1} $
   - Initialiser $D\leftarrow \emptyset$
   - Pour chaque état $s \in S$
     - $D \leftarrow D \cup (s,\pi_E(s))$
   - Initialiser $\omega_0 = [0...0]^T$
-  - Fixer $T=20$ (pifomètre)
+  - Fixer $T=40$
   - Faire tourner LAFEM
   - Entrainer un agent sur le problème du gridworld, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
   - Comparer $E[\omega^T\mu_E(s)| s\in S]$ et $E[\omega^T\mu_\pi(s)| s\in S]$
@@ -81,6 +81,8 @@ class LAFEM_Exp1( LAFEM ):
         self.Mu_west = identity(25) + 0.9*dot(self.P_west,self.Mu_E)
         self.Mu_east = identity(25) + 0.9*dot(self.P_east,self.Mu_E)
         self.Mu_south = identity(25) + 0.9*dot(self.P_south,self.Mu_E)
+        print "Norme de Mu_E : "+str(linalg.norm(self.Mu_E[0]))
+
       #+end_src
 
     On définit la fonction de perte $l$ :
@@ -116,15 +118,16 @@ class LAFEM_Exp1( LAFEM ):
     On définit $\alpha(t) = 0.1,\forall t$ (pifomètre)
       #+begin_src python :tangle LAFEM_Exp1.py
     def alpha( self, t ):
-        return 0.1
+        return 10./(t+1.)
       #+end_src
     On initialise $\omega_0 = [0...0]^T$
       #+begin_src python :tangle LAFEM_Exp1.py
-    omega_0 = zeros( (25, 1) )
+    theta_0 = zeros( (25, 1) )
       #+end_src
     - Fixer $T=20$ (pifomètre)
       #+begin_src python :tangle LAFEM_Exp1.py
-    T = 20
+    Threshold = 0.044
+    T = 40
       #+end_src
 *** Affichage de la politique
      On crée une fonction permettant un joli affichage de la politique, pour comparer celle de l'expert et celle de l'agent, ainsi qu'une fonction changeant le format de la politique, nécessaire pour notre implémentation : d'une matrice de probabilités de transition, elle devient un dictionnaire qui à une chaîne représentant un état associe un mot réprésentant une action. 
@@ -352,7 +355,7 @@ LAFEM_Exp1_V_expert.gp: LAFEM_Exp1.org
     L'expérience produit quelques figures, et affiche des infos sur la sortie standard.
 #+srcname: LAFEM_Exp1_make
 #+begin_src makefile
-LAFEM_Exp1_run: LAFEM_Exp1.py ../DP_mu.py ../DP.py Pi2txt.py ../a2str.py ../LAFEM.py TT_5x5_expertPGen.py
+LAFEM_Exp1_run: LAFEM_Exp1.py ../DP_mu.py ../DP.py Pi2txt.py ../a2str.py ../LAFEM.py TT_5x5_expertPGen.py ANIRL_Exp2_R_E.mat
 	python LAFEM_Exp1.py
 
 #+end_src

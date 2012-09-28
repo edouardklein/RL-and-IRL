@@ -1,0 +1,261 @@
+#+TITLE: Expérience simple pour valider LAFEM
+* Description
+
+  Dans cette cinquième expérience, nous cherchons à savoir si un initialisation optimiste du vecteur de récompense peut faire changer les résultats obtenus lors de la [[file:LAFEM_Exp3.org][troisième expérience]], dont ce document reprend la quasi intégralité du code.
+
+  Il y a beaucoup de code commun avec la [[file:LAFEM_Exp2.org][seconde expérience]], on reprend notamment certains targets du Makefile.
+
+  L'expérience se déroule comme suit :
+  - [ ] Créer une base de données $D_0$ de transitions aléatoires.
+  - [ ] Entraîner un expert en utilisant LSPI nourri avec ces transitions ($\pi_E : S\rightarrow A$)
+  - [ ] Vérifier que l'expert est en mesure de balancer le pendule durant 3000 pas de temps
+  - [ ] Créer une base de données $D_E$ de transitions de l'expert. L'expérience sur LSTD$\mu$ a prouvé qu'une seule trajectoire était suffisante. On en prend une dizaine pour être sûrs.
+  - [ ] Définir $l$ telle que $l(s,a) = 0$ si $a=\pi_E(s)$, $1$ sinon, $l$ est définie sur les états présents dans $D_E$.
+  - [ ] Définir $\alpha(t) = 0.1,\forall t$ (pifomètre)
+  - [ ] Définir $D$ à partir des transitions $D_E$ en enlevant l'état d'arrivée
+  - [ ] Initialiser $\theta_0 = [1...1]^T$
+  - [ ] Fixer $T=20$ (pifomètre)
+  - [ ] Définir $\mu_E(s,a) = E\left.\left[\sum\limits_{t=0}^\infty \gamma^t \phi(s)\right|s_0 = s, a_0 = a, \pi_E\right]$ comme étant en pratique $\hat\mu_E(s,a) =  \omega^T_{\pi_E}\phi(s,a), \omega_{\pi_E} = LSTD\mu(D_E)$
+  - [ ] Faire tourner LAFEM
+  - [ ] Entrainer un agent sur le problème du pendule inversé, avec la récompense trouvée par LAFEM : définir $\pi : S\rightarrow A$
+  - [ ] Regarder durant combien de pas de temps l'agent arrrive à faire tenir le pendule. Comparer à l'expert et à une politique aléatoire
+  - [ ] Afficher la fonction de valeur de l'expert
+  - [ ] Afficher la fonction de valeur de l'agent
+  - [ ] Afficher la fonction de récompense sur laquelle l'expert a été entraîné
+  - [ ] Afficher la fonction de récompense retrouvée par LAFEM
+
+* Code								       :code:
+** Experiment targets
+*** Configuring LAFEM
+     Using the python code for LAFEM.
+#+begin_src python :tangle LAFEM_Exp5.py
+import sys
+sys.path+=['..']
+from a2str import *
+from LAFEM import *
+
+class LAFEM_Exp5( LAFEM ):
+    omega_mu_E = []
+    dicPi_E = {}
+
+    A = [0,1,2]
+
+    def __init__( self ):
+        D_E = genfromtxt("D_expert.mat")
+        for trans in D_E:
+            self.dicPi_E[l2str(trans[0:2])] = trans[2:3][0]
+            self.data = self.data +[[ trans[0:2], trans[2:3][0]]]
+        self.omega_mu_E = genfromtxt( "omega_mu_E.mat" )
+
+#+end_src
+     
+     It is assumed that the $l$ function will only be evaluated where the expert has been. We compare the action chosen by the expert to the action given in argument and return 1 if there is a mismatch.
+     
+#+begin_src python :tangle LAFEM_Exp5.py
+    def l( self, s, a ):
+        if self.dicPi_E[l2str(s)] == a:
+            return 0
+        else:
+            return 1
+#+end_src
+     
+     $\mu_E$ is computed thanks to the data stored earlier by the program using LSTD$\mu$. We first have to redefine $\phi$ in python because it is simpler than wrapping the C code (present in [[file:plot.org]]). 
+
+#+begin_src python :tangle LAFEM_Exp5.py
+    def phi( self, s, a ):
+        answer = zeros((30,1))
+        position = s[0]
+        speed = s[1]
+        action = a
+        index = action*10
+        answer[index] = 1.
+        index+=1
+        for i in range(-1,2):
+            for j in range(-1,2):
+                d_i = i*3.141592/4.
+                d_j = j
+                answer[index] = exp(-(pow(position-d_i,2) +
+                                      pow(speed-d_j,2))/2.)
+                index+=1
+        return answer
+        
+#+end_src
+     Then we use the  $\mu_E(s,a) = \omega^T_{\pi_E}\phi(s,a)$ formula :
+#+begin_src python :tangle LAFEM_Exp5.py
+    def mu_E( self, s, a ):
+        answer = dot( self.omega_mu_E.transpose(), self.phi( s, a ) )
+        return answer
+        #return (zeros((1,10)) + answer).transpose() #Ugly hack to get a column vector and not a line vector
+
+    def alpha( self, t ):
+        return 3000./(t+ 1.)
+
+    theta_0 = zeros( (10, 1) ) + 1000.
+
+    Threshold = 0.1
+    T = 20
+
+#+end_src
+
+*** Running LAFEM
+ #+begin_src python :tangle LAFEM_Exp5.py
+lafem = LAFEM_Exp5()
+omega_lafem = lafem.run()
+print a2str(omega_lafem)
+#+end_src
+
+FIXME: Conflit de notations entre ce fichier et LAFEM_Exp3.org, sur les règles makefiles theta_lafem_mu.mat et omega_lafem_mu.mat
+#+srcname: LAFEM_Exp5_make
+#+begin_src makefile
+LAFEM_Exp5.py: LAFEM_Exp5.org
+	$(call tangle,"LAFEM_Exp5.org")
+
+theta_lafem_mu.mat: LAFEM_Exp5.py ../a2str.py ../LAFEM.py omega_mu_E.mat D_expert.mat
+	python LAFEM_Exp5.py > theta_lafem_mu.mat
+
+#+end_src
+
+*** Comparative results between the expert and the agent
+
+
+#+srcname: LAFEM_Exp5_make
+#+begin_src makefile
+omega_lafem_mu.mat: LAFEM_Exp2_Results.exe theta_lafem_mu.mat
+	./LAFEM_Exp2_Results.exe theta_lafem_mu.mat > omega_lafem_mu.mat
+
+#+end_src
+
+*** Plotting
+The relevant makefile rules.
+
+#+srcname: LAFEM_Exp5_make
+#+begin_src makefile
+LAFEM_Exp5_true_R.mat: LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat 
+	./LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat LAFEM_Exp5
+
+LAFEM_Exp5_lafem_R.mat: LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat
+	./LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat LAFEM_Exp5
+
+LAFEM_Exp5_Vexpert.mat: LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat 
+	./LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat LAFEM_Exp5
+
+LAFEM_Exp5_Vagent.mat: LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat 
+	./LAFEM_Exp2_Plot.exe theta_lafem_mu.mat omega_lafem_mu.mat LAFEM_Exp5
+
+
+
+#+end_src
+
+The gnuplot instructions to plot all this, along with the relevant makefile rules :
+#+begin_src gnuplot :tangle LAFEM_Exp5_true_R.gp
+set pm3d map
+set output "LAFEM_Exp5_true_R.ps"
+set term postscript enhanced color
+set xrange [-3.15:3.15]
+set yrange [-3.15:3.15]
+set xlabel "Position"
+set ylabel "Speed"
+splot "LAFEM_Exp5_true_R.dat" notitle
+
+#+end_src
+
+#+srcname: LAFEM_Exp5_make
+#+begin_src makefile
+LAFEM_Exp5_true_R.gp: LAFEM_Exp5.org
+	$(call tangle,"LAFEM_Exp5.org")
+
+LAFEM_Exp5_true_R.pdf: LAFEM_Exp5_true_R.gp LAFEM_Exp5_true_R.mat
+	gnuplot LAFEM_Exp5_true_R.gp
+	ps2pdf LAFEM_Exp5_true_R.ps
+	rm LAFEM_Exp5_true_R.ps
+
+#+end_src
+
+#+begin_src gnuplot :tangle LAFEM_Exp5_lafem_R.gp
+
+set output "LAFEM_Exp5_lafem_R.ps"
+set term postscript enhanced color
+set xrange [-3.15:3.15]
+set yrange [-3.15:3.15]
+set xlabel "Position"
+set ylabel "Speed"
+set parametric
+set style line 2 lt 1 lw 1 pt 1 linecolor rgb "green"
+set pm3d map
+splot "LAFEM_Exp5_lafem_R.dat" notitle w pm3d, "D_expert.mat" u 1:2:(0.0) w points ls 2 notitle
+#+end_src
+
+#+srcname: LAFEM_Exp5_make
+#+begin_src makefile
+LAFEM_Exp5_lafem_R.gp: LAFEM_Exp5.org
+	$(call tangle,"LAFEM_Exp5.org")
+
+LAFEM_Exp5_lafem_R.pdf: LAFEM_Exp5_lafem_R.gp LAFEM_Exp5_lafem_R.mat
+	gnuplot LAFEM_Exp5_lafem_R.gp
+	ps2pdf LAFEM_Exp5_lafem_R.ps
+	rm LAFEM_Exp5_lafem_R.ps
+
+#+end_src
+
+
+#+begin_src gnuplot :tangle LAFEM_Exp5_Vexpert.gp
+set pm3d map
+set output "LAFEM_Exp5_Vexpert.ps"
+set term postscript enhanced color
+set xrange [-3.15:3.15]
+set yrange [-3.15:3.15]
+set xlabel "Position"
+set ylabel "Speed"
+splot "LAFEM_Exp5_Vexpert.dat" notitle
+
+#+end_src
+
+#+srcname: LAFEM_Exp5_make
+#+begin_src makefile
+LAFEM_Exp5_Vexpert.gp: LAFEM_Exp5.org
+	$(call tangle,"LAFEM_Exp5.org")
+
+LAFEM_Exp5_Vexpert.pdf: LAFEM_Exp5_Vexpert.gp LAFEM_Exp5_Vexpert.mat
+	gnuplot LAFEM_Exp5_Vexpert.gp
+	ps2pdf LAFEM_Exp5_Vexpert.ps
+	rm LAFEM_Exp5_Vexpert.ps
+
+#+end_src
+
+#+begin_src gnuplot :tangle LAFEM_Exp5_Vagent.gp
+set pm3d map
+set output "LAFEM_Exp5_Vagent.ps"
+set term postscript enhanced color
+set xrange [-3.15:3.15]
+set yrange [-3.15:3.15]
+set xlabel "Position"
+set ylabel "Speed"
+splot "LAFEM_Exp5_Vagent.dat" notitle
+
+#+end_src
+
+#+srcname: LAFEM_Exp5_make
+#+begin_src makefile
+LAFEM_Exp5_Vagent.gp: LAFEM_Exp5.org
+	$(call tangle,"LAFEM_Exp5.org")
+
+LAFEM_Exp5_Vagent.pdf: LAFEM_Exp5_Vagent.gp LAFEM_Exp5_Vagent.mat
+	gnuplot LAFEM_Exp5_Vagent.gp
+	ps2pdf LAFEM_Exp5_Vagent.ps
+	rm LAFEM_Exp5_Vagent.ps
+
+#+end_src
+
+** Cleaning
+   A rule to clean the mess :
+  #+srcname: LAFEM_Exp5_clean_make
+  #+begin_src makefile
+LAFEM_Exp5_clean:
+	find . -maxdepth 1 -iname "LAFEM_Exp5_*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "LAFEM_Exp5.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_mu_E.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_lafem_mu.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "theta_lafem_mu.mat"   | xargs $(XARGS_OPT) rm
+  #+end_src
+
+* Résultats

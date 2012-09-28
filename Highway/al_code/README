@@ -1,0 +1,109 @@
+Code for Experiments
+Syed, U., Schapire, R. E. (2007) "A Game-Theoretic Approach to Apprenticeship Learning"
+Syed, U., Bowling, M., Schapire, R. E. (2008) "Apprenticeship Learning Using Linear Programming".
+
+Contents:
+
+1) Description of files in this package
+2) How-to: Run the MWAL algorithm
+3) How-to: Run the LPAL algorithm
+4) How-to: Compare the projection algorithm, MWAL algorithm and LPAL algorithm on a driving simulator.
+
+---
+
+1) Description of files in this package
+
+README: This file.
+
+PROJ.m: The projection algorithm from Abbeel, P., Ng, A. (2004) "Apprenticeship Learning via Inverse Reinforcement Learning".
+
+MWAL.m: The MWAL algorithm from Syed, U., Schapire, R. E. (2007) "A Game-Theoretic Approach to Apprenticeship Learning".
+
+LPAL.m: The LPAL algorithm from Syed, U., Bowling, M., Schapire, R. E. (2008) "Apprenticeship Learning Using Linear Programming".
+
+opt_policy_and_feat_exp.m: MDP solver used in each iteration of the MWAL and projection algorithms.
+
+run_PROJ.m: Wrapper for projection algorithm.
+
+run_MWAL.m: Wrapper for MWAL algorithm.
+
+run_LPAL.m: Wrapper for LPAL algorithm.
+
+write_out_policy.m: Utility function to write a policy to a file.
+
+car.py: A small driving simulator.
+
+pre.pl: Pre-processing script for the demo.
+
+post.pl: Post-processing script for the demo.
+
+features.pl: Script to generate a MATLAB matrix describing the features of the driving simulator.
+
+tfunc.pl: Script to generate a MATLAB matrix describing the transition function of the driving simulator.
+
+my_constants.pm: Some constants used by the scripts.
+
+---
+
+2) How-to: Run the MWAL algorithm
+
+The comments in MWAL.m explain its input and output parameters in detail. Basically, you give MWAL.m a model of the enviroment, specified by THETA (transition function), F (feature function), and GAMMA (discount factor). You also give MWAL.m an estimate of the expert's "feature expectations" in the vector E, and a number of iterations T to run. After MWAL.m completes, the matrix PP contains T policies. If you choose one of these policies uniformly at random, you will achieve the guarantees of the algorithm (see paper for details).
+
+---
+
+3) How-to: Run the LPAL algorithm
+
+The comments in LPAL.m explain its input and output parameters in detail. Basically, you give LPAL.m a model of the enviroment, specified by THETA (transition function), F (feature function), and GAMMA (discount factor). You also give MWAL.m an estimate of the expert's "feature expectations" in the vector E. After LPAL.m completes, the vector X contains the occupancy measure of a policy that achieves the guarantees of the algorithm (see paper for details).
+
+---
+
+4) How-to: Compare the projection algorithm, MWAL algorithm and LPAL algorithm on a driving simulator.
+
+Here's a quick procedure to compare the projection algorithm, MWAL algorithm and LPAL algorithm. You should run all of the following commands in one directory. I did this all on Linux, but it should work on most systems.
+
+Step 1: At system prompt, type:
+
+> perl pre.pl
+
+This script creates make_F.m and make_THETA.m, which are used by the MATLAB program in Step 3. 
+
+Step 2: Enter MATLAB.
+
+Step 3: At the MATLAB prompt, type:
+
+> run_PROJ;
+
+(Be sure use semi-colon to suppress the display of the return values.)
+This sets up the input for PROJ.m, runs it, and writes the output to policy.dat.
+
+Step 4: At the system prompt, type:
+
+> perl post.pl
+
+This converts policy.dat to policy.txt, which is in a format suitable for the driving simulator.
+
+Step 5: At the system prompt, type:
+
+> python car.py
+
+This will run the driving simulator, using policy.txt as the driving policy.
+
+Step 6: Repeat Steps 2-5, except in Step 3, type this at the MATLAB prompt:
+
+> run_MWAL;
+
+(Be sure use semi-colon to suppress the display of the return values.)
+This sets up the input for MWAL.m, runs it, and writes the output to policy.dat.
+
+Step 7: Repeat Steps 2-5, except in Step 3, type this at the MATLAB prompt:
+
+> run_LPAL;
+
+(Be sure use semi-colon to suppress the display of the return values.)
+This sets up the input for LPAL.m, runs it, and writes the output to policy.dat.
+
+*** NOTE: run_PROJ.m and run_LPAL.m require the CVX package for solving convex optimization problems. It can be found here:
+
+http://www.stanford.edu/~boyd/cvx/
+
+If everything worked, you should have observed that the policy produced by the MWAL algorithm was better at driving than the policy produced by the projection algorithm or LPAL algorithm. This is because the "feature expectations" were estimated from a bad expert policy (see the value of E in run_PROJ.m, run_MWAL.m and run_LPAL.m), and MWAL does better in that case. In other cases, LPAL does just as well as MWAL. Also, LPAL tends to be faster than MWAL, especially in large enviroments.

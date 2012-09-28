@@ -1,0 +1,331 @@
+#+TITLE:Benchmarking SCIRL,LSTD$\mu$ on the Highway Driving
+
+Sur les traces de ce que l'on a fait pour [[file:MWAL.org][MWAL]], on va essayer ici de faire tourner SCIRL instancié avec LSTD$\mu$ sur le problème du Highway driving. Une partie du code est redondante avec ce qui s'est fait pour MWAL.
+
+* Obtenir une estimation de $\mu_E(s,a)$
+
+  On compte utiliser LSTD$\mu$ dans sa forme /on-policy/. Il faut fournir à l'algorithme la fonction $\phi$ et des transitions $D_\mu$ émanant de l'expert dont on souhaite calculer la /feature expectation/. Ces transitions doivent être sous la forme $s,a,s',\psi(s),e$.
+
+La première étape consiste donc à mettre sous la forme voulue les transitions nous disposons suite au travail dans [[file:MWAL.org]]. Un petit script python s'occupe de ça :
+
+   #+begin_src python :tangle sa2saspsie.py
+from numpy import *
+from phipsi import *
+import sys
+
+transitions = genfromtxt( sys.argv[1] ) #s,a
+new_tr = zeros(( transitions.shape[0] - 1 , 4+1+4+3+1)) #s,a,s',psi(s),e
+
+
+for i in range( 0, transitions.shape[0] - 1):
+    s = transitions[i,0:4]
+    a = transitions[i,4:5]
+    sdash = transitions[i+1,0:4]
+    new_tr[i,0:4] = s
+    new_tr[i,4:5] = a
+    new_tr[i,5:9] = sdash
+    new_tr[i,9:12] = psi(s).transpose()
+    new_tr[i,12:13] = (1 if any( sdash != [1., 160., 0., 0.] ) else 0) #eoe is 0 at the end of episode
+
+savetxt( sys.argv[2], new_tr, "%f", ' ' )
+
+   #+end_src
+
+#+srcname: SCIRL_make
+#+begin_src makefile
+sa2saspsie.py: SCIRL.org
+	$(call tangle, "SCIRL.org")
+
+PlayFast_saspsie_X.mat : PlayFast_X.dat sa2saspsie.py phipsi.py
+	for i in $(N_VALUES); do python sa2saspsie.py PlayFast_$$i.dat PlayFast_saspsie_$$i.mat ; done
+	touch PlayFast_saspsie_X.mat
+
+PlaySafe_saspsie_X.mat : PlaySafe_X.dat sa2saspsie.py phipsi.py
+	for i in $(N_VALUES); do python sa2saspsie.py PlaySafe_$$i.dat PlaySafe_saspsie_$$i.mat ; done
+	touch PlaySafe_saspsie_X.mat
+
+#+end_src
+
+Now, using the C function for $\phi$ defined in [[file:Main.org]], it is possible to run the LSTD$\mu$ algorithm.
+This is done with the following C program :
+#+begin_src c :tangle SCIRL_LSTDmu.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <math.h>
+#include "utils.h"
+#include "phipsi.h"
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+#include "LSTDmu.h"
+
+#define TRANS_WIDTH 13
+
+unsigned int g_iS = 4;
+unsigned int g_iA = 1;
+double g_dLambda_lstdmu = 0.1;
+double g_dGamma_anirl = 0.9;//FIXME: Ill named. Should be something like g_dGamma_lstdmu
+//I suspect it is used also in the monte carlo, hence the name when ANIRL was the only
+//implemented IRL algorithm
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = psi;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = phi;
+
+
+//Defined but not used (needed in LSTDmu.o or others when linking) :
+double g_dEpsilon_anirl = -1;
+unsigned int g_iIt_max_anirl = -1;
+double g_dGamma_lafem = -1;
+gsl_matrix* (*g_fS_0)( void ) = NULL;
+double g_dBest_error = -1;
+double true_diff_norm = -1;
+double g_dBest_true_error = -1;
+double g_dBest_diff = -1;
+gsl_matrix* g_mBest_omega = NULL;
+double true_V_diff = -1;
+double g_dBest_t = -1;
+gsl_matrix* g_mOmega = NULL;
+gsl_matrix* g_mActions = NULL;
+
+//dummy lspi and greedy_policy FIXME:This should not be needed
+gsl_matrix* lspi(gsl_matrix* D, gsl_matrix* omega){
+return NULL;
+}
+gsl_matrix* greedy_policy( gsl_matrix* state ){
+return NULL;
+}
+
+
+int main( int argc, char** argv ){
+  gsl_matrix* D_mu = file2matrix( argv[1], TRANS_WIDTH );
+
+  gsl_matrix* omega_pi = lstd_mu_op_omega( D_mu );
+  
+  for( int i = 0; i < omega_pi->size1; i++ ){
+    for( int j = 0; j < omega_pi->size2; j++ ){
+      printf("%e ",gsl_matrix_get( omega_pi, i, j ) );
+    }
+    printf("\n");
+  }
+
+  return 0;
+}
+
+#+end_src
+
+#+srcname: SCIRL_make
+#+begin_src makefile
+SCIRL_LSTDmu.exe: SCIRL_LSTDmu.o phipsi.o ../utils.o ../LSTDmu.o
+	$(O2EXE) -o SCIRL_LSTDmu.exe SCIRL_LSTDmu.o phipsi.o ../utils.o ../LSTDmu.o
+
+SCIRL_LSTDmu.o: SCIRL_LSTDmu.c ../LSTDmu.h ../utils.h ../RL_Globals.h ../IRL_Globals.h phipsi.h
+	$(call c2obj,"SCIRL_LSTDmu.c")
+
+SCIRL_LSTDmu.c: SCIRL.org
+	$(call tangle,"SCIRL.org")
+
+omega_mu_E_Fast_X.mat: SCIRL_LSTDmu.exe PlayFast_saspsie_X.mat
+	for i in $(N_VALUES); do ./SCIRL_LSTDmu.exe PlayFast_saspsie_$$i.mat > omega_mu_E_Fast_$$i.mat; done
+	touch omega_mu_E_Fast_X.mat
+
+omega_mu_E_Safe_X.mat: SCIRL_LSTDmu.exe PlaySafe_saspsie_X.mat
+	for i in $(N_VALUES); do ./SCIRL_LSTDmu.exe PlaySafe_saspsie_$$i.mat > omega_mu_E_Safe_$$i.mat; done
+	touch omega_mu_E_Safe_X.mat
+
+#+end_src
+
+* Faire tourner SCIRL
+Pour faire tourner notre algorithme sur le problème du Highway driving, nous nous inspirons du code de l'expérience sur le [[file:../InvertedPendulum/LAFEM_Exp3.org][pendule inversé]]. 
+FIXME: Factoriser ce code.
+FIXME: s/LAFEM/SCIRL/g
+
+
+Using the python code for LAFEM.
+#+srcname: SCIRL_make
+#+begin_src makefile
+../LAFEM.py:
+	make -C .. LAFEM.py
+
+../a2str.py:
+	make -C .. a2str.py
+
+#+end_src
+
+
+
+#+begin_src python :tangle SCIRL_Exp6.py
+import sys
+from phipsi import *
+sys.path+=['..']
+from a2str import *
+from LAFEM import *
+
+#usage : python SCIRL_Exp6 <Data_file> <LSTDMu_file>
+
+class SCIRL_Exp6( LAFEM ):
+    omega_mu_E = []
+    dicPi_E = {}
+
+    A = [0,1,2]
+
+    def __init__( self ):
+        D_E = genfromtxt(sys.argv[1])
+        for trans in D_E:
+            self.dicPi_E[l2str(trans[0:4])] = trans[4:5][0]
+            self.data = self.data +[[ trans[0:4], trans[4:5][0]]]
+        self.omega_mu_E = genfromtxt( sys.argv[2] )
+
+#+end_src
+     
+     It is assumed that the $l$ function will only be evaluated where the expert has been. We compare the action chosen by the expert to the action given in argument and return 1 if there is a mismatch.
+     
+#+begin_src python :tangle SCIRL_Exp6.py
+    def l( self, s, a ):
+        if self.dicPi_E[l2str(s)] == a:
+            return 0
+        else:
+            return 1
+#+end_src
+     
+     $\mu_E$ is computed thanks to the data stored earlier by the program using LSTD$\mu$. We use the feature function $\phi$ defineed in [[file:Main.org]]
+
+     Then we use the  $\mu_E(s,a) = \omega^T_{\pi_E}\phi(s,a)$ formula :
+#+begin_src python :tangle SCIRL_Exp6.py
+    def mu_E( self, s, a ):
+        answer = dot( self.omega_mu_E.transpose(), phi( s, a ) )
+        return answer
+        #return (zeros((1,10)) + answer).transpose() #Ugly hack to get a column vector and not a line vector
+
+    def alpha( self, t ):
+        return 30./(t+1.)
+
+    theta_0 = zeros( (3, 1) ) - 1.
+
+    Threshold = 0.001
+    T = 100
+#+end_src
+
+ #+begin_src python :tangle SCIRL_Exp6.py
+lafem = SCIRL_Exp6()
+theta_lafem = lafem.run()
+print a2str(theta_lafem)
+#+end_src
+
+#+srcname: SCIRL_make
+#+begin_src makefile
+SCIRL_Exp6.py: SCIRL.org
+	$(call tangle,"SCIRL.org")
+
+theta_lafem_Fast_X.mat: SCIRL_Exp6.py ../a2str.py ../LAFEM.py omega_mu_E_Fast_X.mat phipsi.py PlayFast_X.dat
+	for i in $(N_VALUES); do python SCIRL_Exp6.py PlayFast_$$i.dat omega_mu_E_Fast_$$i.mat > theta_lafem_Fast_$$i.mat; done
+	touch theta_lafem_Fast_X.mat
+
+theta_lafem_Safe_X.mat: SCIRL_Exp6.py ../a2str.py ../LAFEM.py omega_mu_E_Safe_X.mat phipsi.py PlaySafe_X.dat
+	for i in $(N_VALUES); do python SCIRL_Exp6.py PlaySafe_$$i.dat omega_mu_E_Safe_$$i.mat > theta_lafem_Safe_$$i.mat; done
+	touch theta_lafem_Safe_X.mat
+
+#+end_src
+
+* Entraîner un agent sur la récompense trouvée par SCIRL
+
+De la même manière que nous avons entraîné un agent sur une récompense arbitraire pour obtenir les expert que nous cherchons à imiter, nous allons maintenant entraîner un agent sur les récompenses trouvées par notre algorithme :
+
+The following octave code, mimmicking what I've read in the =al_code= fodler, should be able to save an optimal policy in the file =policy.dat=.
+#+begin_src octave :tangle al_code/optimal_policy.m
+F = make_F;
+THETA = make_THETA;
+GAMMA = 0.9;
+r = load(argv(){1});
+w = [r(1); r(2) ; r(3)]; # Vitesse, collisions, dépassement. 
+[N, K] = size(F);
+VV = rand(N,K);
+VV = sparse( VV );
+
+[P, M, VV, ITER] = opt_policy_and_feat_exp( THETA, F, GAMMA, w, 'first', VV );
+
+write_out_policy( P );
+#+end_src
+
+#+srcname: SCIRL_make
+#+begin_src makefile
+al_code/optimal_policy.m: SCIRL.org
+	$(call tangle,"SCIRL.org")
+
+#+end_src
+
+
+It relies on two octave functions, generated by a perl script, make_THETA and make_F :
+#+srcname: SCIRL_make
+#+begin_src makefile
+al_code/make_F.m: al_code/pre.pl
+	pushd al_code; perl pre.pl ; popd
+
+al_code/make_THETA.m: al_code/pre.pl
+	pushd al_code; perl pre.pl ; popd
+
+#+end_src
+
+FIXME:normaliser les .dat ou les .mat. Expliquer les notations mathématiques comme prgrammationatiques dans un fichier à part (Notations.org?)
+
+This code is invoked in the following makefile rules which also use a perl script from the =al_code= directory that transform the policy file so that it can be used by the simulator.
+#+srcname: SCIRL_make
+#+begin_src makefile
+al_code/scirl_fast_policy_X.txt: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m theta_lafem_Fast_X.mat
+	for i in $(N_VALUES); do pushd al_code; octave optimal_policy.m ../theta_lafem_Fast_$$i.mat ; perl post.pl ; mv policy.txt scirl_fast_policy_$$i.txt ; popd; done
+	touch al_code/scirl_fast_policy_X.txt
+
+al_code/scirl_safe_policy_X.txt: al_code/make_THETA.m al_code/make_F.m al_code/optimal_policy.m theta_lafem_Safe_X.mat
+	for i in $(N_VALUES); do pushd al_code; octave optimal_policy.m ../theta_lafem_Safe_$$i.mat ; perl post.pl ; mv policy.txt scirl_safe_policy_$$i.txt ; popd; done
+	touch al_code/scirl_safe_policy_X.txt
+
+#+end_src
+
+
+* Calculer la /feature expectation/ des agents entraînés sur les récompenses trouvées par SCIRL
+  La /feature expectation/ des agents est calculée de la même manière que dans [[file:MWAL.org]].
+
+  #+srcname: SCIRL_make
+#+begin_src makefile
+PlayFast_scirl_mu_X.mat :al_code/scirl_fast_policy_X.txt tr2mu.py
+	for i in $(N_VALUES); do \
+	python PolicyPlay.py al_code/scirl_fast_policy_$$i.txt > PlayFast_scirl_$$i.dat;\
+	cat PlayFast_scirl_$$i.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlayFast_scirl_stripped_$$i.dat;\
+	python tr2mu.py PlayFast_scirl_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlayFast_scirl_mu_$$i.mat; done
+	touch PlayFast_scirl_mu_X.mat
+
+PlaySafe_scirl_mu_X.mat :al_code/scirl_safe_policy_X.txt tr2mu.py
+	for i in $(N_VALUES); do \
+	python PolicyPlay.py al_code/scirl_safe_policy_$$i.txt > PlaySafe_scirl_$$i.dat;\
+	cat PlaySafe_scirl_$$i.dat | sed -e 's/\[1, 160]/\[1, 160, \[0, 0\]\]/' | awk '{if($$5) print $0}' | tr -d '[' | tr -d ']' | tr -d ',' | sed -e 's/left/0/' | sed -e 's/none/1/' | sed -e 's/right/2/' | sed -e 's/down/0/' | sed -e 's/up/2/' > PlaySafe_scirl_stripped_$$i.dat;\
+	python tr2mu.py PlaySafe_scirl_stripped_$$i.dat | tr -d '[' | tr -d ']' > PlaySafe_scirl_mu_$$i.mat; done
+	touch PlaySafe_scirl_mu_X.mat
+
+#+end_src
+
+
+* Cleaning the mess
+  #+srcname: SCIRL_clean_make
+  #+begin_src makefile
+SCIRL_clean:
+	find . -maxdepth 1 -iname "sa2saspsie.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlayFast_saspsie.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "PlaySafe_saspsie.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_LSTDmu.c"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_LSTDmu.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_LSTDmu.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_mu_E_Fast_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "omega_mu_E_Safe_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp6.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "theta_lafem_Fast_*.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "theta_lafem_Safe_*.mat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "optimal_policy.m"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "make_F.m"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "make_THETA.m"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "scirl_fast_policy_*.txt"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "scirl_safe_policy_*.txt"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "PlayFast_scirl.dat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "PlaySafe_scirl.dat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "PlayFast_scirl_stripped.dat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "PlaySafe_scirl_stripped.dat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "PlayFast_scirl_mu.mat"   | xargs $(XARGS_OPT) rm
+	find al_code -maxdepth 1 -iname "PlaySafe_scirl_mu.mat"   | xargs $(XARGS_OPT) rm
+
+  #+end_src
