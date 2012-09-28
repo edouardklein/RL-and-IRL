@@ -385,7 +385,7 @@ fill=orange!20]
 * Opening and future work
 ** Future work
 *** Possible future work
-**** Real-world problem (Come to eNTERFACE'12 ! )
+**** Real-world problem (Robotics)
 **** Task Transfer (same state space, different action space)
 *** Thank you...
     ... for your attention
