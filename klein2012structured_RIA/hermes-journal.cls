@@ -148,7 +148,7 @@
 }{% ELSE
     \RequirePackage[frenchb]{babel}%
     \NoAutoSpaceBeforeFDP
-    \frenchbsetup{AutoSpacePunctuation=false}
+    %\frenchbsetup{AutoSpacePunctuation=false}
 }
 \RequirePackage{apacite}
 
