@@ -8,4 +8,9 @@ scirl_ria.pdf : scirl_ria.tex
 	evince scirl_ria.pdf
 
 clean:
-	rm  scirl_ria.pdf *.log *.out *.aux *.bbl *.blg
+	find . -maxdepth 1 -iname "scirl_nips.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "*.log"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "*.out"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "*.aux"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "*.bbl"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "*.blg"   | xargs $(XARGS_OPT) rm

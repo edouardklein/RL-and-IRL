@@ -90,6 +90,8 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
 	$(MAKE) -C InvertedPendulum clean
 	$(MAKE) -C Highway clean
 	$(MAKE) -C klein2012structured_NIPS clean
+	$(MAKE) -C klein2012structured_RIA clean
+	$(MAKE) -C klein2012 clean
     #+end_src
 * End results
 ** Published papers
