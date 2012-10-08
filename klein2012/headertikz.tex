@@ -1,0 +1,63 @@
+\usepackage{pgf}
+\usepackage{pgfcore}
+\usepackage{pgfbaseimage}
+\usepackage{pgfbaselayers}
+\usepackage{pgfbasepatterns}
+\usepackage{pgfbaseplot}
+\usepackage{pgfbaseshapes}
+\usepackage{pgfbasesnakes}
+\usepackage{tikz} 
+
+\tikzset{normal/.style={ 
+% The shape: 
+rectangle,minimum size=6mm,rounded corners=3mm, 
+% The rest 
+very thick,draw=black!50, 
+top color=white,bottom color=black!20, 
+font=\ttfamily}}
+\tikzset{arduino/.style={ 
+% The shape: 
+rectangle, 
+% The size: 
+minimum size=6mm, 
+% The border: 
+very thick, 
+draw=blue!50!black!50, % 50% red and 50% black, 
+% and that mixed with 50% white 
+% The filling: 
+top color=white, % a shading that is white at the top... 
+bottom color=blue!50!black!20, % and something else at the bottom 
+% Font 
+font=\itshape 
+}}
+\tikzset{enceinte/.style={ 
+% The shape: 
+rectangle, 
+% The size: 
+minimum size=6mm, 
+% The border: 
+very thick, 
+draw=yellow!90!black!50, % 50% red and 50% black, 
+% and that mixed with 50% white 
+% The filling: 
+top color=white, % a shading that is white at the top... 
+bottom color=yellow!90!black!20, % and something else at the bottom 
+% Font 
+font=\itshape 
+}}
+
+\tikzset{ordi/.style={ 
+% The shape: 
+rectangle, 
+% The size: 
+minimum size=6mm, 
+% The border: 
+very thick, 
+draw=green!90!black!50, % 50% red and 50% black, 
+% and that mixed with 50% white 
+% The filling: 
+top color=white, % a shading that is white at the top... 
+bottom color=green!90!black!20, % and something else at the bottom 
+% Font 
+font=\itshape 
+}}

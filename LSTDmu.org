@@ -3,6 +3,133 @@
 FIXME: Il faudrait séparer le code de LSTDmu utilisable par tous les algos d'IRL et le code de l'ANIRL (qui a besoin de LSPI and co).
 
   In their paper, \cite{abbeel2004apprenticeship}, Ng and Abbeel present an IRL algorithm. This file is an implementation of this algorithm in its projection form, but using a LSTD method to estimate $\mu_E$ and $\mu$ and using LSPI to solve the MDP.
+* LSTD$\mu$ header
+** On policy estimation of $E[\mu(s_0)]$
+*** Détails techniques
+#+begin_src C
+#include "LSTDmu.h"
+
+unsigned int g_iP = -1;
+unsigned int g_iA = -1;
+unsigned int g_iS = -1;
+gsl_matrix* (g_fPsi)(gsl_matrix*) = NULL;
+double g_dGamma_anirl = -1;
+double g_dLambda_lstdmu = -1;
+gsl_matrix* (g_fS_0)() = NULL;
+
+gsl_matrix* mu_s0 = lstd_mu_op(  gsl_matrix* D_mu );
+#+end_src
+*** Entrées
+    - =D_mu= : Matrice dont chaque ligne a la forme  $(s,a,s',\psi(s)^T,eoe)$
+*** Sorties
+    - Une estimation de $E[\mu(s_0)]$ pour la politique ayant créé les données fournies en entrée
+*** Paramètres
+    - =g_fPsi= : fonction de feature de $S$ dans $\mathbf{R}^p$
+    - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
+    - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+    - =g_fS_0= : Fonction renvoyant la matrice des états initiaux (un par ligne) sur lesquels l'estimation de monte carlo de l'espérance sera caclculée.
+
+** On policy estimation of $\mu(s,a)$
+*** Détails techniques
+#+begin_src C
+#include "LSTDmu.h"
+
+unsigned int g_iP = -1;
+unsigned int g_iK = -1;
+unsigned int g_iA = -1;
+unsigned int g_iS = -1;
+gsl_matrix* (g_fPhi)(gsl_matrix*) = NULL;
+double g_dGamma_anirl = -1;
+double g_dLambda_lstdmu = -1;
+
+gsl_matrix* omega_mu = lstd_mu_op_omega(  gsl_matrix* D_mu );
+#+end_src
+*** Entrées
+    - =D_mu= : Matrice dont chaque ligne a la forme  $(s,a,s',\psi(s)^T,eoe)$
+*** Sorties
+    - Une matrice $\omega_\mu$ telle que $\hat \mu(s,a) = \omega_\mu^T\phi(s,a)$
+*** Paramètres
+    - =g_fPhi= : fonction de feature de $S\times A$ dans $\mathbf{R}^p$
+    - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
+    - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+
+** Off policy estimation of $\mu(s,a)$
+*** Détails techniques
+#+begin_src C
+#include "LSTDmu.h"
+
+unsigned int g_iP = -1;
+unsigned int g_iK = -1;
+unsigned int g_iA = -1;
+unsigned int g_iS = -1;
+gsl_matrix* (g_fPhi)(gsl_matrix*) = NULL;
+double g_dGamma_anirl = -1;
+double g_dLambda_lstdmu = -1;
+
+gsl_matrix* omega_mu = lstd_mu_omega(  gsl_matrix* D_mu, 
+ 		      gsl_matrix* (*pi)(gsl_matrix*));
+
+#+end_src
+*** Entrées
+    - =D_mu= : Matrice dont chaque ligne a la forme  $(s,a,s',\psi(s)^T,eoe)$
+    - =pi= : Politique associant une action à un état
+*** Sorties
+    - Une matrice $\omega_\mu$ telle que $\hat \mu(s,a) = \omega_\mu^T\phi(s,a)$ pour la politique fournie en argument
+*** Paramètres
+    - =g_fPhi= : fonction de feature de $S\times A$ dans $\mathbf{R}^p$
+    - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
+    - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+
+** Off policy estimation of  $E[\mu(s_0)]$
+*** Détails techniques
+#+begin_src C
+#include "LSTDmu.h"
+
+unsigned int g_iP = -1;
+unsigned int g_iA = -1;
+unsigned int g_iS = -1;
+gsl_matrix* (g_fPsi)(gsl_matrix*) = NULL;
+double g_dGamma_anirl = -1;
+double g_dLambda_lstdmu = -1;
+gsl_matrix* (g_fS_0)() = NULL;
+
+gsl_matrix* mu_s0 = lstd_mu(  gsl_matrix* D_mu,
+			      gsl_matrix* (*pi)(gsl_matrix*));
+#+end_src
+*** Entrées
+    - =D_mu= : Matrice dont chaque ligne a la forme  $(s,a,s',\psi(s)^T,eoe)$
+    - =pi= : Politique associant une action à un état
+*** Sorties
+    - Une estimation de $E[\mu(s_0)]$ pour la politique fournie en argument
+*** Paramètres
+    - =g_fPsi= : fonction de feature de $S$ dans $\mathbf{R}^p$
+    - =g_dGamma_anirl= : Coefficient d'amortissement FIXME: le nom (*_anirl) est mal choisi
+    - =g_dLambda_lstdmu= : Coefficient de régularisation utilisé dans l'expression : $\tilde \omega^\pi \leftarrow (\tilde A + \lambda Id) ^{-1}\tilde b$
+    - =g_fS_0= : Fonction renvoyant la matrice des états initiaux (un par ligne) sur lesquels l'estimation de monte carlo de l'espérance sera caclculée.
+* ANIRL header
+** Détails techniques
+#+begin_src C
+#include "LSTDmu.h"
+
+unsigned int g_iK = -1;
+unsigned int g_iP = -1;
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = NULL;
+double g_dEpsilon_anirl = -1;
+unsigned int g_iIt_max_anirl = -1;
+
+gsl_matrix* omega = proj_lstd_lspi_ANIRL( gsl_matrix* D_E, 
+				  gsl_matrix* D )
+#+end_src
+** Entrées
+   - =D_E= : données provenant de l'expert
+   - =D= : données arbitraires permettant l'évaluation /off-policy/ à l'aide de LSTD$\mu$
+** Sorties
+   - =omega= : matrice correspondant à la fonction de qualité de la politique la plus proche de celle de l'expert rencontrée par l'algorithme
+** Paramètres
+   - =g_dEpsilon_anirl= : Seuil pour l'arrêt
+   - =g_iIt_max_anirl= : Nombre maximum d'itérations
+
+   Il faut également régler les paramètres de [[file:LSPI.org][LSPI]] et ceux de LSTD$\mu$.
 * C implementation
 ** Externals
 *** ANIRL
@@ -14,6 +141,13 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
 
    It returns the $\omega$ matrix which defines the optimal policy as found by LSPI under the reward $R = \theta^T\psi$. Note that $\omega \equiv \pi$, in other words, ou aproximation of the value function defines the greedy policy.
 *** LSTD$\mu$
+   #+begin_src c :tangle LSTDmu.h :main no
+gsl_matrix* lstd_mu( gsl_matrix* D_mu, 
+			   gsl_matrix* (*pi)(gsl_matrix*) );
+gsl_matrix* lstd_mu_op( gsl_matrix* D_mu );
+   #+end_src 
+
+
    #+begin_src c :tangle LSTDmu.h :main no
 gsl_matrix* lstd_mu_omega( gsl_matrix* D_mu, 
 			   gsl_matrix* (*pi)(gsl_matrix*) );
@@ -53,7 +187,7 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
      #+begin_src c :tangle LSTDmu.c :main no
   gsl_matrix* b = gsl_matrix_calloc( g_iP, g_iP );
      #+end_src
-   - for each $(s,a,s',\psi(s),eoe) \in D_\mu$
+   - for each $(s,a,s',\psi(s)^T,eoe) \in D_\mu$
      #+begin_src c :tangle LSTDmu.c :main no
   for( unsigned int i=0; i < D_mu->size1 ; i++ ){
      #+end_src
@@ -109,7 +243,7 @@ gsl_matrix* lstd_mu_op(  gsl_matrix* D_mu ){
   gsl_matrix_free( A );
   gsl_matrix_free( b );
      #+end_src
-   - $\mu_\pi(s_0) \leftarrow \sum\limits_{s_0}\tilde\omega_\pi^T\psi(s_0)$
+   - $\mu_\pi(s_0) \leftarrow \sum\limits_{s_0}\tilde\omega_\pi^T\psi(s_0)$ FIXME:dire que c'est une espérance et mettre un 1/N dans la somme
      #+begin_src c :tangle LSTDmu.c :main no
   gsl_matrix* s_0 = g_fS_0();
   gsl_matrix* mu = gsl_matrix_calloc( g_iP, 1 );
@@ -219,7 +353,6 @@ gsl_matrix* lstd_mu_op_omega(  gsl_matrix* D_mu ){
   return omega_pi;
 }
       #+end_src
-
    
 *** Off-policy estimation of $\mu$
 
@@ -354,6 +487,8 @@ gsl_matrix* lstd_mu(  gsl_matrix* D_mu,
 }
       #+end_src
 *** Actual algorithm
+    FIXME: Il faut que le code d'ANIRL existe en un seul endroit et qu'à l'aide de pointeurs de fonctions on choisisse les sous routines. Il ne faut pas qu'il y aie les deux versions comme c'est le cas à l'heure actuelle.
+
 
     We followed the same logic as in [[file:abbeel2004apprenticeshiporg]] : We do not follow the way things are exposed in the paper, but use a simpler (implementation wise) way. Mainly, the value referenced as $\bar\mu^i$ in the paper is now $\bar\mu$, a value constructed by a successive addition of terms. The variable $i$ is no more needed.
 
@@ -452,7 +587,7 @@ gsl_matrix* proj_lstd_lspi_ANIRL( gsl_matrix* D_E,
       #+begin_src c :tangle LSTDmu.c :main no
   double t = diff_norm( mu_E, bar_mu );
   unsigned int nb_it = 0;
-  g_dBest_error = diff_norm( mu_E, mu );
+  g_dBest_error = diff_norm( mu_E, mu ); //FIXME: ces trois lignes font appel à g_fSimulator, ce qui est génant puisqu'on peut ne pas en avoir.
   g_dBest_true_error = true_diff_norm( omega );
   g_dBest_diff = true_V_diff( omega );
   g_dBest_t = t;

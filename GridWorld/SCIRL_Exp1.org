@@ -6,20 +6,16 @@ L'expérience est un succès : la récompense est jolie, la fonction de valeur e
 
 On peut maintenant configurer SCIRL comme prévu par le protocole, à savoir en reprenant les valeurs des paramètres obtenues dans [[file:LAFEM_Exp1.org]].
 
+FIXME: les résultats sont pas folichons, penser à changer la métrique du succès 
+
     #+begin_src python :tangle SCIRL_Exp1.py
 import sys
 sys.path+=['..']
 from a2str import *
 from LAFEM import *
-
-#We had to debug a floating point error
-#def err_handler(type, flag):
-#    print "Floating point error (%s), with flag %s" % (type, flag)
-#    import pdb
-#    pdb.set_trace()
-#seterrcall( err_handler )
-#seterr( all='call' )
-
+from DP import *
+from DP_mu import *
+import GridWorld
 
     #+end_src
     
@@ -27,32 +23,15 @@ from LAFEM import *
       #+begin_src python :tangle SCIRL_Exp1.py
 class SCIRL_Exp1( LAFEM ):
     dicPi_E = {}
+    A = GridWorld.A
+    dicMu_E_s_only = {}
 
       #+end_src
 
-      On définit $S$ et $A$ de manière à pouvoir itérer dessus.
-    #+begin_src python :tangle SCIRL_Exp1.py
-    def Sgenerator( self ):
-        for x in range(0,5):
-            for y in range(0,5):
-                yield array([x,y])
-
-    S = Sgenerator
-    A = [1,2,3,4]
-    #+end_src
       #+begin_src python :tangle SCIRL_Exp1.py
-    dicMu_E_s_only = {}
-
-    def psi( self, s ):
-        answer = zeros((25,1))
-        x = s[0]
-        y = s[1]
-        index = y*5 + x
-        answer[index] = 1.
-        return answer
 
     def __init__( self ):
-        D_E = genfromtxt("ANIRL_Exp3_D_E.mat")
+        D_E = genfromtxt(sys.argv[1])
         for trans in D_E:
             self.dicPi_E[l2str(trans[0:2])] = trans[2:3][0]
             self.data = self.data +[[ trans[0:2], trans[2:3][0]]]
@@ -64,37 +43,19 @@ FIXME:remonter cette méthode, et LSTDmu et les autres si elles sont assez gén�
       #+begin_src python :tangle SCIRL_Exp1.py
         dicMu_E_data = {}
         for start_index in range(0,len(D_E)):
-            trans = D_E[start_index,:]
-            s = trans[0:2]
-            a = trans[2:3][0]
-
-            #import pdb
-            #          pdb.set_trace()
-            end_index = start_index
-            while D_E[end_index,2+1+2+1] != 0.: #eoe
-                end_index+=1
+            s = D_E[ start_index, 0:2 ]
+            end_index = (i for i in range(start_index,len(D_E)) if D_E[i,2+1+2+1] == 0).next() #till next eoe
             data_MC = D_E[start_index:end_index+1,0:2]
-            
-            mu_struct = []
             try:
-                mu_struct = dicMu_E_data[l2str(s)]
+                dicMu_E_data[l2str(s)].append(data_MC)
             except KeyError:
-                pass
-            mu_struct.append(data_MC)
-            dicMu_E_data[l2str(s)] = mu_struct
+                dicMu_E_data[l2str(s)] = [data_MC]
         #Now dicMu_E_data contains the data that allows for the Monte-Carlo computation
         self.dicMu_E_s_only = {}
         for state in dicMu_E_data:
-            nb = 0.
             gamma = 0.9
-            mu_s = zeros((25,1))
-            for traj in dicMu_E_data[state]:
-                nb+=1.
-                i = 0
-                for s in traj:
-                    i+=1.
-                    mu_s += pow( gamma, i )*self.psi( s )
-            mu_s /= nb
+            lstMu_s = map( lambda traj: monte_carlo_mu( traj, 0.9, GridWorld.psi ), dicMu_E_data[state] )
+            mu_s = mean( lstMu_s, 0 )
             self.dicMu_E_s_only[state] = mu_s
 
     def mu_E( self, s, a ):
@@ -120,11 +81,14 @@ FIXME:remonter cette méthode, et LSTDmu et les autres si elles sont assez gén�
     def alpha( self, t ):
         return 10./(t+1.)
     theta_0 = zeros( (25, 1) )
-    Threshold = 0.044
+    #Threshold = 0.044
+    Threshold = 0.0001
     T = 40
 scirl = SCIRL_Exp1()
 theta_scirl = scirl.run()
-print a2str(theta_scirl)
+perf_agent = GridWorld.evaluate_theta( theta_scirl, GridWorld.psi )
+
+print "%d\t%lf"%(len(scirl.data), perf_agent)
 
       #+end_src
 #+srcname: SCIRL_Exp1_make
@@ -132,10 +96,64 @@ print a2str(theta_scirl)
 SCIRL_Exp1.py: SCIRL_Exp1.org
 	$(call tangle,"SCIRL_Exp1.org")
 
-SCIRL_Exp1_theta.mat: SCIRL_Exp1.py ../a2str.py ../LAFEM.py ANIRL_Exp3_D_E.mat
-	python SCIRL_Exp1.py > SCIRL_Exp1_theta.mat
+SCIRL_Exp1: SCIRL_Exp1.py ../a2str.py ../LAFEM.py DE.py ../DP.py ../DP_mu.py V_Expert.mat
+	for i in $(LM_VALUES); \
+	do \
+	python DE.py $$i > DE.mat; \
+	python SCIRL_Exp1.py DE.mat >> SCIRL_Exp1.mat; \
+	done
 
 #+end_src
+
+
+* Plotting
+#+begin_src python :tangle SCIRL_Exp1_plot.py
+from matplotlib import rc
+rc('text', usetex=True)
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import pylab as pylab
+from Plot import *
+
+D = genfromtxt( "SCIRL_Exp1.mat" )
+
+myPlot = Plot()
+Expert = 4.11057152*ones(XA.shape) #python Expert.py to get this value
+myPlot.Random_mean = -1.5821833963484#See GridWorld.org about Random.py for information on these values
+myPlot.Random_min = -4.0007295890199996#python Random.py to get this value
+myPlot.Random_max = 2.7064859345599999#python Random.py to get this value
+myPlot.Random_var = 1.4465398450419833#python Random.py to get this value
+myPlot.y_max = 9.5 #Comme ca l'expert peut respirer
+myPlot.y_min =myPlot.Random_min - 0.2
+
+myPlot.plot( D, 'red', 'SCIRL_Exp1_fig1.pdf' )
+
+
+#+end_src
+
+#+srcname: SCIRL_Exp1_make
+#+begin_src makefile
+SCIRL_Exp1_plot.py: SCIRL_Exp1.org
+	$(call tangle,"SCIRL_Exp1.org")
+
+SCIRL_Exp1_fig1.pdf: SCIRL_Exp1_plot.py SCIRL_Exp1.mat ../Plot.py
+	python SCIRL_Exp1_plot.py
+
+#+end_src
+
+
+
+  #+srcname: SCIRL_Exp1_clean_make
+  #+begin_src makefile
+SCIRL_Exp1_clean:
+	find . -maxdepth 1 -iname "SCIRL_Exp1.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "SCIRL_Exp1_*"   | xargs $(XARGS_OPT) rm
+  #+end_src
+
+* Old plots, should be put in working order again soon
 
 Maintenant on peut optimiser cette récompense et regarder ce que ça donne d'un point de vue graphique (tracé de V) :
 
@@ -211,79 +229,4 @@ SCIRL_Exp1_R.pdf: SCIRL_Exp1_R.gp SCIRL_Exp1_R.txt
 
 #+end_src
 
-Ainsi que d'un point de vue de la longueur des trajectoires :
-#+begin_src c :tangle SCIRL_Exp1.c :main no
 
-#define _POSIX_C_SOURCE 1
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_blas.h>
-#include <math.h>
-#include "GridWorld.h"
-#include "simulator.h"
-#include "utils.h"
-#include "greedy.h"
-#include "phipsi.h"
-
-#include "RL_Globals.h"
-#include "IRL_Globals.h"
-#define TRANS_WIDTH 7
-#define ACTION_FILE "actions.mat"
-
-unsigned int g_iS = 2;
-unsigned int g_iA = 1;
-gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
-gsl_matrix* g_mOmega = NULL;
-gsl_matrix* g_mActions = NULL; 
-gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
-
-
-
-int main( void ){
-  g_mActions = file2matrix( ACTION_FILE, g_iA );
-  gsl_matrix* omega_agent = file2matrix( "SCIRL_Exp1_omega.mat", 1 );
-  g_mOmega = omega_agent;
-  gsl_matrix* D_agent = gridworld_simulator( 1000 );
-  printf("Longueur moyenne du run de l'agent : %f\n",((double)(D_agent->size1))/1000.);
-  return 0;
-}
-
-#+end_src
-
-#+srcname: SCIRL_Exp1_make
-#+begin_src makefile
-SCIRL_Exp1.c: SCIRL_Exp1.org
-	$(call tangle,"SCIRL_Exp1.org")
-SCIRL_Exp1.o: SCIRL_Exp1.c GridWorld.h ../greedy.h ../RL_Globals.h ../utils.h  phipsi.h simulator.h ../LSTDmu.h ../IRL_Globals.h ../ANIRL.h ../LSPI.h
-	$(call c2obj,"SCIRL_Exp1.c")
-#FIXME: On ne devrait pas avoir à lier avec criteria.o ou abbeel2004apprenticeship.o
-SCIRL_Exp1.exe: SCIRL_Exp1.o ../greedy.o ../utils.o  phipsi.o simulator.o
-	$(O2EXE) -o SCIRL_Exp1.exe SCIRL_Exp1.o ../greedy.o ../utils.o  phipsi.o simulator.o
-
-SCIRL_Exp1_omega.mat: R2omega.py SCIRL_Exp1_theta.mat Pi2txt.py
-	mv SCIRL_Exp1_theta.mat ANIRL_Exp2_R.mat #FIXME: Rendre R2omega plus générique pour ne plus avoir à faire ça
-	python R2omega.py
-	mv ANIRL_Exp2_R.mat SCIRL_Exp1_theta.mat
-	mv ANIRL_Exp2_omega.mat SCIRL_Exp1_omega.mat
-
-SCIRL_Exp1: SCIRL_Exp1.exe SCIRL_Exp1_omega.mat SCIRL_Exp1_R.pdf SCIRL_Exp1_V.pdf
-	./SCIRL_Exp1.exe
-
-#+end_src
-
-
-  #+srcname: SCIRL_Exp1_clean_make
-  #+begin_src makefile
-SCIRL_Exp1_clean:
-	find . -maxdepth 1 -iname "SCIRL_Exp1.h"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1.c"   | xargs $(XARGS_OPT) rm 
-	find . -maxdepth 1 -iname "SCIRL_Exp1.o"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1.exe"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1.tex"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1*.pdf"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1*.ps"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1*.gp"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1*.txt"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1*.py"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1_*.mat"   | xargs $(XARGS_OPT) rm
-	find . -maxdepth 1 -iname "SCIRL_Exp1_LSTDmu*"   | xargs $(XARGS_OPT) rm
-  #+end_src

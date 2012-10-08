@@ -39,10 +39,6 @@ Cascading_Exp5: Cascading_Exp5.py Highway.py ../DP.py Mu_E.mat ../Cascading.py .
 	python Cascading_Exp5.py DE.mat >> Cascading_Exp5.mat; \
 	done
 
-
-../Cascading.py:
-	make -C .. Cascading.py
-
 #+end_src
 
 * Plotting

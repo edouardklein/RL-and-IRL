@@ -27,30 +27,6 @@ We set some constants
 #define ACTION_FILE "actions.mat"
 #+end_src
 
-We define both feature functions : $\phi: S\times A \rightarrow \mathbb{R}^p$ and $\phi: S\rightarrow \mathbb{R}^p$.
-#+begin_src c :tangle plot.c :main no
-unsigned int g_iK = (GRID_HEIGHT*GRID_WIDTH*4); /* dim(\phi) */
-unsigned int g_iP = (GRID_HEIGHT*GRID_WIDTH); /* dim(\psi) */
-
-gsl_matrix* phi( gsl_matrix* sa ){
-  gsl_matrix* answer = gsl_matrix_calloc( g_iK, 1 );
-  unsigned int x = (unsigned int)gsl_matrix_get( sa, 0, 0 );
-  unsigned int y = (unsigned int)gsl_matrix_get( sa, 0, 1 );
-  unsigned int a = (unsigned int)gsl_matrix_get( sa, 0, 2 );
-  unsigned int index = (y-1)*GRID_WIDTH*4 + (x-1)*4 + a-1;
-  gsl_matrix_set( answer, index, 0, 1.0 );
-  return answer;
-}
-
-gsl_matrix* psi( gsl_matrix* s ){
-  gsl_matrix* answer = gsl_matrix_calloc( g_iP, 1 );
-  unsigned int x = (unsigned int)gsl_matrix_get( s, 0, 0 );
-  unsigned int y = (unsigned int)gsl_matrix_get( s, 0, 1 );
-  unsigned int index = (y-1)*GRID_WIDTH + (x-1);
-  gsl_matrix_set( answer, index, 0, 1.0 );
-  return answer;
-}
-#+end_src
 
 At the beginning of each episode, the player comes back to the lower left cell (i.e. coordinates (1,1) ).
 #+begin_src c :tangle plot.c :main no
@@ -312,8 +288,8 @@ plot.exe: plot.o ../utils.o ../LSPI.o simulator.o ../greedy.o ../LSTDQ.o ../abbe
 plot.dat: plot.samples plot.exe
 	./plot.exe > plot.dat
 
-plot.samples: generator.exe 
-	./generator.exe > Samples.dat && touch plot.samples
+Samples.dat: generator.exe 
+	./generator.exe > Samples.dat
 
 #+end_src
 *** Plotting the criteria for the MC method
@@ -414,6 +390,7 @@ LSTDmu_Exp_clean:
 	find . -maxdepth 1 -iname "both_error.tex"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "tmp"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "tmp2"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "phipsi.*"   | xargs $(XARGS_OPT) rm 
 	find . -maxdepth 1 -iname "plot.c"   | xargs $(XARGS_OPT) rm 
 	find . -maxdepth 1 -iname "plot.o"   | xargs $(XARGS_OPT) rm
 	find . -maxdepth 1 -iname "plot.exe"   | xargs $(XARGS_OPT) rm

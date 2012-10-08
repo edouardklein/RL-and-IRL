@@ -4,13 +4,13 @@
 ** Misc.
 Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
   #+begin_src makefile :tangle Makefile :noweb yes
-<<phipsi_make>>
-<<MWAL_make>>
-<<SCIRL_make>>
-<<Comparison_make>>
-<<App_make>>
-<<RandomSamples_make>>
-<<LSPI_make>>
+<<Highway_make>>
+<<SCIRL_Exp2_make>>
+<<SCIRL_Exp3_make>>
+<<ANIRL_Exp5_make>>
+<<ANIRL_Exp6_make>>
+<<Cascading_Exp1_make>>
+<<Cascading_Exp5_make>>
   #+end_src
 ** Code extraction
   #+begin_src makefile :tangle Makefile :noweb yes
@@ -40,10 +40,9 @@ O2EXE=gcc $(LFLAGS)
 <<Simulator_clean_make>>
 <<Comparison_clean_make>>
 <<MWAL_clean_make>>
-<<Main_clean_make>>
 <<RandomSamples_clean_make>>
 
-clean: SCIRL_clean Cascading_Exp1_clean Cascading_Exp5_clean SCIRL_Exp2_clean SCIRL_Exp3_clean Comparison_clean Simulator_clean MWAL_clean Main_clean RandomSamples_clean ANIRL_Exp5_clean ANIRL_Exp6_clean Highway_clean
+clean: SCIRL_clean Cascading_Exp1_clean Cascading_Exp5_clean SCIRL_Exp2_clean SCIRL_Exp3_clean Comparison_clean Simulator_clean MWAL_clean RandomSamples_clean ANIRL_Exp5_clean ANIRL_Exp6_clean Highway_clean
 	find . -maxdepth 1 -iname "*~"   | xargs $(XARGS_OPT) rm
 
     #+end_src
