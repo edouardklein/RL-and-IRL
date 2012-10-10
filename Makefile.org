@@ -125,6 +125,21 @@ SCIRL_NIPS:
 **** SCIRL
 **** Cascading
 *** Figures
+    #+begin_src makefile :tangle Makefile
+RTEcompile:
+	make -C GridWorld Expert_Nice_View
+
+RTEstartView:
+	xpdf -remote RTE1 GridWorld/V_expert.pdf & xpdf -remote RTE2 GridWorld/true_reward.pdf
+
+RTEview:
+	xpdf -remote RTE1 -reload && xpdf -remote RTE2 -reload
+
+RTEstopView:
+	xpdf -remote RTE1 -quit & xpdf -remote RTE2 -quit
+
+
+    #+end_src
 **** TODO Reprendre les 12 figures
 **** TODO Reprendre le travail sur le GridWorld
 ** Archive

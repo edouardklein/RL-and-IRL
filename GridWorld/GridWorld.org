@@ -172,7 +172,25 @@ from DP import *
 from DP_mu import *
 
 print "Expert creation..."
-Pi_E = GridWorld.GWDP( GridWorld.R(), "V_Expert.mat" )
+Reward = GridWorld.R()
+Pi_E = GridWorld.GWDP( Reward, "V_Expert.mat" )
+#Preparing to plot expert's reward and value function
+V_expert = genfromtxt("V_Expert.mat")
+f = open( "true_reward.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,Reward[index]) )
+    f.write("\n")
+f.close()
+f = open( "V_expert.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,V_expert[index]) )
+    f.write("\n")
+f.close()
+
 print "mu_E computation..."
 Mu_E = DP_mu( Pi_E, identity(5*5) )
 
@@ -180,8 +198,10 @@ savetxt( "Pi_E.mat", Pi_E, "%e", "\t" )
 savetxt( "Mu_E.mat", Mu_E, "%e", "\t" )
 print "Performances de l'expert :"
 print GridWorld.evaluate_Pi( Pi_E )
-    #+end_src
 
+
+    #+end_src
+: 
 #+srcname: GridWorld_make
   #+begin_src makefile
 Expert.py: GridWorld.org 
@@ -195,6 +215,15 @@ Mu_E.mat: Expert.py ../DP.py ../DP_mu.py
 
 V_Expert.mat: Expert.py ../DP.py ../DP_mu.py
 	python Expert.py
+
+Expert_Nice_View: Expert.py ../DP.py ../DP_mu.py LAFEM_Exp1_V_expert.gp  LAFEM_Exp1_true_reward.gp 
+	python Expert.py
+	gnuplot LAFEM_Exp1_V_expert.gp
+	ps2pdf V_expert.ps
+	rm V_expert.ps
+	gnuplot LAFEM_Exp1_true_reward.gp
+	ps2pdf true_reward.ps
+	rm true_reward.ps
 
   #+end_src
 
