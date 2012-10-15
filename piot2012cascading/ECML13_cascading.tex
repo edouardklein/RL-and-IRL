@@ -1,0 +1,259 @@
+% Created 2012-10-15 lun. 14:49
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{soul}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage[integrals]{wasysym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\usepackage{amsmath}
+\usepackage{dsfont}
+\providecommand{\alert}[1]{\textbf{#1}}
+\newcommand{\E}{\mathbf{E}}
+\newcommand{\argmax}{\operatorname*{argmax}} %\operatorname* pour les op. pouvant admettre des limites...
+\title{Outline}
+\author{Edouard Klein}
+\date{\today}
+\hypersetup{
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs Org-mode version 7.8.11}}
+
+\begin{document}
+
+\maketitle
+
+\setcounter{tocdepth}{3}
+\tableofcontents
+\vspace*{1cm}
+\section{Abstract}
+\label{sec-1}
+\section{Introduction}
+\label{sec-2}
+
+  De la même manière que pour le papier de SCIRL, l'intro est une vaste annonce du papier, avec des références pointues (sous-section, voire sous,sous-section) vers les parties du papier qui expliquent tel ou tel point en détail.
+\section{Background and notations}
+\label{sec-3}
+\begin{itemize}
+\item Parler du domaine de la prise de décision séquentielle
+\item Expliquer le problème direct, en profiter pour introduire l'équation d'évaluation de Bellman et l'équation d'optimalité de Bellman
+\begin{itemize}
+\item $RL(MDP=\{S,A,\gamma,(P),R\}) = \pi^*:S\times A \rightarrow \mathbb{R}$
+\item $\forall \pi, Q^\pi(s,a) = R(s,a) + \sum_{s'}P(s'|s,a)Q^\pi(s',\pi(s'))$
+\item $\pi^* = \arg\max_aQ^*(s,a)$
+\end{itemize}
+\item Introduire le problème inverse dans une forme mathématique relativement propre
+\begin{itemize}
+\item $IRL( MDP\backslash R = \{S,A,\gamma,(P)\} \cup \{\pi^E\} = R : S\times A \rightarrow \mathbb{R}$ telle que $\pi^E$ est optimale pour $R$
+\item Mentionner la nature mal posée du problème sans s'appesentir dessus. Préciser toutefois qu'aucune approche ne le résoud de manière mathématiquement satisfaisante à cause de ça.
+\item insister sur l'optimalité de l'expert comme hypothèse. Un expert sous optimal, c'est un autre champ de littérature, éventuellement donner deux trois refs.
+\end{itemize}
+\end{itemize}
+We frame the sequential decision problem in a \emph{Markov Decision Process} (MDP), that is a tuple $\{S,A,P,R,\gamma\}$. At each time step $t$, the agent uses the information encoded in the state $s_t\in S$ it is in to choose an action $a_t \in A$ according to a (deterministic\footnote{We restrict ourselves here to deterministic policies, but this dos not induce any loss of generality.}) \emph{policy} $\pi: S \rightarrow A$. The agent then transits to a new state $s_{t+1}\in S$ according to the markovian transition probabilities $P(s_{t+1}|s_t,a_t)$. The reward function $R : S\times A \rightarrow \mathbb{R}$ is a local measure of the quality of the control. The global quality of the control induced by a policy $\pi$, with respect to a reward $R$ is assessed by the value function $V^\pi_R \in \mathbb{R}^{|S|}$ which associates each state with the discounted cumulative reward for following policy $\pi$ from this state : $V^\pi_R(s) = \E[\sum_{t\geq 0}\gamma^tR(s_t)|s_0 = s]$. Therefore, an optimal policy $\pi^*_R$ is a policy whose value function (the optimal value function $V^*_R$) is greater than that of any other policy, for all states : $\forall \pi, \forall s \in S, V^*_R(s) \geq V^\pi_R(s)$. The stationary distribution induced by a policy $\pi$ is written $\rho_\pi,\textrm{ s.t. }\rho_\pi^TP^\pi = \rho_\pi$.
+
+The Bellman evaluation operator $T^\pi_R: \mathbb{R}^{|S|} \rightarrow  \mathbb{R}^{|S|}$ is defined by $T^\pi_RV = R + \gamma P^piV$ using the straightforward matricial notation $P\pi = (p(s'|s,\pi(s)))_{s,s' \in S}$. The Bellman optimality operator follows naturally : $T^*_RV = \max_\pi T^\pi_RV$. Both these operator are contractions. The fixed point of the Bellman evaluation operator $T^\pi_R$ is the value function of $\pi$ with respect to reward R $V^\pi_R$ ; the fixed point of the Bellman optimality operator $T^*_R$ is the optimal value function $V_R^*$ with respect to reward $R$. Optimal value function and optimal policy are also linked via the quality function $Q^\pi_R$, a state-action value function that adds a degree of freedom on the choice of the first action, formally defined by $Q^\pi_R(s,a) = T^a_Rv^\pi_R(s)$, with $a$ the policy that always returns action $a$ : the optimal policy follows a greedy mechanism with respect to its optimal quality function $\pi^*_R(s) = \argmax_aQ^*_R(s,a)$.
+
+When the state space is too large to allow matricial representation or when the transition probability or even the reward function are unknown except through observations gained by interacting with the system, \emph{Reinforcement Learning} (RL) or approximate dynamic programming may be used to retireve the optimal control policy. We call this the direct problem.
+
+In this work, we wish to tackle the inverse problem. We observe an expert's deterministic\footnotemark[\value{footnote}] policy $\pi^E$, assuming that there exist some unknown reward $R^E$ for which the expert is optimal. The non optimality of the expert is an interesting setting that has been discussed for example FIXME:NONOPTIMALITY but that we are not addressing here. We do not try to find this unknown reward $R^E$ but rather a non trivial reward $R$ for which the expert is also optimal. The trivial reward $0$ is a solution to this ill-posed problem (no reward means that every behavior is optimal). Because of its ill-posed nature, this expression of \emph{Inverse Reinforcement Learning} (IRL) still has to find a satisfactory solution although lots of progress have been made, see section \ref{sec:related}. 
+\section{The cascading algorithm}
+\label{sec-4}
+\begin{itemize}
+\item Mentionner (sans en parler, ce sera fait dans \hyperref[sec-7-1]{Imitation}) l'imitation. Une approche supervisée évidente est la classification, avec pour entrée un set $D_C$ de données issues de l'expert. Rappeler (expliqué pour la première fois dans \hyperref[sec-3]{Formalisme} qu'on se restreint (sans perte de généralité, le préciser) au cas des politique déterministes.
+\item Tous les classifieurs utilisent une fonction de score (je n'ai pas trouvé un seul exemple d'un classifieur qui n'en utilise pas), il s'agit juste d'un manière d'écrire les choses.
+\item Expliquer que l'on identifie le mécanisme de classification au mécanisme glouton qui régit la politique optimale (donc celle de l'expert).
+\item Sans chercher à justifier mathématiquement la chose (ce sera fait dans la partie \hyperref[sec-5]{Analyse}), expliquer qu'intuitivement l'on va identifier fonction de score du classifieur et fonction de qualité de l'expert (qui est optimale pour une certaine récompense, rappelons-le).
+\begin{itemize}
+\item Repartir de l'équation d'évaluation de Bellman pour isoler le terme $R(s,a)$ et introduire $r:S\times A\in \mathbb{R}$, la récompense issue de cette équation lorsque l'on remplace $Q^E$ par la fonction de score : $r(s,a) =q(s,a) - \sum_{\mathrm{s'}}P(s'|s,a)q(s',\pi(s')) $
+\item On estime ce terme à partir des transitions $D_R$ car les probabilités de transitions sont inconnues : $\hat r(s,a) = q(s,a)-\gamma \sum_{s'} {1\over N_{s'}}\sum_{(s,a,s',a')\in D_R}q(s',a')$
+\item La fonction de récompense est donnée par une régression sur $D_R \cup {\hat r}$.
+\end{itemize}
+\item Donner l'algorithme l'environnement \texttt{algorithm2e}
+\item Rapidement, l'étape de régression permet d'ajouter la structure du MDP au résultat de classif, en utilisant l'équation de Bellman.
+\item Bien préciser qu'il ne s'agit ici que d'une explication qualitative, ``avec les mains'', la preuve du fait que ça résoud bien le problème est donnée dans \hyperref[sec-5]{Analyse}, une démonstration sur des problèmes si complexes que l'état de l'art ne peut les résoudre (sauf SCIRL) est donnée dans \hyperref[Experience]{Experience}. Les avantages comparés sont expliqués dans \hyperref[Autres-Approches]{Autres Approches}. Enfin, des explications plus intuitives sur les mécanismes internes de l'algorithme, ainsi que des résultats expérimentaux supplémentaires sont fournis en \hyperref[sec-9]{Annexes}.
+\end{itemize}
+IRL has sometimes FXME:REFIMITATION been seen as a way to cast the imitation problem, that is a way to copy the expert policy ; the reward function is then a byproduct of the analysis and not the object one is looking for. An efficient supervised way to do pure imitation is to use a classifier. The entries are the states $s_t$ and the labels are the actions $a_t$ deterministically chosen by the expert. We thus obtain a classification policy $\pi_C$.
+
+This is the first step of our algorithm. Using a dataset $D_C = {s_i,a_i=\pi^E(s_i)}_i$ we train a score-function based classifier. We can make use of any classifier whose decision rule uses a greedy mechanism with respect to a score function $q : S \times A \rightarrow \mathbb{R}$ that quantifies how well label $a\in A$ suits entry $s\in S$. Most classifiers, from M-SVM to $k$-nearest neighboors can be cast as a score-function based classifier. This allows the use of many off-the-shelf imlpementations.
+
+The greedy classification mechanism $\pi_C = \argmax_a q(s,a)$ is very similar to the relation between the optimal policy in a MDP and its optimal quality function : $\pi^*_R(s) = \argmax_aQ^*_R(s,a)$. As the expert is optimal with respect to some unknown reward function $R_E$ and we seek a reward function $R$ for which it is also optimal, it is only natural to view the score function $q$ of the classifier as some kind of optimal quality function. It is not a stretch to see $\pi_C$ as an optimal policy as it has been built from $\pi^E$ which is optimal. By inversing the Bellman evaluation equation, one can express the reward as a function of the quality function : $R(s,a) = Q^*_R(s,a) - \sum_{s'}P(s'|s,a)Q^*_R(s'\pi^*(s'))$. This leave us with $r$, the reward function relative to our score/quality function $q$ : $r(s,a) =q(s,a) - \sum_{\mathrm{s'}}P(s'|s,a)q(s',\pi_C(s'))$.
+
+We wish to solve the general, or approximate IRL problem, where the transition probabilities are unknown. Our reward function $r$ must be approximated to $\hat r$ with the help of a dataset $D_R = \{s_i,a_i,s'_i\}$. This gives as many datapoints $\{\hat r(s_i,a_i) = q(s_i,a_i) - \gamma q(s',\pi_C(s'))}_i $.
+
+
+\section{Analyse}
+\label{sec-5}
+
+
+\begin{itemize}
+\item On rappelle le problème posé au début.
+\item Le théorème 1 montre que modulo un bonne classif et un bon régresseur, on résoud exactement le problème que l'on s'était posé
+\item On en fait la démo rapide (éventuellement des bouts peuvent être déportés en \st{Pologne} \hyperref[sec-9]{Annexes}).
+\item On insiste sur le fait que la récompense trouvée n'est pas triviale, on a transcendé la nature mal posée du problème.
+\item On dit un mot rapide sur la complexité en échantillon (ça dépend du classifieur et du régresseur, mais \hyperref[sec-6]{Expériences} montre qu'on est bon là dessus)
+\item ainsi que sur la complexité temporelle (ça dépend toujours, mais avec une M-SVM et un moinde carré ça prend O(quelque chose) (indice: pas beaucoup)) FIXME:compléter la complexité
+\end{itemize}
+
+First let introduce some notations. $\pi_C$ is the classifier policy, $\epsilon_C$ is the classification error:
+\begin{equation}
+\epsilon_C=\E_{s\sim\rho_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}].
+\end{equation}
+Let $X\in\mathbb{R}^{S\times A}$, $\pi\in A^S$, and $a\in A$, we introduce $X_\pi\in\mathbb{R}^S$ and $X_a\in\mathbb{R}^S$ such that: $\forall s\in S, X_\pi(s)=X(s,\pi(s))$ and $\forall s\in S, X_a(s)=X(s,a)$.
+Thus we have the following vectorial equations:
+\begin{align}
+&R^C_a=q_a-\gamma P_aq_{\pi_C},
+\\
+&\epsilon^R_a=R^C_a-\hat{R}^C_a.
+\end{align}
+Now we are going to bound the term: $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]\geq0$ (the lower bound is obvious).
+We note $\hat{\pi}_C$ a deterministic optimal policy of the reward $\hat{R}^C$. We have:
+\begin{equation}
+V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}=(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C})+(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})+(V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C}).
+\end{equation}
+We are going to bound each of this three terms. But, first, let $\pi$ be a given deterministic policy. We have:
+\begin{equation}
+V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C}=V^{\pi}_{\epsilon^R}=(I-\gamma P_\pi)^{-1}\epsilon^R_{\pi}.
+\end{equation}
+If $\pi=\pi_E$, $\rho_E^T(V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C})=\rho_E^T(I-\gamma P_{\pi_E})^{-1}\epsilon^R_{\pi_E}=\frac{1}{1-\gamma}\rho_E^T\epsilon^R_{\pi_E}\leq\frac{1}{1-\gamma}\|\epsilon^R_{\pi_E}\|_{1,\rho_E}$.
+If $\pi\neq\pi_E$, we introduce the following concentration coefficient:
+\begin{equation}
+C_{\pi}=(1-\gamma)\sum_{t\geq0}\gamma^tc_{\pi}(t), \text{ with } c_{\pi}(t)=\max_{s\in S}\frac{(\rho_E^TP^t_\pi)(s)}{\rho_E(s)}.
+\end{equation}
+We have then: $\rho_E^T(V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C})\leq\frac{C_\pi}{1-\gamma}\rho_E^T\epsilon^R_{\pi}\leq\frac{C_\pi}{1-\gamma}\|\epsilon^R_{\pi}\|_{1,\rho_E}$. So, if we note, $C_*=C_{\hat{\pi}_C}$ and $\epsilon_R=\max_{\pi\in A^S}\|\epsilon_\pi^R\|_{1,\rho_E}$, we are able to give an upper bound to the first and third terms:
+\begin{equation}
+\rho_E^T((V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})+(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}))\leq\frac{1+C_*}{1-\gamma}\epsilon_R.
+\end{equation}
+Now, there is a still an upper bound to find for the second term. If we introduce, $R^E_a=q_a+\gamma P_aq_{\pi_E}$, it is possible to decompose the second term:
+\begin{equation}
+V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C}=(V^{\hat{\pi}_C}_{R^C}-V^{\pi_C}_{R^C})+(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})+(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}).
+\end{equation}
+By construction, $\pi_C$ is optimal for $R^C$, so $V^{\hat{\pi}_C}_{R^C}-V^{\pi_C}_{R^C}\leq0$ which implies:
+\begin{equation}
+V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C}\leq(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})+(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}).
+\end{equation}
+By construction, we have $V^{\pi_C}_{R^C}=q_{\pi_C}$ and $V^{\pi_E}_{R^E}=q_{\pi_E}$, thus:
+\begin{equation}
+\rho_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})=\rho_E^T(q_{\pi_C}-q_{\pi_E})=\sum_{s\in S}\rho_E(s)(q(s,\pi_C(s))-q(s,\pi_E(s)))[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}].
+\end{equation}
+We note $\Delta q=\max_{s\in S}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))=\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))$ and we have:
+\begin{equation}
+\rho_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})\leq\Delta q\sum_{s\in S}\rho_E(s)[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}]= \Delta q \epsilon_C.
+\end{equation}
+Finally, we also have:
+\begin{align}
+\rho_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})&=\rho_E^T(I-\gamma P_{\pi_E})^{-1}(R^E_{\pi_E}-R^E_{\pi_C}),
+\\
+&=\rho_E^T(I-\gamma P_{\pi_E})^{-1}\gamma P_{\pi_E}(q_{\pi_C}-q_{\pi_E}),
+\\
+&=\frac{\gamma}{1-\gamma}\rho_E^T(q_{\pi_C}-q_{\pi_E})\leq \frac{\gamma}{1-\gamma}\Delta q \epsilon_C.
+\end{align}
+So the upper bound for the second term term is: $\rho_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})\leq \frac{\Delta q}{1-\gamma}\epsilon_C$.
+If we combine all of the results, we obtain the final bound:
+\begin{equation}
+0\leq\E_{s\sim\rho_E}[V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]\leq \frac{1}{1-\gamma}(\Delta q \epsilon_C+(1+C_*)\epsilon_R)).
+\end{equation}
+
+Few remarks: the bound is obviously true for $\hat{R}_C$, but in this case the classifier or the regressor have bad performance which it is not likely. The algorithm and the analysis are invariant by a dilatation of $q$, so of $\Delta q$. We could normalize $\Delta q$ by imposing $\Delta q=1$ (the range of variation of $q$ induces the one of $R^C$, $\hat{R}^C$ and $V^{\pi_C}_{\hat{R^C}}$). The constant $C_*$ could be estimated a posteriori ( after $\hat{R}^C$ being calculated). We could upper bound $C_*$ by a more usual and general concentration coefficient but $C_*$ give a tighter final result (approximately, if $\hat{\pi_C}\approx\pi_E$ then $C_*=1$).
+
+In order to control $\epsilon_R$, we need a precise regression over the expert stationary distribution and for all the actions. In theory, we need to be able to sample the whole dynamic (even the non expert actions). In practice, a heuristic is used (however this heuristic is not justified by the analysis).
+Finally, if the classifier and the regressor are perfect ($\epsilon_C=\epsilon_R=0$), $\pi_E$ is the only deterministic optimal policy of $\hat{R}^C=R^C$ (the uniqueness suppose that $\forall s\in S, Card(\argmax_{a\in A}q(s,a))=1$ ).
+
+
+\section{Expériences}
+\label{sec-6}
+
+\begin{itemize}
+\item La borne fournie en \hyperref[sec-5]{Analyse} mesure le degré d'optimalité de la politique de l'expert vis à vis de la nouvelle récompense. Les expériences mesurent le degré d'optimalité de l'agent (ici entendu sous forme d'agent entraîné parfaitement sur la récompense sortie par notre algorithme) vis à vis de la vraie récompense (celle de l'expert).
+\begin{itemize}
+\item On se permet de faire ça car dans notre dispositif on la connait. Ce n'est pas le cas dans la vraie vie.
+\item En pratique c'est un critère plus restrictif : formellement, si $\pi^E$ est optimale pour $R_C$, alors l'agent et l'expert ont les mêmes performances (wrt $R_C$), puisque l'agent est optimal pour $R_C$ par définition de l'agent. En revanche on regarde si l'agent est optimal pour $R_E$, ce qui est profondément ``injuste'', puisqu'on ne sait rien de $R_E$. On ne sait même pas si elle existe réellement.
+\item Il s'agit d'une métrique qu'il n'est pas possible de mesurer sur un problème réel. C'est pourquoi la démonstration est intéressente car elle parle de quelque chose que l'on peut plus facilement évaluer ; et surtout elle parle de ce que l'on s'est proposé de résoudre à la base. Ces expériences ne sont qu'une illustration.
+\end{itemize}
+\item Les résultats obtenus sur ce problème sont notamment comparés à la classif, il s'agit d'une illustration du fait que l'algorithme est capable d'extraire les infos sur $P$ contenues dans les transitions, grâce à l'équation de Bellman qui est présente (modulo deux trois manips) dans l'expression de $\hat r$. Nous avons injecté la structure du MDP dans la classification (ça me rappelle quelque chose\ldots{} ;)
+\item Le seul plot est celui du Highway (similaire à SCIRL). On enlève le Gridworld (reporté en annexe car trop d'infos pour si peu de place)
+\item On instancie avec Taskar et un moindre carré. Ceci n'a pas la moindre importance.
+\item Mentionner le fait que les autres algos ne peuvent résoudre le problème tel qu'on le pose. On s'apesentira là dessus dans \hyperref[sec-7]{Autres approches}.
+\item Expliquer que quitte à tester expérimentallement, on a choisi de s'éloigner du cadre de l'analyse pour se placer dans cadre \emph{plus difficile à gérer}, ou seules les données de l'expert sont disponibles.
+\begin{itemize}
+\item Cela implique l'usage d'une heuristique pour la régression :
+\begin{itemize}
+\item sans heuristique, c'est le choix par défauit du régresseur (i.e. initialisation à 0, à R$_{\mathrm{min}}$ ou R$_{\mathrm{max}}$) qui décidera de l'optimisme ou pessimisme de l'algo
+\item Pour éviter ça, on place nous même notre heuristique.
+\end{itemize}
+\item que l'on se contente d'expliquer à un niveau intuitif. L'analyse formelle n'a pas été effectuée, ne le sera probablement pas, on se contente de montrer qu'en pratique, ça fonctionne. Et ça fonctionne mieux que les autres algos, sauf SCIRL.
+\item Cela implique aussi d'utiliser $\pi_C$ plutôt que $a'$.
+\end{itemize}
+\item Lien avec l'analyse : on a de bons résultats, même si le classifieur n'est pas bon. Notre borne est donc très très large.
+\item La complexité en échantillons : avec 50 samples, on fait mieux que PIRL qui a accès à une matrice de taille $|S|\times|S|\times |A|$
+\item La complexité en temps : on tourne 100 fois plus rapidement que PIRL
+\end{itemize}
+\section{Autres approches}
+\label{sec-7}
+
+\begin{itemize}
+\item On reprend peu ou prou la même que SCIRL et que celle du précédent papier. On profite de la mention d'une approche pour préciser en quoi la nôtre diffère.
+\end{itemize}
+\subsection{Imitation}
+\label{sec-7-1}
+
+\begin{itemize}
+\item Ce n'est pas le problème que l'on se pose, mais résoudre l'IRL peut permettre une forme fine d'imitation.
+\item La frontière est un peu floue, exemple de PIRL
+\item On peut considérer que tous les algos revus par Neu sont des algos d'imitation dans le sens où ils cherchent une proximité des $\mu$.
+\item Coincidentallement, ils ont besoin de résoudre le problème direct, pas nous.
+\end{itemize}
+\subsection{Méthodes entropiques}
+\label{sec-7-2}
+
+\begin{itemize}
+\item N'ont pas besoin de résoudre le problème direct, mais ont besoin d'autres données que celles de l'expert.
+\end{itemize}
+\subsection{Autres méthodes}
+\label{sec-7-3}
+
+\begin{itemize}
+\item parler des MDPs solvables linéairement, des papiers mentionnés par les reviewers de NIPS, et dire du bien de SCIRL
+\end{itemize}
+\section{Conclusion}
+\label{sec-8}
+
+\begin{itemize}
+\item Ouverture : Existe-t-il des problèmes tels que SCIRL et Cascading diffèrent en performance ?
+\item Que faire quand on ne peut résoudre le RL facilement ?
+\item Que faire en cas d'expert sous optimal ?
+\item ouverture sur l'active learning en reprenant les notions de pessimisme ou d'optimisme en présence d'incertitude
+\end{itemize}
+   
+\section{Annexes}
+\label{sec-9}
+\subsection{GridWorld}
+\label{sec-9-1}
+
+\begin{itemize}
+\item On montre avec les deux formes de récompenses qui donnent la même fonction de valeur. On fait référence aux travaux de Ng qui résolvent exactement ce problème. Les récompenses ont la même tête, ça devrait rassurer le lecteur hésitant.
+\item si on a le temps, on peut lancer une expérience où le nombre (en supposant une répartittion uniforme) des samples augmente et où la récompense tend vers ``la vraie''.
+\end{itemize}
+\subsection{Inverted pendulum}
+\label{sec-9-2}
+
+\begin{itemize}
+\item On montre qu'on généralise sans problème aux espaces continus, on montre qu'avec des données très, très sparses vis à vis de l'espace d'état on arrive pourtant à récupérer une récompense ayant la même fonction de valeur que celle de l'expert.
+\item ça montre aussi ce qui se passe quand l'espace d'hypothèse est ``mal choisi'' (i.e. la ``vraie'' récompense n'y était pas représentable).
+\end{itemize}
+\subsection{Highway}
+\label{sec-9-3}
+
+\begin{itemize}
+\item Si on a le temps : faire conduire quelqu'un puis lancer l'imitation, voir si on reproduit les consignes données à l'opérateur humain, qui aura eu la bonté de faire quelques erreurs dans l'exécution. Ca permet de voir le comportement en cas d'expert sous optimal et de taire les questions à ce sujet.
+\end{itemize}
+
+\end{document}
