@@ -125,7 +125,7 @@ SCIRL_NIPS:
 **** SCIRL
 **** Cascading
 *** Figures
-    #+begin_src makefile :tangle Makefile
+    #+begin_src makefile 
 RTEcompile:
 	make -C GridWorld Expert_Nice_View
 
@@ -142,6 +142,19 @@ RTEstopView:
     #+end_src
 **** TODO Reprendre les 12 figures
 **** TODO Reprendre le travail sur le GridWorld
+*** Tests
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<testDP_make>>
+RTEcompile: testDPcompile
+
+RTEstartView: testDPstartView
+
+RTEview: testDPview
+
+RTEstopView: testDPstopView
+
+
+    #+end_src
 ** Archive
 *** LAFEM
    - LAFEM_Exp1 (GridWorld)

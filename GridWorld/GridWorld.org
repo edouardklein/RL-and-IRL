@@ -355,7 +355,7 @@ def evaluate_thetaSA( theta, l_phi ):
   #+end_src
    
 
-** Let a policy control the car
+** Let a policy control the player
   On peut aussi obtenir les trajectoires tirées par une politique :
     #+begin_src python :tangle GridWorld.py
 def omega_play( omega, L, M ):

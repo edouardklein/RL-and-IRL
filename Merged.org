@@ -16,6 +16,8 @@ $$
 sign( s_i,a_i) = sign( - \theta_R^T\psi(s_i,a_i))
 $$
 
+Avec $a^*=\arg\max_a \theta_C^T \phi(s_i,a) + l(s_i,a)$ 
+ $a'^*=\arg\max_a \theta_C^T \phi(s'_i,a)$ 
 Dans le cas où des données échantillonnées plus largement sont disponibles, cela devient :
   $$
   \delta_{\theta_i} L^M(\theta_C,\theta_R) = {1-\lambda\over D} \sum_{D} \bar \phi(s_i,a^*) - \bar \phi( s_i,a_i)\\
@@ -78,7 +80,9 @@ class Merged( GradientDescent ):
         D = 0.
         v_sum = zeros( self.theta_C.shape )
         for s,a,s_dash in data:
-            a_star = greedy_policy( s, self.theta_C, phi, A )
+            def our_l(sa):
+                return 1 if sa[1]==a else 0
+            a_star = greedy_policy( s, self.theta_C, phi, A,l=our_l )
             v_sum += phi( s, a_star ) - phi( s, a )
             D+=1.
         answer = zeros( self.theta_0.shape )

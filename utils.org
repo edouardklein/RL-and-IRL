@@ -228,7 +228,7 @@ class Plot:
         pylab.savefig(filename,transparent=True)
 
   #+end_src
-** Random Wighted Choice  
+** Random Weighted Choice  
 #+begin_src python :tangle RWC.py
 #code from http://stackoverflow.com/questions/3679694/a-weighted-version-of-random-choice
 import random
