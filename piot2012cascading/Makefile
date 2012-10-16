@@ -1,9 +1,20 @@
 all:main.pdf
 
-main.pdf: main_KLEIN_v3.tex Biblio.bib Fig1.pdf Fig2.pdf Fig3.pdf Legend.pdf
-	pdflatex main_KLEIN_v3.tex && bibtex main_KLEIN_v3 && pdflatex main_KLEIN_v3.tex && pdflatex main_KLEIN_v3.tex
-	mv main_KLEIN_v3.pdf main.pdf
-	evince main.pdf
+ECML13_cascading.pdf: ECML13_cascading.tex Biblio.bib Fig3.pdf
+	pdflatex -interaction=batchmode ECML13_cascading.tex && bibtex ECML13_cascading && pdflatex -interaction=batchmode ECML13_cascading.tex && pdflatex -interaction=batchmode ECML13_cascading.tex 
+
+RTEcompile: ECML13_cascading.pdf
+
+RTEstartView:
+	xpdf -remote 'testRTE1' ECML13_cascading.pdf
+
+RTEview:
+	xpdf -remote 'testRTE1' -reload
+
+RTEstopView:
+	xpdf -remote 'testRTE1' -quit
+
+
 
 Fig1.pdf: Fig2.pdf
 
