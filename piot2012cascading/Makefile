@@ -3,9 +3,10 @@ all:main.pdf
 ECML13_cascading.pdf: ECML13_cascading.tex Biblio.bib Fig3.pdf
 	pdflatex -interaction=batchmode ECML13_cascading.tex && bibtex ECML13_cascading && pdflatex -interaction=batchmode ECML13_cascading.tex && pdflatex -interaction=batchmode ECML13_cascading.tex 
 
-RTEcompile: ECML13_cascading.pdf
+RTEcompile:
+	pdflatex -interaction=batchmode ECML13_cascading.tex
 
-RTEstartView:
+RTEstartView: RTEcompile
 	xpdf -remote 'testRTE1' ECML13_cascading.pdf
 
 RTEview:
