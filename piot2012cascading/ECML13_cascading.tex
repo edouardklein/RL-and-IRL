@@ -23,7 +23,10 @@
 %\usepackage{amsthm}
 %\newtheorem{definition}{Definition}
 %\newtheorem{theorem}{Theorem}
+\newtheorem{cor}{Corollary}
 \usepackage{dsfont}
+\usepackage{mathtools}
+\mathtoolsset{showonlyrefs=true}
 \providecommand{\alert}[1]{\textbf{#1}}
 \newcommand{\E}{\mathbf{E}}
 \newcommand{\argmax}{\operatorname*{argmax}} %\operatorname* pour les op. pouvant admettre des limites...
@@ -50,182 +53,190 @@ France\\
 
 \begin{abstract}
   This paper considers the Inverse Reinforcement Learning problem, that is inferring a reward function for which a demonstrated expert policy is optimal.
-We propose to break the IRL problem down into two generic Supervised Learning steps: this is the cascaded approach. A classification step followed by a regression step output a reward function.
-This approach is justified by an analysis which shows that the demonstrated expert policy is near-optimal for the output reward function. We explain some advantages of this approach over existing algorithms, mainly not needing to repeatedly solve the Reinforcement Learning direct problem. This makes the proposed approach very competitive to the existing algorithms.
-Finally, up to the use of some heuristics, we empirically show the algorithm to work with only transitions sampled according to the demonstrated expert policy. We quantitavely demonstrate the soundness of this approach on a highway driving simulator, and illustrate some aspects of the proposed algorithm on the classical inverted pendulum benchmark.
+We propose to break the IRL problem down into two generic Supervised Learning steps: this is the Cascaded Supervised IRL (CSI) approach. A classification step that defines a score function is followed by a regression step that outputs a reward function.
+An analysis of this approach shows that the demonstrated expert policy is near-optimal for the computed reward function.
+Not needing to repeatedly solve a Markov Decision Process (MDP) and the ability to leverage existing techniques for classification and regression are two important advantages of the CSI approach. It is furthermore empirically demonstrated to work with only transitions sampled according to the expert policy, up to the use of some heuristics. For this purpose two classical benchmarks (a highway driving simulator and a inverted pendulum simulator) are used.
   \end{abstract}
 \section{Introduction}
 \label{sec-2}
+The sequential decision making problem consists in taking the appropriate action pondering the available data in order to maximize a certain criterion. When framed in an MDP (see Sec.~\ref{sec:background}), the criterion to maximize is the expected sum of discounted rewards. The Inverse Reinforcement Learning (IRL)~\cite{russell1998learning} problem, which we tackle here, aims at inferring a reward function for which a demonstrated expert policy is optimal.
 
-Inverse Reinforcement Learning (IRL)~\cite{russell1998learning} aims at inferring a reward function for which a demonstrated expert policy is optimal. An important part of the literature (see Sec.~\ref{sec:related} for a brief overview) tries to find a reward function such that the associated optimal policy induces a distribution over trajectories (or some measure of this distribution, typically, the feature expectation) starting in a certain state space\footnote{Formally, there is a distribution over the starting state.} which matches the one induced by the expert. Most of these algorithms use Reinforcement
-Learning (RL) algorithms as subroutines as finding the optimal policy for a reward function is a necessary step before computing a measure of the previously mentionned distribution. Thus, their performance depends strongly on the quality of these subroutines. Consequently, they suffer from the same challenges of large state spaces, lack of data etc. as RL. In order to avoid repeatedly solving RL problems, we decide to take a different point of view.
+IRL is often used as a way to do Apprenticeshipe Learning (AL): imitating a demonstrated expert policy, without explicitely looking for the reward function. The reward function nevertheless is of interest in and of itself. As mentionned in \cite{ng2000algorithms}, its semantics can be analyzed in biology or econometrics. Practically, the reward can be seen as a succinct description of a task. Discovering it removes the coupling between understanding the task and learning how to fulfill it that exists in AL. IRL allows the use of (Approximate) Dynamic programming ((A)DP) or Reinforcement Learning (RL) techniques to learn the task from the computed reward function. Although some approaches use it as a byproduct, most AL algorithm make not use of the reward function. A very straightforward way to do AL is to use a multi-class classifier to directly learn the expert policy. We compare this idea with our IRL algorithm in the experiments (Sec.~\ref{sec:experiments}).
 
-Having in mind that there is a one to one relation between a reward function and its associated optimal action-value function (via the inverse of the Bellman equation, see Eq.~\ref{eq:bellman1}), it is worth thinking of a method which is able to output an action-value function for which the greedy policy is the demonstrated expert policy. Thus, the demonstrated expert policy will be optimal for the reward function associated to the action-value function. As a method which is able to output an action-value function for which the greedy policy is the demonstrated expert policy, we propose a score function-based multi-class classification step (see Sec.~\ref{sec:algo}). Besides, in order to retrieve, via the inverse of the Bellman optimality equation, the reward associated to the score function the classification outputs, we introduce a regression step (see Sec.~\ref{sec:algo}). That is why the method is called the Cascaded Supervised Approach (CSA). This method is justified by a theoretical analysis (see Sec.~\ref{sec:analysis}) where it is shown that the demonstrated expert policy is near-optimal for the reward the regression step outputs.
+A lot of existing approaches in either IRL or AL need to repeatedly solve the underlying MDP. Thus, their performance depends strongly on the quality of the associated subroutine. Consequently, they suffer from the same challenges of scalability, data scarcity, etc., as RL and (A)DP. In order to avoid repeatedly solving such problems, we adopt a different point of view.
 
-Finally, an instantiation of CSA is proposed Sec.~\ref{sec:experiments}. This algorithm does not need to iteratively solve a RL problem and needs only sampled transitions from expert and non-experts policies as inputs. Moreover, up to the use of some heuristics, the algorithm is able to be trained only with transitions sampled from the demonstrated expert policy. The algorithm is tested on a car driving simulator and compared to an apprenticeship learning algorithm \cite{abbeel2004apprenticeship}, to a pure classification algorithm \cite{taskar2005learning} and to a recent successfull IRL method \cite{klein2012scirl}.
+Having in mind that there is a one to one relation between a reward function and its associated optimal action-value function (via the Bellman equation, see Eq.~\ref{eq:bellman1}), it is worth thinking of a method able to output an action-value function for which the greedy policy is the demonstrated expert policy. Thus, the demonstrated expert policy will be optimal for the related reward function. We propose a score function-based multi-class classification step (see Sec.~\ref{sec:algo}) to infer a score function. Besides, in order to retrieve via the Bellman equation the reward associated to the score function computed by the classification step, we introduce a regression step (see Sec.~\ref{sec:algo}). That is why the method is called the Cascaded Supervised Inverse reinforcement learning (CSI). This method is analyzed, see Sec.~\ref{sec:analysis} where it is shown that the demonstrated expert policy is near-optimal for the reward the regression step outputs.
 
+This algorithm does not need to iteratively solve an MDP and needs only sampled transitions from expert and non-experts policies as inputs. Moreover, up to the use of some heuristics (see Subsubsec.~\ref{subsubsec:heuristics}), the algorithm is able to be trained only with transitions sampled from the demonstrated expert policy. A specific instantiation of CSI (proposed Subsec.~\ref{subsec:instanciation}) is tested on an inverted pendulum simulator (Subsec~\ref{subsec:IP}) and a car driving simulator (Subsec~\ref{subsec:Highway}) where we compare it with an AL algorithm \cite{abbeel2004apprenticeship}, with a pure classification algorithm \cite{taskar2005learning} and with a recent successfull IRL method \cite{klein2012scirl} as well as with a random baseline.
+
+Differences and similarities with existing AL or IRL approaches are succinctly exposed in Sec.~\ref{sec:related}.
 \section{Background and notations}
 \label{sec:background}
-%% \begin{itemize}
-%% \item Parler du domaine de la prise de décision séquentielle
-%% \item Expliquer le problème direct, en profiter pour introduire l'équation d'évaluation de Bellman et l'équation d'optimalité de Bellman
-%% \begin{itemize}
-%% \item $RL(MDP=\{S,A,\gamma,(P),R\}) = \pi^*:S\times A \rightarrow \mathbb{R}$
-%% \item $\forall \pi, Q^\pi(s,a) = R(s,a) + \sum_{s'}P(s'|s,a)Q^\pi(s',\pi(s'))$
-%% \item $\pi^* = \arg\max_aQ^*(s,a)$
-%% \end{itemize}
-%% \item Introduire le problème inverse dans une forme mathématique relativement propre
-%% \begin{itemize}
-%% \item $IRL( MDP\backslash R = \{S,A,\gamma,(P)\} \cup \{\pi^E\} = R : S\times A \rightarrow \mathbb{R}$ telle que $\pi^E$ est optimale pour $R$
-%% \item Mentionner la nature mal posée du problème sans s'appesentir dessus. Préciser toutefois qu'aucune approche ne le résoud de manière mathématiquement satisfaisante à cause de ça.
-%% \item insister sur l'optimalité de l'expert comme hypothèse. Un expert sous optimal, c'est un autre champ de littérature, éventuellement donner deux trois refs.
-%% \end{itemize}
-%% \end{itemize}
 First, we introduce some general notations.
 Let $E$ and $F$ be two non-empty sets, $E^F$ is the set of functions from $F$ to $E$.
 We note $\Delta_X$ the set of distributions over $X$.
-Let $\alpha\in\mathbb{R}^X$ and $\beta\in\mathbb{R}^X$: $\alpha\leq\beta \Leftrightarrow \forall x\in X, \alpha(x) \leq \beta(x)$. We will often slightly abuse the notations and consider (where applicable) most objects as if they were matrices and vectors indexed by the set they operate upon.
+Let $\alpha\in\mathbb{R}^X$ and $\beta\in\mathbb{R}^X$: $\alpha\geq\beta \Leftrightarrow \forall x\in X, \alpha(x) \geq \beta(x)$. We will often slightly abuse the notations and consider (where applicable) most objects as if they were matrices and vectors indexed by the set they operate upon.
 
-We work with finite \emph{Markov Decision Processes} (MDPs) \cite{puterman1994markov}, that is tuples $\{S,A,P,R,\gamma\}$. The state space is noted $S$, $A$ is a finite action space, $R\in\mathbb{R}^{S\times A}$ is a reward-function, $\gamma\in ]0,1[$ is a discount factor and $P\in \Delta_{S}^{S\times A}$ is the Markovian dynamic of the MDP. Thus for each $(s,a)\in S\times A$, $P(.|s,a)$ is a distribution over $S$ and $P(s'|s,a)$ is the probability to reach $s'$ by choosing the action $a$ in the state $s$. At each time step $t$, the agent uses the information encoded in the state $s_t\in S$ in order to choose an action $a_t \in A$ according to a (deterministic\footnote{We restrict ourselves here to deterministic policies, but the loss of generality is minimal as there exists at least one optimal deterministic policy.}) policy $\pi\in A^S$. The agent then steps to a new state $s_{t+1}\in S$ according to the Markovian transition probabilities $P(s_{t+1}|s_t,a_t)$. The reward function $R$ is a local measure of the quality of the control. The global quality of the control induced by a policy $\pi$, with respect to a reward $R$ is assessed by the value function $V^\pi_R \in \mathbb{R}^{S}$ which associates each state with the discounted cumulative reward for following policy $\pi$ from this state: $V^\pi_R(s) = \E[\sum_{t\geq 0}\gamma^tR(s_t,\pi(s_t))|s_0 = s]$. Therefore, an optimal policy $\pi^*_R$ is a policy whose value function (the optimal value function $V^*_R$) is greater than that of any other policy, for all states : $\forall \pi, V^*_R\geq V^\pi_R$. The stationary distribution induced by a policy $\pi$ is written $\rho_\pi,\textrm{ s.t. }\rho_\pi^TP^\pi = \rho_\pi^T$.
+We work with finite MDPs \cite{puterman1994markov}, that is tuples $\{S,A,P,R,\gamma\}$. The state space is noted $S$, $A$ is a finite action space, $R\in\mathbb{R}^{S\times A}$ is a reward-function, $\gamma\in ]0,1[$ is a discount factor and $P\in \Delta_{S}^{S\times A}$ is the Markovian dynamic of the MDP. Thus for each $(s,a)\in S\times A$, $P(.|s,a)$ is a distribution over $S$ and $P(s'|s,a)$ is the probability to reach $s'$ by choosing the action $a$ in the state $s$. At each time step $t$, the agent uses the information encoded in the state $s_t\in S$ in order to choose an action $a_t \in A$ according to a (deterministic\footnote{We restrict ourselves here to deterministic policies, but the loss of generality is minimal as there exists at least one optimal deterministic policy.}) policy $\pi\in A^S$. The agent then steps to a new state $s_{t+1}\in S$ according to the Markovian transition probabilities $P(s_{t+1}|s_t,a_t)$. The stationary distribution over the states $\rho_\pi$ induced by a policy $\pi$ satisfies
+\begin{equation}
+  \rho_\pi^TP_\pi = \rho_\pi^T,
+  \end{equation}
+where $P_\pi$ is $(P(s'|s,\pi(s)))_{s,s' \in S}$. The stationary distribution relative to the exert policy $\pi_E$ is $\rho_E$.
+
+The reward function $R$ is a local measure of the quality of the control. The global quality of the control induced by a policy $\pi$, with respect to a reward $R$, is assessed by the value function $V^\pi_R \in \mathbb{R}^{S}$ which associates to each state the discounted cumulative reward for following policy $\pi$ from this state:
+\begin{equation}
+V^\pi_R(s) = \E[\sum_{t\geq 0}\gamma^tR(s_t,\pi(s_t))|s_0 = s].
+\end{equation}
+This long-term criterion is what is being optimized when solving an MDP. Therefore, an optimal policy $\pi^*_R$ is a policy whose value function (the optimal value function $V^*_R$) is greater than that of any other policy, for all states : $\forall \pi, V^*_R\geq V^\pi_R$..
 
 The Bellman evaluation operator $T^\pi_R: \mathbb{R}^{S} \rightarrow  \mathbb{R}^{S}$ is defined by
 \begin{equation}
   T^{\pi}_RV = R_\pi + \gamma P_\pi V
   \end{equation}
-where $P_\pi$ is $(P(s'|s,\pi(s)))_{s,s' \in S}$ and $R_\pi$ is $(R(s,\pi(s)))_{s\in S}$. The Bellman optimality operator follows naturally : $T^*_RV = \max_\pi T^\pi_RV$. Both operators are contractions. The fixed point of the Bellman evaluation operator $T^\pi_R$ is the value function of $\pi$ with respect to reward R: $V^\pi_R$, the fixed point of the Bellman optimality operator $T^*_R$ is the optimal value function $V_R^*$ with respect to reward $R$. Another object object of interest is the action-value function $Q^\pi_R\in\mathbb{R}^{S\times A}$ that adds a degree of freedom on the choice of the first action, formally defined by $Q^\pi_R(s,a) = T^a_RV^\pi_R(s)$, with $a$ the policy that always returns action $a$ ($T^a_RV = R_a + \gamma P_a V$ with $P_a = (P(s'|s,a))_{s,s' \in S}$) and $R_a$ = $(R(s,a))_{s\in S}$. Once expanded, this gives what we refer to as the Bellman optimality equation :
+where $R_\pi$ is $(R(s,\pi(s)))_{s\in S}$. The Bellman optimality operator follows naturally
 \begin{equation}
-  Q^*_R = R_a + \gamma P_{\pi^*_R}V^*_R
+  T^*_RV = \max_\pi T^\pi_RV.
+\end{equation}
+  Both operators are contractions. The fixed point of the Bellman evaluation operator $T^\pi_R$ is the value function of $\pi$ with respect to reward R :
+  \begin{eqnarray}
+    V^\pi_R &=& T^\pi_R V^\pi_R\\
+    V^\pi_R &=& R_\pi + \gamma P_\pi V^\pi_R.
+  \end{eqnarray}
+The Bellman optimality operator $T^*_R$ also admits a fixed point, the optimal value function $V_R^*$ with respect to reward $R$.
+
+Another object of interest is the action-value function $Q^\pi_R\in\mathbb{R}^{S\times A}$ that adds a degree of freedom on the choice of the first action, formally defined by $Q^\pi_R(s,a) = T^a_RV^\pi_R(s)$, with $a$ the policy that always returns action $a$ ($T^a_RV = R_a + \gamma P_a V$ with $P_a = (P(s'|s,a))_{s,s' \in S}$ and $R_a$ = $(R(s,a))_{s\in S}$). The value function $V^\pi_R$ and the action-value function $Q^\pi_R$ are quite directly related : $\forall s \in S, V^\pi_R(s) = Q^\pi_R(s,\pi(s))$. The Bellman evaluation equation for $Q^\pi_R$ is therefore :
+\begin{equation}
+  Q^\pi_R(s,a) = R(s,a) + \gamma \sum_{s'\in S}P(s'|s,a) Q(s',\pi(s')).
   \label{eq:bellman1}
 \end{equation}
 
-An optimal policy follows a greedy mechanism with respect to its optimal action-value function 
+An optimal policy follows a greedy mechanism with respect to its optimal action-value function $Q^*_R$
 \begin{equation}
   \label{eq:greedy}
   \pi^*_R(s)\in\argmax_aQ^*_R(s,a).
 \end{equation}
 
-When the state space is too large to allow matricial representation or when the transition probability or even the reward function are unknown except through observations gained by interacting with the system, RL or approximate dynamic programming may be used to approximate the optimal control policy~\cite{sutton1998reinforcement}. We call this the direct problem.
+When the state space is too large to allow matricial representation or when the transition probabilites or even the reward function are unknown except through observations gained by interacting with the system, RL or ADP may be used to approximate the optimal control policy~\cite{sutton1998reinforcement}.
 
-In this work, we wish to tackle the inverse problem. We observe an expert's deterministic\footnotemark[\value{footnote}] policy $\pi^E$, assuming that there exist some unknown reward $R^E$ for which the expert is optimal. The suboptimality of the expert is an interesting setting, that has been discussed for example in \cite{melo2010analysis,syed2012reduction}, but that we are not addressing here due to the numerous complications it introduces. We do not try to find this unknown reward $R^E$ but rather a non trivial reward $R$ for which the expert is at least near-optimal. The trivial reward $0$ is a solution to this ill-posed problem (no reward means that every behavior is optimal). Because of its ill-posed nature, this expression of \emph{Inverse Reinforcement Learning} (IRL) still has to find a satisfactory solution although lots of progress have been made, see Sec.~\ref{sec:related}.
+We recall that solving the MDP is the direct problem. This contribution aims at solving the inverse one. We observe an expert's deterministic\footnotemark[\value{footnote}] policy $\pi_E$, assuming that there exists some unknown reward $R_E$ for which the expert is optimal. The suboptimality of the expert is an interesting setting that has been discussed for example in \cite{melo2010analysis,syed2010reduction}, but that we are not addressing here. We do not try to find this unknown reward $R_E$ but rather a non trivial reward $R$ for which the expert is at least near-optimal. The trivial reward $0$ is a solution to this ill-posed problem (no reward means that every behavior is optimal). Because of its ill-posed nature, this expression of \emph{Inverse Reinforcement Learning} (IRL) still has to find a satisfactory solution although lots of progress have been made, see Sec.~\ref{sec:related}.
 \section{The cascading algorithm}
 \label{sec:algo}
-%% \begin{itemize}
-%% \item Mentionner (sans en parler, ce sera fait dans \hyperref[sec-7-1]{Imitation}) l'imitation. Une approche supervisée évidente est la classification, avec pour entrée un set $D_C$ de données issues de l'expert. Rappeler (expliqué pour la première fois dans \hyperref[sec-3]{Formalisme} qu'on se restreint (sans perte de généralité, le préciser) au cas des politique déterministes.
-%% \item Tous les classifieurs utilisent une fonction de score (je n'ai pas trouvé un seul exemple d'un classifieur qui n'en utilise pas), il s'agit juste d'un manière d'écrire les choses.
-%% \item Expliquer que l'on identifie le mécanisme de classification au mécanisme glouton qui régit la politique optimale (donc celle de l'expert).
-%% \item Sans chercher à justifier mathématiquement la chose (ce sera fait dans la partie \hyperref[sec-5]{Analyse}), expliquer qu'intuitivement l'on va identifier fonction de score du classifieur et fonction de qualité de l'expert (qui est optimale pour une certaine récompense, rappelons-le).
-%% \begin{itemize}
-%% \item Repartir de l'équation d'évaluation de Bellman pour isoler le terme $R(s,a)$ et introduire $r:S\times A\in \mathbb{R}$, la récompense issue de cette équation lorsque l'on remplace $Q^E$ par la fonction de score : $r(s,a) =q(s,a) - \sum_{\mathrm{s'}}P(s'|s,a)q(s',\pi(s')) $
-%% \item On estime ce terme à partir des transitions $D_R$ car les probabilités de transitions sont inconnues : $\hat r(s,a) = q(s,a)-\gamma \sum_{s'} {1\over N_{s'}}\sum_{(s,a,s',a')\in D_R}q(s',a')$
-%% \item La fonction de récompense est donnée par une régression sur $D_R \cup {\hat r}$.
-%% \end{itemize}
-%% \item Donner l'algorithme l'environnement \texttt{algorithm2e}
-%% \item Rapidement, l'étape de régression permet d'ajouter la structure du MDP au résultat de classif, en utilisant l'équation de Bellman.
-%% \item Bien préciser qu'il ne s'agit ici que d'une explication qualitative, ``avec les mains'', la preuve du fait que ça résoud bien le problème est donnée dans \hyperref[sec-5]{Analyse}, une démonstration sur des problèmes si complexes que l'état de l'art ne peut les résoudre (sauf SCIRL) est donnée dans \hyperref[Experience]{Experience}. Les avantages comparés sont expliqués dans \hyperref[Autres-Approches]{Autres Approches}. Enfin, des explications plus intuitives sur les mécanismes internes de l'algorithme, ainsi que des résultats expérimentaux supplémentaires sont fournis en \hyperref[sec-9]{Annexes}.
-%% \end{itemize}
-Our first step in the quest for a reward function solving the IRL problem is a classification step using a \emph{score function-based multi-class classifier} (MC$^2$). This classifier learns a score function $q\in\mathbb{R}^{S\times A}$ that rates the association of a given label $a\in A$ with a certain input $s\in S$. The classification rule $\pi_C\in A^S$ is simply to select (one of) the label(s) that achieves the highest score for the given inputs :
+Our first step towards a reward function solving the IRL problem is a classification step using a \emph{score function-based multi-class classifier} (SFMC$^2$ for short). This classifier learns a score function $q\in\mathbb{R}^{S\times A}$ that rates the association of a given label $a\in A$ with a certain input $s\in S$. The classification rule $\pi_C\in A^S$ simply selects (one of) the label(s) that achieves the highest score for the given inputs:
 \begin{equation}
   \label{eq:greedy2}
 \pi_C(s) \in \argmax_a q(s,a).
 \end{equation}
-For example, \emph{Multi-class Support Vector Machines}~\cite{guermeur2011generic} can be seen as MC$^2$ algorithms, we however used a structured margin approach. We give more examples and detail our choice of a MC$^2$ algorithms for the experiments in Subsec.~\ref{subsec:instanciation}. 
+For example, \emph{Multi-class Support Vector Machines}~\cite{guermeur2011generic} can be seen as SFMC$^2$ algorithms, the same can be said of the structured margin approach \cite{taskar2005learning} which we consider in the experimental setting. Other algorithms may be envisionned (see Subsec.~\ref{subsec:instanciation}). 
 
-Given a dataset $D_C = \{(s_i,a_i=\pi^E(s_i))_i\}$ of actions $a_i$ (deterministically) chosen by the expert on states $s_i$, we train such a classifier. The classification policy $\pi_C$ is not the end product we are looking for (that would be mere imitation of the expert, not IRL). What is of particular interest to us is the score function $q$ itself. One can easily notice the similarity between Eq.~\ref{eq:greedy2} and Eq.~\ref{eq:greedy} that describes the relation between the optimal policy in a MDP and its optimal action-value function. As the expert is optimal with respect to some unknown reward function $R_E$ and we seek a reward function $R$ for which it is also optimal, it is only natural to view the score function $q$ of the classifier as some kind of optimal action-value function for the classifier policy $\pi_C$ (which can itself be seen as a good approximation of $\pi_E$). By inversing the Bellman equation, one can express the reward as a function of the action-value function : $R(s,a) = Q^*_R(s,a) - \sum_{s'}P(s'|s,a)Q^*_R(s'\pi^*(s'))$. This leave us with $R^C$, the reward function relative to our score/action-value function $q$ :
+Given a dataset $D_C = \{(s_i,a_i=\pi^E(s_i))_i\}$ of actions $a_i$ (deterministically) chosen by the expert on states $s_i$, we train such a classifier. The classification policy $\pi_C$ is not the end product we are looking for (that would be mere imitation of the expert, not IRL). What is of particular interest to us is the score function $q$ itself. One can easily notice the similarity between Eq.~\ref{eq:greedy2} and Eq.~\ref{eq:greedy} that describes the relation between the optimal policy in a MDP and its optimal action-value function. It is only natural to view the score function $q$ of the classifier as some kind of optimal action-value function for the classifier policy $\pi_C$. By inversing the Bellman equation Eq.~\ref{eq:bellman1} with $q$ in lieu of $Q^\pi_R$, one gets $R^C$, the reward function relative to our score/action-value function $q$ :
 \begin{equation}
+  \label{eq:rc}
   R^C(s,a) =q(s,a) - \sum_{\mathrm{s'}}P(s'|s,a)q(s',\pi_C(s')).
 \end{equation}
-We wish to solve the general, or approximate, IRL problem where the transition probabilities $P$ are unknown. For this we use another dataset $D_R = \{(s_j,a_j,s'_j)_j\}$ where $s'_j$ is the state an agent taking action $a_j$ in state $s_j$ transitioned to. Action $a_j$ need not be chosen by any particular policy. The dataset $D_R$ brings us information about the dynamics of the system. Our reward function $R^C$ must be approximated with the help of the information in $D_R$. This is done via datapoints $\{\hat r_j = q(s_j,a_j) - \gamma q(s'_j,\pi_C(s'_j))\}_j$ that we then feed to a regressor (a simple least-square approximator can do) to obtain $\hat R^C$, a generalisation of $\{(\hat r_j)_j\}$ over the whole state-action space. The complete algorithm is given Alg.~\ref{algo:cascading}.
+As we wish to solve the general, or approximate, IRL problem where the transition probabilities $P$ are unknown, our reward function $R^C$ will be approximated with the help of information gathered by interacting with the system. We assume that another dataset $D_R = \{(s_j,a_j,s'_j)_j\}$ is available where $s'_j$ is the state an agent taking action $a_j$ in state $s_j$ transitionned to. Action $a_j$ needs not be chosen by any particular policy. The dataset $D_R$ brings us information about the dynamics of the system. From it, we construct datapoints
+\begin{equation}
+  \label{eq:rj}
+  \{\hat r_j = q(s_j,a_j) - \gamma q(s'_j,\pi_C(s'_j))\}_j.
+\end{equation}
+As $s'_j$ is sampled accordingly to $P(\cdot|s_j,a_j)$ the constructed datapoints help building a good approximation of $R^C(s=s_j,a=a_j)$. A regressor (a simple least-square approximator can do but other solutions such as Gaussian Processes \cite{rasmussen2006gaussian} could also be envisionned) is then fed the datapoints $((s_j,a_i),\hat r_j)$ to obtain $\hat R^C$, a generalisation of $\{((s_j,a_j),\hat r_j)_j\}$ over the whole state-action space. The complete algorithm is given in Alg.~\ref{algo:cascading}.
 \begin{algorithm}%[H]
     %\small
-  \caption{CSA-IRL algorithm}
+  \caption{CSI algorithm}
   \label{algo:cascading}
   \emph{\textbf{Given}} a training set $D_C=\{(s_i,a_i=\pi^E(s_i))\}_{1\leq i \leq D}$ and another training set $D_R=\{(s_{j},a_{j},s'_{j})\}_{1\leq j \leq D'}$\;\\
   \emph{\textbf{Train}} a score function-based classifier on $D_C$, obtaining decision rule $\pi_C$ and score function $q:S\times A \rightarrow \mathbb R$\;\\
-  \emph{\textbf{Learn}} a reward function $\hat R^C$ from the dataset $\{(s_{j},a_{j},\hat{r}_j)\}_{1\leq j \leq D'}$, $\forall (s_j,a_j,s'_j) \in D_R,\hat{r}_j=q(s_{j},a_{j})-\gamma q(s'_{j},\pi_C(s'_{j}))$\;\\
+  \emph{\textbf{Learn}} a reward function $\hat R^C$ from the dataset $\{((s_{j},a_{j}),\hat{r}_j)\}_{1\leq j \leq D'}$, $\forall (s_j,a_j,s'_j) \in D_R,\hat{r}_j=q(s_{j},a_{j})-\gamma q(s'_{j},\pi_C(s'_{j}))$\;\\
   \emph{\textbf{Output}} the reward function $\hat R^{C}$ \;
 \end{algorithm}
 
-Cascading two supervised approaches like we do is a way to inject the MDP structure in the resolution of the problem. Indeed, mere classification only takes into account information from the expert (i.e., which actions goes with which state), but there is more to a MDP than a single policy. Using the Bellman equation in the expression of $\hat r$, we make use of the information lying in the transitions $(s,a,s')$, namely information about the transition probabilities $P$. The final regression step is just a way to try to generalize this information about $P$ to the whole state-action space, in order to have a well-behaved reward function.
+Cascading two supervised approaches like we do is a way to inject the MDP structure in the resolution of the problem. Indeed, mere classification only takes into account information from the expert (i.e., which action goes with which state) whereas using the Bellman equation in the expression of $\hat r_j$ makes use of the information lying in the transitions $(s_j,a_j,s'_j)$, namely information about the transition probabilities $P$. The final regression step is just a way to generalize this information about $P$ to the whole state-action space in order to have a well-behaved reward function.
 
-As the analysis (Sec.~\ref{sec:analysis}) reveals, both classification error and regression error should be controlled. By carefully choosing or tuning both supervised learning algorithms, it should be possible to mitigate any ill effects of the specific settings the cascading algorithm is used in. If one operates in a well-known domain where a lot of data is available, then ease-of-use will probably dictate the choice of two off-the-shelf implementations with default settings. If data is lacking, one could for example have to overcome bias, variance or generalization problems in the regression step (more about that in Subsec.\ref{subsec:instanciation}). The possibility to use and leverage the wide range of techniques developped for these two well-known supervised problems is a strong advantage of the proposed cascading approach.
-
-The explanation in this section is only a quatitative attempt to make the reader understand the idea behind the algorithm. The analysis of the next section tackles things in a formal, yet less intuitive, way.
+Being able to alleviate the ill effects of scalability or data scarcity by leveraging the wide range of techniques developped for the classification and regression problems is a strong advantage of the CSI approach.
 
 \section{Analysis}
 \label{sec:analysis}
 
 
-%% \begin{itemize}
-%% \item On rappelle le problème posé au début.
-%% \item Le théorème 1 montre que modulo un bonne classif et un bon régresseur, on résoud exactement le problème que l'on s'était posé
-%% \item On en fait la démo rapide (éventuellement des bouts peuvent être déportés en \st{Pologne} \hyperref[sec-9]{Annexes}).
-%% \item On insiste sur le fait que la récompense trouvée n'est pas triviale, on a transcendé la nature mal posée du problème.
-%% \item On dit un mot rapide sur la complexité en échantillon (ça dépend du classifieur et du régresseur, mais \hyperref[sec-6]{Expériences} montre qu'on est bon là dessus)
-%% \item ainsi que sur la complexité temporelle (ça dépend toujours, mais avec une M-SVM et un moinde carré ça prend O(quelque chose) (indice: pas beaucoup)) FIXME:compléter la complexité
-%% \end{itemize}
-
-In this section, we prove that the deterministic expert policy $\pi_E$ is near optimal for the reward $\hat{R}^C$ the regression step outputs, more formally, we prove that $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]$ is small by bounding it by a term that depends on :
+In this section, we prove that the deterministic expert policy $\pi_E$ is near optimal for the reward $\hat{R}^C$ the regression step outputs.
+More formally, we prove that $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]$ is bounded by a term that depends on :
 \begin{itemize}
-  \item the regression and classification errors, respectively $\epsilon_R$ and $\epsilon_C$, these terms are small if the regressor and the classifier are good;
-  \item $C_*$, a concentration coefficient assessing the closeness of the stationary distribution of $\pi_E$ and $\hat \pi_C$, the latter being the optimal policy for the reward $\hat R^C$ output by the algorithm ;
-  \item $\Delta q=\max_{s\in S}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))=\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))$, which could be normalized to $1$ without loss of generality.
+  \item the classification error
+\begin{equation}  
+\epsilon_C=\E_{s\sim\rho_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}];
+\end{equation}
+\item the regression error
+  \begin{equation}
+    \epsilon_R=\max_{\pi\in A^S}\|\epsilon_\pi^R\|_{1,\rho_E},
+  \end{equation}
+  with :
+  \begin{itemize}
+  \item the subscript notation already used in Sec.~\ref{sec:background} meaning that, given an $X\in\mathbb{R}^{S\times A}$, $\pi\in A^S$, and $a\in A$,  $X_\pi\in\mathbb{R}^S$ and $X_a\in\mathbb{R}^S$ are repectively such that: $\forall s\in S, X_\pi(s)=X(s,\pi(s))$ and $\forall s\in S, X_a(s)=X(s,a)$ ;
+  \item $\epsilon^R_\pi=R^C_\pi-\hat{R}^C_\pi$ ;
+  \item $\|.\|_{1,\mu}$ the $\mu$-weighted $L_1$ norm : $\|f\|_{1,\mu} = \E_{x\sim \mu}[|f(x)|]$ ;
+  \end{itemize}
+\item the concentration coefficient $C_* = C_{\hat \pi_C}$ with :
+  \begin{itemize}
+  \item $C_{\pi}=(1-\gamma)\sum_{t\geq0}\gamma^tc_{\pi}(t), \text{ with } c_{\pi}(t)=\max_{s\in S}\frac{(\rho_E^TP^t_\pi)(s)}{\rho_E(s)}$ ;
+  \item $\hat \pi_C$, the optimal policy for the reward $\hat R^C$ output by the algorithm ;
+  \end{itemize}
+  The constant $C_*$ could be estimated \emph{a posteriori} ( after $\hat{R}^C$ is computed). We could upper bound $C_*$ by a more usual and general concentration coefficient but $C_*$ gives a tighter final result (roughly, if $\hat{\pi}_C\approx\pi_E$ then $C_* \approx 1$).
+\item $\Delta q$, defined by 
+  \begin{eqnarray}
+    \Delta q &= &\max_{s\in S}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))\\
+    &=&\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a)),
+    \end{eqnarray} which could be normalized to $1$ without loss of generality. The range of variation of $q$ induces the one of $R^C$, $\hat{R}^C$ and $V^{\pi_C}_{\hat{R^C}}$.
   \end{itemize}
 
 \begin{theorem}
-\label{theorem: theorem analysis}
+\label{thm}
 Let $\pi_E$ be the deterministic expert policy, $\rho_E$ its stationary distribution and $\hat{R}^C$ the reward the cascading algorithm outputs. We have:
 \begin{equation}
 0\leq\E_{s\sim\rho_E}[V^*_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]\leq \frac{1}{1-\gamma}\left(\epsilon_C\Delta q +\epsilon_R(1+C_*)\right).
 \end{equation}
 \end{theorem}
 \begin{proof}
-First let's introduce some notations. $q\in\mathbb{R}^{S\times A}$ is the score function output by the classification step, $\forall s \in S,\pi_C\in\argmax_{a\in A}q(s,a)$ is a deterministic classifier policy. We recall that $\epsilon_C$ is the classification error:
-\begin{equation}
-\epsilon_C=\E_{s\sim\rho_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}].
-\end{equation}
-Moreover we recall the definition of the reward $R^C\in\mathbb{R}^{S\times A}$:
+First let's introduce some notations, $q\in\mathbb{R}^{S\times A}$ is the score function output by the classification step, $\forall s \in S,\pi_C(s)\in\argmax_{a\in A}q(s,a)$ is a deterministic classifier policy. We recall the definition of the reward $R^C\in\mathbb{R}^{S\times A}$:
 \begin{equation}
 \forall (s,a)\in S\times A, R^C(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\pi_C(s')),
 \end{equation}
 and the definition of $\hat{R}^C\in\mathbb{R}^{S\times A}$ which is the reward function output by the regression step.
 
-The difference between $R^C$ and $\hat{R}^C$ is noted $\epsilon^R=R^C-\hat{R}^C$, $\epsilon^R\in\mathbb{R}^{S\times A}$ must not be mistaken for the regression error $\epsilon_R\in\mathbb{R}$ that appears in the final result.
+The difference between $R^C$ and $\hat{R}^C$ is noted $\epsilon^R=R^C-\hat{R}^C$.
 We also introduce the reward function $R^E\in\mathbb{R}^{S\times A}$ which will be useful in our proof:
 \begin{equation}
 \forall (s,a)\in S\times A, R^E(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\pi_E(s')).
 \end{equation}
-Let $X\in\mathbb{R}^{S\times A}$, $\pi\in A^S$, and $a\in A$, we introduce $X_\pi\in\mathbb{R}^S$ and $X_a\in\mathbb{R}^S$ such that: $\forall s\in S, X_\pi(s)=X(s,\pi(s))$ and $\forall s\in S, X_a(s)=X(s,a)$.
-Thus we have the following vectorial equations:
+
+We can now introduce the following vectorial equations :
 \begin{align}
 &R^C_a=q_a-\gamma P_aq_{\pi_C},
 \\
-&R^E_a=q_a+\gamma P_aq_{\pi_E},
+&R^E_a=q_a-\gamma P_aq_{\pi_E},
 \\
 &\epsilon^R_a=R^C_a-\hat{R}^C_a.
 \end{align}
-Now we are going to upper bound the term: $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]\geq0$ (the lower bound is obvious as $V^*$ is optimal).
-We note $\hat{\pi}_C$ a deterministic optimal policy of the reward $\hat{R}^C$. First, the term $V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}$ is decomposed:
+Now, we are going to upper bound the term: $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]\geq0$ (the lower bound is obvious as $V^*$ is optimal).
+Recall that $\hat{\pi}_C$ is a deterministic optimal policy of the reward $\hat{R}^C$. First, the term $V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}$ is decomposed:
 \begin{equation}
 V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}=(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C})+(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})+(V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C}).
 \end{equation}
-We are going to bound each of these three terms. But, first, let $\pi$ be a given deterministic policy. We have:
+We are going to bound each of these three terms. First, let $\pi$ be a given deterministic policy. We have:
 \begin{equation}
 V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C}=V^{\pi}_{\epsilon^R}=(I-\gamma P_\pi)^{-1}\epsilon^R_{\pi}.
 \end{equation}
-We use $\|.\|_{1,\mu}$ to denote the $\mu$-weighted $L_1$ norm : $\|f\|_{1,\mu} = \E_{x\sim \mu}[|f(x)|]$. 
 If $\pi=\pi_E$, we have, thanks to the power series expression of $(I-\gamma P_{\pi_E})^{-1}$ and the definition of $\rho_E$:
 \begin{equation}
   \rho_E^T(V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C})=\rho_E^T(I-\gamma P_{\pi_E})^{-1}\epsilon^R_{\pi_E}=\frac{1}{1-\gamma}\rho_E^T\epsilon^R_{\pi_E}\leq\frac{1}{1-\gamma}\|\epsilon^R_{\pi_E}\|_{1,\rho_E}.\end{equation}
 
-If $\pi\neq\pi_E$, we introduce the following concentration coefficient:
+If $\pi\neq\pi_E$, we use the coefficient $C_\pi$. We have then:
 \begin{equation}
-C_{\pi}=(1-\gamma)\sum_{t\geq0}\gamma^tc_{\pi}(t), \text{ with } c_{\pi}(t)=\max_{s\in S}\frac{(\rho_E^TP^t_\pi)(s)}{\rho_E(s)}.
-\end{equation}
-We have then: $\rho_E^T(V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C})\leq\frac{C_\pi}{1-\gamma}\rho_E^T\epsilon^R_{\pi}\leq\frac{C_\pi}{1-\gamma}\|\epsilon^R_{\pi}\|_{1,\rho_E}$. So, if we note, $C_*=C_{\hat{\pi}_C}$ and $\epsilon_R=\max_{\pi\in A^S}\|\epsilon_\pi^R\|_{1,\rho_E}$, we are able to give an upper bound to the first and third terms:
+  \rho_E^T(V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C})\leq\frac{C_\pi}{1-\gamma}\rho_E^T\epsilon^R_{\pi}\leq\frac{C_\pi}{1-\gamma}\|\epsilon^R_{\pi}\|_{1,\rho_E}.
+  \end{equation}
+So, using the notations introduced before we stated the theorem, we are able to give an upper bound to the first and third terms:
 \begin{equation}
 \rho_E^T((V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})+(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}))\leq\frac{1+C_*}{1-\gamma}\epsilon_R.
 \end{equation}
-Now, there is still an upper bound to find for the second term. It is possible to decompose the second term as follows:
+Now, there is still an upper bound to find for the second term. It is possible to decompose it as follows:
 \begin{equation}
 V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C}=(V^{\hat{\pi}_C}_{R^C}-V^{\pi_C}_{R^C})+(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})+(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}).
 \end{equation}
@@ -238,7 +249,7 @@ By construction, we have $V^{\pi_C}_{R^C}=q_{\pi_C}$ and $V^{\pi_E}_{R^E}=q_{\pi
 \rho_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})&=&\rho_E^T(q_{\pi_C}-q_{\pi_E})\\
 &=&\sum_{s\in S}\rho_E(s)(q(s,\pi_C(s))-q(s,\pi_E(s)))[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}].
 \end{eqnarray}
-We recall that $\Delta q=\max_{s\in S}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))=\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))$. We have:
+Using $\Delta q$, we have:
 \begin{equation}
 \rho_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})\leq\Delta q\sum_{s\in S}\rho_E(s)[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}]= \Delta q \epsilon_C.
 \end{equation}
@@ -257,88 +268,55 @@ If we combine all of the results, we obtain the final bound:
 \end{equation}
 \end{proof}
 
-The first remark one can make about this result is that the bound is tight if both the classifier and the regressor are perfect (i.e. if the associated error terms are null). In this case, the expert's policy  $\pi_E$ is the only deterministic optimal policy of $\hat{R}^C=R^C$ (the uniqueness implies that $\forall s\in S, \Card(\argmax_{a\in A}q(s,a))=1$, with $\Card(X)$ denoting the cardinality of the set $X$). This uniqueness also hints at the fact that we found a non-trivial reward (we recall that the null reward admit \emph{every} policy as optimal). Therefore, obtaining  $\hat{R}_C = 0$ (for which the bound is obviously true: the bounded term is $0$, the bounding term is positive) is unlikely as long as the classifier and the regressor exhibit decent performance.
+\begin{corollary}
+  \label{cor}
+  If the bound of Theorem~\ref{thm} is tight (if and only if $\epsilon_C = 0$ and $\epsilon_R = 0$), $\pi_E$ is the only optimal policy for $\hat R^C$.
+\end{corollary}
+\begin{proof}
+  To get rid of technicalities we assume that $\forall s \in S, \rho_E(s) \neq 0$. If not we create a new MDP $\{S',A,\gamma,P,\hat R^C\}$ with $S' = \{s \in S | \rho_E(s) \neq 0\}$ and work in it.
 
+  The function $q$ is the action-value function for $\pi_C$ with respect to the reward $R^C$, by definition (see Eq.~\ref{eq:rc}).
 
-In order to control $\epsilon_R$, we need a precise regression over the expert stationary distribution and for all the actions. In theory, we need to be able to sample the whole dynamics (even the non expert actions). In practice heuristics can be used (see Sec.~\ref{sec:experiments}) however this heuristics is not justified by the analysis.
+  As $\epsilon_C = 0$, we have $\pi_C = \pi_E$. This means that $\forall s, \pi_E(s)$ is the only element of the set $\argmax_{a\in A}q(sa)$. Therefore, $\pi_C = \pi_E$ is the unique optimal policy for $R^C$.
 
-As mentionned earlier, the algorithm and the analysis are invariant by  dilatation of $q$, hence of $\Delta q$. We could normalize $\Delta q$ by imposing $\Delta q=1$ (the range of variation of $q$ induces the one of $R^C$, $\hat{R}^C$ and $V^{\pi_C}_{\hat{R^C}}$).
+  As $\epsilon_R = 0$, we have $\hat R^C = R^C$, hence the result.
+\end{proof}
+The uniqueness of $\pi_E$ as an optimal policy for $\hat R^C$ in the conditions of corollary~\ref{cor} hints at the fact that we found a non-trivial reward (we recall that the null reward admits \emph{every} policy as optimal). Therefore, obtaining  $\hat{R}_C = 0$ (for which the bound is obviously true: the bounded term is $0$, the bounding term is positive) is unlikely as long as the classifier and the regressor exhibit decent performance.
 
-The constant $C_*$ could be estimated a posteriori ( after $\hat{R}^C$ is computed). We could upper bound $C_*$ by a more usual and general concentration coefficient but $C_*$ gives a tighter final result (approximately, if $\hat{\pi}_C\approx\pi_E$ then $C_* \approx 1$).
+The only constraints the bound of Thm.~\ref{thm} implies on datasets $D_R$ and $D_C$ is that they provide enough information to the supervised algorithms to keep both error terms $\epsilon_C$ and $\epsilon_R$ low. In Sec.~\ref{sec:experiments} we deal with a dire lack of data in dataset $D_R$. We address the problem with the use of heuristics (Subsubsec.~\ref{subsubsec:heuristics}) in order to show the behavior of the CSI algorithm in somewhat realistic conditions.
 
-The bound can be fully controlled by the quality of the classification and regression subroutines. The litterature is wide enough for methods accomodating most of use cases (lack of data, fast computation, bias/variance trade-off etc.) to be found. Being able to leverage such common algorithms as multi-class classifiers and regressors is a big advantage of our cascading approach over existing algorithms.
+More generally, the error terms  $\epsilon_C$ and $\epsilon_R$ can be reduced by a wise choice for the classification and regression subroutines. The litterature is wide enough for methods accomodating most of use cases (lack of data, fast computation, bias/variance trade-off etc.) to be found. Being able to leverage such common algorithms as multi-class classifiers and regressors is a big advantage of our cascading approach over existing algorithms.
 
 Other differences between existing IRL or apprenticeship learning approaches and the proposed cascading algorithm are further examined in the following section.
 
-\section{Related Work}
-\label{sec:related}
-IRL was first introduced in \cite{russell1998learning} and then formalized in \cite{ng2000algorithms}. The seminal paper \cite{abbeel2004apprenticeship} blurs the frontier between imitation and IRL, as this algorithm outputs (mixing) policies, and not explicitely a reward although IRL is the core of this method. This work introduced the general method of finding a reward function such that the corresponding optimal policy's feature expectation (or
-more generally some measure of the underlying trajectories'
-distribution) matches the one of the expert policy. By iteratively changing the considered reward function, one can get the feature expectation of the expert and of the optimal policy to match within a certain bound. This implies using RL as a subroutine to solve the direct problem at each iteration. Some of those approaches are summed up in \cite{neu2009training}. The need to solve a MDP at each step is very demanding, both sample-wise and computationally. The cascading approach being able to output a reward function without having to solve the MDP is thus a significant improvement.
-The Projection IRL (PIRL) algorithm of \cite{abbeel2004apprenticeship} is used as a benchmark in our experiments, see Subsec.~\ref{subsec:setting}. 
-
-Classification and IRL have met in the past in \cite{ratliff2006maximum}, but the labels were complete optimal policies rather than actions and the inputs were MDPs, which had to be solved. Classification on the same level as the first step of the CSA-IRL method (with actions as labels and states as inputs) can be found in \cite{ratliff2007imitation} with the help of a structured margin method, but it did not include the structure of the MDP as the CSA-IRL algorithm does.
-
-Using the non trivial notion of metric in an MDP, \cite{melo2010learning} builds a kernel which is used
-in a classification algorithm, showing improvements compared to a
-non-structured kernel. However, this approach is not an IRL
-algorithm, and more important assessing the metric of an MDP is a
-quite involved problem.
-
-
-Few algorithms do not require solving the direct RL problem. The approach of \cite{syed2008apprenticeship} requires knowing the transition probabilities $P$ of the MDP (which we don't need) and outputs a policy (and not a reward). The algorithm in \cite{dvijotham2010inverse} only applies to linearly-solvable MDPs whereas our approach does not place such restrictions. Closer to our use-case is the idea presented in \cite{boularias2011relative} to use a subgradient ascent of a utility function based on the notion of relative entropy. Importance sampling is suggested as a way to avoid solving the MDP. This requires sampling trajectories according to a non-expert policy and
-the direct problem remains at the core of the approach (even if
-solving it is avoided). As our experiments show, we are able to tackle the IRL problem with only samples from the expert.
-
-
-Finally, the SCIRL (for Structured Classification for IRL) algorithm \cite{klein2012scirl} is able to solve the IRL problem in the same dire conditions the cascading approach is tested in. It injects the structure of the MDP in a linearly parametrized score-function based classifier by using the expert's feature expectation as feature function. This necessity of a linarly parametrized approach makes the SCIRL algorithm less convenient than CSA-IRL, which can make use on non-parametrized supervised subroutines. SCIRL is used for comparison purposes on the Highway driving problem.
-
-%% \begin{itemize}
-%% \item On reprend peu ou prou la même que SCIRL et que celle du précédent papier. On profite de la mention d'une approche pour préciser en quoi la nôtre diffère.
-%% \end{itemize}
-%% \subsection{Imitation}
-%% \label{sec-7-1}
-
-%% \begin{itemize}
-%% \item Ce n'est pas le problème que l'on se pose, mais résoudre l'IRL peut permettre une forme fine d'imitation.
-%% \item La frontière est un peu floue, exemple de PIRL
-%% \item On peut considérer que tous les algos revus par Neu sont des algos d'imitation dans le sens où ils cherchent une proximité des $\mu$.
-%% \item Coincidentallement, ils ont besoin de résoudre le problème direct, pas nous.
-%% \end{itemize}
-%% \subsection{Méthodes entropiques}
-%% \label{sec-7-2}
-
-%% \begin{itemize}
-%% \item N'ont pas besoin de résoudre le problème direct, mais ont besoin d'autres données que celles de l'expert.
-%% \end{itemize}
-%% \subsection{Autres méthodes}
-%% \label{sec-7-3}
-
-%% \begin{itemize}
-%% \item parler des MDPs solvables linéairement, des papiers mentionnés par les reviewers de NIPS, et dire du bien de SCIRL
-%% \end{itemize}
+%% Feel good comment
 \section{Experiments}
 \label{sec:experiments}
-In this section, we put our approach under stress to empirically demonstrate its behavior. After explaining the criterion we consider and its rationale (Subsec.~\ref{subsec:criterion}), we describe the benchmark's setting along with the other algorithms we use for comparison purposes (Subsec.~\ref{subsec:setting}). Before giving and anlyzing the results (Subsec.~\ref{subsec:results}), we explain the details of our choices for the classification and regression subroutines and give some hints for other possibilities (Subsec.~\ref{subsec:instanciation}). We also give the details of our heuristics.
+In this section, we put our approach under stress to empirically demonstrate its behavior. We begin by providing information pertaining to both benchmarks: an explanation about the amount and source of the available data is given on Subsubsec.~\ref{subsubsec:data} and a precise description of the way we instanciated the CSI algorithm is given on subsubsections \ref{subsubsec:subroutines} and \ref{subsubsec:heuristics}. 
 
-Finally, Subsec.~\ref{subsec:IP} provides some results on a continuous state space setting (the inverted pendulum) in order to provide the reader with a practical illustration of the workings of our algorithm. There is no comparison with other methods, these results are provided to help the reader form an intuition about the way the CSA-IRL algorithm works.
+We then use a classical RL benchmark, the Inverted Pendulum (Subsec.~\ref{subsec:IP}), to provide a qualitative illustration of the proposed CSI approach.
 
-\subsection{Criterion}
-\label{subsec:criterion}
-The theoretical bound provided in Sec.~\ref{sec:analysis} is about the optimality of the expert with respect to the reward function computed by our algorithm (this is also the way the problem was framed in Sec.~\ref{sec:background}). For the experiments, we use a somewhat more restrictive criterion : a measure of the optimality of an agent trained on the reward output by our algorithm, with respect to the "true" reward function, the reward function of the expert. We compare the mean (over the uniform distribution) value function with respect to $R_E$ of a policy $\pi$ learned by optimizing $\hat R^C$ : $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$. We do that firstly because, for once, we can : the bound we provide in the analysis is something that can be measured even if $R_E$ does not actually exist. We make use here of the fact that $R_E$ not only exists, but is known to us as we use, as an expert, a RL agent perfectly trained on a handcrafted $R_E$. The second reason for this different metric is that we believe the theoretical bound to be convincing, and what we wanted to illustrate here is not that the theoretical bound holds, but that under really dire sample scarcity (a case not covered by the analysis) our algorithm is well-behaved given the use of heuristics.
-\subsection{Setting}
-\label{subsec:setting}
-The setting of the experiment is a driving simulator inspired from a benchmark already used in \cite{syed2008apprenticeship,syed2008game}. The agent controls a car that can switch between the three lanes of the road, go off-road on either side and modulate between three speed levels. At all times, there will be one car in one of the three lanes. Even at the lowest speed, the player's car moves faster than the others. When the other car disappears at the bottom of the screen, another one appear at the top in a randomly chosen lane. It takes two transitions to completely change lanes, as the player can move left or right for half a lane's length at a time. At the highest speed setting, if the other car appear in the lane the player is in, it is not possible to avoid the collision. The main difference between the original benchmark and ours is that we made the MDP more ergodic by allowing the player to change speed whenever he wishes so, not just during the first transition. If anything, by adding two actions, we enlarged the state-action space and thus made the problem harder.
-%FIXME:METTRE UNE CAPTURE DECRAN.
-The reward function $R_E$ trains the expert to go as fast as possible (high reward) while avoiding collisions (harshly penalised) and avoiding going off-road (moderately penalised). Any other situation receives a null reward.
-
-
-We need some baseline to compare our new approach to. The natural random baseline consists in drawing a random reward vector (with a uniform law) and training an agent on it. Another natural benchmark we use is to compute the mean value function of the classifier policy. We also compare the proposed cascading method to the PIRL algorithm of \cite{abbeel2004apprenticeship} and the SCIRL algorithm of \cite{klein2012scirl}. The random baseline and PIRL do not use samples (with obvious reasons for the random baseline). PIRL is instanciated in a way that make use of the transition probability matrix $P$ to exactly compute all relevant objects (feature expectations, optimal policies) via exact dynamic programming. It is left to run for 70 iterations. We could have displayed PIRL's data sensitivity by making $\pi_E$ known only through observations, but we decided against it because we want this baseline to show the performance of a fully informed well-established appreticeship algorithm.
-
-Both datasets $D_C$ and $D_R$ will be constructed from samples drawn with the expert's policy. The expert drives the car in the simulator for $n$ runs of $n$ transitions each, with $n$ varying in $\{3,7,10,15,20\}$. Apart from SCIRL, to the best of our knowledge, no other algorithm can infer a reward function only from expert data. Recall from Sec.~\ref{sec:related} that most existing approaches either need to solve the direct RL problem repeatedly (which can not be done on this setting from expert data alone) or rely on a sampling of the dynamics of the whole MDP. The reward functions found by SCIRL and CSA-IRL are then optimized using a dynamic programming algorithm to show the performance of the associated policy.
-
+We finally provide quantitative results and comparison with state-of-the-art approaches on a Highway driving simulator (Subsec.~\ref{subsec:highway}).
 \subsection{Instanciation}
 \label{subsec:instanciation}
+\subsubsection{Data scarcity}
+\label{subsubsec:data}
+In order to create a somewhat realistic environment, we decided that the CSI algorithm could neither use the transition probabilities nor a simulator. The only data it could access is sampled according to the expert policy. This corresponds for example to a situation where a costly system can only be controlled by a trained operator as a bad control sequence could lead to a system breakage.
+
+More precisely, the expert controls the system for $n$ runs of length $n$, with values of $n$ in $\{3,7,10,15,20\}$, giving $n^2$ samples $(s_k,a_k=\pi_E(a_k),s'_k)_k = D_E$. The dataset $D_C$ fed to the classifier is straightforwardly constructed from $D_E$ by dropping the $s'_k$ terms :
+\begin{equation}
+  D_C = \{(s_i = s_k,a_i=a_k)_i\}.
+\end{equation}
+There is no particuliar problem for the classification step. It is however not reasonable to construct the dataset $D_R$ only from expert transitions and expect a small regression error term $\epsilon_R$. Indeed, the dataset $D_E$ only sample the dynamics induced by the expert's policy and not the whole dynamics of the MDP. The regression step also needs samples $((s_j,a_j),\hat r_j)_j$ drawn from non expert actions. We address this problem by using a heuristics.
+\subsubsection{Heuristics}
+\label{subsubsec:heuristics}
+From the raw expert dataset $D_E$ we can construct samples $((s_j=s_k,a_j=a_k),\hat r_j)$ with $\hat r_j$ as specified in Eq.~\ref{eq:rj}. To compensate for the lack of information about the dynamics of the whole MDP, we assert that disagreeing with the expert's choice is undesirable. Mathematically, we do that by artificially introducting samples $((s_j=s_k,a),r_{min})_{j;\forall a\neq \pi_E(s_j) = a_k}$ where
+\begin{equation}
+  r_{min} = \min_j\hat r_j - 1.
+\end{equation}
+Although this heuristics was not analyzed in Sec.~ \ref{sec:analysis} (where the availability of a more complete dataset $D_R$ was assumed), the results shown in the next two subsections demonstrate its soundness.
+\subsubsection{Subroutines choices}
+\label{subsubsec:subroutines}
 The cascading algorithm can be instanciated with some standard classification algorithms and any regression algorithm. The choice of such subroutines may be dictated by the kind and amount of available data, by ease of use or by computational complexity, for example.
 
 We referred in Sec.\ref{sec:algo} to \emph{score-function based multi-class classifiers} and explained how the classification rule is similar to the greedy mechanism that exists between an optimal action-value function and an optimal policy in a MDP. Most classification algorithm can be seen as such a classifier. In a simple $k$-nearest neighboor approach, for example, the score function $q(s,a)$ is the number of elements of class $a$ among the $k$-nearest neighboors of $s$. The generic M-SVM model makes the score function explicit (see \cite{guermeur2011generic}). In our experiments, we choose to use a structured margin classification approach \cite{taskar2005learning} that, given a feature vector $\phi : S\times A \rightarrow \mathbb{R}^p$ solves:
@@ -349,18 +327,119 @@ We referred in Sec.\ref{sec:algo} to \emph{score-function based multi-class clas
   \theta^\top{\phi}(s_i,a_i)+\zeta_i \geq \max_a \theta^\top
   {\phi}(s_i,a) + l(s_i,a). \label{eq:qp_taskar}
 \end{eqnarray*}
-with $l(s_i,a) = 1\textrm{ if } a\neq a_i,l(s_i,a_i)=0$ and the natural tabular features as the $\phi$ vector ($0$ everywhere but on the unique index relative to the argument, where the component in $1$). The score function of this classifier is simply $q(s,a) = \theta^\top \phi(s,a)$. This is the classifier our implementation of SCIRL \cite{klein2012scirl} is based on. We chose to use it in CSA-IRL to provide a fair comparison between both algorithms.
+with $l(s_i,a) = 1\textrm{ if } a\neq a_i,l(s_i,a_i)=0$. The score function of this classifier is simply $q(s,a) = \theta^\top \phi(s,a)$. The implementation of SCIRL \cite{klein2012scirl} is based on this. We chose to use it in our CSI implementation to provide a fair comparison between both algorithms.
 
-Ease of implementation leads us to choose a simple least-square regressor for our experiments. Using the same features $\phi$ as our classifier, it can be written (using straightforward matricial notations) as :  $\omega = (\Phi^T\Phi + \lambda Id)^{-1}\Phi^T\hat R$. The reward function is : $\hat R^C(s,a) = \omega^T \phi(s,a)$.
+Ease of implementation leads us to choose a simple least-square regressor for our experiments. Using the same features $\phi$ as our classifier, we introduce $\lambda$ a regularization coefficient (set to $0.1$ in our experiments), $Id$ the identity matrix and 
+\begin{eqnarray}
+  \Phi = \begin{bmatrix}
+    \vdots\\
+    \phi(s_j,a_j)\\
+    \vdots
+  \end{bmatrix},\\
+  \hat R = \begin{bmatrix}
+    \vdots\\
+    \hat r_j\\
+    \vdots
+  \end{bmatrix}.
+\end{eqnarray}
+
+Our regressor can be written:
+\begin{equation}
+  \omega = (\Phi^T\Phi + \lambda Id)^{-1}\Phi^T\hat R.
+\end{equation}
+The reward function is : $\hat R^C(s,a) = \omega^T \phi(s,a)$
 
 It is possible to get imaginative in the last step. For example, using a Gaussian process regressor \cite{rasmussen2006gaussian} that outputs both expectation and variance can enable (nonwithstanding a nontrivial amount of work) the use of reward-uncertain reinforcement learning \cite{regan2011robust}. 
 
-As we only had transitions $\{s_j,\pi_E(s_j),s'_j\}$from the expert to construct the samples $\{s_j,a_j,r_j\}$ fed to the regressor, we had to use a heuristics. We assert that disagreeing with the expert's choice is undesirable. Mathematically, we do that by artificially introducting samples $\{s_j,a,r_{min}\}_{a\neq \pi_E(s_j)}$ where $r_{min} = \min_j\hat r_j - 1$. Although this heuristics was not analyzed in Sec.~ \ref{sec:analysis} (where the availability of a more complete dataset $D_R$ was assumed), the results shown here demonstrate its soundness.
-\subsection{Results}
-\label{subsec:results}
+Our complete instanciation of CSI is summed up in Alg.~\ref{alg:CSIimp}.
+\begin{algorithm}%[H]
+    %\small
+  \caption{A CSI instanciation}
+  \label{alg:CSIimp}
+  \emph{\textbf{Given}} a dataset  $D_E = (s_k,a_k=\pi_E(a_k),s'_k)_k$\;\\
+  \emph{\textbf{Given}} a feature function $\phi: S\times A \rightarrow \mathbb{R}^p$\;\\
+  \emph{\textbf{Construct}} the dataset $D_C=\{(s_i=s_k,a_i=\pi^E(s_i))=a_k\}$ \;\\
+  \emph{\textbf{Train}} a score function-based classifier on $D_C$, obtaining decision rule $\pi_C$ and score function $q:S\times A \rightarrow \mathbb R$ by solving \begin{eqnarray*}
+  &\min_{\theta,\zeta}\frac{1}{2}\|\theta\|^2 +
+  \frac{\eta}{N}\sum_{i=1}^N \zeta_i \\
+  &\text{~s.t.~} \forall i,
+  \theta^\top{\phi}(s_i,a_i)+\zeta_i \geq \max_a \theta^\top
+  {\phi}(s_i,a) + l(s_i,a). \label{eq:qp_taskar}
+\end{eqnarray*}\;\\
+\emph{\textbf{Construct}} the dataset $\{((s_{j}=s_k,a_{j}=a_k),\hat r_j)_j\}$ with $\hat r_j = q(s_j,a_j) - \gamma q(s'_j=s'_k,\pi_C(s'_j=s'_k))$\;\\
+\emph{\textbf{Set}} $r_{min} = \min_j\hat r_j - 1.$\;\\
+\emph{\textbf{Construct}} the training set  $D_R = \{((s_{j}=s_k,a_{j}=a_k),\hat r_j)_j\}\cup\{((s_j=s_k,a),r_{min})_{j;\forall a\neq \pi_E(s_j) = a_k}\}$ \;\\
+\emph{\textbf{Learn}} a reward function $\hat R^C$ from the trainsing set $D_R$ by computing :
+\begin{equation*}
+  \omega = (\Phi^T\Phi + \lambda Id)^{-1}\Phi^T\hat R.
+\end{equation*}\;\\
+\emph{\textbf{Output}} the reward function $\hat R^{C}: (s,a) \mapsto \omega^T \phi(s,a)$ \;
+\end{algorithm}
+
+\subsection{Inverted Pendulum}
+\label{subsec:IP}
+We provide here qualitative results on the inverted pendulum problem. Quantitative results obtained by following a procedure very similar to Subsec.~\ref{subsec:highway} were of the same nature and justified the same analysis as those provided in Subsubsec.~\ref{subsubsec:hresults}. We thus omit them here for the sake of avoiding redundancy. Instead, we use the inverted pendulum problem for illustrative purposes.
+\subsubsection{Setting}
+The inverted pendulum (also known as the cart pole) is a classical benchmark in the RL community, it is fully described in \cite{lagoudakis2003least}. The goal is to maintain a pole in a unstable equilibrium position with the help of a cart moving along one axis. The state space consists in the angular position an speed of the pole. It is possible to use an RL algorithm to learn how to balance the pendule in an upright position by using the following reward: as long as the angular position of the pole is (in absolute value) less than $\pi \over 2$ the reward is $0$, the reward is $-1$ if the pole falls ; this reward function is plotted on Fig.~\ref{toto}. Three actions are available to the agent: it can choose to apply a leftward or rightward force on the cart or no force at all.
+
+The fact that the state space is continuous is not a problem to our particular instanciation of the CSI approach (see Alg.~\ref{alg:CSIimp}) as long as we provide a feature function $\phi : S\times A \rightarrow \mathbb{R}^p$. Here $p=30$ as we use the exact same feature functions as proposed in \cite{lagoudakis2003least}. The state space is featured with a $3\times 3$ grid of Gaussian functions concatenated with a constant component to construct a feature vector $\psi:S \rightarrow \mathbb{R}^{10}$. The eature function $\phi$ is defined as :
+\begin{equation}
+  \phi(s,a) = \begin{pmatrix}
+     \delta_{a = LEFT}\psi(s)\\
+     \delta_{a = NONE}\psi(s)\\
+     \delta_{a = RIGHT}\psi(s)
+  \end{pmatrix}
+\end{equation}
+
+
+\subsubsection{Results}
+The results are shown Fig.~\ref{fig:IP}. In the left column, we show the reward and value functions of the expert. The expert (a RL agent trained on the  reward shown on Fig.~\ref{toto}) is able to balance the pendule indefinitely. With as little as 300 transitions (30 seconds of balancing), CSI is able to find a reward that, once optimized by an RL agent, will reliably lead to a control as good as the expert's. As Fig.~\ref{tata} illustrates, the data we get from the expert only covers a tiny fraction of the state space. Furthermore, the feature function $\phi$ did not permit to accurately approximate the true reward\footnote{The true reward function is a function in $\mathbb{R}^S$, CSI outputs a reward in $\mathbb{R}^{S\times A}$, but we plot here $R(s,\pi^*(s))$ with $\pi^*$ the optimal policy for $R$.}. Despite these two setbacks, CSI manage to find a reward for which not only the expert's control is near-optimal (that is what the analysis of Sec.~\ref{sec:analysis} garantees under the assumption that a reasonable amount of data is available in order to keep both classification and regression errors down) but that also lead to a control policy as good as the expert's \emph{with respect to the (theoretically) unknown expert's reward function}.
+
+\begin{figure}
+   \subfigure[Reward on which the expert was trained]{\label{toto}\begin{minipage}{.45\linewidth}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_true_R"}\end{minipage}}
+   \subfigure[Reward found by CSA-IRL. The green zone shows where the data available to the algorithm lies in the state space.]{\label{tata}\begin{minipage}{.45\linewidth}\hspace{-3em}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_lafem_R"}\end{minipage}}
+  \subfigure[Value function of the expert (i.e. optimal value function for the reward displayed Fig.~\ref{toto})]{\begin{minipage}{.45\linewidth}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_Vexpert"}\end{minipage}}
+  \subfigure[Optimal value function for the reward function found by CSA-IRL (Fig.~\ref{tata})]{\begin{minipage}{.45\linewidth}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_Vagent"}\end{minipage}}
+
+  \caption{Results on the inverted pendulum benchmark, illsutrating the dissimilarity of the rewards, but the similarity of the value functions. The state space is represented on a position-speed plan.}
+  \label{fig:IP}
+\end{figure}
+
+
+\subsection{Highway driving simulator}
+\label{subsec:highway}
+Let's now move from a qualitative illustration to a quantitative assessment of the performance of the CSI algorithm. The Highway driving problem is described Subsubsec.~\ref{subsubsec:hsetting}, the criterion we use is explained Subsubsec.~\ref{subsubsec:hcriterion} and finally results and comparison to other approaches are presented Subsubsec.~\ref{subsubsec:hresults}.
+\subsubsection{Setting}
+\label{subsubsec:hsetting}
+The setting of the experiment is a driving simulator inspired from a benchmark already used in \cite{syed2008apprenticeship,syed2008game}. The agent controls a car that can switch between the three lanes of the road, go off-road on either side and modulate between three speed levels. At all times, there will be one car in one of the three lanes. Even at the lowest speed, the player's car moves faster than the others. When the other car disappears at the bottom of the screen, another one appear at the top in a randomly chosen lane. It takes two transitions to completely change lanes, as the player can move left or right for half a lane's length at a time. At the highest speed setting, if the other car appear in the lane the player is in, it is not possible to avoid the collision. The main difference between the original benchmark \cite{syed2008apprenticeship,syed2008game} and ours is that we made the MDP more ergodic by allowing the player to change speed whenever he wishes so, not just during the first transition. If anything, by adding two actions, we enlarged the state-action space and thus made the problem harder.
+%FIXME:METTRE UNE CAPTURE DECRAN.
+The reward function $R_E$ trains the expert to go as fast as possible (high reward) while avoiding collisions (harshly penalised) and avoiding going off-road (moderately penalised). Any other situation receives a null reward.
+
+The feature function $\phi$ for this setting is the natural tabular feature function where each state action couple $(s,a)$ is associated with a unique index $i_{(s,a)}$. The only non-zero component of $\phi(s,a)$ is then the component at index $i_{(s,a)}$.
+
+We need some baseline to compare our new approach to. The natural random baseline consists in drawing a random reward vector (with a uniform law) and training an agent on it. Another natural benchmark we use is to compute the mean value function of the classifier policy. We also compare the proposed cascading method to the PIRL algorithm of \cite{abbeel2004apprenticeship} and the SCIRL algorithm of \cite{klein2012scirl}. The random baseline and PIRL do not use samples (with obvious reasons for the random baseline). PIRL is instanciated in a way that makes use of the transition probability matrix $P$ to exactly compute all relevant objects (feature expectations, optimal policies) via exact dynamic programming. It is left to run for 70 iterations. We could have displayed PIRL's data sensitivity by making $\pi_E$ known only through observations, but we decided against it because we want this baseline to show the performance of a fully informed well-established apprenticeship algorithm.
+
+Apart from SCIRL, to the best of our knowledge, no other algorithm can infer a reward function only from expert data. Recall from Sec.~\ref{sec:related} that most existing approaches either need to solve the direct RL problem repeatedly (which can not be done on this setting from expert data alone) or rely on a sampling of the dynamics of the whole MDP. The reward functions found by SCIRL and CSI are then optimized using a dynamic programming algorithm to show the performance of the associated policy.
+
+\subsubsection{Criterion}
+\label{subsubsec:hcriterion}
+The theoretical bound provided in Sec.~\ref{sec:analysis} is about the optimality of the expert with respect to the reward function computed by our algorithm (which is also the way the problem was framed in Sec.~\ref{sec:background}). For this experiment, we use a somewhat more restrictive criterion : a measure of the optimality of an agent trained on the reward output by our algorithm, with respect to the ``true'' reward function, the reward function of the expert. We use the mean (over the uniform distribution) value function with respect to $R_E$ of the policy $\hat \pi_C$ learned by optimizing $\hat R^C$ : $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$. We do that firstly because, for once, we can : the bound we provide in the analysis is something that can be measured even if $R_E$ does not actually exist. We make use here of the fact that $R_E$ not only exists, but is known to us as we use, as an expert, a RL agent perfectly trained on a handcrafted $R_E$. The second reason for this different metric is that we believe the theoretical bound to be convincing, and what we wanted to illustrate here is not that the theoretical bound holds, but that under really dire sample scarcity (a case not covered by the analysis) our algorithm is well-behaved given the use of heuristics.
+\
+\subsubsection{Results}
+\label{subsubsec:hresults}
+Results are shown Fig.~\ref{fig:Highway}. We give the values of $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$ with $\pi$ being in turn the optimal policy for the rewards given by SCIRL and CSI, the policy $\pi_C$ of the classifier (the very one the classification step of CSI outputs), the output of the PIRL algorithm, the expert's policy $\pi_E$ and the optimal policy for a randomly drawn reward. Performance for CSA-IRL is on par with the PIRL and SCIRL algorithms, slightly below the performance of the expert himself. Very few samples (100) are needed to reliably achieve expert-level performance.
+
+It is very interesting to compare our algorithm to the behavior of a classifier alone (respectively red and green plots on Fig.~\ref{tutu}). With \emph{the exact same data}, albeit the use of a very simple heuristics, the cascading approach demonstrates far better performance from the start. This is a clear illustration of the fact that using the Bellman equation to construct the data fed to the regressor and outputting not a policy, but a reward function that can be optimized on the MDP truly makes use of the information that the transitions $(s,a,s')$ bear (we recall that the classifier only uses $(s,a)$ couples).
+
+Furthermore, the classifier whose results are diplayed here is the output of the first step of the algorithm. The classification performance is obviously not that good, this hints to the fact that our algorithm may be empirically more forgiving of classification errors than our theoretical bound let us expect.
+
+PIRL is given the transition probabilities (that is, a $|S|\times |S|\times |A|$ matrix) and yet it does only slightly better than our approach with 100 samples. This also shows that CSI is indeed very sample efficient, without having to repeatedly solve the MDP.
+
+Finally, only the SCIRL algorithm operates on the same data as our proposed approach, with very slightly better results.
+
 \begin{figure}
    \subfigure[PIRL and Random Baselines. There is no abcissa as these methods do not need data input. PIRL uses the transition probabilities matrix $P$.]{\includegraphics[width=.5\linewidth]{"Fig1-NoX"}}
-   \subfigure[Cascading and Classification.]{\includegraphics[width=.5\linewidth]{"Fig2-ClassifAndUs"}}
+   \subfigure[Cascading and Classification.]{\label{tutu}\includegraphics[width=.5\linewidth]{"Fig2-ClassifAndUs"}}
   \subfigure[SCIRL and Cascading mean value.]{\includegraphics[width=.5\linewidth]{"Fig3-SCIRLAndUs"}}
   \subfigure[Legend]{\includegraphics[width=.5\linewidth]{"Fig4-Legend"}}
 
@@ -368,90 +447,25 @@ As we only had transitions $\{s_j,\pi_E(s_j),s'_j\}$from the expert to construct
   \label{fig:Highway}
 \end{figure}
 
-Results are shown Fig.~\ref{fig:Highway}. We give the values of $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$ with $\pi$ being in turn the optimal policy for the rewards given by SCIRL and CSA-IRL, the policy $\pi_C$ of the classifier (the very one the classification step of CSA-IRL outputs), the output of the PIRL algorithm, the expert's policy $\pi_E$ and the optimal policy for a randomly drawn reward. Performance for CSA-IRL is on par with the PIRL and SCIRL algorithms, slightly below the performance of the expert himself. Very few samples (100) are needed to reliably achieve expert-level performance.
 
-It is very interesting to compare our algorithm to the behavior of a classifier alone. With \emph{the exact same data}, albeit the use of a very simple heuristics, the cascading approach demonstrates far better performance from the start. This is a clear illustration of the fact that using the Bellman equation to construct the data fed to the regressor and outputting not a policy, but a reward function that can be optimized on the MDP truly makes use of the information that the transitions $(s,a,s')$ bear (we recall that the classifier only uses $(s,a)$ couples).
+\section{Related Work}
+\label{sec:related}
+IRL was first introduced in \cite{russell1998learning} and then formalized in \cite{ng2000algorithms}. Approaches summarized in \cite{neu2009training} can be seen as iteratively contructing a reward function, solving an MDP at each iteration. Some of these algorithms are IRL algorithms while others fall in the AL category, as for example the projection version of the algorithm in \cite{abbeel2004apprenticeship}\footnote{We call it PIRL for Projection IRL.} which we used in our benchmarks (Sec.~\ref{sec:experiments}). In both cases the need to solve an MDP at each step may be very demanding, both sample-wise and computationally. CSI being able to output a reward function without having to solve the MDP is thus a significant improvement.
 
-Furthermore, the classifier whose results are diplayed here is the output of the first step of the algorithm. The classification performance is obviously not that good, this shows that our algorithm is empirically more forgiving of classification errors than our theoretical bound let us expect.
+AL via classification has been proposed in \cite{ratliff2007imitation} with the help of a structured margin method. Using the non trivial notion of metric in an MDP, the authors of \cite{melo2010learning} build a kernel which is used
+in a classification algorithm, showing improvements compared to a
+non-structured kernel.
 
-PIRL is given the transition probabilities (that is, a $|S|\times |S|\times |A|$ matrix) and yet it does only slightly better than our approach with 100 samples. This also shows that SCA-IRL is indeed very sample efficient, without having to repeatedly solve the MDP.
+Classification and IRL have met in the past in \cite{ratliff2006maximum}, but the labels were complete optimal policies rather than actions and the inputs were MDPs, which had to be solved. The SCIRL (for Structured Classification for IRL) algorithm \cite{klein2012scirl} which we used Subsec.~\ref{subsec:highway} is able to solve the IRL problem (without having to solve any MDP) in the same dire conditions the cascading approach has been tested in. It injects the structure of the MDP in a linearly parametrized score-function based classifier by using the expert's feature expectation as feature function. This necessity of a linarly parametrized approach and the need to compute the expert's feature exepctations makes the SCIRL algorithm less convenient than the CSI approach.
 
-Finally, only the SCIRL algorithm operates on the same data as our proposed approach, with very slightly better results.
+Few IRL or AL algorithms do not require solving an MDP. The approach of \cite{syed2008apprenticeship} requires knowing the transition probabilities of the MDP (which CSI does not need) and outputs a policy (and not a reward). The algorithm in \cite{dvijotham2010inverse} only applies to linearly-solvable MDPs whereas our approach does not place such restrictions. Closer to our use-case is the idea presented in \cite{boularias2011relative} to use a subgradient ascent of a utility function based on the notion of relative entropy. Importance sampling is suggested as a way to avoid solving the MDP. This requires sampling trajectories according to a non-expert policy and
+the direct problem remains at the core of the approach (even if
+solving it is avoided).
 
-\subsection{Inverted Pendulum}
-\label{subsec:IP}
-Finally, we provide results on the inverted pendulum problem. We do not compare our approaches with others as we did on the highway driving problem. The information given here serves an illustrative purpose.
 
-The inverted pendulum (also known as the cart pole) is a classical benchmark in the RL community, it is fully described in \cite{lagoudakis2003least}. The goal is to maintain a pole in a unstable equilibrium position with the help of a cart moving along one axis. The state space is continuous, it consists in the angular position an speed of the pole. It is possible to use a RL algorithm to learn how to balance the pendule in an upright position by using the following reward : as long as the angular position of the pole is (in absolute value) less than $\pi \over 2$ the reward is $0$, the reward is $-1$ if the pole falls. Three actions are available to the agent: it can choose to apply a leftward or rightward force on the cart or no force at all. We used the feature parametrization of \cite{lagoudakis2003least}, that is a grid of 9 Gaussian functions and a constant. These are used to approximate the value function as well as for the regression step of the CSA-IRL algorithm. The instanciation of the algorithm is the same as for the highway driving problem except for the feature functions (which we just described). 
-
-\begin{figure}
-   \subfigure[Reward on which the expert was trained]{\label{toto}\includegraphics[width=.5\linewidth]{"LAFEM_Exp3_true_R"}}
-   \subfigure[Reward found by CSA-IRL. The green zone shows where the data available to the algorithm lies in the state space.]{\label{tata}\includegraphics[width=.5\linewidth]{"LAFEM_Exp3_lafem_R"}}
-  \subfigure[Value function of the expert (i.e. optimal value function for the reward displayed Fig.~\ref{toto})]{\includegraphics[width=.5\linewidth]{"LAFEM_Exp3_Vexpert"}}
-  \subfigure[Optimal value function for the reward function found by CSA-IRL (Fig.~\ref{tata})]{\includegraphics[width=.5\linewidth]{"LAFEM_Exp3_Vagent"}}
-
-  \caption{Results on the inverted pendulum benchmark, illsutrating the dissimilarity of the rewards, but the similarity of the value functions. The state space is represented on a position-speed plan.}
-  \label{fig:IP}
-\end{figure}
-
-As with the previous benchmark, CSA-IRL only used data from the expert to devise a reward function.  The results are shown Fig.~\ref{fig:IP}. In the left column, we show the reward and value functions of the expert. The expert (a RL agent trained on the specified reward) is able to balance the pendule indefinitely. With as little as 300 transitions (30 seconds of balancing), CSA-IRL is able to find a reward that, once optimized by a RL agent, will reliably lead to a control as good as the expert's. As Fig.~\ref{tata} illustrates, the data we get from the expert only covers a tiny fraction of the state space. Furthermore, the feature functions of our linear approximation scheme for the reward did not permit to accurately approximate the true reward\footnote{The true reward function is a function in $\mathbb{R^S}$, CSA-IRL outputs a reward in $\mathbb{R}^{S\times A}$, but we plot here $R(s,\pi^*(s))$ with $\pi^*$ the optimal policy for $R$.}. Despite these two setbacks, CSA-IRL manage to find a reward for which not only the expert's control is near-optimal (that is what the analysis of Sec.~\ref{sec:analysis} garantees under the assumption that a reasonable amount of data is available in order to keep both classification and regression errors down) but that also lead to a control policy as good as the expert's \emph{with respect to the (theoretically) unknown expert's reward function}.
-%% \begin{itemize}
-%% \item La borne fournie en \hyperref[sec-5]{Analyse} mesure le degré d'optimalité de la politique de l'expert vis à vis de la nouvelle récompense. Les expériences mesurent le degré d'optimalité de l'agent (ici entendu sous forme d'agent entraîné parfaitement sur la récompense sortie par notre algorithme) vis à vis de la vraie récompense (celle de l'expert).
-%% \begin{itemize}
-%% \item On se permet de faire ça car dans notre dispositif on la connait. Ce n'est pas le cas dans la vraie vie.
-%% \item En pratique c'est un critère plus restrictif : formellement, si $\pi^E$ est optimale pour $R_C$, alors l'agent et l'expert ont les mêmes performances (wrt $R_C$), puisque l'agent est optimal pour $R_C$ par définition de l'agent. En revanche on regarde si l'agent est optimal pour $R_E$, ce qui est profondément ``injuste'', puisqu'on ne sait rien de $R_E$. On ne sait même pas si elle existe réellement.
-%% \item Il s'agit d'une métrique qu'il n'est pas possible de mesurer sur un problème réel. C'est pourquoi la démonstration est intéressente car elle parle de quelque chose que l'on peut plus facilement évaluer ; et surtout elle parle de ce que l'on s'est proposé de résoudre à la base. Ces expériences ne sont qu'une illustration.
-%% \end{itemize}
-%% \item Les résultats obtenus sur ce problème sont notamment comparés à la classif, il s'agit d'une illustration du fait que l'algorithme est capable d'extraire les infos sur $P$ contenues dans les transitions, grâce à l'équation de Bellman qui est présente (modulo deux trois manips) dans l'expression de $\hat r$. Nous avons injecté la structure du MDP dans la classification (ça me rappelle quelque chose\ldots{} ;)
-%% \item Le seul plot est celui du Highway (similaire à SCIRL). On enlève le Gridworld (reporté en annexe car trop d'infos pour si peu de place)
-%% \item On instancie avec Taskar et un moindre carré. Ceci n'a pas la moindre importance.
-%% \item Mentionner le fait que les autres algos ne peuvent résoudre le problème tel qu'on le pose. On s'apesentira là dessus dans \hyperref[sec-7]{Autres approches}.
-%% \item Expliquer que quitte à tester expérimentallement, on a choisi de s'éloigner du cadre de l'analyse pour se placer dans cadre \emph{plus difficile à gérer}, ou seules les données de l'expert sont disponibles.
-%% \begin{itemize}
-%% \item Cela implique l'usage d'une heuristique pour la régression :
-%% \begin{itemize}
-%% \item sans heuristique, c'est le choix par défauit du régresseur (i.e. initialisation à 0, à R$_{\mathrm{min}}$ ou R$_{\mathrm{max}}$) qui décidera de l'optimisme ou pessimisme de l'algo
-%% \item Pour éviter ça, on place nous même notre heuristique.
-%% \end{itemize}
-%% \item que l'on se contente d'expliquer à un niveau intuitif. L'analyse formelle n'a pas été effectuée, ne le sera probablement pas, on se contente de montrer qu'en pratique, ça fonctionne. Et ça fonctionne mieux que les autres algos, sauf SCIRL.
-%% \item Cela implique aussi d'utiliser $\pi_C$ plutôt que $a'$.
-%% \end{itemize}
-%% \item Lien avec l'analyse : on a de bons résultats, même si le classifieur n'est pas bon. Notre borne est donc très très large.
-%% \item La complexité en échantillons : avec 50 samples, on fait mieux que PIRL qui a accès à une matrice de taille $|S|\times|S|\times |A|$
-%% \item La complexité en temps : on tourne 100 fois plus rapidement que PIRL
-%% \end{itemize}
 \section{Conclusion}
 \label{sec:conclusion}
-We have introduced a new way to perform IRL by cascading two supervised approaches. The expert is shown to be near-optimal for the reward function the proposed algorithm outputs, given small classification and regression errors. A few practical examples of classifiers and regressors have been given, and one combination has been empirically shown to be very resilient to dire lack of data on the input (only data from the expert was used to retrieve the reward function), provided the use of simple heuristics. On the chosen benchmark (a car driving simulator), our algorithm is shown to outperform other state of the art approaches, and to be on-par with the very recent SCIRL algorithm. We plan on deepening the analysis of the theoretical properties of our approach and on applying it to real world robotics problems.
-%% \begin{itemize}
-%% \item Ouverture : Existe-t-il des problèmes tels que SCIRL et Cascading diffèrent en performance ?
-%% \item Que faire quand on ne peut résoudre le RL facilement ?
-%% \item Que faire en cas d'expert sous optimal ?
-%% \item ouverture sur l'active learning en reprenant les notions de pessimisme ou d'optimisme en présence d'incertitude
-%% \end{itemize}
-
-%% \section{Annexes}
-%% \label{sec-9}
-%% \subsection{GridWorld}
-%% \label{sec-9-1}
-
-%% \begin{itemize}
-%% \item On montre avec les deux formes de récompenses qui donnent la même fonction de valeur. On fait référence aux travaux de Ng qui résolvent exactement ce problème. Les récompenses ont la même tête, ça devrait rassurer le lecteur hésitant.
-%% \item si on a le temps, on peut lancer une expérience où le nombre (en supposant une répartittion uniforme) des samples augmente et où la récompense tend vers ``la vraie''.
-%% \end{itemize}
-%% \subsection{Inverted pendulum}
-%% \label{sec-9-2}
-
-%% \begin{itemize}
-%% \item On montre qu'on généralise sans problème aux espaces continus, on montre qu'avec des données très, très sparses vis à vis de l'espace d'état on arrive pourtant à récupérer une récompense ayant la même fonction de valeur que celle de l'expert.
-%% \item ça montre aussi ce qui se passe quand l'espace d'hypothèse est ``mal choisi'' (i.e. la ``vraie'' récompense n'y était pas représentable).
-%% \end{itemize}
-%% \subsection{Highway}
-%% \label{sec-9-3}
-
-%% \begin{itemize}
-%% \item Si on a le temps : faire conduire quelqu'un puis lancer l'imitation, voir si on reproduit les consignes données à l'opérateur humain, qui aura eu la bonté de faire quelques erreurs dans l'exécution. Ca permet de voir le comportement en cas d'expert sous optimal et de taire les questions à ce sujet.
-%% \end{itemize}
+We have introduced a new way to perform IRL by cascading two supervised approaches. The expert is shown to be near-optimal for the reward function the proposed algorithm outputs, given small classification and regression errors. Practical examples of classifiers and regressors have been given, and one combination has been empirically (on two classical benchmarks) shown to be very resilient to dire lack of data on the input (only data from the expert was used to retrieve the reward function), provided the use of simple heuristics. On one of the benchmarks (a car driving simulator), our algorithm is shown to outperform other state of the art approaches, and to be on-par with the very recent SCIRL algorithm. We plan on deepening the analysis of the theoretical properties of our approach and on applying it to real world robotics problems.
 
 \bibliographystyle{plain}
 \bibliography{Biblio}
