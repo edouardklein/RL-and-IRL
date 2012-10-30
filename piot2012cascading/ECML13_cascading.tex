@@ -87,7 +87,7 @@ The reward function $R$ is a local measure of the quality of the control. The gl
 \begin{equation}
 V^\pi_R(s) = \E[\sum_{t\geq 0}\gamma^tR(s_t,\pi(s_t))|s_0 = s].
 \end{equation}
-This long-term criterion is what is being optimized when solving an MDP. Therefore, an optimal policy $\pi^*_R$ is a policy whose value function (the optimal value function $V^*_R$) is greater than that of any other policy, for all states : $\forall \pi, V^*_R\geq V^\pi_R$..
+This long-term criterion is what is being optimized when solving an MDP. Therefore, an optimal policy $\pi^*_R$ is a policy whose value function (the optimal value function $V^*_R$) is greater than that of any other policy, for all states: $\forall \pi, V^*_R\geq V^\pi_R$..
 
 The Bellman evaluation operator $T^\pi_R: \mathbb{R}^{S} \rightarrow  \mathbb{R}^{S}$ is defined by
 \begin{equation}
@@ -97,14 +97,14 @@ where $R_\pi$ is $(R(s,\pi(s)))_{s\in S}$. The Bellman optimality operator follo
 \begin{equation}
   T^*_RV = \max_\pi T^\pi_RV.
 \end{equation}
-  Both operators are contractions. The fixed point of the Bellman evaluation operator $T^\pi_R$ is the value function of $\pi$ with respect to reward R :
+  Both operators are contractions. The fixed point of the Bellman evaluation operator $T^\pi_R$ is the value function of $\pi$ with respect to reward R:
   \begin{eqnarray}
     V^\pi_R &=& T^\pi_R V^\pi_R\\
     V^\pi_R &=& R_\pi + \gamma P_\pi V^\pi_R.
   \end{eqnarray}
 The Bellman optimality operator $T^*_R$ also admits a fixed point, the optimal value function $V_R^*$ with respect to reward $R$.
 
-Another object of interest is the action-value function $Q^\pi_R\in\mathbb{R}^{S\times A}$ that adds a degree of freedom on the choice of the first action, formally defined by $Q^\pi_R(s,a) = T^a_RV^\pi_R(s)$, with $a$ the policy that always returns action $a$ ($T^a_RV = R_a + \gamma P_a V$ with $P_a = (P(s'|s,a))_{s,s' \in S}$ and $R_a$ = $(R(s,a))_{s\in S}$). The value function $V^\pi_R$ and the action-value function $Q^\pi_R$ are quite directly related : $\forall s \in S, V^\pi_R(s) = Q^\pi_R(s,\pi(s))$. The Bellman evaluation equation for $Q^\pi_R$ is therefore :
+Another object of interest is the action-value function $Q^\pi_R\in\mathbb{R}^{S\times A}$ that adds a degree of freedom on the choice of the first action, formally defined by $Q^\pi_R(s,a) = T^a_RV^\pi_R(s)$, with $a$ the policy that always returns action $a$ ($T^a_RV = R_a + \gamma P_a V$ with $P_a = (P(s'|s,a))_{s,s' \in S}$ and $R_a$ = $(R(s,a))_{s\in S}$). The value function $V^\pi_R$ and the action-value function $Q^\pi_R$ are quite directly related: $\forall s \in S, V^\pi_R(s) = Q^\pi_R(s,\pi(s))$. The Bellman evaluation equation for $Q^\pi_R$ is therefore:
 \begin{equation}
   Q^\pi_R(s,a) = R(s,a) + \gamma \sum_{s'\in S}P(s'|s,a) Q(s',\pi(s')).
   \label{eq:bellman1}
@@ -128,7 +128,7 @@ Our first step towards a reward function solving the IRL problem is a classifica
 \end{equation}
 For example, \emph{Multi-class Support Vector Machines}~\cite{guermeur2011generic} can be seen as SFMC$^2$ algorithms, the same can be said of the structured margin approach \cite{taskar2005learning} which we consider in the experimental setting. Other algorithms may be envisionned (see Subsec.~\ref{subsec:instanciation}). 
 
-Given a dataset $D_C = \{(s_i,a_i=\pi^E(s_i))_i\}$ of actions $a_i$ (deterministically) chosen by the expert on states $s_i$, we train such a classifier. The classification policy $\pi_C$ is not the end product we are looking for (that would be mere imitation of the expert, not IRL). What is of particular interest to us is the score function $q$ itself. One can easily notice the similarity between Eq.~\ref{eq:greedy2} and Eq.~\ref{eq:greedy} that describes the relation between the optimal policy in a MDP and its optimal action-value function. It is only natural to view the score function $q$ of the classifier as some kind of optimal action-value function for the classifier policy $\pi_C$. By inversing the Bellman equation Eq.~\ref{eq:bellman1} with $q$ in lieu of $Q^\pi_R$, one gets $R^C$, the reward function relative to our score/action-value function $q$ :
+Given a dataset $D_C = \{(s_i,a_i=\pi^E(s_i))_i\}$ of actions $a_i$ (deterministically) chosen by the expert on states $s_i$, we train such a classifier. The classification policy $\pi_C$ is not the end product we are looking for (that would be mere imitation of the expert, not IRL). What is of particular interest to us is the score function $q$ itself. One can easily notice the similarity between Eq.~\ref{eq:greedy2} and Eq.~\ref{eq:greedy} that describes the relation between the optimal policy in an MDP and its optimal action-value function. It is only natural to view the score function $q$ of the classifier as some kind of optimal action-value function for the classifier policy $\pi_C$. By inversing the Bellman equation Eq.~\ref{eq:bellman1} with $q$ in lieu of $Q^\pi_R$, one gets $R^C$, the reward function relative to our score/action-value function $q$:
 \begin{equation}
   \label{eq:rc}
   R^C(s,a) =q(s,a) - \sum_{\mathrm{s'}}P(s'|s,a)q(s',\pi_C(s')).
@@ -158,7 +158,7 @@ Being able to alleviate the ill effects of scalability or data scarcity by lever
 
 
 In this section, we prove that the deterministic expert policy $\pi_E$ is near optimal for the reward $\hat{R}^C$ the regression step outputs.
-More formally, we prove that $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]$ is bounded by a term that depends on :
+More formally, we prove that $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]$ is bounded by a term that depends on:
 \begin{itemize}
   \item the classification error
 \begin{equation}  
@@ -168,13 +168,13 @@ More formally, we prove that $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}(s)-V^{\pi_E}_{\ha
   \begin{equation}
     \epsilon_R=\max_{\pi\in A^S}\|\epsilon_\pi^R\|_{1,\rho_E},
   \end{equation}
-  with :
+  with:
   \begin{itemize}
   \item the subscript notation already used in Sec.~\ref{sec:background} meaning that, given an $X\in\mathbb{R}^{S\times A}$, $\pi\in A^S$, and $a\in A$,  $X_\pi\in\mathbb{R}^S$ and $X_a\in\mathbb{R}^S$ are repectively such that: $\forall s\in S, X_\pi(s)=X(s,\pi(s))$ and $\forall s\in S, X_a(s)=X(s,a)$ ;
   \item $\epsilon^R_\pi=R^C_\pi-\hat{R}^C_\pi$ ;
-  \item $\|.\|_{1,\mu}$ the $\mu$-weighted $L_1$ norm : $\|f\|_{1,\mu} = \E_{x\sim \mu}[|f(x)|]$ ;
+  \item $\|.\|_{1,\mu}$ the $\mu$-weighted $L_1$ norm: $\|f\|_{1,\mu} = \E_{x\sim \mu}[|f(x)|]$ ;
   \end{itemize}
-\item the concentration coefficient $C_* = C_{\hat \pi_C}$ with :
+\item the concentration coefficient $C_* = C_{\hat \pi_C}$ with:
   \begin{itemize}
   \item $C_{\pi}=(1-\gamma)\sum_{t\geq0}\gamma^tc_{\pi}(t), \text{ with } c_{\pi}(t)=\max_{s\in S}\frac{(\rho_E^TP^t_\pi)(s)}{\rho_E(s)}$ ;
   \item $\hat \pi_C$, the optimal policy for the reward $\hat R^C$ output by the algorithm ;
@@ -207,7 +207,7 @@ We also introduce the reward function $R^E\in\mathbb{R}^{S\times A}$ which will 
 \forall (s,a)\in S\times A, R^E(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\pi_E(s')).
 \end{equation}
 
-We can now introduce the following vectorial equations :
+We can now introduce the following vectorial equations:
 \begin{align}
 &R^C_a=q_a-\gamma P_aq_{\pi_C},
 \\
@@ -303,7 +303,7 @@ We finally provide quantitative results and comparison with state-of-the-art app
 \label{subsubsec:data}
 In order to create a somewhat realistic environment, we decided that the CSI algorithm could neither use the transition probabilities nor a simulator. The only data it could access is sampled according to the expert policy. This corresponds for example to a situation where a costly system can only be controlled by a trained operator as a bad control sequence could lead to a system breakage.
 
-More precisely, the expert controls the system for $n$ runs of length $n$, with values of $n$ in $\{3,7,10,15,20\}$, giving $n^2$ samples $(s_k,a_k=\pi_E(a_k),s'_k)_k = D_E$. The dataset $D_C$ fed to the classifier is straightforwardly constructed from $D_E$ by dropping the $s'_k$ terms :
+More precisely, the expert controls the system for $n$ runs of length $n$, with values of $n$ in $\{3,7,10,15,20\}$, giving $n^2$ samples $(s_k,a_k=\pi_E(a_k),s'_k)_k = D_E$. The dataset $D_C$ fed to the classifier is straightforwardly constructed from $D_E$ by dropping the $s'_k$ terms:
 \begin{equation}
   D_C = \{(s_i = s_k,a_i=a_k)_i\}.
 \end{equation}
@@ -319,7 +319,7 @@ Although this heuristics was not analyzed in Sec.~ \ref{sec:analysis} (where the
 \label{subsubsec:subroutines}
 The cascading algorithm can be instanciated with some standard classification algorithms and any regression algorithm. The choice of such subroutines may be dictated by the kind and amount of available data, by ease of use or by computational complexity, for example.
 
-We referred in Sec.\ref{sec:algo} to \emph{score-function based multi-class classifiers} and explained how the classification rule is similar to the greedy mechanism that exists between an optimal action-value function and an optimal policy in a MDP. Most classification algorithm can be seen as such a classifier. In a simple $k$-nearest neighboor approach, for example, the score function $q(s,a)$ is the number of elements of class $a$ among the $k$-nearest neighboors of $s$. The generic M-SVM model makes the score function explicit (see \cite{guermeur2011generic}). In our experiments, we choose to use a structured margin classification approach \cite{taskar2005learning} that, given a feature vector $\phi : S\times A \rightarrow \mathbb{R}^p$ solves:
+We referred in Sec.\ref{sec:algo} to \emph{score-function based multi-class classifiers} and explained how the classification rule is similar to the greedy mechanism that exists between an optimal action-value function and an optimal policy in an MDP. Most classification algorithm can be seen as such a classifier. In a simple $k$-nearest neighboor approach, for example, the score function $q(s,a)$ is the number of elements of class $a$ among the $k$-nearest neighboors of $s$. The generic M-SVM model makes the score function explicit (see \cite{guermeur2011generic}). In our experiments, we choose to use a structured margin classification approach \cite{taskar2005learning} that, given a feature vector $\phi: S\times A \rightarrow \mathbb{R}^p$ solves:
 \begin{eqnarray*}
   &\min_{\theta,\zeta}\frac{1}{2}\|\theta\|^2 +
   \frac{\eta}{N}\sum_{i=1}^N \zeta_i \\
@@ -347,7 +347,7 @@ Our regressor can be written:
 \begin{equation}
   \omega = (\Phi^T\Phi + \lambda Id)^{-1}\Phi^T\hat R.
 \end{equation}
-The reward function is : $\hat R^C(s,a) = \omega^T \phi(s,a)$
+The reward function is: $\hat R^C(s,a) = \omega^T \phi(s,a)$
 
 It is possible to get imaginative in the last step. For example, using a Gaussian process regressor \cite{rasmussen2006gaussian} that outputs both expectation and variance can enable (nonwithstanding a nontrivial amount of work) the use of reward-uncertain reinforcement learning \cite{regan2011robust}. 
 
@@ -369,7 +369,7 @@ Our complete instanciation of CSI is summed up in Alg.~\ref{alg:CSIimp}.
 \emph{\textbf{Construct}} the dataset $\{((s_{j}=s_k,a_{j}=a_k),\hat r_j)_j\}$ with $\hat r_j = q(s_j,a_j) - \gamma q(s'_j=s'_k,\pi_C(s'_j=s'_k))$\;\\
 \emph{\textbf{Set}} $r_{min} = \min_j\hat r_j - 1.$\;\\
 \emph{\textbf{Construct}} the training set  $D_R = \{((s_{j}=s_k,a_{j}=a_k),\hat r_j)_j\}\cup\{((s_j=s_k,a),r_{min})_{j;\forall a\neq \pi_E(s_j) = a_k}\}$ \;\\
-\emph{\textbf{Learn}} a reward function $\hat R^C$ from the trainsing set $D_R$ by computing :
+\emph{\textbf{Learn}} a reward function $\hat R^C$ from the trainsing set $D_R$ by computing:
 \begin{equation*}
   \omega = (\Phi^T\Phi + \lambda Id)^{-1}\Phi^T\hat R.
 \end{equation*}\;\\
@@ -382,7 +382,7 @@ We provide here qualitative results on the inverted pendulum problem. Quantitati
 \subsubsection{Setting}
 The inverted pendulum (also known as the cart pole) is a classical benchmark in the RL community, it is fully described in \cite{lagoudakis2003least}. The goal is to maintain a pole in a unstable equilibrium position with the help of a cart moving along one axis. The state space consists in the angular position an speed of the pole. It is possible to use an RL algorithm to learn how to balance the pendule in an upright position by using the following reward: as long as the angular position of the pole is (in absolute value) less than $\pi \over 2$ the reward is $0$, the reward is $-1$ if the pole falls ; this reward function is plotted on Fig.~\ref{toto}. Three actions are available to the agent: it can choose to apply a leftward or rightward force on the cart or no force at all.
 
-The fact that the state space is continuous is not a problem to our particular instanciation of the CSI approach (see Alg.~\ref{alg:CSIimp}) as long as we provide a feature function $\phi : S\times A \rightarrow \mathbb{R}^p$. Here $p=30$ as we use the exact same feature functions as proposed in \cite{lagoudakis2003least}. The state space is featured with a $3\times 3$ grid of Gaussian functions concatenated with a constant component to construct a feature vector $\psi:S \rightarrow \mathbb{R}^{10}$. The eature function $\phi$ is defined as :
+The fact that the state space is continuous is not a problem to our particular instanciation of the CSI approach (see Alg.~\ref{alg:CSIimp}) as long as we provide a feature function $\phi: S\times A \rightarrow \mathbb{R}^p$. Here $p=30$ as we use the exact same feature functions as proposed in \cite{lagoudakis2003least}. The state space is featured with a $3\times 3$ grid of Gaussian functions concatenated with a constant component to construct a feature vector $\psi:S \rightarrow \mathbb{R}^{10}$. The eature function $\phi$ is defined as:
 \begin{equation}
   \phi(s,a) = \begin{pmatrix}
      \delta_{a = LEFT}\psi(s)\\
@@ -397,9 +397,9 @@ The results are shown Fig.~\ref{fig:IP}. In the left column, we show the reward 
 
 \begin{figure}
    \subfigure[Reward on which the expert was trained]{\label{toto}\begin{minipage}{.45\linewidth}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_true_R"}\end{minipage}}
-   \subfigure[Reward found by CSA-IRL. The green zone shows where the data available to the algorithm lies in the state space.]{\label{tata}\begin{minipage}{.45\linewidth}\hspace{-3em}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_lafem_R"}\end{minipage}}
+   \subfigure[Reward found by CSI. The green zone shows where the data available to the algorithm lies in the state space.]{\label{tata}\begin{minipage}{.45\linewidth}\hspace{-3em}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_lafem_R"}\end{minipage}}
   \subfigure[Value function of the expert (i.e. optimal value function for the reward displayed Fig.~\ref{toto})]{\begin{minipage}{.45\linewidth}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_Vexpert"}\end{minipage}}
-  \subfigure[Optimal value function for the reward function found by CSA-IRL (Fig.~\ref{tata})]{\begin{minipage}{.45\linewidth}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_Vagent"}\end{minipage}}
+  \subfigure[Optimal value function for the reward function found by CSI (Fig.~\ref{tata})]{\begin{minipage}{.45\linewidth}\includegraphics[width=1.2\linewidth]{"LAFEM_Exp3_Vagent"}\end{minipage}}
 
   \caption{Results on the inverted pendulum benchmark, illsutrating the dissimilarity of the rewards, but the similarity of the value functions. The state space is represented on a position-speed plan.}
   \label{fig:IP}
@@ -423,11 +423,11 @@ Apart from SCIRL, to the best of our knowledge, no other algorithm can infer a r
 
 \subsubsection{Criterion}
 \label{subsubsec:hcriterion}
-The theoretical bound provided in Sec.~\ref{sec:analysis} is about the optimality of the expert with respect to the reward function computed by our algorithm (which is also the way the problem was framed in Sec.~\ref{sec:background}). For this experiment, we use a somewhat more restrictive criterion : a measure of the optimality of an agent trained on the reward output by our algorithm, with respect to the ``true'' reward function, the reward function of the expert. We use the mean (over the uniform distribution) value function with respect to $R_E$ of the policy $\hat \pi_C$ learned by optimizing $\hat R^C$ : $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$. We do that firstly because, for once, we can : the bound we provide in the analysis is something that can be measured even if $R_E$ does not actually exist. We make use here of the fact that $R_E$ not only exists, but is known to us as we use, as an expert, a RL agent perfectly trained on a handcrafted $R_E$. The second reason for this different metric is that we believe the theoretical bound to be convincing, and what we wanted to illustrate here is not that the theoretical bound holds, but that under really dire sample scarcity (a case not covered by the analysis) our algorithm is well-behaved given the use of heuristics.
+The theoretical bound provided in Sec.~\ref{sec:analysis} is about the optimality of the expert with respect to the reward function computed by our algorithm (which is also the way the problem was framed in Sec.~\ref{sec:background}). For this experiment, we use a somewhat more restrictive criterion: a measure of the optimality of an agent trained on the reward output by our algorithm, with respect to the ``true'' reward function, the reward function of the expert. We use the mean (over the uniform distribution) value function with respect to $R_E$ of the policy $\hat \pi_C$ learned by optimizing $\hat R^C$: $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$. We do that firstly because, for once, we can: the bound we provide in the analysis is something that can be measured even if $R_E$ does not actually exist. We make use here of the fact that $R_E$ not only exists, but is known to us as we use, as an expert, a RL agent perfectly trained on a handcrafted $R_E$. The second reason for this different metric is that we believe the theoretical bound to be convincing, and what we wanted to illustrate here is not that the theoretical bound holds, but that under really dire sample scarcity (a case not covered by the analysis) our algorithm is well-behaved given the use of heuristics.
 \
 \subsubsection{Results}
 \label{subsubsec:hresults}
-Results are shown Fig.~\ref{fig:Highway}. We give the values of $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$ with $\pi$ being in turn the optimal policy for the rewards given by SCIRL and CSI, the policy $\pi_C$ of the classifier (the very one the classification step of CSI outputs), the output of the PIRL algorithm, the expert's policy $\pi_E$ and the optimal policy for a randomly drawn reward. Performance for CSA-IRL is on par with the PIRL and SCIRL algorithms, slightly below the performance of the expert himself. Very few samples (100) are needed to reliably achieve expert-level performance.
+Results are shown Fig.~\ref{fig:Highway}. We give the values of $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$ with $\pi$ being in turn the optimal policy for the rewards given by SCIRL and CSI, the policy $\pi_C$ of the classifier (the very one the classification step of CSI outputs), the output of the PIRL algorithm, the expert's policy $\pi_E$ and the optimal policy for a randomly drawn reward. Performance for CSI is on par with the PIRL and SCIRL algorithms, slightly below the performance of the expert himself. Very few samples (100) are needed to reliably achieve expert-level performance.
 
 It is very interesting to compare our algorithm to the behavior of a classifier alone (respectively red and green plots on Fig.~\ref{tutu}). With \emph{the exact same data}, albeit the use of a very simple heuristics, the cascading approach demonstrates far better performance from the start. This is a clear illustration of the fact that using the Bellman equation to construct the data fed to the regressor and outputting not a policy, but a reward function that can be optimized on the MDP truly makes use of the information that the transitions $(s,a,s')$ bear (we recall that the classifier only uses $(s,a)$ couples).
 
