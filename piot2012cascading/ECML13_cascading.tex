@@ -19,7 +19,7 @@
 \usepackage{algorithmic}
 \usepackage{subfigure}
 \tolerance=1000
-\usepackage{amsmath}
+%\usepackage{amsmath}
 %\usepackage{amsthm}
 %\newtheorem{definition}{Definition}
 %\newtheorem{theorem}{Theorem}
@@ -65,7 +65,7 @@ IRL is often used as a way to do Apprenticeshipe Learning (AL): imitating a demo
 
 A lot of existing approaches in either IRL or AL need to repeatedly solve the underlying MDP. Thus, their performance depends strongly on the quality of the associated subroutine. Consequently, they suffer from the same challenges of scalability, data scarcity, etc., as RL and (A)DP. In order to avoid repeatedly solving such problems, we adopt a different point of view.
 
-Having in mind that there is a one to one relation between a reward function and its associated optimal action-value function (via the Bellman equation, see Eq.~\ref{eq:bellman1}), it is worth thinking of a method able to output an action-value function for which the greedy policy is the demonstrated expert policy. Thus, the demonstrated expert policy will be optimal for the related reward function. We propose a score function-based multi-class classification step (see Sec.~\ref{sec:algo}) to infer a score function. Besides, in order to retrieve via the Bellman equation the reward associated to the score function computed by the classification step, we introduce a regression step (see Sec.~\ref{sec:algo}). That is why the method is called the Cascaded Supervised Inverse reinforcement learning (CSI). This method is analyzed, see Sec.~\ref{sec:analysis} where it is shown that the demonstrated expert policy is near-optimal for the reward the regression step outputs.
+Having in mind that there is a one to one relation between a reward function and its associated optimal action-value function (via the Bellman equation, see Eq.~\eqref{eq:bellman1}), it is worth thinking of a method able to output an action-value function for which the greedy policy is the demonstrated expert policy. Thus, the demonstrated expert policy will be optimal for the related reward function. We propose a score function-based multi-class classification step (see Sec.~\ref{sec:algo}) to infer a score function. Besides, in order to retrieve via the Bellman equation the reward associated to the score function computed by the classification step, we introduce a regression step (see Sec.~\ref{sec:algo}). That is why the method is called the Cascaded Supervised Inverse reinforcement learning (CSI). This method is analyzed, see Sec.~\ref{sec:analysis} where it is shown that the demonstrated expert policy is near-optimal for the reward the regression step outputs.
 
 This algorithm does not need to iteratively solve an MDP and needs only sampled transitions from expert and non-experts policies as inputs. Moreover, up to the use of some heuristics (see Subsubsec.~\ref{subsubsec:heuristics}), the algorithm is able to be trained only with transitions sampled from the demonstrated expert policy. A specific instantiation of CSI (proposed Subsec.~\ref{subsec:instanciation}) is tested on an inverted pendulum simulator (Subsec~\ref{subsec:IP}) and a car driving simulator (Subsec~\ref{subsec:Highway}) where we compare it with an AL algorithm \cite{abbeel2004apprenticeship}, with a pure classification algorithm \cite{taskar2005learning} and with a recent successfull IRL method \cite{klein2012scirl} as well as with a random baseline.
 
@@ -128,7 +128,7 @@ Our first step towards a reward function solving the IRL problem is a classifica
 \end{equation}
 For example, \emph{Multi-class Support Vector Machines}~\cite{guermeur2011generic} can be seen as SFMC$^2$ algorithms, the same can be said of the structured margin approach \cite{taskar2005learning} which we consider in the experimental setting. Other algorithms may be envisionned (see Subsec.~\ref{subsec:instanciation}). 
 
-Given a dataset $D_C = \{(s_i,a_i=\pi^E(s_i))_i\}$ of actions $a_i$ (deterministically) chosen by the expert on states $s_i$, we train such a classifier. The classification policy $\pi_C$ is not the end product we are looking for (that would be mere imitation of the expert, not IRL). What is of particular interest to us is the score function $q$ itself. One can easily notice the similarity between Eq.~\ref{eq:greedy2} and Eq.~\ref{eq:greedy} that describes the relation between the optimal policy in an MDP and its optimal action-value function. It is only natural to view the score function $q$ of the classifier as some kind of optimal action-value function for the classifier policy $\pi_C$. By inversing the Bellman equation Eq.~\ref{eq:bellman1} with $q$ in lieu of $Q^\pi_R$, one gets $R^C$, the reward function relative to our score/action-value function $q$:
+Given a dataset $D_C = \{(s_i,a_i=\pi^E(s_i))_i\}$ of actions $a_i$ (deterministically) chosen by the expert on states $s_i$, we train such a classifier. The classification policy $\pi_C$ is not the end product we are looking for (that would be mere imitation of the expert, not IRL). What is of particular interest to us is the score function $q$ itself. One can easily notice the similarity between Eq.~\eqref{eq:greedy2} and Eq.~\eqref{eq:greedy} that describes the relation between the optimal policy in an MDP and its optimal action-value function. It is only natural to view the score function $q$ of the classifier as some kind of optimal action-value function for the classifier policy $\pi_C$. By inversing the Bellman equation Eq.~\eqref{eq:bellman1} with $q$ in lieu of $Q^\pi_R$, one gets $R^C$, the reward function relative to our score/action-value function $q$:
 \begin{equation}
   \label{eq:rc}
   R^C(s,a) =q(s,a) - \sum_{\mathrm{s'}}P(s'|s,a)q(s',\pi_C(s')).
@@ -275,7 +275,7 @@ If we combine all of the results, we obtain the final bound:
 \begin{proof}
   To get rid of technicalities we assume that $\forall s \in S, \rho_E(s) \neq 0$. If not we create a new MDP $\{S',A,\gamma,P,\hat R^C\}$ with $S' = \{s \in S | \rho_E(s) \neq 0\}$ and work in it.
 
-  The function $q$ is the action-value function for $\pi_C$ with respect to the reward $R^C$, by definition (see Eq.~\ref{eq:rc}).
+  The function $q$ is the action-value function for $\pi_C$ with respect to the reward $R^C$, by definition (see Eq.~\eqref{eq:rc}).
 
   As $\epsilon_C = 0$, we have $\pi_C = \pi_E$. This means that $\forall s, \pi_E(s)$ is the only element of the set $\argmax_{a\in A}q(sa)$. Therefore, $\pi_C = \pi_E$ is the unique optimal policy for $R^C$.
 
@@ -310,7 +310,7 @@ More precisely, the expert controls the system for $n$ runs of length $n$, with 
 There is no particuliar problem for the classification step. It is however not reasonable to construct the dataset $D_R$ only from expert transitions and expect a small regression error term $\epsilon_R$. Indeed, the dataset $D_E$ only sample the dynamics induced by the expert's policy and not the whole dynamics of the MDP. The regression step also needs samples $((s_j,a_j),\hat r_j)_j$ drawn from non expert actions. We address this problem by using a heuristics.
 \subsubsection{Heuristics}
 \label{subsubsec:heuristics}
-From the raw expert dataset $D_E$ we can construct samples $((s_j=s_k,a_j=a_k),\hat r_j)$ with $\hat r_j$ as specified in Eq.~\ref{eq:rj}. To compensate for the lack of information about the dynamics of the whole MDP, we assert that disagreeing with the expert's choice is undesirable. Mathematically, we do that by artificially introducting samples $((s_j=s_k,a),r_{min})_{j;\forall a\neq \pi_E(s_j) = a_k}$ where
+From the raw expert dataset $D_E$ we can construct samples $((s_j=s_k,a_j=a_k),\hat r_j)$ with $\hat r_j$ as specified in Eq.~\eqref{eq:rj}. To compensate for the lack of information about the dynamics of the whole MDP, we assert that disagreeing with the expert's choice is undesirable. Mathematically, we do that by artificially introducting samples $((s_j=s_k,a),r_{min})_{j;\forall a\neq \pi_E(s_j) = a_k}$ where
 \begin{equation}
   r_{min} = \min_j\hat r_j - 1.
 \end{equation}
