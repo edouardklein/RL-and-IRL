@@ -32,7 +32,7 @@
 \newcommand{\argmax}{\operatorname*{argmax}} %\operatorname* pour les op. pouvant admettre des limites...
 \newcommand{\Card}{\operatorname*{Card}} %\operatorname* pour les op. pouvant admettre des limites...
 \begin{document}
-\title{Learning a reward function from demonstrations: a cascaded supervised learning approach}
+\title{A cascaded supervised learning approach to inverse reinforcement learning}
 \author{Edouard Klein$^{1,2}$ \and Bilal Piot $^{2,3}$\and Matthieu Geist $^{2}$\and Olivier Pietquin$^{2,3}$}
 \titlerunning{Cascading approach to IRL}
 \institute{
@@ -52,14 +52,14 @@ France\\
 \maketitle
 
 \begin{abstract}
-  This paper considers the Inverse Reinforcement Learning problem, that is inferring a reward function for which a demonstrated expert policy is optimal.
-We propose to break the IRL problem down into two generic Supervised Learning steps: this is the Cascaded Supervised IRL (CSI) approach. A classification step that defines a score function is followed by a regression step that outputs a reward function.
-An analysis of this approach shows that the demonstrated expert policy is near-optimal for the computed reward function.
-Not needing to repeatedly solve a Markov Decision Process (MDP) and the ability to leverage existing techniques for classification and regression are two important advantages of the CSI approach. It is furthermore empirically demonstrated to work with only transitions sampled according to the expert policy, up to the use of some heuristics. For this purpose two classical benchmarks (a highway driving simulator and a inverted pendulum simulator) are used.
+  This paper considers the Inverse Reinforcement Learning (IRL) problem, that is inferring a reward function for which a demonstrated expert policy is optimal.
+We propose to break the IRL problem down into two generic Supervised Learning steps: this is the Cascaded Supervised IRL (CSI) approach. A classification step that defines a score function is followed by a regression step providing a reward function.
+A theoretical analysis shows that the demonstrated expert policy is near-optimal for the computed reward function.
+Not needing to repeatedly solve a Markov Decision Process (MDP) and the ability to leverage existing techniques for classification and regression are two important advantages of the CSI approach. It is furthermore empirically demonstrated to work with only transitions sampled according to the expert policy, up to the use of some heuristics. This is exemplified on two classical benchmarks (a highway driving simulator and an inverted pendulum simulator).
   \end{abstract}
 \section{Introduction}
 \label{sec-2}
-The sequential decision making problem consists in taking the appropriate action pondering the available data in order to maximize a certain criterion. When framed in an MDP (see Sec.~\ref{sec:background}), the criterion to maximize is the expected sum of discounted rewards. The Inverse Reinforcement Learning (IRL)~\cite{russell1998learning} problem, which we tackle here, aims at inferring a reward function for which a demonstrated expert policy is optimal.
+Sequential decision making consists in choosing the appropriate action given the available data in order to maximize a certain criterion. When framed in a Markov Decision Process (MDP) (see Sec.~\ref{sec:background}), the criterion to maximize is the expected sum of discounted rewards. The Inverse Reinforcement Learning (IRL)~\cite{russell1998learning} problem, which we tackle here, aims at inferring a reward function for which a demonstrated expert policy is optimal.
 
 IRL is often used as a way to do Apprenticeshipe Learning (AL): imitating a demonstrated expert policy, without explicitely looking for the reward function. The reward function nevertheless is of interest in and of itself. As mentionned in \cite{ng2000algorithms}, its semantics can be analyzed in biology or econometrics. Practically, the reward can be seen as a succinct description of a task. Discovering it removes the coupling between understanding the task and learning how to fulfill it that exists in AL. IRL allows the use of (Approximate) Dynamic programming ((A)DP) or Reinforcement Learning (RL) techniques to learn the task from the computed reward function. Although some approaches use it as a byproduct, most AL algorithm make not use of the reward function. A very straightforward way to do AL is to use a multi-class classifier to directly learn the expert policy. We compare this idea with our IRL algorithm in the experiments (Sec.~\ref{sec:experiments}).
 
@@ -67,7 +67,7 @@ A lot of existing approaches in either IRL or AL need to repeatedly solve the un
 
 Having in mind that there is a one to one relation between a reward function and its associated optimal action-value function (via the Bellman equation, see Eq.~\eqref{eq:bellman1}), it is worth thinking of a method able to output an action-value function for which the greedy policy is the demonstrated expert policy. Thus, the demonstrated expert policy will be optimal for the related reward function. We propose a score function-based multi-class classification step (see Sec.~\ref{sec:algo}) to infer a score function. Besides, in order to retrieve via the Bellman equation the reward associated to the score function computed by the classification step, we introduce a regression step (see Sec.~\ref{sec:algo}). That is why the method is called the Cascaded Supervised Inverse reinforcement learning (CSI). This method is analyzed, see Sec.~\ref{sec:analysis} where it is shown that the demonstrated expert policy is near-optimal for the reward the regression step outputs.
 
-This algorithm does not need to iteratively solve an MDP and needs only sampled transitions from expert and non-experts policies as inputs. Moreover, up to the use of some heuristics (see Subsubsec.~\ref{subsubsec:heuristics}), the algorithm is able to be trained only with transitions sampled from the demonstrated expert policy. A specific instantiation of CSI (proposed Subsec.~\ref{subsec:instanciation}) is tested on an inverted pendulum simulator (Subsec~\ref{subsec:IP}) and a car driving simulator (Subsec~\ref{subsec:Highway}) where we compare it with an AL algorithm \cite{abbeel2004apprenticeship}, with a pure classification algorithm \cite{taskar2005learning} and with a recent successfull IRL method \cite{klein2012scirl} as well as with a random baseline.
+This algorithm does not need to iteratively solve an MDP and needs only sampled transitions from expert and non-experts policies as inputs. Moreover, up to the use of some heuristics (see Sec.~\ref{subsubsec:heuristics}), the algorithm is able to be trained only with transitions sampled from the demonstrated expert policy. A specific instantiation of CSI (proposed Sec.~\ref{subsec:instanciation}) is tested on an inverted pendulum simulator (Sec.~\ref{subsec:IP}) and a car driving simulator (Sec.~\ref{subsec:Highway}) where we compare it with an AL algorithm \cite{abbeel2004apprenticeship}, with a pure classification algorithm \cite{taskar2005learning} and with a recent successfull IRL method \cite{klein2012scirl} as well as with a random baseline.
 
 Differences and similarities with existing AL or IRL approaches are succinctly exposed in Sec.~\ref{sec:related}.
 \section{Background and notations}
@@ -126,7 +126,7 @@ Our first step towards a reward function solving the IRL problem is a classifica
   \label{eq:greedy2}
 \pi_C(s) \in \argmax_a q(s,a).
 \end{equation}
-For example, \emph{Multi-class Support Vector Machines}~\cite{guermeur2011generic} can be seen as SFMC$^2$ algorithms, the same can be said of the structured margin approach \cite{taskar2005learning} which we consider in the experimental setting. Other algorithms may be envisionned (see Subsec.~\ref{subsec:instanciation}). 
+For example, \emph{Multi-class Support Vector Machines}~\cite{guermeur2011generic} can be seen as SFMC$^2$ algorithms, the same can be said of the structured margin approach \cite{taskar2005learning} which we consider in the experimental setting. Other algorithms may be envisionned (see Sec.~\ref{subsec:instanciation}). 
 
 Given a dataset $D_C = \{(s_i,a_i=\pi^E(s_i))_i\}$ of actions $a_i$ (deterministically) chosen by the expert on states $s_i$, we train such a classifier. The classification policy $\pi_C$ is not the end product we are looking for (that would be mere imitation of the expert, not IRL). What is of particular interest to us is the score function $q$ itself. One can easily notice the similarity between Eq.~\eqref{eq:greedy2} and Eq.~\eqref{eq:greedy} that describes the relation between the optimal policy in an MDP and its optimal action-value function. It is only natural to view the score function $q$ of the classifier as some kind of optimal action-value function for the classifier policy $\pi_C$. By inversing the Bellman equation Eq.~\eqref{eq:bellman1} with $q$ in lieu of $Q^\pi_R$, one gets $R^C$, the reward function relative to our score/action-value function $q$:
 \begin{equation}
@@ -283,7 +283,7 @@ If we combine all of the results, we obtain the final bound:
 \end{proof}
 The uniqueness of $\pi_E$ as an optimal policy for $\hat R^C$ in the conditions of corollary~\ref{cor} hints at the fact that we found a non-trivial reward (we recall that the null reward admits \emph{every} policy as optimal). Therefore, obtaining  $\hat{R}_C = 0$ (for which the bound is obviously true: the bounded term is $0$, the bounding term is positive) is unlikely as long as the classifier and the regressor exhibit decent performance.
 
-The only constraints the bound of Thm.~\ref{thm} implies on datasets $D_R$ and $D_C$ is that they provide enough information to the supervised algorithms to keep both error terms $\epsilon_C$ and $\epsilon_R$ low. In Sec.~\ref{sec:experiments} we deal with a dire lack of data in dataset $D_R$. We address the problem with the use of heuristics (Subsubsec.~\ref{subsubsec:heuristics}) in order to show the behavior of the CSI algorithm in somewhat realistic conditions.
+The only constraints the bound of Thm.~\ref{thm} implies on datasets $D_R$ and $D_C$ is that they provide enough information to the supervised algorithms to keep both error terms $\epsilon_C$ and $\epsilon_R$ low. In Sec.~\ref{sec:experiments} we deal with a dire lack of data in dataset $D_R$. We address the problem with the use of heuristics (Sec.~\ref{subsubsec:heuristics}) in order to show the behavior of the CSI algorithm in somewhat realistic conditions.
 
 More generally, the error terms  $\epsilon_C$ and $\epsilon_R$ can be reduced by a wise choice for the classification and regression subroutines. The litterature is wide enough for methods accomodating most of use cases (lack of data, fast computation, bias/variance trade-off etc.) to be found. Being able to leverage such common algorithms as multi-class classifiers and regressors is a big advantage of our cascading approach over existing algorithms.
 
@@ -292,11 +292,11 @@ Other differences between existing IRL or apprenticeship learning approaches and
 %% Feel good comment
 \section{Experiments}
 \label{sec:experiments}
-In this section, we put our approach under stress to empirically demonstrate its behavior. We begin by providing information pertaining to both benchmarks: an explanation about the amount and source of the available data is given on Subsubsec.~\ref{subsubsec:data} and a precise description of the way we instanciated the CSI algorithm is given on subsubsections \ref{subsubsec:subroutines} and \ref{subsubsec:heuristics}. 
+In this section, we put our approach under stress to empirically demonstrate its behavior. We begin by providing information pertaining to both benchmarks: an explanation about the amount and source of the available data is given on Sec.~\ref{subsubsec:data} and a precise description of the way we instanciated the CSI algorithm is given on Sec.~\ref{subsubsec:subroutines} and \ref{subsubsec:heuristics}. 
 
-We then use a classical RL benchmark, the Inverted Pendulum (Subsec.~\ref{subsec:IP}), to provide a qualitative illustration of the proposed CSI approach.
+We then use a classical RL benchmark, the Inverted Pendulum (Sec.~\ref{subsec:IP}), to provide a qualitative illustration of the proposed CSI approach.
 
-We finally provide quantitative results and comparison with state-of-the-art approaches on a Highway driving simulator (Subsec.~\ref{subsec:highway}).
+We finally provide quantitative results and comparison with state-of-the-art approaches on a Highway driving simulator (Sec.~\ref{subsec:highway}).
 \subsection{Instanciation}
 \label{subsec:instanciation}
 \subsubsection{Data scarcity}
@@ -378,7 +378,7 @@ Our complete instanciation of CSI is summed up in Alg.~\ref{alg:CSIimp}.
 
 \subsection{Inverted Pendulum}
 \label{subsec:IP}
-We provide here qualitative results on the inverted pendulum problem. Quantitative results obtained by following a procedure very similar to Subsec.~\ref{subsec:highway} were of the same nature and justified the same analysis as those provided in Subsubsec.~\ref{subsubsec:hresults}. We thus omit them here for the sake of avoiding redundancy. Instead, we use the inverted pendulum problem for illustrative purposes.
+We provide here qualitative results on the inverted pendulum problem. Quantitative results obtained by following a procedure very similar to Sec.~\ref{subsec:highway} were of the same nature and justified the same analysis as those provided in Sec.~\ref{subsubsec:hresults}. We thus omit them here for the sake of avoiding redundancy. Instead, we use the inverted pendulum problem for illustrative purposes.
 \subsubsection{Setting}
 The inverted pendulum (also known as the cart pole) is a classical benchmark in the RL community, it is fully described in \cite{lagoudakis2003least}. The goal is to maintain a pole in a unstable equilibrium position with the help of a cart moving along one axis. The state space consists in the angular position an speed of the pole. It is possible to use an RL algorithm to learn how to balance the pendule in an upright position by using the following reward: as long as the angular position of the pole is (in absolute value) less than $\pi \over 2$ the reward is $0$, the reward is $-1$ if the pole falls ; this reward function is plotted on Fig.~\ref{toto}. Three actions are available to the agent: it can choose to apply a leftward or rightward force on the cart or no force at all.
 
@@ -408,7 +408,7 @@ The results are shown Fig.~\ref{fig:IP}. In the left column, we show the reward 
 
 \subsection{Highway driving simulator}
 \label{subsec:highway}
-Let's now move from a qualitative illustration to a quantitative assessment of the performance of the CSI algorithm. The Highway driving problem is described Subsubsec.~\ref{subsubsec:hsetting}, the criterion we use is explained Subsubsec.~\ref{subsubsec:hcriterion} and finally results and comparison to other approaches are presented Subsubsec.~\ref{subsubsec:hresults}.
+Let's now move from a qualitative illustration to a quantitative assessment of the performance of the CSI algorithm. The Highway driving problem is described Sec.~\ref{subsubsec:hsetting}, the criterion we use is explained Sec.~\ref{subsubsec:hcriterion} and finally results and comparison to other approaches are presented Sec.~\ref{subsubsec:hresults}.
 \subsubsection{Setting}
 \label{subsubsec:hsetting}
 The setting of the experiment is a driving simulator inspired from a benchmark already used in \cite{syed2008apprenticeship,syed2008game}. The agent controls a car that can switch between the three lanes of the road, go off-road on either side and modulate between three speed levels. At all times, there will be one car in one of the three lanes. Even at the lowest speed, the player's car moves faster than the others. When the other car disappears at the bottom of the screen, another one appear at the top in a randomly chosen lane. It takes two transitions to completely change lanes, as the player can move left or right for half a lane's length at a time. At the highest speed setting, if the other car appear in the lane the player is in, it is not possible to avoid the collision. The main difference between the original benchmark \cite{syed2008apprenticeship,syed2008game} and ours is that we made the MDP more ergodic by allowing the player to change speed whenever he wishes so, not just during the first transition. If anything, by adding two actions, we enlarged the state-action space and thus made the problem harder.
@@ -443,7 +443,7 @@ Finally, only the SCIRL algorithm operates on the same data as our proposed appr
   \subfigure[SCIRL and Cascading mean value.]{\includegraphics[width=.5\linewidth]{"Fig3-SCIRLAndUs"}}
   \subfigure[Legend]{\includegraphics[width=.5\linewidth]{"Fig4-Legend"}}
 
-  \caption{Data is shown with mean, standard deviation, minimum and maximum value over 50 runs. See Subsec.~\ref{subsec:setting} for detailled information about the experimental setting.}
+  \caption{Data is shown with mean, standard deviation, minimum and maximum value over 50 runs. See Sec.~\ref{subsec:setting} for detailled information about the experimental setting.}
   \label{fig:Highway}
 \end{figure}
 
@@ -456,7 +456,7 @@ AL via classification has been proposed in \cite{ratliff2007imitation} with the 
 in a classification algorithm, showing improvements compared to a
 non-structured kernel.
 
-Classification and IRL have met in the past in \cite{ratliff2006maximum}, but the labels were complete optimal policies rather than actions and the inputs were MDPs, which had to be solved. The SCIRL (for Structured Classification for IRL) algorithm \cite{klein2012scirl} which we used Subsec.~\ref{subsec:highway} is able to solve the IRL problem (without having to solve any MDP) in the same dire conditions the cascading approach has been tested in. It injects the structure of the MDP in a linearly parametrized score-function based classifier by using the expert's feature expectation as feature function. This necessity of a linarly parametrized approach and the need to compute the expert's feature exepctations makes the SCIRL algorithm less convenient than the CSI approach.
+Classification and IRL have met in the past in \cite{ratliff2006maximum}, but the labels were complete optimal policies rather than actions and the inputs were MDPs, which had to be solved. The SCIRL (for Structured Classification for IRL) algorithm \cite{klein2012scirl} which we used Sec.~\ref{subsec:highway} is able to solve the IRL problem (without having to solve any MDP) in the same dire conditions the cascading approach has been tested in. It injects the structure of the MDP in a linearly parametrized score-function based classifier by using the expert's feature expectation as feature function. This necessity of a linarly parametrized approach and the need to compute the expert's feature exepctations makes the SCIRL algorithm less convenient than the CSI approach.
 
 Few IRL or AL algorithms do not require solving an MDP. The approach of \cite{syed2008apprenticeship} requires knowing the transition probabilities of the MDP (which CSI does not need) and outputs a policy (and not a reward). The algorithm in \cite{dvijotham2010inverse} only applies to linearly-solvable MDPs whereas our approach does not place such restrictions. Closer to our use-case is the idea presented in \cite{boularias2011relative} to use a subgradient ascent of a utility function based on the notion of relative entropy. Importance sampling is suggested as a way to avoid solving the MDP. This requires sampling trajectories according to a non-expert policy and
 the direct problem remains at the core of the approach (even if
