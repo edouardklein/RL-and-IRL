@@ -139,56 +139,19 @@ class MDP:
 #+begin_src python :tangle testDP.py
 from DP import *
 from RWC import *
+import sys
+sys.path+=["./GridWorld/"]
+from GridWorld import *
 
-class MoveNStay(MDP):
-    card_S = 2
-    card_A = 2
-    def s_index( self, s):
-        return s
-    def a_index( self, a):
-        return 0 if a=="stay" else 1
-    def S(self):
-        return [0,1]
-    def A(self):
-        return ["stay","move"]
-    def P(self):
-        return array([[0.75,0.25],
-                      [0.25,0.75],
-                      [0.25,0.75],
-                      [0.75,0.25]])
-    def pi( self ):
-        return array([[.5,0,.5,0],
-                     [0,0.25,0,0.75]])
-    
-
-MnS = MoveNStay()
-D = MnS.D( lambda s:MnS.control(s,MnS.pi()),M=1,L=300)
+GW = GridWorld()
+#D = GW.D( lambda s:MnS.control(s,MnS.pi()),M=1,L=300)
 print "<html><body>"
-stay_cnt = 0.
-stay_succ = 0.
-move_cnt = 0.
-move_succ = 0.
-for trans in D:
-    if trans[1] == 'stay':
-        stay_cnt+=1.
-        if trans[0] == trans[2]:
-            stay_succ+=1.
-    else:
-        move_cnt+=1.
-        if trans[0] != trans[2]:
-            move_succ+=1.
-    #print trans
-    #print "<br/>" 
-
-print "Move success rate bonjour : %f <br/>"%(move_succ/move_cnt)
-print "Stay success rate : %f<br/>"%(stay_succ/stay_cnt)
-
-Ppi = MnS.Ppi( MnS.pi() )
-for row in Ppi:
-    print row
-    print"<br/>"
-    
-
+print "<h1>Test of DP tools on the GridWorld</h1>"
+print "<h2>Proposed reward : </h2>"
+print "Le vecteur de recompense est "+str(GW.R())
+print "<h2>Associated Value function :</h2>"
+print "<h2>Associated optimal policy :</h2>"
+print "<h2>Feature expectation of said policy :</h2>"
 print "</body></html>"
 
 #+end_src
@@ -197,8 +160,10 @@ print "</body></html>"
 #+begin_src makefile
 testDP.py: DP.org
 	tangle DP.org
+GridWorld/GridWorld.py: GridWorld/GridWorld.org
+	make -C GridWorld GridWorld.py
 
-testDPcompile: testDP.py DP.py 
+testDPcompile: testDP.py DP.py GridWorld/GridWorld.py
 	python testDP.py > testDP.html
 
 testDPstartView: testDPcompile
