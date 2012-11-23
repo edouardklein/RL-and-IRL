@@ -1,18 +1,30 @@
 all:main.pdf
 
-main.pdf: main_KLEIN_v3.tex Biblio.bib Fig1.pdf Fig2.pdf Fig3.pdf Legend.pdf
-	pdflatex main_KLEIN_v3.tex && bibtex main_KLEIN_v3 && pdflatex main_KLEIN_v3.tex && pdflatex main_KLEIN_v3.tex
-	mv main_KLEIN_v3.pdf main.pdf
-	evince main.pdf
+ECML13_cascading.pdf: ECML13_cascading.tex Biblio.bib #Fig1-NoX.pdf Fig2-ClassifAndUs.pdf Fig3-SCIRLAndUs.pdf Fig4-Legend.pdf
+	pdflatex -interaction=batchmode ECML13_cascading.tex && bibtex ECML13_cascading && pdflatex -interaction=batchmode ECML13_cascading.tex && pdflatex -interaction=batchmode ECML13_cascading.tex 
 
-Fig1.pdf: Fig2.pdf
+RTEcompile:
+	pdflatex -interaction=batchmode ECML13_cascading.tex
 
-Fig2.pdf: ANIRL_Exp3.mat Cascading_Exp3.mat GridWorld_plot.py
-	python GridWorld_plot.py
+RTEstartView: RTEcompile
+	xpdf -remote 'testRTE1' ECML13_cascading.pdf
 
-Fig3.pdf: Cascading_Exp5.mat Highway_plot.py
-	python Highway_plot.py
+RTEview:
+	xpdf -remote 'testRTE1' -reload
 
-Legend.pdf: Cascading_Exp5.mat Legend_plot.py
-	python Legend_plot.py
+RTEstopView:
+	xpdf -remote 'testRTE1' -quit
+
+
+
+Fig1-NoX.pdf: 4plots
+
+Fig2-ClassifAndUs.pdf: 4plots
+
+Fig3-SCIRLAndUs.pdf: 4plots
+
+Fig4-Legend.pdf: 4plots
+
+4plots: Cascading_Exp5.mat SCIRL_Exp3.mat 4plots.py
+	python 4plots.py
 
