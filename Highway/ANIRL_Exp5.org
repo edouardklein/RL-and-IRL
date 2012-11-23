@@ -1,0 +1,183 @@
+#+TITLE:Highway, ANIRL, Parfait
+* Expérience
+Cette expérience s'inscrit dans une démarche de test plus grande : [[file:../Protocoles.org]].\\
+
+Début du code C pour cette expérience :
+#+begin_src c :tangle ANIRL_Exp5.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "greedy.h"
+#include "utils.h"
+#include "ANIRL.h"
+
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+#include "ANIRL_Exp5_mu_pi.h"
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = NULL;
+gsl_matrix* g_mOmega = NULL;
+gsl_matrix* g_mActions = NULL; 
+#define ACTION_FILE "actions.mat"
+
+
+double g_dLambda_lstdmu = 0.1;
+double g_dGamma_anirl = 0.9;
+double g_dEpsilon_anirl = 0.03;
+unsigned int g_iIt_max_anirl = 70;
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = NULL;
+gsl_matrix* (*g_fS_0)(void) = NULL;
+unsigned int g_iMax_episode_len = -1;
+gsl_matrix* D_E = NULL;
+gsl_matrix* D = NULL;
+unsigned int M = -1;
+
+unsigned int g_iK = 3*9*9*3*5;
+unsigned int g_iP = 3*9*9*3;
+
+
+//FIXME: Useless but defined anyway in order to compile
+double g_dGamma_lafem = -1;
+unsigned int g_iNb_episodes = -1;
+#+end_src
+
+Les sous routines utilisées pour ANIRL sont :
+ - Pour le calcul des /feature expectations/, on fait appel aux routines de programmation dynamique en python écrites dans [[file:DP_mu.org]].
+   #+begin_src python :tangle ANIRL_Exp5_mu_E_s0.py
+from numpy import*
+import scipy
+import Highway
+
+Mu_E = genfromtxt( "Mu_E.mat" )
+Mu_E_s0 = Mu_E[ Highway.s_index( Highway.S_0() )]
+savetxt( "ANIRL_Exp5_mu_E_s0.mat", Mu_E_s0, "%e", "\n" )
+   #+end_src
+   #+begin_src c :tangle ANIRL_Exp5_mu_pi.c :main no
+#include <gsl/gsl_matrix.h>
+#include "greedy.h"
+#include "RL_Globals.h"
+#include "utils.h"
+
+gsl_matrix* mu_pi(gsl_matrix* omega){
+  matrix2file( "ANIRL_Exp5_omega.mat", omega );
+  //On appelle le wrapper python qu'on a écrit pour l'occasion
+  system( "python omega2mu.py ANIRL_Exp5_omega.mat > ANIRL_Exp5_mu.mat" );
+  //On lit ce que le wrapper python a écrit pour nous
+  gsl_matrix* mu = file2matrix( "ANIRL_Exp5_mu.mat", 1 );
+  return mu;
+}
+
+gsl_matrix* mu_E(){
+  gsl_matrix* mu_E = file2matrix( "ANIRL_Exp5_mu_E_s0.mat", 1 );
+  return mu_E;
+}
+
+gsl_matrix* (*g_fMu_pi)(gsl_matrix*) = &mu_pi;
+gsl_matrix* (*g_fMu_E)() = &mu_E;
+
+   #+end_src
+   #+begin_src c :tangle ANIRL_Exp5_mu_pi.h :main no
+
+gsl_matrix* mu_pi(gsl_matrix* omega);
+gsl_matrix* mu_E();
+
+   #+end_src
+   #+srcname: ANIRL_Exp5_make
+   #+begin_src makefile
+ANIRL_Exp5_mu_pi.h: ANIRL_Exp5.org
+	$(call tangle,"ANIRL_Exp5.org")
+ANIRL_Exp5_mu_pi.c: ANIRL_Exp5.org
+	$(call tangle,"ANIRL_Exp5.org")
+ANIRL_Exp5_mu_pi.o: ANIRL_Exp5_mu_pi.c  ../greedy.h ../RL_Globals.h ../utils.h
+	$(call c2obj,"ANIRL_Exp5_mu_pi.c")
+
+ANIRL_Exp5_mu_E_s0.mat: ANIRL_Exp5_mu_E_s0.py Highway.py
+	python ANIRL_Exp5_mu_E_s0.py
+
+   #+end_src
+
+ - En tant que solveur de MDP, notre algo de programmation dynamique
+   #+begin_src c :tangle ANIRL_Exp5.c :main no
+gsl_matrix* DP_wrapper(gsl_matrix* theta){
+  matrix2file( "ANIRL_Exp5_theta.mat", theta );
+  system( "python theta2omega.py ANIRL_Exp5_theta.mat > ANIRL_Exp5_omega.mat" );
+  gsl_matrix* omega = file2matrix( "ANIRL_Exp5_omega.mat", 1);
+  return omega;  
+}
+
+gsl_matrix* (*g_fMDP_solver)(gsl_matrix*) = &DP_wrapper;
+
+   #+end_src
+
+#+begin_src c :tangle ANIRL_Exp5.c :main no
+int main( void ){
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+#+end_src
+
+On lance ANIRL :
+#+begin_src c :tangle ANIRL_Exp5.c :main no
+    gsl_matrix* omega_DP =proj_ANIRL();
+#+end_src
+
+Puis on vérifie que le contrôle obtenu tient la route :
+#+begin_src c :tangle ANIRL_Exp5.c :main no
+  matrix2file( "ANIRL_Exp5_omega_agent.mat", omega_DP );
+  return system( "python EvaluateOmegaN.py ANIRL_Exp5_omega_agent.mat" );
+}
+
+#+end_src
+
+Tout cela se compile de la sorte :
+#+srcname: ANIRL_Exp5_make
+#+begin_src makefile
+../utils.h:
+	make -C .. utils.h
+../greedy.h:
+	make -C .. greedy.h
+../RL_Globals.h:
+	make -C .. RL_Globals.h
+../IRL_Globals.h:
+	make -C .. IRL_Globals.h
+
+ANIRL_Exp5.c: ANIRL_Exp5.org 
+	$(call tangle,"ANIRL_Exp5.org")
+ANIRL_Exp5.o: ANIRL_Exp5.c ../utils.h ../greedy.h ../RL_Globals.h ../IRL_Globals.h ../ANIRL.h  ANIRL_Exp5_mu_pi.h
+	$(call c2obj,"ANIRL_Exp5.c")
+ANIRL_Exp5.exe: ANIRL_Exp5.o ../greedy.o ../utils.o ../ANIRL.o ANIRL_Exp5_mu_pi.o 
+	$(O2EXE) -o ANIRL_Exp5.exe ANIRL_Exp5.o ../greedy.o ../utils.o ../ANIRL.o ANIRL_Exp5_mu_pi.o
+
+ANIRL_Exp5: ANIRL_Exp5.exe  Mu_E.mat ANIRL_Exp5_mu_E_s0.mat theta2omega.py omega2mu.py
+	./ANIRL_Exp5.exe >> ANIRL_Exp5.mat
+
+../ANIRL.h:
+	make -C .. ANIRL.h
+
+../ANIRL.o:
+	make -C .. ANIRL.o
+
+#+end_src
+
+* Results 
+ : python -c "from numpy import *;import sys;sys.path+=['..'];from Plot import *;D=genfromtxt('ANIRL_Exp5.mat');print [mean(D),min(D),max(D),naive_variance(D)]"
+
+[7.2183449001, 7.2125435575500001, 7.2235682889100001, 1.0470405042575963e-05]
+
+  #+srcname: ANIRL_Exp5_clean_make
+  #+begin_src makefile
+ANIRL_Exp5_clean:
+	find . -maxdepth 1 -iname "ANIRL_Exp5.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp5.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "ANIRL_Exp5.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp5.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp5.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp5.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp5_*"   | xargs $(XARGS_OPT) rm
+  #+end_src
+
+* Results
+  Après un 
+  : make ANIRL_Exp5
+  ont rouve que la performance est 7.21254356586. Il n'y a pas d'aléatoire là dedans.

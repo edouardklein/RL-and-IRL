@@ -1,0 +1,91 @@
+#+TITLE: Cascading IRL (SxA version) on the GridWorld
+
+* Computation
+#+begin_src python :tangle Cascading_Exp3.py
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import Cascading
+import GridWorld
+
+from DP import *
+from DP_mu import *
+
+
+D_E = genfromtxt( sys.argv[1] )
+assert D_E[-1,6] == 0 #End of episode ?
+Data = map( lambda trans: [trans[0:2],trans[2:3][0],trans[3:5],trans[6:7][0]], D_E ) #s,a,s',eoe 
+theta_SA,omega_Q = Cascading.runSA( Data, GridWorld.phi, GridWorld.A )
+perf_SA = GridWorld.evaluate_thetaSA( theta_SA, GridWorld.phi )
+
+Pi_classif = omega2pi( omega_Q, GridWorld.phi, GridWorld.Sgenerator(), GridWorld.s_index, [GridWorld.P( a ) for a in GridWorld.A ] )
+perf_classif = GridWorld.evaluate_Pi( Pi_classif )[0]
+
+print "%d\t%lf\t%lf"%(D_E.shape[0], perf_SA, perf_classif )
+
+#+end_src
+
+#+srcname: Cascading_Exp3_make
+#+begin_src makefile
+Cascading_Exp3.py: Cascading_Exp3.org
+	$(call tangle,"Cascading_Exp3.org")
+
+Cascading_Exp3: Cascading_Exp3.py GridWorld.py ../DP.py Mu_E.mat ../Cascading.py ../LAFEM.py DE.py ../a2str.py
+	for i in $(LM_VALUES); \
+	do \
+	python DE.py $$i > DE.mat; \
+	python Cascading_Exp3.py DE.mat >> Cascading_Exp3.mat; \
+	done
+
+
+#+end_src
+
+* Plotting
+#+begin_src python :tangle Cascading_Exp3_plot.py
+from matplotlib import rc
+rc('text', usetex=True)
+import sys
+sys.path+=['..']
+from numpy import *
+import scipy
+import pylab as pylab
+from Plot import *
+
+D_Cascading = genfromtxt( "Cascading_Exp3.mat" )
+D_C = D_Cascading[:,[0,1]]
+D_Classif = D_Cascading[:,[0,2]]
+myPlot = Plot()
+myPlot.Expert = 4.11057591 #python Expert.py to get this value
+myPlot.Random_mean = 0.48848324670295395#See Highway.org about Random.py for information on these values
+myPlot.Random_min = 0.069469005947400006#python Random.py to get this value
+myPlot.Random_max = 3.2720195801399998#python Random.py to get this value
+myPlot.Random_var = 0.57868038965027513#python Random.py to get this value
+
+myPlot.ymin = -1
+myPlot.ymax = 5
+
+myPlot.plot( D_C, 'orange', 'Cascading_Exp3_fig1.pdf' )
+myPlot.plot( D_Classif, 'yellow', 'Cascading_Exp3_fig2.pdf' )
+#+end_src
+FIXME: Le plot concernat ANIRL devrait avoir son code dans ANIRL_Exp6.org et non ici.
+
+#+srcname: Cascading_Exp3_make
+#+begin_src makefile
+Cascading_Exp3_plot.py: Cascading_Exp3.org
+	$(call tangle,"Cascading_Exp3.org")
+
+Cascading_Exp3_fig1.pdf: Cascading_Exp3_plot.py Cascading_Exp3.mat ../Plot.py
+	python Cascading_Exp3_plot.py
+#+end_src
+
+
+* Stuff
+  #+srcname: Cascading_Exp3_clean_make
+  #+begin_src makefile
+Cascading_Exp3_clean:
+	find . -maxdepth 1 -iname "Cascading_Exp3.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Cascading_Exp3.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Cascading_Exp3_*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Cascading_Exp3.mat"   | xargs $(XARGS_OPT) rm
+  #+end_src

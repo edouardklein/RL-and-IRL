@@ -1,0 +1,2 @@
+* Réécriture du cascading
+  Dans le dossier piot2012cascading, le fichier outline.org contient le plan, qu'il faut que je soumette sous peu à M&O.

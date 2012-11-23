@@ -76,7 +76,7 @@ class App:
         # Parameters
         self.h = 160 + 20
         self.w = 300
-        self.interval = 0 #Put non zero to see something
+        self.interval = 1000 #Put non zero to see something
 	self.step = 5
 
         self.speeds_list = [20, 40, 80]
@@ -130,7 +130,7 @@ class App:
         self.traj = 1
 
 	# Call the main function
-	self.c.after(0, self.update_cars)
+	self.c.after(100, self.update_cars)
 
     # Event listeners
     def on_up(self, event):

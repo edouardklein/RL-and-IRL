@@ -1,16 +1,12 @@
 * Introduction
   In this directory lies the code I use when I work on my PhD.
-  
-  This file describes the technical use of each file of this directory. It is tangled as the Makefile by running :
- #+begin_src sh
-emacs -batch --visit Makefile.org --funcall org-babel-tangle --script ~/.emacs
-#+end_src
 
 
   The [[End results]] produced by this Makfile have their own dedicated section.
+#FIXME: Passer lint ou un autre outil d'analyse statique de code sur tout. Pychecker pour python. Quand j'aurais le temps.
   
 * Makefiles rules
-  The rules are written in the file they work with. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
+  The rules are written in the file they affect. They are recalled here, because the Makefile should only be tangled from Makefile.org. Otherwise, tangling LSPI.org, for example, would overwrite LSPI.h and LSPI.c, which is expected, but also Makefile, which is not. Therefore the other .org files only define named code snippets that are recalled and tangled here.
 ** Misc.
 Those who do not fit in the others categories (because they fit in more than one or none of them) are aggregated here :
   #+begin_src makefile :tangle Makefile :noweb yes
@@ -25,8 +21,9 @@ Those who do not fit in the others categories (because they fit in more than one
 <<TT_Test3_make>>
   #+end_src
 ** Code extraction
+
   #+begin_src makefile :tangle Makefile :noweb yes
-tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
+tangle=tangle $1 
 
 <<LSPI_code_make>>
 <<LSTDQ_code_make>>
@@ -39,9 +36,11 @@ tangle=emacs -batch --visit $1 --funcall org-babel-tangle --script ~/.emacs
 <<TT_Test1_code_make>>
 <<TT_Test23_code_make>>
 <<a2a_code_make>>
+<<ANIRL_code_make>>
 <<criteria_code_make>>
 <<greedy_code_make>>
 <<NA_code_make>>
+<<Cascading_code_make>>
   #+end_src
 ** C source to .o file
 
@@ -60,18 +59,13 @@ o2exe=gcc $(LFLAGS)
 <<LSTDmu_c2o_make>>
 <<utils_c2o_make>>
 <<a2a_c2o_make>>
+<<ANIRL_c2o_make>>
 <<criteria_c2o_make>>
 <<greedy_c2o_make>>
   #+end_src
-** Org source to PDF
-    #+begin_src makefile :tangle Makefile :noweb yes
-org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.emacs && pdflatex $1.tex && bibtex $1 && pdflatex $1.tex && pdflatex $1.tex
-
-<<NA_org2pdf_make>>
-    #+end_src
 ** Cleaning
     #+begin_src makefile :tangle Makefile :noweb yes
-export XARGS_OPT=-t
+export XARGS_OPT=-tr
 <<LSPI_clean_make>>
 <<LSTDQ_clean_make>>
 <<LSTDmu_clean_make>>
@@ -84,17 +78,61 @@ export XARGS_OPT=-t
 <<TT_Test23_clean_make>>
 <<TT_clean_make>>
 <<a2a_clean_make>>
+<<ANIRL_clean_make>>
 <<criteria_clean_make>>
 <<greedy_clean_make>>
+<<Cascading_clean_make>>
 
-clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean
+clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean ANIRL_clean Cascading_clean
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
 	$(MAKE) -C Highway clean
+	$(MAKE) -C klein2012structured_NIPS clean
+	$(MAKE) -C klein2012structured_RIA clean
+	$(MAKE) -C klein2012 clean
     #+end_src
 * End results
+** Published papers
+*** SCIRL
+**** NIPS
+    #+begin_src makefile :tangle Makefile
+SCIRL_NIPS:
+	make -C klein2012structured_NIPS && evince klein2012structured_NIPS/scirl_nips_cr.pdf
+    #+end_src
+
 ** LAFEM
+** Published Work
+*** Papers
+**** TODO Retrouver tous ces papiers et s'assurer qu'on peut les recompiler
+**** LSTD$\mu$
+    - IJCAI 2011
+      - Paper
+      - Poster
+      - Slides
+    - EWRL 2011
+      - Paper
+      - Poster
+      - Slides
+    - JFPDA 2011
+      - Paper
+      - Poster
+      - Slides
+**** Dimensionality reduction (MLASA 2011)
+    - Paper
+    - Poster
+    - Slides
+*** Figures
+**** TODO Lister les features des papiers ci dessus
+** Unpublished work
+*** Papers and drafts
+**** SCIRL
+**** Cascading
+*** Figures
+**** TODO Reprendre les 12 figures
+**** TODO Reprendre le travail sur le GridWorld
+** Archive
+*** LAFEM
    - LAFEM_Exp1 (GridWorld)
     #+begin_src makefile :tangle Makefile
 LAFEM_Exp1:
@@ -103,12 +141,12 @@ LAFEM_Exp1:
    - LAFEM_Exp2 (InvertedPendulum)
     #+begin_src makefile :tangle Makefile
 LAFEM_Exp2:
-	make -C InvertedPendulum LAFEM_Exp2_true_R.pdf LAFEM_Exp2_lafem_R.pdf LAFEM_Exp2_Vexpert.pdf LAFEM_Exp2_Vagent.pdf
+	make -C InvertedPendulum LAFEM_Exp2
     #+end_src
    - LAFEM_Exp3 (InvertedPendulum)
     #+begin_src makefile :tangle Makefile
 LAFEM_Exp3:
-	make -C InvertedPendulum LAFEM_Exp3_true_R.pdf LAFEM_Exp3_lafem_R.pdf LAFEM_Exp3_Vexpert.pdf LAFEM_Exp3_Vagent.pdf
+	make -C InvertedPendulum LAFEM_Exp3
     #+end_src
    - LAFEM_Exp4 (InvertedPendulum)
     #+begin_src makefile :tangle Makefile
@@ -137,16 +175,21 @@ LAFEM_Exp6_EB:
 LAFEM_Exp7:
 	make -C InvertedPendulum LAFEM_Exp7_Vphi.pdf LAFEM_Exp7_Vmu.pdf
     #+end_src
+   - MCLength (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+MCLength:
+	make -C InvertedPendulum MCLength
+    #+end_src
      
-** TaskTransfer
-   - TT_Exp1 (GridWorld)
-   - TT_Exp2
-   - TT_Exp3
-   - TT_test0
-   - TT_test1
-   - TT_test2
-   - TT_test3
-** LSTDmu
+*** TaskTransfer
+    - TT_Exp1 (GridWorld)
+    - TT_Exp2
+    - TT_Exp3
+    - TT_test0
+    - TT_test1
+    - TT_test2
+    - TT_test3
+*** LSTDmu
    - criteria_mc.tex (GridWorld)
     #+begin_src makefile :tangle Makefile
 criteria_mc.tex:
@@ -170,25 +213,103 @@ threshold.tex:
 	make -C InvertedPendulum threshold.tex
     #+end_src
    - threshold_EB.tex (InvertedPendulum)
-** Previous results
+   - ANIRL_Exp1 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp1:
+	make -C InvertedPendulum ANIRL_Exp1
+    #+end_src
+   - ANIRL_Exp4 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp4:
+	make -C InvertedPendulum ANIRL_Exp4
+    #+end_src
+   - ANIRL_Exp2 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp2:
+	make -C GridWorld ANIRL_Exp2
+    #+end_src
+   - ANIRL_Exp5 (Highway)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp5:
+	make -C Highway ANIRL_Exp5
+    #+end_src
+   - ANIRL_Exp6 (Highway)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp6:
+	make -C Highway ANIRL_Exp6
+    #+end_src
+   - ANIRL_Exp2_test1 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp2_test1:
+	make -C GridWorld ANIRL_Exp2_test1
+    #+end_src
+   - LSPI_Exp1 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+LSPI_Exp1:
+	make -C GridWorld LSPI_Exp1
+    #+end_src
+   - ANIRL_Exp3 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+ANIRL_Exp3:
+	make -C GridWorld ANIRL_Exp3
+    #+end_src
+   - SCIRL_Exp1 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+SCIRL_Exp1:
+	make -C GridWorld SCIRL_Exp1
+    #+end_src
+   - SCIRL_Exp2 (Highway)
+    #+begin_src makefile :tangle Makefile
+SCIRL_Exp2:
+	make -C Highway SCIRL_Exp2
+    #+end_src
+   - SCIRL_Exp3 (Highway)
+    #+begin_src makefile :tangle Makefile
+SCIRL_Exp3:
+	make -C Highway SCIRL_Exp3
+    #+end_src
+   - Cascading_Exp1 (Highway)
+    #+begin_src makefile :tangle Makefile
+Cascading_Exp1:
+	make -C Highway Cascading_Exp1
+    #+end_src
+   - Cascading_Exp5 (Highway)
+    #+begin_src makefile :tangle Makefile
+Cascading_Exp5:
+	make -C Highway Cascading_Exp5
+    #+end_src
+   - Cascad1ing_Exp2 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+Cascading_Exp2:
+	make -C GridWorld Cascading_Exp2
+    #+end_src
+   - Cascad1ing_Exp3 (GridWorld)
+    #+begin_src makefile :tangle Makefile
+Cascading_Exp3:
+	make -C GridWorld Cascading_Exp3
+    #+end_src
+   - Cascad1ing_Exp4 (InvertedPendulum)
+    #+begin_src makefile :tangle Makefile
+Cascading_Exp4:
+	make -C InvertedPendulum Cascading_Exp4
+    #+end_src
+    
+*** Previous results
    - lagoudakis2003least_figure10.pdf (ChainWalk)
     #+begin_src makefile :tangle Makefile
 lagoudakis2003least_figure10.pdf:
 	make -C ChainWalk lagoudakis2003least_figure10.pdf
     #+end_src
-* Tests
+*** Tests
   #+begin_src makefile :tangle Makefile :noweb yes
 test: TT_test0 TT_test1 TT_test2 TT_test3
     #+end_src
-
-
-
 * Inception
 Yo dawg, I heard you like tangling makefiles, so I added a makefile rule to tangle your makefile so you can tangle while you make.
 
   #+begin_src makefile :tangle Makefile :noweb yes
 SUB_DIRS=ChainWalk GridWorld InvertedPendulum  Highway
 Makefile:
-	cat *.org > All.org; emacs -batch --visit All.org --funcall org-babel-tangle --script ~/.emacs; rm All.org &&\
+	cat *.org > All.org; tangle All.org; rm All.org &&\
 	for dir in $(SUB_DIRS); do $(MAKE) -C $$dir Makefile; done 
     #+end_src

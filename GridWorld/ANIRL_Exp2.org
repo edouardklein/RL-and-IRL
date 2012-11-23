@@ -1,0 +1,524 @@
+#+TITLE:ANIRL, GridWorld, Parfait
+* Expérience
+Cette expérience s'inscrit dans une démarche de test plus grande : [[file:../Protocoles.org]].\\
+
+
+La norme 2 de $\mu_E(s_0)$ est à peu près 3. On fixe donc $\epsilon_{ANIRL}$ à $0.03$ comme nous l'avions prévu dans le protocole. Pour passer sous ce seuil, il faut 17 itérations ; nous plaçons donc $T_{ANIRL}=170$, comme prévu par le protocole.\\
+
+L'expérience est un succès puisque l'on retrouve la politique de l'expert. Pour lancer l'expérience : make ANIRL_Exp2 dans le dossier racine.\\
+
+Début du code C pour cette expérience :
+#+begin_src c :tangle ANIRL_Exp2.c :main no
+#define _POSIX_C_SOURCE 1
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <math.h>
+#include "GridWorld.h"
+#include "greedy.h"
+#include "simulator.h"
+#include "utils.h"
+#include "ANIRL.h"
+#include "phipsi.h"
+
+#include "RL_Globals.h"
+#include "IRL_Globals.h"
+#include "ANIRL_Exp2_mu_pi.h"
+
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+gsl_matrix* g_mActions = NULL; 
+#define ACTION_FILE "actions.mat"
+
+
+double g_dLambda_lstdmu = 0.1;
+double g_dGamma_anirl = 0.9;
+double g_dEpsilon_anirl = 0.03;
+unsigned int g_iIt_max_anirl = 170;
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
+//gsl_matrix* (*g_fSimulator)(int) = &gridworld_simulator;
+gsl_matrix* (*g_fS_0)(void) = NULL;
+unsigned int g_iMax_episode_len = -1;
+gsl_matrix* D_E = NULL;
+gsl_matrix* D = NULL;
+unsigned int M = -1;
+
+
+//FIXME: Useless but defined anyway in order to compile
+double g_dGamma_lafem = -1;
+unsigned int g_iNb_episodes = -1;
+#+end_src
+
+Les sous routines utilisées pour ANIRL sont :
+ - Pour le calcul des /feature expectations/, on fait appel aux routines de programmation dynamique en python écrites dans [[file:DP_mu.org]].
+   #+begin_src c :tangle ANIRL_Exp2_mu_pi.c :main no
+#include <gsl/gsl_matrix.h>
+#include "GridWorld.h"
+#include "greedy.h"
+#include "RL_Globals.h"
+#include "utils.h"
+
+gsl_matrix* g_mPwest = NULL;
+gsl_matrix* g_mPnorth = NULL;
+gsl_matrix* g_mPsouth = NULL;
+gsl_matrix* g_mPeast = NULL;
+
+
+gsl_matrix* mu_pi(gsl_matrix* omega){
+  g_mOmega = omega;
+  //On alloue une matrice de transition représentant la politique
+  gsl_matrix* pi = gsl_matrix_alloc( GRID_HEIGHT*GRID_WIDTH, GRID_HEIGHT*GRID_WIDTH );
+  //Pour chaque état
+  unsigned int index = -1;
+  for( int i = 0; i < GRID_HEIGHT ; i++ ){
+    for( int j = 0; j < GRID_WIDTH ; j++ ){
+      //La gestion de l'index est la même que dans [[file:TT_Exp1.org]]
+      //car toutes les matrices doivent être indexées de la même manière
+      //si l'on veut que tout fonctionne
+      index = j + 5*i; //x+5*y
+      //On trouve l'action correspondante en accord avec le omega fourni
+      gsl_matrix* state = gsl_matrix_alloc( 1, g_iS );
+      gsl_matrix_set( state, 0, 0, (double) j);
+      gsl_matrix_set( state, 0, 1, (double) i);
+      gsl_matrix* mAction = greedy_policy( state );
+      int iAction = (int)gsl_matrix_get( mAction, 0, 0 );
+      gsl_matrix_free( mAction );
+      gsl_matrix_free( state );
+      //On recopie dans la ligne correspondant à l'état de la matrice politique
+      //la ligne correspondant à l'état de la matrice action relative à l'action choisie
+      //Convention venant de GridWorld.org
+      gsl_matrix* mPa = NULL; //Probabilités de transition pour a
+      switch( iAction ){
+      case 1:
+	mPa = g_mPwest;
+	//printf("< ");
+	break;
+      case 2:
+	mPa = g_mPsouth;
+	//printf("v ");
+	break;
+      case 3:
+	mPa = g_mPnorth;
+	//printf("^ ");
+	break;
+      case 4:
+	mPa = g_mPeast;
+	//printf("> ");
+	break;
+      default:
+	fprintf( stderr, "Action inexistante\n" );
+	exit( 1 );
+      }
+      gsl_matrix_view dst = gsl_matrix_submatrix( pi, index, 0, 1, GRID_HEIGHT*GRID_WIDTH );
+      gsl_matrix_view src = gsl_matrix_submatrix( mPa, index, 0, 1, GRID_HEIGHT*GRID_WIDTH );
+      gsl_matrix_memcpy( &dst.matrix, &src.matrix );
+    }
+    //printf("\n");
+  }
+  //On écrit la matrice politique dans un fichier (pas efficace en temps d'exécution,
+  //mais en temps d'écriture du code, oh lala mes enfants !)
+  matrix2file( "ANIRL_Exp2_Ppi.mat", pi );
+  gsl_matrix_free( pi );
+  //On appelle le wrapper python qu'on a écrit pour l'occasion
+  system( "python pi2mu.py" );
+  //On lit ce que le wrapper python a écrit pour nous
+  gsl_matrix* mu = file2matrix( "ANIRL_Exp2_mu.mat", 1 );
+  return mu;
+}
+
+gsl_matrix* mu_E(){
+  gsl_matrix* mu_E = 
+file2matrix( "ANIRL_Exp2_mu_E.mat", 1 );
+  return mu_E;
+}
+
+gsl_matrix* (*g_fMu_pi)(gsl_matrix*) = &mu_pi;
+gsl_matrix* (*g_fMu_E)() = &mu_E;
+
+   #+end_src
+   #+begin_src c :tangle ANIRL_Exp2_mu_pi.h :main no
+extern gsl_matrix* g_mPwest;
+extern gsl_matrix* g_mPnorth;
+extern gsl_matrix* g_mPsouth;
+extern gsl_matrix* g_mPeast;
+
+gsl_matrix* mu_pi(gsl_matrix* omega);
+gsl_matrix* mu_E();
+
+   #+end_src
+   #+srcname: ANIRL_Exp2_make
+   #+begin_src makefile
+ANIRL_Exp2_mu_pi.h: ANIRL_Exp2.org
+	$(call tangle,"ANIRL_Exp2.org")
+ANIRL_Exp2_mu_pi.c: ANIRL_Exp2.org
+	$(call tangle,"ANIRL_Exp2.org")
+ANIRL_Exp2_mu_pi.o: ANIRL_Exp2_mu_pi.c GridWorld.h ../greedy.h ../RL_Globals.h ../utils.h
+	$(call c2obj,"ANIRL_Exp2_mu_pi.c")
+
+   #+end_src
+
+   Le wrapper python mentionné dans le code C : 
+   #+begin_src python :tangle pi2mu.py
+import sys
+sys.path+=['..']
+from DP_mu import *
+
+Psi = genfromtxt( "ANIRL_Exp2_Psi.mat" )
+Ppi = genfromtxt( "ANIRL_Exp2_Ppi.mat" )
+
+mu = DP_mu( Ppi, Psi )
+
+#En regardant le code C, on s'apercoit que s_0 (en 
+# bas a gauche) correspond
+# a l'index 20)
+mu_s0 = mu[20,:]
+
+savetxt( "ANIRL_Exp2_mu.mat", mu_s0, "%e", "\n" )
+
+   #+end_src
+   Le code permettant la création de la matrice =ANIRL_Exp2_Psi.mat= mentionnée dans le wrapper python :
+   #+begin_src c :main no :tangle ANIRL_Exp2_Psi.c
+#include <gsl/gsl_matrix.h>
+#include "GridWorld.h"
+#include "IRL_Globals.h"
+#include "phipsi.h"
+#include "utils.h"
+
+unsigned int g_iS = 2;
+gsl_matrix* (*g_fPsi)(gsl_matrix*) = &psi;
+
+int main( void ){
+  gsl_matrix* Psi = gsl_matrix_alloc( GRID_HEIGHT*GRID_HEIGHT, g_iP );
+  int index = -1;
+  for( int i = 0; i < GRID_HEIGHT ; i++ ){
+    for( int j = 0; j < GRID_WIDTH ; j++ ){
+      //La gestion de l'index est la même 
+      //que dans [[file:TT_Exp1.org]]
+      //car toutes les matrices doivent être 
+      //indexées de la même manière
+      //si l'on veut que tout fonctionne
+      index = j + 5*i;//x + 5*y
+      gsl_matrix* state = gsl_matrix_alloc( 1, g_iS );
+      gsl_matrix_set( state, 0, 0, (double) j);
+      gsl_matrix_set( state, 0, 1, (double) i);
+      gsl_matrix* psi_s = g_fPsi( state );
+      gsl_matrix_view dst = gsl_matrix_submatrix( Psi, index, 0, 1, g_iP );
+      gsl_matrix_transpose_memcpy( &dst.matrix, psi_s );
+      gsl_matrix_free( psi_s );
+      gsl_matrix_free( state );
+    }
+  }
+  matrix2file( "ANIRL_Exp2_Psi.mat", Psi );
+  return 0;
+}
+
+   #+end_src
+   #+srcname: ANIRL_Exp2_make
+   #+begin_src makefile
+ANIRL_Exp2_Psi.c: ANIRL_Exp2.org
+	$(call tangle,"ANIRL_Exp2.org")
+ANIRL_Exp2_Psi.o: ANIRL_Exp2_Psi.c ../IRL_Globals.h GridWorld.h phipsi.h ../utils.h
+	$(call c2obj,"ANIRL_Exp2_Psi.c")
+ANIRL_Exp2_Psi.exe: ANIRL_Exp2_Psi.o phipsi.o ../utils.o
+	$(O2EXE) -o ANIRL_Exp2_Psi.exe ANIRL_Exp2_Psi.o phipsi.o ../utils.o
+ANIRL_Exp2_Psi.mat: ANIRL_Exp2_Psi.exe
+	./ANIRL_Exp2_Psi.exe
+
+   #+end_src
+   Le code permettant la création de la matrice =ANIRL_Exp2_mu_E.mat= mentionnée dans le code C.
+   #+begin_src python :tangle ANIRL_Exp2_mu_E.py
+import sys
+sys.path+=['..']
+from DP_mu import *
+
+Psi = genfromtxt( "ANIRL_Exp2_Psi.mat" )
+Ppi = genfromtxt( "TT_5x5_Ppi.mat" )
+
+mu = DP_mu( Ppi, Psi )
+
+#En regardant le code C, on s'apercoit que s_0 (en 
+# bas a gauche) correspond
+# a l'index 20)
+mu_s0 = mu[20,:]
+
+savetxt( "ANIRL_Exp2_mu_E.mat", mu_s0, "%e", "\n" )
+
+   #+end_src
+   #+srcname: ANIRL_Exp2_make
+   #+begin_src makefile
+ANIRL_Exp2_mu_E.py: ANIRL_Exp2.org ../DP_mu.py
+	$(call tangle, "ANIRL_Exp2.org")
+ANIRL_Exp2_mu_E.mat: ANIRL_Exp2_mu_E.py TT_5x5_Ppi.mat
+	python ANIRL_Exp2_mu_E.py
+
+   #+end_src
+ - En tant que solveur de MDP, notre algo de programmation dynamique
+   #+begin_src c :tangle ANIRL_Exp2.c :main no
+gsl_matrix* DP_wrapper(gsl_matrix* theta){
+  //On crée le vecteur récompense, dans l'ordre 
+  //des index défini dans TT_Exp1.org,
+  //Sachant que R(s) = \theta^T\psi(s)
+  gsl_matrix* R = 
+    gsl_matrix_alloc( GRID_HEIGHT*GRID_WIDTH, 1 );
+  int index = -1;
+  for( int i = 0; i < GRID_HEIGHT ; i++ ){
+    for( int j = 0; j < GRID_WIDTH ; j++ ){
+      //La gestion de l'index est la même 
+      //que dans [[file:TT_Exp1.org]]
+      //car toutes les matrices doivent être 
+      //indexées de la même manière
+      //si l'on veut que tout fonctionne
+      index = j + 5*i;//x + 5*y
+      gsl_matrix* state = gsl_matrix_alloc( 1, g_iS );
+      gsl_matrix_set( state, 0, 0, (double) j);
+      gsl_matrix_set( state, 0, 1, (double) i);
+      gsl_matrix* psi_s = g_fPsi( state );
+      gsl_matrix* r = gsl_matrix_alloc( 1, 1 );
+      gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0,
+		      theta, psi_s,
+		      0.0, r );
+      gsl_matrix_set( R, index, 0, 
+		      gsl_matrix_get( r, 0, 0 ) );
+      gsl_matrix_free( r );
+      gsl_matrix_free( psi_s );
+      gsl_matrix_free( state );
+    }
+  }
+  FILE* f = fopen( "ANIRL_Exp2_R.mat", "w" );
+  gsl_matrix_fprintf( f, R, "%e " );
+  fclose( f );
+  gsl_matrix_free( R );
+
+  system( "python R2omega.py" );
+
+  gsl_matrix* omega = file2matrix( "ANIRL_Exp2_omega.mat", 1);
+  return omega;
+}
+
+gsl_matrix* (*g_fMDP_solver)(gsl_matrix*) = &DP_wrapper;
+
+   #+end_src
+   Le code C mentionne un exécutable python :
+      #+begin_src python :tangle R2omega.py
+import sys
+sys.path+=['..']
+from DP import *
+from Pi2txt import *
+
+R = genfromtxt( "ANIRL_Exp2_R.mat" )
+P_north = genfromtxt( "TT_5x5_PENorth.mat" )
+P_east = genfromtxt( "TT_5x5_PEEast.mat" )
+P_west = genfromtxt( "TT_5x5_PEWest.mat" )
+P_south = genfromtxt( "TT_5x5_PESouth.mat" )
+Ppi = DP_txt( R, (P_north, P_south, P_west, P_east), "ANIRL_Exp2_V.mat" )
+
+print "Politique optimale d'apres DP"
+print Pi2Asciiart( Ppi )
+
+V = genfromtxt( "ANIRL_Exp2_V.mat" )
+#On construit maintenant la matrice omega, les
+# indices utilises sont donc les memes
+# que ceux de la fonction phi
+# definie dans LSTDmu_exp.org
+# FIXME: Creer un fichier qui decrit les indices
+# et s'y referer a chaque fois
+
+omega = zeros((100,1))
+
+for x in range(0,5):
+    for y in range(0,5):
+        for a in range(1,5):
+            index = y*5*4 + x*4 + a-1
+            P_a = array([])
+            if a == 1:
+                P_a = P_west
+            elif a == 2:
+                P_a = P_south
+            elif a == 3:
+                P_a = P_north
+            elif a == 4:
+                P_a = P_east
+            else:
+                print "BOUM"
+                exit( -1 )
+            #Q(s,a) = R(s) + \gamma P_a(s)^TV
+            #FIXME: Gamma est code en dur ici
+            omega[index,0] = R[ x+5*y ] + 0.9*dot( P_a[x+5*y,:], V )
+            #if x == 3 and y == 0:
+                #import pdb
+                #pdb.set_trace()
+                #print "Index s : %d | Index sa : %d | Q((3,0),%d) = %f"%(x+5*y,index,a,R[ x+5*y ] + 0.9*dot( P_a[x+5*y,:], V ))
+
+savetxt( "ANIRL_Exp2_omega.mat", omega, "%e", "\n" )
+
+   #+end_src
+
+
+
+#+begin_src c :tangle ANIRL_Exp2.c :main no
+int main( void ){
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  g_mPwest = file2matrix ( "TT_5x5_PEWest.mat", 25 );
+  g_mPeast = file2matrix ( "TT_5x5_PEEast.mat", 25 );
+  g_mPnorth = file2matrix ( "TT_5x5_PENorth.mat", 25 );
+  g_mPsouth = file2matrix ( "TT_5x5_PESouth.mat", 25 );
+
+#+end_src
+
+On lance ANIRL :
+#+begin_src c :tangle ANIRL_Exp2.c :main no
+    gsl_matrix* omega_DP =proj_ANIRL();
+#+end_src
+
+Puis on vérifie que le contrôle obtenu tient la route :
+#FIXME: On devrait vérifier ça en regardant V(s_0)
+#+begin_src c :tangle ANIRL_Exp2.c :main no
+  g_mOmega = omega_DP;
+  gsl_matrix* D_agent = gridworld_simulator( 1000 );
+  printf("Longueur moyenne du run de l'agent : %f\n",((double)(D_agent->size1))/1000.);
+  return 0;
+}
+
+#+end_src
+
+Tout cela se compile de la sorte :
+#+srcname: ANIRL_Exp2_make
+#+begin_src makefile
+R2omega.py: ANIRL_Exp2.org 
+	$(call tangle,"ANIRL_Exp2.org")
+ANIRL_Exp2.c: ANIRL_Exp2.org 
+	$(call tangle,"ANIRL_Exp2.org")
+ANIRL_Exp2.o: ANIRL_Exp2.c GridWorld.h ../utils.h ../greedy.h phipsi.h ../RL_Globals.h ../IRL_Globals.h ../ANIRL.h simulator.h
+	$(call c2obj,"ANIRL_Exp2.c")
+ANIRL_Exp2.exe: ANIRL_Exp2.o  phipsi.o ../greedy.o ../utils.o ../ANIRL.o simulator.o ANIRL_Exp2_mu_pi.o Pi2txt.py
+	$(O2EXE) -o ANIRL_Exp2.exe ANIRL_Exp2.o phipsi.o ../greedy.o ../utils.o ../ANIRL.o simulator.o ANIRL_Exp2_mu_pi.o
+
+ANIRL_Exp2: ANIRL_Exp2.exe TT_5x5_PEWest.mat TT_5x5_PENorth.mat TT_5x5_PESouth.mat TT_5x5_PEEast.mat ANIRL_Exp2_Psi.mat ANIRL_Exp2_mu_E.mat
+	./ANIRL_Exp2.exe
+
+../ANIRL.h:
+	make -C .. ANIRL.h
+
+../ANIRL.o:
+	make -C .. ANIRL.o
+
+#+end_src
+
+  #+srcname: ANIRL_Exp2_clean_make
+  #+begin_src makefile
+ANIRL_Exp2_clean:
+	find . -maxdepth 1 -iname "ANIRL_Exp2.h"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2.c"   | xargs $(XARGS_OPT) rm 
+	find . -maxdepth 1 -iname "ANIRL_Exp2.o"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2.exe"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2.tex"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2.pdf"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_mu_pi.*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_Ppi.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_mu.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "pi2mu.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "R2omega.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_Psi.*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_mu_E.*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_R.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_R_E.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_V.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_omega.mat"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_AsciiArtWrapper.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_omega2mu.*"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "ANIRL_Exp2_test1.*"   | xargs $(XARGS_OPT) rm
+  #+end_src
+
+* Test
+** Affichage des politiques
+   On commence par un test précis sur =[R2omega] -> [omega2pi]=. Il faut que la politique de l'expert telle que définie dans [[file:TT_Exp1.org]] soit la même que la politique représentée par le $\omega$ fourni par =R2omega.py= lorsqu'on lui donne la récompense de l'expert. La partie =[omega2pi]= est cachée dans =mu_pi()=.
+
+   #+begin_src python :tangle ANIRL_Exp2_AsciiArtWrapper.py
+import sys
+from Pi2txt import *
+
+Pi = genfromtxt( sys.argv[1] )
+print Pi2Asciiart( Pi )
+   #+end_src
+** Pipeline complet
+
+  Les indices et le passage continuel C<->python mettent un peu le bazar. On va donc faire un test pour vérifier que tout fonctionne comme l'on s'y attend. On part de la récompense de l'expert, que l'on passe à la moulinette de =R2omega.py=, le resultat est ensuite passé à la moulinette de =pi2mu.py= par l'intermédaire d'un appel à mu_pi() (en C). Le résultat doit être exactement le même que celui contenu dans =ANIRL_Exp2_mu_E.mat=. Passer ce test n'implique pas que tout va bien, mais ne pas le réussir implique qu'il y a un soucis.
+
+  #+begin_src text :tangle ANIRL_Exp2_R_E.mat
+0
+0
+0
+0
+1
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+
+  #+end_src
+
+#+begin_src c :main no :tangle ANIRL_Exp2_omega2mu.c
+#include <gsl/gsl_matrix.h>
+#include "ANIRL_Exp2_mu_pi.h"
+#include "utils.h"
+#include "phipsi.h"
+
+#define ACTION_FILE "actions.mat"
+unsigned int g_iS = 2;
+unsigned int g_iA = 1;
+gsl_matrix* (*g_fPhi)(gsl_matrix*) = &phi;
+gsl_matrix* g_mOmega = NULL;
+gsl_matrix* g_mActions = NULL; 
+  
+int main( void ){
+  g_mActions = file2matrix( ACTION_FILE, g_iA );
+  g_mPwest = file2matrix ( "TT_5x5_PEWest.mat", 25 );
+  g_mPeast = file2matrix ( "TT_5x5_PEEast.mat", 25 );
+  g_mPnorth = file2matrix ( "TT_5x5_PENorth.mat", 25 );
+  g_mPsouth = file2matrix ( "TT_5x5_PESouth.mat", 25 );
+  gsl_matrix* omega = file2matrix( "ANIRL_Exp2_omega.mat", 1 );
+  gsl_matrix* mu = mu_pi( omega ); //This function writes mu to ANIRL_Exp2_mu.dat
+  return 0;
+}
+
+
+#+end_src
+
+  #+srcname: ANIRL_Exp2_make
+  #+begin_src makefile
+ANIRL_Exp2_omega2mu.c: ANIRL_Exp2.org 
+	$(call tangle,"ANIRL_Exp2.org")
+ANIRL_Exp2_omega2mu.o: ANIRL_Exp2_omega2mu.c ../utils.h ANIRL_Exp2_mu_pi.h
+	$(call c2obj,"ANIRL_Exp2_omega2mu.c")
+ANIRL_Exp2_omega2mu.exe: ANIRL_Exp2_omega2mu.o  ../utils.o ANIRL_Exp2_mu_pi.o ../greedy.o phipsi.o ../DP_mu.py
+	$(O2EXE) -o ANIRL_Exp2_omega2mu.exe ANIRL_Exp2_omega2mu.o ../utils.o ANIRL_Exp2_mu_pi.o ../greedy.o phipsi.o
+
+ANIRL_Exp2_R_E.mat: ANIRL_Exp2.org
+	$(call tangle,"ANIRL_Exp2.org")
+ANIRL_Exp2_test1: ANIRL_Exp2_R_E.mat ANIRL_Exp2_omega2mu.exe TT_5x5_Ppi.mat Pi2txt.py actions.mat ANIRL_Exp2_Psi.mat ANIRL_Exp2_mu_E.mat
+	cp ANIRL_Exp2_R_E.mat ANIRL_Exp2_R.mat
+	python R2omega.py
+	./ANIRL_Exp2_omega2mu.exe
+	python ANIRL_Exp2_AsciiArtWrapper.py TT_5x5_Ppi.mat
+	python ANIRL_Exp2_AsciiArtWrapper.py ANIRL_Exp2_Ppi.mat
+	diff ANIRL_Exp2_mu_E.mat ANIRL_Exp2_mu.mat
+
+  #+end_src
+  

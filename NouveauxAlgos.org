@@ -7,7 +7,37 @@
 #+LaTeX_HEADER: \usepackage{natbib}
 #+TITLE:Deux nouveaux algos d'IRL
 [TABLE-OF-CONTENTS]
+FIXME: Harmoniser les notations pour que tout s'appelle SCIRL et non LAFEM
+* SCIRL Header
+** Détails techniques
+#+begin_src python
+from LAFEM.py import *
 
+class my_LAFEM( LAFEM ):
+    A = []
+    def l( self, s, a ):
+        return -1
+    def mu_E( self,s a ):
+        return [-1]
+    def alpha( self, t ):
+        return -1
+    theta_0 = [-1]
+    Threshold = -1
+    T=-1
+    data = []
+#+end_src
+** Entrées
+    - =data= : Matrice dont chaque ligne a la forme  $[s,a]$ correspondant aux actions choisies par l'expert
+** Sorties
+    - =theta= : Vecteur de récompense tel que $R(s) = \theta^T\psi(s)$ expliquant le comportement de l'expert. Il n'est pas nécessaire de fournir $\psi$ à l'algorithme puisque la définition de $\psi$ est liée à celle de $\mu$.
+** Paramètres
+   - =A= : Description de l'espace d'action
+   - =l()= : Fonction de FIXME trouver le mot qui va bien je m'en souviens plus
+   - =mu_E()= : Routine pour le calcul de la feature expectation de l'expert
+   - =alpha()= : pas d'apprentissage pour la descente de sous gradient
+   - =theta_0= : Vecteur récompense initial
+   - =Threshold= : Seuil où l'algorithme s'arrête si la norme du gradient passe en dessous
+   - =T= : Nombre maximum d'itérations
 * Rappel sur le RL et l'IRL
 ** RL
   L'apprentissage par renforcement (/Reinforcement Learning/, RL) consiste, à partir d'une fonction de récompense définie par exemple sur l'espace d'état $R : S \rightarrow \mathbb{R}$, à trouver la politique optimale $\pi^* : S\rightarrow A$ optimisant le cumul pondéré des récompenses sur le long terme.
@@ -221,13 +251,13 @@ Cela signifie qu'en choisissant les bonnes fonctions de base l'on arrive directe
 \bibliography{../Biblio/Biblio}
 
 * Implémentation python de LAFEM 				       :code:
-  :PROPERTIES:
-  :ID:       879A40A3-5890-4665-86C0-826ABD3BC1BC
+:PROPERTIES:
+:ID:       879A40A3-5890-4665-86C0-826ABD3BC1BC
   :END:
    L'algorithme est implémenté dans une classe abstraite en python. Les éléments nécessaires à l'algorithme sont définis comme des fonctions abstraites, ce qui fait qu'il est impossible de créer ou d'utiliser cette classe sans la sous classer en définissant les éléments nécessaires.
 
 #+begin_src python :tangle LAFEM.py
-from numpy import *
+from numpy import * #Normaliser les imports de numpy et scipy
 import scipy.linalg
 import os
 import sys
@@ -240,7 +270,7 @@ class LAFEM:
    L'algorithme prend en entrée :
    - une fonction de perte $l : S\times A \rightarrow \mathbb R$, prenant deux vecteurs ligne $s$ et $a$ en argument, renvoyant un réel
      #+begin_src python :tangle LAFEM.py
-   def l( self, s, a ):
+   def l( self, s, a ): #FIXME: on utilise toujours la meme devrait y avoir moyen de factoriser (celle de cascading.org est pas degueu)
       raise NotImplementedError, "Cannot call abstract method"
      #+end_src
    - la /feature expectation/ de l'expert $\mu_E : S\times A \rightarrow \mathbb R ^p$, prenant deux vecteurs lignes $s$ et $a$ en argument, renvoyant un vecteur colonne
@@ -316,12 +346,15 @@ class LAFEM:
          #+begin_src python :tangle LAFEM.py
             DeltaTheta = DeltaTheta + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
          #+end_src
-     - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t {1\Delta\theta\over N ||\Delta\theta||_2}$
+	 FIXME: Corriger le pseudo code
+     - Effectuer la mise à jour $\theta_{t+1} = \theta_t -\alpha_t {\Delta\theta\over N ||\Delta\theta||_2}$
        #+begin_src python :tangle LAFEM.py
          DeltaTheta = DeltaTheta / len(self.data) #1/N
          norm = scipy.linalg.norm(DeltaTheta)
-         theta = theta - self.alpha( t ) * DeltaTheta / norm
+         if norm > 0.:
+             theta = theta - self.alpha( t ) * DeltaTheta / norm
          sys.stderr.write("Norme du gradient : "+str(norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)+"\n")
+
        #+end_src
      - Si $||\theta_{t+1}||_2 < ||\theta_T||_2$, effectuer $\theta_T \leftarrow\theta_{t+1}$
        #+begin_src python :tangle LAFEM.py

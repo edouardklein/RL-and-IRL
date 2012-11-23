@@ -1,7 +1,20 @@
 #+TITLE: Abbeel and Ng's IRL algorithm, with Monte-Carlo estimation of the feature expectation
   
   In their paper, \cite{abbeel2004apprenticeship}, Ng and Abbeel present an IRL algorithm. This file is an implementation of this algorithm in its projection form, using a Monte-Carlo method to estimate $\mu_E$ and $\mu_i$ and using LSPI to solve the MDP.
-  
+* MC$\mu$ header
+** Détails techniques  
+#+begin_src C
+#include "abbeel2004apprenticeship.h"
+
+gsl_matrix* mu = monte_carlo_mu( D );
+#+end_src
+** Entrées
+   - =D= : Matrice de données dont la dernière colonne est $eoe$ et les $dim(S)$ premières un état
+** Sortie
+   = =mu= : Matrice correspondant à l'estimation de Monte-Carlo de $\mu$ sur les données fournies, à savoir $\sum_{T \in D}\sum_{s_t\in T}\gamma^t\psi(s_t)$
+** Paramètres
+   - =g_fPsi= : Feature de $S$ dans $\mathbf{R}^p$
+   - =g_dGamma_anirl= : Coefficient d'amortissement
 * C implementation
 ** Externals
    Two functions are offered : 
@@ -70,7 +83,7 @@ gsl_matrix* monte_carlo_mu( gsl_matrix* D ){
    #+end_src
    
    The implementation of Abbeel and Ng's algorithm is not as simple. We do not follow the way things are exposed in the paper, but use a simpler (implementation wise) way. Mainly, the value referenced as $\bar\mu^i$ in the paper is now $\bar\mu$, a value constructed by a successive addition of terms. The variable $i$ is no more needed.
-
+   FIXME: Réunir cette implémentation avec celle de LSTDmu.org en paramétrant le choix des routines
    The implementation goes as follow :
    #+begin_src c :tangle abbeel2004apprenticeship.c :main no
 gsl_matrix* proj_mc_lspi_ANIRL( gsl_matrix* D_E,

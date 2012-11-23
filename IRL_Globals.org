@@ -55,7 +55,6 @@ extern gsl_matrix* (*g_fS_0)( void );
     #+end_src
 
 
-
 * Makefile rules
   We just tangle the file and give a rule to clean the result. Nothing fancy here.
   #+srcname: IRL_Globals_make
