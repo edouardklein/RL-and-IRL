@@ -1,0 +1,3 @@
+We would like to correct Reviewer_9's assessment of the compared sample complexity of PIRL and SCIRL. As we stated line 405 PIRL is fully informed, it can access the model whereas SCIRL only uses samples from the expert. PIRL could not work with so little data because it needs to solve the Reinforcement Learning (RL) problem at each iteration, and this could not be done with only samples from the expert.
+This fundamuntal difference between these two algoritms also explains the gap in running time. The longest routine in SCIRL is the evaluation of mu_E, which is done once and for all at the start of the algorithm. PIRL needs to solve the MDP at each iteration, and doing this once takes longer than estimating mu_E (which is akin to a policy evaluation problem).
+
