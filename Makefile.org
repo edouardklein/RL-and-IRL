@@ -122,37 +122,26 @@ SCIRL_NIPS:
 **** TODO Lister les features des papiers ci dessus
 ** Unpublished work
 *** Papers and drafts
-**** SCIRL
-**** Cascading
-*** Figures
-    #+begin_src makefile 
-RTEcompile:
-	make -C GridWorld Expert_Nice_View
+**** SCIRLBoost
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<SCIRLBoost_make>>
+RTEcompile: SCIRLBoostCompile
 
-RTEstartView:
-	xpdf -remote RTE1 GridWorld/V_expert.pdf & xpdf -remote RTE2 GridWorld/true_reward.pdf
+RTEstartView: SCIRLBoostStartView
 
-RTEview:
-	xpdf -remote RTE1 -reload && xpdf -remote RTE2 -reload
+RTEview: SCIRLBoostView
 
-RTEstopView:
-	xpdf -remote RTE1 -quit & xpdf -remote RTE2 -quit
+RTEstopView: SCIRLBoostStopView
 
 
     #+end_src
+
+*** Figures
 **** TODO Reprendre les 12 figures
 **** TODO Reprendre le travail sur le GridWorld
 *** Tests
     #+begin_src makefile :tangle Makefile :noweb yes
 <<testDP_make>>
-RTEcompile: testDPcompile
-
-RTEstartView: testDPstartView
-
-RTEview: testDPview
-
-RTEstopView: testDPstopView
-
 
     #+end_src
 ** Archive

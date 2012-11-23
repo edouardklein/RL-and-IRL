@@ -3,7 +3,7 @@
 #+LATEX_HEADER:\usepackage[ruled,algo2e]{algorithm2e}
 #+LATEX_HEADER:\usepackage{fullpage}
 #+LATEX_HEADER:\usepackage{mathtools}
-#+LATEX_HEADER:\mathtoolsset{showonlyrefs}
+#+LATEX_HEADER:\mathtoolsset{showonlyrefs=false}
 #+LATEX_HEADER:\usepackage{eulervm}
 #+LATEX_HEADER:\usepackage{natbib}
 #+begin_LaTeX
@@ -49,9 +49,9 @@ A partir d'une fonction de feature $\psi_p \in (\mathbb R^p)^S$, on peut facilem
 *** Notation matricielle
 Pour faciliter l'explication, on introduit les notations suivantes :
 \begin{eqnarray}
-\Psi_{D_s} &=& \begin{bmatrix}\vdots \\ \psi_p(s_i) \\ \vdots \end{bmatrix}_{s_i\in D_{s}}\\
-\Phi_{D_{sa}} &=& \begin{bmatrix}\vdots \\ \phi(s_i,a_i) \\ \vdots \end{bmatrix}_{s_i,a_i\in D_{sa}}\\
-\Phi_{D_{s'a'}} &=& \begin{bmatrix}\vdots \\ \phi(s'_i,a'_i) \\ \vdots \end{bmatrix}_{s'_i,a'_i\in D_{s'a'}}
+\Psi_{D_s} &=& \begin{bmatrix}\vdots \\ \psi_p(s_i)^T \\ \vdots \end{bmatrix}_{s_i\in D_{s}}\\
+\Phi_{D_{sa}} &=& \begin{bmatrix}\vdots \\ \phi(s_i,a_i)^T \\ \vdots \end{bmatrix}_{s_i,a_i\in D_{sa}}\\
+\Phi_{D_{s'a'}} &=& \begin{bmatrix}\vdots \\ \phi(s'_i,a'_i)^T \\ \vdots \end{bmatrix}_{s'_i,a'_i\in D_{s'a'}}
 \end{eqnarray}
 ** Pincipe
 *** Fonction de risque
@@ -76,10 +76,10 @@ J(q) &=& \sum_{s_i,a_i\in D_{sa}}q(s_i,a_i^*)+l(s_i,a_i^*) - q(s_i,a_i),\\
   
   Revenant à AnyBoost appliqué à SCIRL, il convient de trouver la nouvelle /feature component/ maximisant la quantité $\prodsca{-\nabla_qJ(q)}{\Q}$.
 
-  Comme illustré dans MMPBoost \citep{ratliff2007boosting}, on peut identifier ce terme en écrivant le développement de $R(q + \epsilon \Q)$. Attention, on suppose ici que $\epsilon$ est suffisamment petit pour ne pas changer $a_i^*$.
+  Comme illustré dans MMPBoost \citep{ratliff2007boosting}, on peut identifier ce terme en écrivant le développement de $J(q + \epsilon \Q)$ ($J$ est linéaire, le développement s'arrête au premier ordre). Attention, on suppose ici que $\epsilon$ est suffisamment petit pour ne pas changer $a_i^*$.
 
   \begin{eqnarray}
-  R(q + \epsilon Q^E_\psi) &=& J(q) + \epsilon \prodsca{\nabla_qJ(q)}{\Q} + \epsilon^2 ||\Q||^2\\
+  J(q + \epsilon Q^E_\psi) &=& J(q) + \epsilon \prodsca{\nabla_qJ(q)}{\Q}\\
 &=&  \sum_{s_i,a_i\in D_{sa}}q(s_i,a_i^*)+l(s_i,a_i^*)+\epsilon \Q(s_i,a_i^*) - q(s_i,a_i)-\epsilon \Q(s_i,a_i)\\
 &=&  \sum_{s_i,a_i\in D_{sa}}q(s_i,a_i^*)+l(s_i,a_i^*)- q(s_i,a_i) + \epsilon(\Q(s_i,a_i^*)-\Q(s_i,a_i))\\
 &=&  J(q) + \epsilon \sum_{s_i,a_i\in D_{sa}} \Q(s_i,a_i^*)-\Q(s_i,a_i)\\
