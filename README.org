@@ -1,2 +1,10 @@
-* Réécriture du cascading
-  Dans le dossier piot2012cascading, le fichier outline.org contient le plan, qu'il faut que je soumette sous peu à M&O.
+* Récupération des éléments passés
+** klein2011batch
+   Le dossier klein2011batch à l'air assez propre, il contient papier, poster et slides, j'ai supprimé les branches elatives à tout ça vu qu'elles ont été mergées il y a fort longtemps.
+   Le soucis est que le dossier est pas self-content, les courbes manquent, il faudrait :
+   - recrééer les courbes du papier
+   - copier les données dans le dossier pour pouvoir redessiner les courbes à volonté
+   - créer un target de test pour s'assurer que le code qui sert à créer les données est toujours là
+
+** klein2011dimensionality
+   Il y a l'air d'avoir le papier et les slides, mais avec une astuce du org-mode, ça compile plus.
