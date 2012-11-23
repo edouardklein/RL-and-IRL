@@ -1,5 +1,20 @@
 #+TITLE: Constants for the Gridworld
 
+    #+begin_src python :tangle GridWorld.py
+from numpy import *
+import scipy
+import sys
+sys.path+=['..']
+from DP import *
+from DP_mu import *
+from RWC import *
+import random
+
+class GridWorld(MDP):
+    card_S = 25
+    card_A = 4
+#+end_src
+
 * State and action spaces
 ** S and A
 The state space is of dimension $2$ and cardinal $5\cdot 5 = 25$ : 
@@ -16,48 +31,40 @@ The action space is of dimension one and cardinal $4$. The player can try to :
 
 The following python code allow one to iterate trough all the states and actions :
     #+begin_src python :tangle GridWorld.py
-from numpy import *
-import scipy
-import sys
-sys.path+=['..']
-from DP import *
-from DP_mu import *
-from RWC import *
-import random
-
-def Sgenerator( ):
-    for x in range(0,5):
-        for y in range(0,5):
-            yield [x,y]
-S = [s for s in Sgenerator()]
-A = range(0,4)
+    def Sgenerator( ):
+        for x in range(0,5):
+            for y in range(0,5):
+                yield [x,y]
+    S = [s for s in Sgenerator()]
+    A = range(0,4)
+    
     #+end_src
 
 ** $\phi$ and $\psi$
 It is useful to associate each state and each state-action pair with an index. This allows for a matricial representation of the problem. Also, features from the state and state-action space are provided.
     #+begin_src python :tangle GridWorld.py
-def s_index( state ):
-    x = state[0]
-    y = state[1]
-    index = y*5 + x
-    return int(index)
+    def s_index( state ):
+        x = state[0]
+        y = state[1]
+        index = y*5 + x
+        return int(index)
 
-def sa_index( state, action ):
-    x = state[0]
-    y = state[1]
-    a = action
-    index = y*5*4 + x*4 + a
-    return int(index)
+    def sa_index( state, action ):
+        x = state[0]
+        y = state[1]
+        a = action
+        index = y*5*4 + x*4 + a
+        return int(index)
 
-def psi( s ):
-    answer = zeros(( 5*5, 1 ))
-    answer[ s_index( s )] = 1.
-    return answer
+    def psi( s ):
+        answer = zeros(( 5*5, 1 ))
+        answer[ s_index( s )] = 1.
+        return answer
 
-def phi( s,a ):
-    answer = zeros(( 5*5*4, 1 ))
-    answer[ sa_index( s, a )] = 1.
-    return answer
+    def phi( s,a ):
+        answer = zeros(( 5*5*4, 1 ))
+        answer[ sa_index( s, a )] = 1.
+        return answer 
     #+end_src
 
     #+begin_src c :tangle phipsi.c :main no
@@ -112,53 +119,15 @@ phipsi.h: GridWorld.org
 #+end_src
 FIXME: Phi et Psi sont maintenant tanglées dans un fichier à part, précédemment elles l'étaient dans plot.c. Cela va casser l'expérience présente dans ce fichier, mais pour l'instant ce n'est pas mon soucis. Il faudrait cependant réparer ça un de ces quatre.
 
-* Dynamics
-  
-  Actions have non deterministic outcomes. 3 times out of 10, the results of an action will change and be the expected result of another, different action. Sometimes (when the agent is near the border) the results of two actions can be identical.
-
-
-  One can associate a probability matrix with each action, describing the transition probability from every state to every other if the considered action is taken at each step.
-    #+begin_src python :tangle GridWorld.py
-def next_states( state, action ):
-    "Returns the list [[s,w],...] of next possible states and associated probability"
-    x = state[0]
-    y = state[1]
-    x_south = x
-    y_south = y + 1 if y!=4 else 4
-    x_west = x - 1 if x!=0 else 0
-    y_west = y
-    x_east = x + 1 if x!=4 else 4
-    y_east = y 
-    x_north = x
-    y_north = y - 1 if y!=0 else 0
-    weights = zeros((1,4)) + .1
-    weights[0,action] = 0.7
-    assert abs(sum(weights) - 1.) < 0.00001
-    states = map( array, [[x_south,y_south],[x_west,y_west],[x_east,y_east],[x_north,y_north]]) #Same order as specified in the textual description of the action space
-    return zip( states, weights[0] )
-
-def P( a ):
-    "Returns the matrix of transition probability for action a."
-    P_a = zeros((5*5,5*5))
-    for state in Sgenerator():
-        current_index = s_index( state )
-        states = next_states( state, a )
-        for sdash,w in states:
-            index_dash = s_index( sdash )
-            P_a[current_index, index_dash] += w
-    return P_a
-
-    #+end_src
-
 * Suggested reward
 ** Definition
    We arbitrarily decide that we want the expert to go to the north east corner.
     #+begin_src python :tangle GridWorld.py
-def R( ):
-    reward = zeros((5*5,1))
-    index = s_index([4,0])
-    reward[index] = 1.
-    return reward
+    def R( self ):
+        reward = zeros((5*5,1))
+        index = s_index([4,0])
+        reward[index] = 1.
+        return reward
 
     #+end_src
 
@@ -172,7 +141,25 @@ from DP import *
 from DP_mu import *
 
 print "Expert creation..."
-Pi_E = GridWorld.GWDP( GridWorld.R(), "V_Expert.mat" )
+Reward = GridWorld.R()
+Pi_E = GridWorld.GWDP( Reward, "V_Expert.mat" )
+#Preparing to plot expert's reward and value function
+V_expert = genfromtxt("V_Expert.mat")
+f = open( "true_reward.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,Reward[index]) )
+    f.write("\n")
+f.close()
+f = open( "V_expert.txt", "w" )
+for y in range(0,5):
+    for x in range(0,5):
+        index = x+5*y
+        f.write( "%d %d %e\n"%(x,y,V_expert[index]) )
+    f.write("\n")
+f.close()
+
 print "mu_E computation..."
 Mu_E = DP_mu( Pi_E, identity(5*5) )
 
@@ -180,8 +167,10 @@ savetxt( "Pi_E.mat", Pi_E, "%e", "\t" )
 savetxt( "Mu_E.mat", Mu_E, "%e", "\t" )
 print "Performances de l'expert :"
 print GridWorld.evaluate_Pi( Pi_E )
-    #+end_src
 
+
+    #+end_src
+: 
 #+srcname: GridWorld_make
   #+begin_src makefile
 Expert.py: GridWorld.org 
@@ -195,6 +184,15 @@ Mu_E.mat: Expert.py ../DP.py ../DP_mu.py
 
 V_Expert.mat: Expert.py ../DP.py ../DP_mu.py
 	python Expert.py
+
+Expert_Nice_View: Expert.py ../DP.py ../DP_mu.py LAFEM_Exp1_V_expert.gp  LAFEM_Exp1_true_reward.gp 
+	python Expert.py
+	gnuplot LAFEM_Exp1_V_expert.gp
+	ps2pdf V_expert.ps
+	rm V_expert.ps
+	gnuplot LAFEM_Exp1_true_reward.gp
+	ps2pdf true_reward.ps
+	rm true_reward.ps
 
   #+end_src
 
@@ -255,6 +253,44 @@ Random.py: GridWorld.org
 	$(call tangle,"GridWorld.org")
 
   #+end_src
+
+* Dynamics
+  
+  Actions have non deterministic outcomes. 3 times out of 10, the results of an action will change and be the expected result of another, different action. Sometimes (when the agent is near the border) the results of two actions can be identical.
+
+
+  One can associate a probability matrix with each action, describing the transition probability from every state to every other if the considered action is taken at each step.
+    #+begin_src python :tangle GridWorld.py
+def next_states( state, action ):
+    "Returns the list [[s,w],...] of next possible states and associated probability"
+    x = state[0]
+    y = state[1]
+    x_south = x
+    y_south = y + 1 if y!=4 else 4
+    x_west = x - 1 if x!=0 else 0
+    y_west = y
+    x_east = x + 1 if x!=4 else 4
+    y_east = y 
+    x_north = x
+    y_north = y - 1 if y!=0 else 0
+    weights = zeros((1,4)) + .1
+    weights[0,action] = 0.7
+    assert abs(sum(weights) - 1.) < 0.00001
+    states = map( array, [[x_south,y_south],[x_west,y_west],[x_east,y_east],[x_north,y_north]]) #Same order as specified in the textual description of the action space
+    return zip( states, weights[0] )
+
+def P( a ):
+    "Returns the matrix of transition probability for action a."
+    P_a = zeros((5*5,5*5))
+    for state in Sgenerator():
+        current_index = s_index( state )
+        states = next_states( state, a )
+        for sdash,w in states:
+            index_dash = s_index( sdash )
+            P_a[current_index, index_dash] += w
+    return P_a
+
+    #+end_src
 
 * DP wrapper
   It can be cumbersome to call the Dynamic programming algorithm, so we provide a wrapper :
@@ -326,7 +362,7 @@ def evaluate_thetaSA( theta, l_phi ):
   #+end_src
    
 
-** Let a policy control the car
+** Let a policy control the player
   On peut aussi obtenir les trajectoires tirées par une politique :
     #+begin_src python :tangle GridWorld.py
 def omega_play( omega, L, M ):
@@ -362,4 +398,7 @@ GridWorld.py: GridWorld.org
 
 GridWorld_clean:
 	find . -maxdepth 1 -iname "GridWorld.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "EvaluateOmega.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Expert.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "Random.py"   | xargs $(XARGS_OPT) rm
   #+end_src

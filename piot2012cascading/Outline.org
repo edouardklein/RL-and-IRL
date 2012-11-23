@@ -23,6 +23,7 @@
   - Rapidement, l'étape de régression permet d'ajouter la structure du MDP au résultat de classif, en utilisant l'équation de Bellman.
   - Bien préciser qu'il ne s'agit ici que d'une explication qualitative, "avec les mains", la preuve du fait que ça résoud bien le problème est donnée dans [[Analyse]], une démonstration sur des problèmes si complexes que l'état de l'art ne peut les résoudre (sauf SCIRL) est donnée dans [[Experience]]. Les avantages comparés sont expliqués dans [[Autres Approches]]. Enfin, des explications plus intuitives sur les mécanismes internes de l'algorithme, ainsi que des résultats expérimentaux supplémentaires sont fournis en [[Annexes]].
 * Analyse
+
   - On rappelle le problème posé au début.
   - Le théorème 1 montre que modulo un bonne classif et un bon régresseur, on résoud exactement le problème que l'on s'était posé
   - On en fait la démo rapide (éventuellement des bouts peuvent être déportés en +Pologne+ [[Annexes]]).

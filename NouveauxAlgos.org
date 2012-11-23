@@ -257,7 +257,7 @@ Cela signifie qu'en choisissant les bonnes fonctions de base l'on arrive directe
    L'algorithme est implémenté dans une classe abstraite en python. Les éléments nécessaires à l'algorithme sont définis comme des fonctions abstraites, ce qui fait qu'il est impossible de créer ou d'utiliser cette classe sans la sous classer en définissant les éléments nécessaires.
 
 #+begin_src python :tangle LAFEM.py
-from numpy import * #Normaliser les imports de numpy et scipy
+from numpy import * #FIXME:Normaliser les imports de numpy et scipy
 import scipy.linalg
 import os
 import sys
