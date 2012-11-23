@@ -1,0 +1,205 @@
+* Generic code for (projected) (normalized) gradient descent (or ascent)
+     #+begin_src python :tangle GradientDescent.py
+from numpy import * #FIXME:Normaliser les imports de numpy et scipy
+import scipy.linalg
+import os
+import sys
+class GradientDescent:
+     #+end_src
+
+   L'algorithme prend en entrée :
+   - un pas d'apprentissage $\alpha : \mathbb N \rightarrow \mathbb R$, prenant un entier en argument, renvoyant un réel
+     #+begin_src python :tangle GradientDescent.py
+   def alpha( self, t ):
+      raise NotImplementedError, "Cannot call abstract method"
+     #+end_src
+   - un vecteur de paramètres initial $\theta_0$
+     #+begin_src python :tangle GradientDescent.py
+   theta_0=array([])
+     #+end_src
+   - une valeur pour la norme du grandient en dessous de laquelle on stoppe l'algorithme
+     #+begin_src python :tangle GradientDescent.py
+   Threshold = 'a'
+     #+end_src
+   - un nombre d'itérations maximum (-1 pour pas de limite)
+     #+begin_src python :tangle GradientDescent.py
+   T = -1
+     #+end_src
+   - Le signe (pour savoir si on fait une montée ou une descente de gradient)
+     #+begin_src python :tangle GradientDescent.py
+   sign = 0
+     #+end_src
+
+     
+   L'algorithme se déroule comme suit : 
+   - Initialiser $\theta_{t=0} \leftarrow \theta_0$, $\theta_T\leftarrow \theta_{t=0}$
+   #+begin_src python :tangle GradientDescent.py
+   def run( self, f_grad, f_proj=None, b_norm=False ): #grad is a function of theta
+      theta = self.theta_0.copy()
+      best_theta = theta.copy()
+      best_norm = 1000000.#FIXME:Il faudrait mettre plus l'infini
+      best_iter = 0
+   #+end_src
+   - Pour le nombre d'itérations prévues :
+     #+begin_src python :tangle GradientDescent.py
+      t=-1
+      while True:#Do...while loop
+         t += 1
+     #+end_src
+     - Effectuer la mise à jour $\theta_{t+1} = \theta_t + sign\cdot \alpha_t {\partial_\theta f(\theta) \over ||\partial_\theta f(\theta)||_2}$ (avec normalisation du gradient optionnelle, puis éventuelle projection du nouveau vecteur $\theta_{t+1}$)
+       #+begin_src python :tangle GradientDescent.py
+         DeltaTheta = self.sign * self.alpha( t ) * f_grad( theta )
+         norm = scipy.linalg.norm( DeltaTheta )
+         if b_norm and  norm > 0.:
+             DeltaTheta /= scipy.linalg.norm( DeltaTheta )
+         theta = theta + DeltaTheta
+         if f_proj:
+             theta = f_proj( theta )
+         sys.stderr.write("Norme du gradient : "+str(norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)+"\n")
+       #+end_src
+     - Si $||\partial_\theta f(\theta_{t+1})||_2 < ||\partial_\theta f(\theta_T)||_2$, effectuer $\theta_T \leftarrow\theta_{t+1}$
+       #+begin_src python :tangle GradientDescent.py
+         if norm < best_norm:
+             best_norm = norm
+             best_theta = theta.copy()
+             best_iter = t
+         if norm < self.Threshold or (self.T != -1 and t >= self.T):
+             break
+       #+end_src
+       
+   - retourner $\theta_T$
+     #+begin_src python :tangle GradientDescent.py
+      sys.stderr.write("Gradient de norme : "+str(best_norm)+", a l'iteration : "+str(best_iter)+"\n")
+      return best_theta
+     #+end_src
+
+#+srcname: GD_make
+#+begin_src makefile
+GradientDescent.py: GradientDescent.org
+	$(call tangle,"GradientDescent.org")
+#+end_src
+* Test and usage example
+  #+begin_src python :tangle GradientDescent_test.py
+from numpy import * #FIXME:Normaliser les imports de numpy et scipy
+import scipy
+from GradientDescent import *
+
+
+## function being optimized : x->x^2
+class TestGD( GradientDescent ):
+    def alpha( self, t ):
+        return 1./(t+1)
+    theta_0 = array( [1067] )
+    Threshold = 0.001
+    T = 100
+    sign = -1
+
+def grad( theta ):
+    return 2*theta[0]
+
+x = 0
+print "Vanilla :"
+test = TestGD()
+x = test.run( grad )
+print x    
+
+print "Normalise :"
+test = TestGD()
+#test.T = -1
+x = test.run( grad,b_norm=True )
+print x    
+
+print "Projete et normalise"
+test = TestGD()
+#test.T = -1
+def proj( x ):
+    if x == 0:
+        return array([1.])
+    return x / scipy.linalg.norm( x )
+x = test.run( grad, f_proj=proj, b_norm=True )
+print x    
+
+print "Vanilla projete"
+test = TestGD()
+#test.T = -1
+x = test.run( grad, f_proj=proj )
+print x    
+
+## function being optimized : x->||x||_2
+class TestGD2( GradientDescent ):
+    def alpha( self, t ):
+        return 1./(t+1)
+    theta_0 = array( [1067,455,-660] )
+    Threshold = 0.001
+    T = 100
+    sign = -1
+
+def grad( theta ):
+    return 2*theta
+
+print "Vanilla :"
+test = TestGD2()
+x = test.run( grad )
+print x    
+
+print "Normalise :"
+test = TestGD2()
+#test.T = -1
+x = test.run( grad,b_norm=True )
+print x    
+
+print "Projete et normalise"
+test = TestGD2()
+#test.T = -1
+def proj( x ):
+    if scipy.linalg.norm( x ) == 0:
+        return array([1.,0.,0.])
+    return x / scipy.linalg.norm( x )
+x = test.run( grad, f_proj=proj, b_norm=True )
+print x
+
+print "Vanilla projete"
+test = TestGD2()
+#test.T = -1
+x = test.run( grad, f_proj=proj )
+print x    
+
+
+print "Projete et normalise (2eme type)"
+test = TestGD2()
+#test.T = -1
+def proj2( x ):
+    if scipy.linalg.norm( x ) == 0:
+        return array([1.,0.,0.])
+    x[0] = 1.
+    return x
+x = test.run( grad, f_proj=proj2, b_norm=True )
+print x
+
+print "Vanilla projete (2eme type)"
+test = TestGD2()
+#test.T = -1
+x = test.run( grad, f_proj=proj2 )
+print x    
+
+
+  #+end_src
+
+#+srcname: GD_make
+#+begin_src makefile
+GradientDescent_test.py: GradientDescent.org
+	$(call tangle,"GradientDescent.org")
+
+GD_test: GradientDescent_test.py GradientDescent.py
+	python GradientDescent_test.py
+#+end_src
+
+* Cleaning
+
+  #+srcname: GD_clean_make
+  #+begin_src makefile
+GD_clean:
+	find . -maxdepth 1 -iname "GradientDescent.py"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "GradientDescent.pyc"   | xargs $(XARGS_OPT) rm
+	find . -maxdepth 1 -iname "GradientDescent_*.py"   | xargs $(XARGS_OPT) rm
+  #+end_src

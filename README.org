@@ -1,4 +1,16 @@
-* Récupération des éléments passés
+* Tentatvie de nettoyage (Archéologie numérique).
+
+Quand c'est fait on le push sur GitHub histoire de pas perdre ces modifs.
+
+Le but ensuite est de rajouter à la branche master toutes les ressources, actuellement éparpillées dans plein de branches, qui ont servi dans des papiers publiés.
+
+On commitera et pushera au fur et à mesure où on retrouve ces ressources.
+
+* Targets
+| article | conf | papier | poster | slides | exp    | target     |
+| SCIRL   | NIPS | OK     | inex   | inex   | en dur | SCIRL_NIPS |
+|         |      |        |        |        |        |            |
+
 ** klein2011batch
    Le dossier klein2011batch à l'air assez propre, il contient papier, poster et slides, j'ai supprimé les branches elatives à tout ça vu qu'elles ont été mergées il y a fort longtemps.
    Le soucis est que le dossier est pas self-content, les courbes manquent, il faudrait :

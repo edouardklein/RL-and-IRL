@@ -305,7 +305,6 @@ splot "V_agent.txt"
 
 *** Tracé des récompenses
 
-*** Tracé des fonctions de valeurs
       Les fichiers .gp qui vont bien :
 #+begin_src gnuplot :tangle LAFEM_Exp1_true_reward.gp
 set pm3d

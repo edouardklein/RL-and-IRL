@@ -1,0 +1,62 @@
+#+LaTeX_CLASS: beamer
+
+#+LaTeX_HEADER: \usetheme[secheader]{Boadilla}
+#+LaTeX_HEADER: \usepackage[english]{babel}
+#+LaTeX_HEADER: \setbeamercolor{title}{fg=black,bg=black!10!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{block body}{fg=black,bg=black!10!brown!30}
+#+LaTeX_HEADER: \setbeamercolor{block title}{fg=black,bg=black!30!brown!40}
+
+#+LaTeX_HEADER: \setbeamercolor{frametitle}{fg=black,bg=black!30!brown!50}
+#+LaTeX_HEADER: \beamersetaveragebackground{brown!50!black!20}
+
+#+LaTeX_HEADER: \setbeamercolor{author in head/foot}{fg=black,bg=black!30!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{title in head/foot}{fg=black,bg=black!20!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{date in head/foot}{fg=black,bg=black!10!brown!50}
+
+#+LaTeX_HEADER: \setbeamercolor{section in head/foot}{fg=black,bg=black!30!brown!30}
+#+LaTeX_HEADER: \setbeamercolor{subsection in head/foot}{fg=black,bg=black!20!brown!30}
+
+#+LaTeX_HEADER: \usepackage{animate} %need the animate.sty file 
+
+#+LaTeX_HEADER: \usepackage{color}
+#+LaTeX_HEADER: \usepackage[ruled]{algorithm2e}
+
+
+# #+LaTeX_HEADER: \include{headertikz}
+# #+LaTeX_HEADER: \usetikzlibrary{decorations.pathmorphing,shapes.misc}
+
+#+BEAMER_HEADER_EXTRA: \title[FIXME]{FIXME}
+#+BEAMER_HEADER_EXTRA: \author[FIXME]{FIXME}
+
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+OPTIONS: toc:nil
+#+BEAMER_FRAME_LEVEL: 3
+
+* Blop
+** Blip
+*** IRL Notions
+**** Goal
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     A way of transferring a task from a (potentially human) expert to another agent.
+**** Means
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     Extension of the /reinforcement learning/ (RL) framework
+     - Finds a /reward function/ with respect to which the expert is optimally acting
+     - Said /reward/ can then be optimized by a RL agent
+*** Instantiation
+**** Expert
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     Non disabled human actually controlling the arm while wearing the BCI.
+**** Challenges
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     - Data generation is time-consuming
+     - Problem dimensionality is in the higher range of what the state-of-the-art is able to handle
+     - Real life test for new algorithms

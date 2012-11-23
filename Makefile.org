@@ -82,8 +82,8 @@ export XARGS_OPT=-tr
 <<criteria_clean_make>>
 <<greedy_clean_make>>
 <<Cascading_clean_make>>
-
-clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean ANIRL_clean Cascading_clean
+<<GD_clean_make>>
+clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clean LSTDQ_clean LSTDmu_clean DP_mu_clean NA_clean RL_Globals_clean TT_Exp2_clean TT_Exp3_clean utils_clean a2a_clean criteria_clean greedy_clean TT_clean ANIRL_clean Cascading_clean GD_clean
 	$(MAKE) -C ChainWalk clean   
 	$(MAKE) -C GridWorld clean
 	$(MAKE) -C InvertedPendulum clean
@@ -100,8 +100,6 @@ clean: TT_Test0_clean TT_Test1_clean TT_Test23_clean IRL_Globals_clean LSPI_clea
 SCIRL_NIPS:
 	make -C klein2012structured_NIPS && evince klein2012structured_NIPS/scirl_nips_cr.pdf
     #+end_src
-
-** LAFEM
 ** Published Work
 *** Papers
 **** TODO Retrouver tous ces papiers et s'assurer qu'on peut les recompiler
@@ -126,11 +124,28 @@ SCIRL_NIPS:
 **** TODO Lister les features des papiers ci dessus
 ** Unpublished work
 *** Papers and drafts
-**** SCIRL
-**** Cascading
+**** SCIRLBoost
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<SCIRLBoost_make>>
+RTEcompile: SCIRLBoostCompile
+
+RTEstartView: SCIRLBoostStartView
+
+RTEview: SCIRLBoostView
+
+RTEstopView: SCIRLBoostStopView
+
+
+    #+end_src
+
 *** Figures
 **** TODO Reprendre les 12 figures
 **** TODO Reprendre le travail sur le GridWorld
+*** Tests
+    #+begin_src makefile :tangle Makefile :noweb yes
+<<testDP_make>>
+
+    #+end_src
 ** Archive
 *** LAFEM
    - LAFEM_Exp1 (GridWorld)

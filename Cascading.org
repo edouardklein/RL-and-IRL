@@ -9,8 +9,8 @@ $<s_i,a_i>$ -[classifieur]-> $q(s,a) = \omega^T\phi(s,a)$
 $D_E = <s_i,q(s_i,a_i)-\gamma q(s'_i,a'_i)>$
 $D_C = <s_i,q(s_i,a_i)-\gamma q(s'_i,a*)>$
 
-$D_E$ -[regresseur]-> $\hat\R_E(s) = \theta_E^T\psi(s)$
-$D_C$ -[regresseur]-> $\hat\R_C(s) = \theta_C^T\psi(s)$
+$D_E$ -[regresseur]-> $\hat R_E(s) = \theta_E^T\psi(s)$
+$D_C$ -[regresseur]-> $\hat R_C(s) = \theta_C^T\psi(s)$
 
 Donc en résumé, en entrée l'on prend en entrée un set de transitions $<s_i,a_i,eoe>$ venant de l'expert, ainsi que deux features $\phi$ et $\psi$ et l'on renvoie deux matrices $\theta_E$ et $\theta_C$ définissant une récompense.
 
