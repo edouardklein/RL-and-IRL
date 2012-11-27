@@ -93,8 +93,8 @@ fill=orange!20]
 
 
 \conf{NIPS 2012}
-\title{Structured Classification for Inverse Reinforcement Learning}
-\author{\underline{Edouard Klein}$^{\dag\ddag}$, Bilal Piot$^{\dag\textrm{\Ankh}}$, Matthieu Geist$^\dag$ and Olivier Pietquin$^{\dag\textrm{\Ankh}}$\\\texttt{firstname.lastname@supelec.fr}}
+\title{Inverse Reinforcement Learning through Structured Classification}
+\author{\underline{Edouard Klein}$^{\dag\ddag}$, Matthieu Geist$^\dag$, Bilal Piot$^{\dag\textrm{\Ankh}}$ and Olivier Pietquin$^{\dag\textrm{\Ankh}}$\\\texttt{firstname.lastname@supelec.fr}}
 \date{\today}
 \institute[Supélec]{$\dag$Equipe IMS/MaLIS (Supélec), France\\$\ddag$Equipe ABC UMR 7503 (Loria-CNRS), France\\\Ankh UMI 2958 (GeorgiaTech-CNRS)}
 \newlength{\columnheight}
@@ -220,7 +220,7 @@ fill=orange!20]
       With concentration coefficient $C_f$, classification error $\epsilon_C$ and $\bar{\epsilon}_Q$ a measure of the quality of our estimate of $\mu^{\pi_E}$ :
       \begin{equation*}
         0\leq
-        \mathop{E}_{s\sim\rho_E}[V^*_{R_{\theta_c}}-V^{\pi_E}_{R_{\theta_c}}]
+        \mathop{E}_{s\sim\rho_E}[V^*_{R_{\theta_c}}(s)-V^{\pi_E}_{R_{\theta_c}}(s)]
         \leq \frac{C_f}{1-\gamma}\left(\bar{\epsilon}_Q +
         \epsilon_c\frac{2\gamma\|R_{\theta_c}\|_\infty}{1-\gamma}
         \right)
