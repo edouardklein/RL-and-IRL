@@ -32,50 +32,107 @@
 %\tt
 \color{blue}
 
-\address{Edouard Klein,  Matthieu Geist, \\Bilal Piot, Olivier Pietquin \\ IMS – MaLIS Research Group, Sup\'elec \\ 2 rue Edouard Belin, 57070 Metz (France)}
+\address{Edouard Klein,  Bilal Piot,\\Matthieu Geist, Olivier Pietquin \\ IMS – Groupe de recherche MaLIS, Sup\'elec \\ 2 rue Edouard Belin, 57070 Metz (France)}
 %\signature{Lucie Daubigney, \\ Matthieu Geist, \\ Senthilkumar Chandramohan, \\ Olivier Pietquin.}
 \date{Metz, \today. \vspace{1.5cm}}
 
 
 
-\begin{letter}{\large \textbf{Révisions sur le manuscrit ``Classification structurée pour l'apprentissage par renforcement inverse''}}
+\begin{letter}{\large \textbf{Révisions du manuscrit ``Classification structurée pour l'apprentissage par renforcement inverse'' (RIA, N$^o$ spécial JFPDA 11+12)}}
 \bigskip
-\opening{Chers éditeurs, Chers reviewers}
+\opening{Chers éditeurs, chers relecteurs}
 
 \bigskip
 
-Nous vous remercions pour le temps passé à relire notre manuscrit. Les remarques des reviewers étant largement orthogonales, nous les prenons en compte une par une. Les changements apportés au manuscrit sont reportés ici en bleu.
+Tout d'abord, nous souhaitons vivement vous remercier pour le temps passé à relire et commenter notre manuscrit. L'ensemble de vos judicieuses suggestions ont été prises en compte, nous espérons que cela améliorera le manuscrit.
+
+Le reste de cette lettre précise les modifications effectées et répond aux questions et commentaires des relecteurs. Dans un soucis de clarté, nous reproduisons les relectures originales en noir.
+
+Dans l'espoir d'un avis de publication favorable, veuillez agréer nos salutations.
+
+\begin{flushright}
+Edouard Klein, Bilal Piot, \\ Matthieu Geist, Olivier Pietquin.
+\end{flushright}
 
 \newpage
 \color{black}
-\begin{large} \textbf{Reviewer 1:} \\ \end{large}
+\begin{large} \textbf{Relecteur 1:} \\ \end{large}
+RESUME : LE PAPIER SE PLACE DANS LE CADRE DE L’APPRENTISSAGE PAR RENFORCEMENT INVERSE (ARI)
+DONT LE BUT EST D’APPRENDRE UNE FONCTION DE RECOMPENSE POUR LAQUELLE LE COMPORTEMENT D’UN
+EXPERT EST (QUASI) OPTIMAL. UN NOUVEL ALGORITHME, SCIRL, EST PROPOSE ; LA PARTICULARITE
+PRINCIPALE DE SCIRL EST DE NE PAS AVOIR BESOIN DE RESOUDRE DE PROBLEME D’AR DIRECT (INFERER
+UNE POLITIQUE OPTIMALE A PARTIR DES DONNEES). UNE ANALYSE THEORIQUE EST PROPOSEE, ET DES
+RESULTATS EXPERIMENTAUX OBTENUS SUR UN PROBLEME INTERESSANT SONT EGALEMENT FOURNIS.
+LA CONTRIBUTION DE CE PAPIER EST CLAIREMENT IDENTIFIEE ET INTERESSANTE. LE PAPIER EST AGREABLE
+A LIRE (EN DEHORS DE QUELQUES COQUILLES DETAILLEES CI-DESSOUS), ET LES RESULTATS THEORIQUES ET
+EMPIRIQUES TRES PROMETTEURS. ON NE SAURAIT QU’ENCOURAGER LES AUTEURS A POURSUIVRE LEURS
+EXPERIMENTATIONS DE SCIRL SUR DES PROBLEMES ENCORE PLUS COMPLEXES (COMME SUGGERE DANS LA
+CONCLUSION).
+COQUIILLES :\\
+P.11 : « LA REGLE DE DECISION POUR UNE ETAT » : […] UN ETAT ;\\
+P.12 : « (MAIS OBSERVEE PAR INTERACTION […] » : (MAIS OBSERVE PAR INTERACTION […] ;\\
+P.13 « UNE MACHINE A VECTEUR SUPPORT » : IL SEMBLERAIT QU’ON UTILISE PLUS SOUVENT LA TRADUCTION
+« SEPARATEUR A VASTE MARGE » ;\\
+P.15 : ON A D’ABORD « THEOREME 1 » PUIS « PREUVE 2 ». IL POURRAIT ETRE JUDICIEUX SOIT D’ENLEVER
+LE 2 SOIT DE LE REMPLACER PAR UN 1 ;\\
+P.16 : « IL EST DACILE » : IL EST FACILE ;\\
+P.16 : « INJECTER LES BORNES DES EQS. » : EN FRANÇAIS, LES ABREVIATIONS NE SE METTENT PAS AU
+PLURIEL ;\\
+P.17 : « LE CLASSIFIEUR N’UTILISE QUE [FORMULE MATH] QUE LORS […] » : IL Y A UN « QUE » EN TROP ;\\
+P.17 : « CE QUI PERMET D’ENVISAGER UNE SIMPLE ESTIMATION DE MONTE-CARLO PAR EXEMPLE » : CE QUI
+PERMET D’ENVISAGER, PAR EXEMPLE, UNE SIMPLE ESTIMATION MONTE CARLO ;\\
+P.18 : « (ET LA DYNAMIQUE RESULTANTES) » : ET LA DYNAMIQUE RESULTANTE
+P.20 : « EN UTILISANT LE PRINCIPE DECRIT EQ. (5) » : EN UTILISANT LE PRINCIPE DECRIT PAR EQ. (5)\\
+P.20 : « IL RENTRENT DANS LE CHAMP GENERALEMENT APPELE […] » : ILS RENTRENT […]\\
+P.21 : « PAR L’UTILISATION D’UNE HEURISTIQUE QUI DEPASSENT » : […] QUI DEPASSE\\
+P.21 : « LES SORTIES DE ROUTE SONT POSSIBLE » : […] SONT POSSIBLES\\
+P.21 : « TOUS LES OBJETS REQUIS (…) ONT ETE CALCULEES » : […] ONT ETE CALCULES\\
+P.22 : « LA PERFORMANCE DE CHACUNE DES APPROCHE » : […] DES APPROCHES\\
+DANS LES REFERENCES :\\
+- HARMONISER LA MISE DE MAJUSCULES DANS LES TITRES (CERTAINES REFERENCES ONT DES MAJUSCULES
+A CHAQUE MOT, D’AUTRE NON – EN PRINCIPE LA REGLE EST : MAJUSCULES A CHAQUE MOT POUR LES LIVRES
+ET LES THESES, PAS POUR LES AUTRES)\\
+- METTRE DES MAJUSCULES POUR LES NOMS DES CONFERENCES ET DES JOURNAUX\\
+- METTRE LES ACRONYMES DES CONFERENCES EN MAJUSCULES (ICML, ECML, NIPS, AISTATS, COLT)\\
+- GUERNEUR Y. (2007) : « VC THOERY » : VC THEORY\\
 \textcolor{blue}{
 Toutes les corrections suggérées ont été appliquées.
 }
 
 \newpage
-\begin{large} \textbf{Reviewer 2:} \\ \end{large}
-\begin{itemize}
-\item  On sent bien qu'il faudrait une normalisation (c'est plus ou moins esquissée par les auteurs). Sans cela la
+\begin{large} \textbf{Relecteur 2:} \\ \end{large}
+La première limitation est le critère retenu pour valider une fonction de reward comme étant correcte pour le
+problème d'ARI.
+On établit ici que le reward a la propriété suivante:
+"la stratégie observée est quasi optimale pour ce reward"
+Comme le disent les auteurs, c'est vrai aussi pour la fonction nulle.
+On sent bien qu'il faudrait une normalisation (c'est plus ou moins esquissée par les auteurs). Sans cela la  
 propriété démontrée n'est pas hyper convaincante. J'encourage les auteurs à développer cet aspect esquissé page
 17 (avant la section 4).\\
-\textcolor{blue}{La phrase ``Ce cas est donc très improbable.'' (en parlant d'un classifieur qui renverrait un vecteur de récompense $\theta_C=0$) a été changée pour : ``Des mécanismes de régularisation dépendant du classifieur choisi peuvent être employés pour éviter cela.''. La normalisation mentionnée immédiatement après ne l'est que pour désamorcer les interrogations du lecteur quant à la présence dans la borne du terme $||\R_{\theta_c}||_\infty$. Le sujet de la régularisation de la récompense dans le cadre de l'IRL est assez subtil (du fait de la relation complexe entre récompense et valeur) et mérite un papier à part entière. Nous n'avons pas introduit ici les outils qui nous permettraient de mener cette discussion.}
-\item Une troisième limitation est que je souhaiterais être convaincu de la pertinence de l'ARI. L'application à la conduite automobile est sympathique, mais que fait-on des résultats obtenus ?\\
-  \textcolor{blue}{La première phrase de l'introduction a été augmentée afin de pointer plus finement vers la référence historique de l'ARI ainsi qu'une référence récente, qui expliquent l'intérêt de l'approche mieux que nous n'avons la place de le faire : ``historiquement proposée dans (Russell, 1998),
-ce mécanisme trouve des applications dans divers champs, de la biologie à la neuropsychologie en passant par l’économie et plus récemment la robotique (Abbeel et al., 2010)''.}
-\item Regrettons l'absence d'un état de l'art des résultats de complexité (même succinct) pour justifier le fait que l'estimation de valeur de police est plus facile que l'apprentissage par renforcement. \\
-  \textcolor{blue}{Dans la section 5 (comparaison à l'existant), la note de bas de page suivante a été ajoutée : ``La résolution d'un MDP (en utilisant par exemple un algorithme d'\emph{itération de la valeur}) implique en effet de calculer de manière répétée la valeur d'une politique arbitraire. Résoudre plusieurs fois le MDP pour des récompenses arbitraires est donc beaucoup plus dur que d'estimer une fois pour toutes l'attribut moyen de l'expert.''}
-\end{itemize}\vspace{1.5 em}
-  \textcolor{blue}{Les typos relevées ont été corrigées.}
+\textcolor{blue}{La phrase ``Ce cas est donc très improbable.'' (en parlant d'un classifieur qui renverrait un vecteur de récompense $\theta_C=0$) a été changée pour : ``Ce cas est très improbable, l'objectif du classifieur étant de minimiser $\epsilon_C$''. La normalisation mentionnée immédiatement après ne l'est que pour désamorcer les interrogations du lecteur quant à la présence dans la borne du terme $||\R_{\theta_c}||_\infty$. Dans l'absolu, tous nos résultats et algorithmes sont invariants par dilatation, cette norme peut être imposée par l'utilisateur.}\\
+La seconde limitation à ma recommandation d'acceptation ferme est que je ne suis pas expert d'apprentissage par
+renforcement inverse; si je suis convaincu par la justesse de l'analyse et la pertinence de l'algorithme, je suis mal
+placé pour garantir la nouveauté.
+Une troisième limitation est que je souhaiterais être convaincu de la pertinence de l'ARI. L'application à la conduite automobile est sympathique, mais que fait-on des résultats obtenus ?\\
+  \textcolor{blue}{Considérant l'AR comme pertinent, nous sommes convaincus que trouver la bonne récompense à optimiser est un problème intéressant. Afin de l'expliquer, la première phrase de l'introduction a été augmentée. Elle pointe plus finement vers la référence historique de l'ARI ainsi qu'une référence récente, qui expliquent l'intérêt de l'approche mieux que nous n'avons la place de le faire : ``historiquement proposée dans (Russell, 1998),
+ce mécanisme trouve des applications dans divers champs, de la biologie à la neuropsychologie en passant par l’économie et plus récemment la robotique (Abbeel et al., 2010)''.}\\
+On utilise ici des fonctions de reward pas trop informatifs; il est précisé dans l'article que des travaux existants.
+Regrettons l'absence d'un état de l'art des résultats de complexité (même succinct) pour justifier le fait que l'estimation de valeur de police est plus facile que l'apprentissage par renforcement. \\
+  \textcolor{blue}{Un état de l'art détaillé est difficile à effectuer, tout dépendant de la méthode utilisée pour résoudre le MDP. Pour expliquer les grandes lignes, dans la section 5 (comparaison à l'existant), la note de bas de page suivante a été ajoutée : ``La résolution d'un MDP (en utilisant par exemple un algorithme d'\emph{itération de la valeur}) implique en effet de calculer de manière répétée la valeur de politiques arbitraires. Résoudre plusieurs fois le MDP pour des récompenses arbitraires est donc beaucoup plus dur que d'estimer une fois pour toutes l'attribut moyen de l'expert (sans mentionner le problème de l'apprentissage \emph{off-policy}).''}\\
+  
+  Quelques typos:
+"L'approche proposée est résuméE"
+"estUmation"\\
+  \textcolor{blue}{Les problèmes d'ordre orthographique ou gramatical relevés ont été corrigés.}
 \vspace{.5cm}
 \newpage
-\begin{large} \textbf{Reviewer 3:} \\ \end{large}
+\begin{large} \textbf{Relecteur 3:} \\ \end{large}
 \begin{itemize}
 \item Alg. 1 pas clair.
-\textcolor{blue}{Nous avons rajouté le nom de la fonction de score dans l'algorithme :  $s_\theta(s,a) = \theta^\top\hat{\mu}^{\pi_E}(s,a)$. Mais nous ne sommes pas sûrs que cela améliore vraiment les choses. Il semble difficile de rendre l'algorithme plus clair que ce qu'il est déjà.}
+\textcolor{blue}{Nous avons rajouté le nom de la fonction de score dans l'algorithme :  $s_\theta(s,a) = \theta^\top\hat{\mu}^{\pi_E}(s,a)$. Nous espérons que cela rend l'algorithme plus clair.}
 \item Les auteurs ont mégoté sur les définitions, ce qui n'est jamais bon signe; définir $\pi_1..\pi_t$.Je suppose qu'il s'agit des actions choisies aux t premiers pas de temps.
 Donner l'intuition de c(t); clarifier ce qui se passe si la distribution stationnaire ne passe pas en s\\
-\textcolor{blue}{Les définitions sont présentes dans le papier de Munos. Les contraintes de place et de clarté ne nous permettent pas de reprendre toute l'explication développée par celui-ci. Comme la présence des $\pi_1 etc.$ sous le signe $\max$ le laisse entendre, il s'agit de variables muettes, il peut s'agir de n'importe quelle série de politiques. La discussion sur la signification des coefficients de concentrations est présente dans le papier cité, il apparaît délicat de la paraphraser ici sans alourdir la lecture.}
+\textcolor{blue}{Les définitions sont présentes dans (Munos, 2007), l'article cité. Les contraintes de place et de clarté ne nous permettent pas de reprendre toute l'explication développée par celui-ci. Comme la présence des $\pi_i$ sous le signe $\max$ le laisse entendre, il s'agit de variables muettes, il peut s'agir de n'importe quelle série de politiques. La discussion sur la signification des coefficients de concentration (notion relativement standard en apprentissage par renforcement) est présente dans le papier cité, il apparaît délicat de la paraphraser ici sans alourdir la lecture. Le lecteur intéressé par les preuves peut se référer à ce papier fondamental en la matière.}
 \item Lemme 4.2 de Munos n'est pas ça du tout (version Hal).\\
 \textcolor{blue}{Pour respecter les contraintes de places, il est attendu du lecteur qu'il fasse le développement suivant afin de justifier l'inégalité (b) :
 \begin{eqnarray}
@@ -100,9 +157,9 @@ le modèle; préciser.\\
  \item ligne suivante, charabia.\\
  \textcolor{blue}{ ``Soit $\Phi\in R^{|S|\times p}$ la matrice d'attributs donc les lignes contiennent les vecteurs d'attributs $\phi(s)^T$, pour tout $s\in S$.'' devient ``Soit $\Phi\in R^{|S|\times p}$ la matrice d'attributs dont les lignes sont indexées par $s\in S$ et contiennent les vecteurs d'attributs $\phi(s)^T$''.}
  \item Discuter le rapport entre gamma et la longueur N des trajectoires disponibles.\\
- \textcolor{blue}{Il n'y a pas de rapport. Nous avons pris $\gamma = 0.9$ comme le veut la coutume. Une étude superficielle (comprendre, on a joué avec sur quelques runs) ne montre pas de sensibilité évidente de l'algorithme à ce paramètre. Une étude systématique n'a pas été entreprise et ne nous semble pas extrêmement pertinente.}
+ \textcolor{blue}{Il n'y a pas de rapport. Nous avons pris $\gamma = 0.9$. Une étude superficielle ne montre pas de sensibilité évidente de l'algorithme à ce paramètre. Une étude systématique n'a pas été entreprise, mais nous l'envisageaons, merci pour la suggestion.}
 \item Si on a une bonne description psi des états, pourquoi a-t-on besoin des $\mu$ ?
-\textcolor{blue}{Car $\mu$ contient de l'information quant à la dynamique engendrée par la politique de l'expert.}
+\textcolor{blue}{Car $\mu$ contient de l'information quant à la dynamique engendrée par la politique de l'expert. Cela est clairement illustré expérimentalement. Nous avons d'ailleurs augmenté le dernier paragraphe de la section 6 de la phrase suivante ``Cela illustre la pertinence d'utiliser $\mu$ et non $\phi$ dans la paramétrisation de la fonction de score, l'attribut moyen contient en effet de l’information quant à la dynamique engendrée par la politique de l’expert.''}
 \item
   omettre note 1 ou ajouter des détails.
 notations 2.3 $\psi(s,a)= (psi1(s,a),...)$
@@ -113,17 +170,9 @@ recontres
 }
 \end{itemize}
 
-\newpage
 
-\color{blue} Encore une fois, nous remercions les reviewers et les éditeurs pour le temps passé à nous aider à améliorer notre contribution.
 
-Cordialement,
 
-\begin{flushright}
-Edouard Klein, Matthieu Geist, \\ Bilal Piot, Olivier Pietquin.
-\end{flushright}
-
-%\closing{Best regards,}
 
 \end{letter}
 \end{document}
