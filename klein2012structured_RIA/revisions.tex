@@ -1,0 +1,585 @@
+\documentclass[11pt, a4paper]{letter}
+\usepackage[plain,cm]{fullpage}
+\usepackage[utf8] {inputenc}
+\usepackage[frenchb]  {babel}
+\usepackage  {color}
+
+
+% \usepackage{lmodern}
+% \renewcommand*\familydefault{\ttdefault} %% Only if the base font of the document is to be typewriter style
+\usepackage[T1]{fontenc}
+
+% \usepackage[default]{frcursive}
+
+% \usepackage{inconsolata}
+% % \renewcommand{\familydefault}{\ttdefault}
+% % \renewcommand{\ttdefault}{pcr}
+% \usepackage[T1]{fontenc}
+
+
+\usepackage{anysize}
+\marginsize{2.5cm}{2.5cm}{2cm}{2cm}
+
+\definecolor{blue}{rgb}{0.2,0.3,1}
+
+
+
+\begin{document}
+
+
+% \pagestyle{plain}
+
+%\tt
+\color{blue}
+
+\address{Edouard Klein,  Matthieu Geist, \\Bilal Piot, Olivier Pietquin \\ IMS – MaLIS Research Group, Sup\'elec \\ 2 rue Edouard Belin, 57070 Metz (France)}
+%\signature{Lucie Daubigney, \\ Matthieu Geist, \\ Senthilkumar Chandramohan, \\ Olivier Pietquin.}
+\date{Metz, \today. \vspace{1.5cm}}
+
+
+
+\begin{letter}{\large \textbf{Révisions sur le manuscrit ``Classification structurée pour l'apprentissage par renforcement inverse''}}
+\bigskip
+\opening{Chers éditeurs, Chers reviewers}
+
+\bigskip
+
+Nous vous remercions pour le temps passé à relire notre manuscrit. Les remarques des reviewers étant largement orthogonales, nous les prenons en compte une par une. Les changements apportés au manuscrit sont reportés ici en bleu.
+
+\newpage
+\color{black}
+\begin{large} \textbf{Reviewer 1:} \\ \end{large}
+\textcolor{blue}{
+Toutes les corrections suggérées ont été appliquées.
+}
+
+Some comments:
+\begin{enumerate}
+\item The abstract should make it more clear that your aim here is to show KTD works on both on- and off-policy settings, and with nonlinear parameterisations.
+
+\textcolor{blue}{ The abstract has been corrected to list the qualities a good DM algorithm should exhibit.}
+
+\item The title doesn't read very well. I would consider replacing "sole" with "single". Possibly also make it clear that you are addressing both on- and off-policy training with a single algorithm.
+
+\textcolor{blue}{ The title has been changed to : ``An All-in-One
+Reinforcement Learning Algorithm for Dialogue Management
+Optimisation''.}
+
+\item Abstract: ``Now, for each different issue was proposed a different algorithm  …". Rephrase. Maybe start "Different algorithm have been proposed to handle each different issue, making… ''.
+
+\textcolor{blue}{We rephrased this sentence in the abstract: ``.
+However, each algorithm often solves a single issue at a time while
+dialogue systems exhibit all the problems at once''}
+
+
+\item The paper would be much stronger with human user experiments. Simulations are known to be a poor reflection of reality. \textcolor{blue}{ Humans experiments have been lead with both DIPPER and HIS systems. The references to the related works have been added.}
+\end{enumerate}
+
+%\vspace{.5cm}
+\newpage
+\begin{large} \textbf{Reviewer 2:} \\ \end{large}
+ Recommendation: Major Revision\\
+ Comments:\\
+ Summary: This paper presents an application of the recently proposed Kalman
+ Temporal Differences (KTD) framework to optimize spoken dialog systems
+ (SDS).  The KTD framework is claimed to enjoy benefits of (i) enabling
+ off-policy learning, (ii) improving sample efficiency, (iii) facilitating
+ guided exploration, (iv) adapting to nonstationary environments, and (v)
+ handling nonlinear approximation architectures.  Motivated by Kalman
+ filters, KTD is essentially a graphical, generative model for TD errors in
+ which one is interested in inferring the (unobservable) value function.
+
+   Two SDS are considered in experiments --- DIPPER and HIS, on which KTD is
+ compared to other algoirhtms including fitted Q-learning, LSPI, and
+ Q-learning.
+
+ The KTD framework appears to be a reasonable fit to optimal control in SDS,
+ given the design objectives of the framework.  Since KTD is an existing
+ technique, the main contribution and novelty is therefore in its
+ application to SDS.  The paper does a good job at explaining the
+ motivation, and the level of technical details is appropriate for non-RL
+ expert to understand most of the main idea.  Overall, the paper is quite
+ easy to follow, except for some typos (see below).
+
+ Since KTD is not new, it becomes important to have an extensive comparison
+ to alternative approaches to demonstrate its pros and cons.  While a few
+ natural candidates have been included, some others are ignored, and some
+ may not be implemented in the best way.  Details:
+
+
+\begin{enumerate}
+\item  Many Bayesian RL algorithms share all (or most) claimed benefits
+ of KTD.  (In fact, I think KTD may be viewed as an instance of Bayesian RL
+ algorithm.)  So one wonders naturally how KTD compares to other Bayesian
+ methods, say, those by Yaakov Engel (a series of papers at ICML/NIPS) and
+ by Jan Peters (at ACC-08).  I am particularly wondering whether the real
+ benefits here come uniquely from KTD, or from Bayesian RL in general.
+
+\textcolor{blue}{  Precisions about how Bayesian approches differ
+from the KTD approaches are given at the beginning of the Sec. III :
+``It is important to notice that Kalman filtering differs from the
+Bayesian filtering. Indeed, the Bayesian filtering aims at computing
+the complete posterior distribution of the hidden variable while
+Kalman filtering only focuses on the first and second moments of
+this distribution with constrained linear update. They are equal
+only when Gaussian distributions and linear parameterisations are
+concerned.''. A comparison with a Bayesian algorithm (namely GPTD
+proposed by Engel \textit{et al.}) has been added in the paper
+Sec.~V-C (on Fig.~3 and Fig.~6).}
+
+\item  LSPI: first, it is possible to extend it to online learning, such
+ as in the AAMAS-09 paper by Lihong Li et al.
+
+\textcolor{blue}{Thank you for the reference, we added it to our
+bibliography.}
+
+Second, ill-conditioning is
+ reported in the experiments, but it is common practice to to L2-regularized
+ LSTD inside LSPI.  It is not surprising that, with poor conditioning,
+ LSTD/LSPI become very unstable and give bad results.  One thus wonders
+ whether these algorithms are implemented in the 'right' (or robust) way to
+ allow for fair comparisons.
+
+\textcolor{blue}{Precisions about the experimental conditions when
+using LSPI have been given. In particular, regularisation has
+actually been tested and led to poor strategies. It is now precised}
+
+\item Fitted Q-learning: essentially the same concerns apply as in the
+ case of LSPI.
+
+\item  The empirical results do *not* seem to be impressive.  Unless I
+ misinterpret the plots, KTD-style algorithms only beat incremental
+ algorithms like Q-learning and Sarsa.  Compared to other batch algorithms,
+ KTD shows no significant advantage.
+
+\textcolor{blue}{The performance of KTD is not effectively better
+than those of the other batch algorithms but our goal in this
+article is to propose a unique algorithm to solve several learning
+issues with comparable performance. Moreover KTD processes samples
+only once while other methods process them many times.}
+
+\item In general, there is no free lunch when we come to algorithm
+ selections.  KTD achieves some of the benefits at the cost of other
+ disadvantages.  The paper will be more valuable to readers if the 'cons'
+ are also discussed, such as convergence and optimality guarantees, to name
+ a few.
+
+\textcolor{blue}{A proof of convergence of the KTD algorithm under
+certain hypothesis have been proposed (in the JAIR paper). A
+difficulty appears also as far as the choice of the KTD parameters
+are concerned. A paragraph about how to choose them has been added
+Sec. III: `` The $\hat{\theta}_{0|0}$ vector can be initialised to a
+default value or, if known, a value near the optimal one. The
+$P_{0|0}$ matrix translates the certainty the user has in the prior
+$\hat{\theta}_{0|0}$. It appears in Eq. (2) as a regularisation
+term. A common initialisation for this matrix is $\lambda
+\mathrm{Id}$. Only one parameter ($\lambda$) has thus to be chosen
+instead of $p^2$ parameters ($p$ being the number of parameters to
+learn).  The lower $\lambda$ the less certain is. The observation
+noise $P_{n_t}$ represents the confidence about the ability of the
+chosen parameterisation to represent the true Q-function.
+Additionally, the evolution noise is chosen so that $P_{v_t} = \eta
+P_{\theta_{t-1|t-1}}$ with $0 < \eta \ll 1$. The effect of this
+heuristic is to put more emphasis on more recent data (it acts as a
+forgetting factor).''. It has to be noticed that only an order of
+magnitude has to be chosen. The KTD algorithm is not sensitive to
+small changes in the parameters.}
+
+\item  Furthermore, while KTD represents a reasonable algorithm, some of the
+ algorithmic choices seem arbitrary and should be justified.  For example,
+ the noise terms in eqn 6 are unspecified.  It may be tempting (as probably
+ is done in experiments) to assume the noises are normal, but this modeling
+ assumption can be quite wrong in many RL problems.  Also, more algorithmic
+ details about KTD would make the paper more self-contained.  The Kalman
+ gain, for instance, is quite mysterious --- how about giving a formula for
+ computing that matrix after equation 7?
+
+ \textcolor{blue}{ The KTD algorithm is now explained Sec. III: `` The KTD algorithm is done in four steps: an \textit{initialisation} step, a \textit{prediction} step, a computational phase of \textit{statistics of interest} and finally a \textit{correction} step. [$\ldots$]''. The detail of each step is then given. As precised previously, a paragraph has also been added to explain the role of the different parameters. }
+
+
+\item  As said, the performance of KTD compared to fitted Q-learning or
+ LSPI is not impressive.  In fact, KTD seems to converge to slightly worse
+ performance.  The incremental vs. batch explanation does not make sense,
+ since KTD is pretty much a batch algorithm as well --- see the authors' own
+ comments on the sample efficiency of KTD below eqn 6.
+
+\textcolor{blue}{The KTD algorithm is not a batch algorithm. The
+update of the gain is done each time a sample is processed. The aim
+of the article was only to propose a single algorithm to solve
+different problems with performance that compares to specialised
+algorithms. }
+
+\item  What is LSPI not in any of the plots?  What is more, given the
+ competitiveness of fitted Q-learning (and LSPI), I find it surprising to
+ see the comparisons to them in only one experiments, but not in all (like
+ in HIS).
+
+ \textcolor{blue}{LSPI has been added to the set of curves for both systems in Fig.~1 and Fig.~2.}
+
+\item  One of the claimed benefits of KTD is the ability to handle
+ nonlinear function approximators.  In the experiments, in particular figs 5
+ and 6, it is a bit sad to see nonlinear alternatives provide no benefits
+ (but actually cause slower learning speed).  One then asks, at least in the
+ context of SDS in this paper, why should one care about nonlinear KTD.
+
+\textcolor{blue}{ Curves about the non-linear parameterisation have
+been added to better show what happens during the learning with this
+parameterisation (Fig.~4 and Fig.~8). The following explanation has
+been given: ``The different runs used to compute the mean are added
+on the graph. They show the detailed behaviour of the ANN. Contrary
+to the linear case, the learning is either very good or very poor.
+The curve representing the average results presents thus poor
+results with small sets of data.''. A method should then be found to
+automatically remove the worst runs like said in the conclusion.}
+
+
+\item  One final comment is about the authors' prior work published at IJCAI 2011.
+ It seems some results reported here have appeared in that conference
+ paper.  It would avoid future confusions if the connection is made clearer.
+
+\textcolor{blue}{The results presented in the IJCAI paper present
+only an off-policy approach. This has been clarified in the
+article.}
+
+\end{enumerate}
+
+\vspace{.5cm}
+\newpage
+\begin{large} \textbf{Reviewer 3:} \\ \end{large}
+ Recommendation: Major Revision\\
+ Comments: This paper presents how the Kalman Temporal Differences framework
+ (published at JAIR by the same authors) can be applied to dialogue
+ management. To show that the authors apply it to two dialogue systems one
+ developed using DIPPER and one developed using the HIS dialogue management
+ framework. The idea of applying the KTD framework to dialogue management is
+ certainly novel and promising, however, the paper is poorly written and the
+ evaluation needs to be seriously extended. The argument that because
+ the algorithm performs well in simulation it should also perform well with
+ real users is very weak especially for a journal submission. If things were
+ so simple nobody would ever bother perform experiments with real users.
+
+\textcolor{blue}{Our aim was not to assess that leading experiments
+with simulated users is enough to prove the efficiency of the
+algorithms tested. The detailed explanation of our motivation are
+given Sec.~IV-A1. We precise that experiments with two differents
+systems, with different state spaces, different reward functions,
+different user simulation methods \textit{etc} give a good hint
+about the efficiency of them and the transferability to real world
+applications. In addition, DIPPER and HIS trained with the methods
+we used as baselines have been tested with real users (the
+references have been precised previously and added in the paper).}
+
+ As I mentioned above the writing is not good. A lot of important details
+ are missing, even simple things, like the definition of the reward
+ function.
+
+\textcolor{blue}{Indeed, we forgot to give some important details
+about how the two dialogue management frameworks are cast into an
+MDP. We added an entire paragraph to describe each of them (Sec.~4-A
+2 \& 3). }
+
+It is not clear to me why you compare with other existing
+ algorithms only using the DIPPER-based system and not the HIS-based system.
+ Is it because the HIS-based system is more complex?
+
+\textcolor{blue}{We added others algorithms to the HIS-based system
+comparison. Now, the KTD algorithm performance is compared to those
+of \textit{Gaussian Process Temporal Differences} (GPTD) and
+\textit{Least Square Policy Iteration} (LSPI). The GPTD algorithm is
+one of the more recent and efficient algorithm for dialogue
+management (references given in the article). The results are given
+Fig.~2, Fig.~3 and Fig.~6.}
+
+But this is exactly the case where one would want to use a superior algorithm. Is it because
+ for example LSPI would have problems in the HIS-based system because of the
+ large table that would have to be inverted? Please explain.
+
+\textcolor{blue}{We added a description of the state space for the
+HIS system in Sec.~IV-A3 and a description of the Q-function
+parameterisation in Sec.~IV-C2. The number of parameters is not so
+large thus we do not have matrix computation problems.}
+
+
+Furthermore, I don't think anyone can manage to reproduce this experiment given that
+ important details are missing. For example, the section about the
+ Q-function representation is very confusing. It is unclear to me what the
+ structures of the Radial Basis Function networks (one per action) are.
+
+\textcolor{blue}{Indeed, an important part of the experimental
+settings was missing. We tried to make it clearer by giving an
+accurate description of them. The experimental settings are given
+Sec.~V-A. The value of the parameters used for the different
+algorithms have been precised for both systems so as the number of
+runs to plot the different runs. We also give more details about the
+Q-function representation in Sec.~IV-C. We precisely provide the
+mathematical descriptions of the parameterisations.}
+
+ Anyway, what I'm saying here, is that the authors should not expect that
+ readers should have to go back and read the JAIR article because the
+ missing point here is not the algorithm itself but how it is applied to
+ dialogue management. Thus even if someone had understood the algorithm it's
+ not clear that he would manage to apply it to dialogue management and
+ reproduce the experiments presented in this paper.
+
+\textcolor{blue}{A more accurate description of the KTD algorithm
+has been given Sec.~III. The different steps of the algorithm have
+been presented. A description of how the dialogue management problem
+is cast into the MDP framework is in Sec.~IV-A for both systems.}
+
+ Here are my detailed comments:
+
+\begin{enumerate}
+\item  Title: The part of the title "with a sole algorithm" sounds very weird.
+ What the authors want to say is that they have developed an algorithm that
+ can solve a lot of problems that previously could be solved using a variety
+ of algorithms. I'm not sure what the title should be but it should
+ definitely be more informative.
+
+\textcolor{blue}{We tried to make the title clearer about what the
+article is about.}
+
+
+\item Introduction: Here the authors talk about different approaches to learning,
+ e.g. dynamic programming, off-policy learning, on-policy learning, etc. I
+ suggest they also mention the work of Henderson et al. "Hybrid
+ Reinforcement/Supervised Learning of Dialogue Policies from Fixed
+ Datasets", Computational Libguistics 2008. Here the authors use a hybrid
+ model of SARSA-lambda and supervised learning to deal with the fact that
+ there wasn't much data available for their complex state space.
+
+\textcolor{blue}{ Thank you for the reference. We added it to the
+introduction and the bibliography.}
+
+
+\item Page 13, line 48: DIPPER is not a dialogue system. It is a tool that allows
+ someone to write dialogue management rules. In the same way HIS is a
+ dialogue management framework. So I suggest the authors say something like
+ DIPPER-based and HIS-based dialogue systems instead of DIPPER and HIS
+ dialogue systems. In any case, please explain the difference in the paper.
+
+\textcolor{blue}{We modified the text accordingly.}
+
+\item  Background: In this section, I've noticed problems with notation that can
+ be confusing especially for the non-expert reader. You refer to the
+ Sutton-Barto book so one would think that you would use the notation of
+ Sutton-Barto. So I suggest you use r\_(t+1) instead of r\_t when you refer to
+ the reward that occurs after the agent performs action a and transitions
+ from state s\_t to state s\_(t+1). I'm not saying that using r\_t is wrong,
+ only that it may confuse most readers that are familiar with the
+ Sutton-Barto notation. Also, you use notation R(s, a, s') but you don't
+ explain that it is the same as r\_(t+1). Please try to be consistent. For
+ example, in equations (2) and (4) (Bellman equations) you use the notation
+ R(s, a, s') but then later in section 3 you use again the Bellman equations
+ with r\_t (which in my opinion should become r\_(t+1)) instead of R(s, a,
+ s'). Also, sometimes you use s' and sometimes s\_(t+1). Anyway, please try
+ to be consistent.
+
+\textcolor{blue}{ The notations have been corrected to be
+consistent. All the different notations introduced are now defined.}
+
+\item Equation 4 is wrong. Near the end it should be "... gamma*max\_a'Q*(s', a')"
+ (see section 3.8 in the Sutton-Barto book).
+
+\textcolor{blue}{Thank you for mentionning this typo. We corrected
+it.}
+
+\item  In section III you need to do a better job of explaining how the KTD
+ framework is applied to the dialogue management problem. For example the
+ text says "the term K\_t is the Kalman gain, which depends..." Please
+ explain how you calculate this. I know there is some explanation in the
+ JAIR paper but you need to provide some hints in the current paper too.
+
+\textcolor{blue}{ Some important details have been added to better
+understand how the KTD algorithm works in Sec.~III. Now, the
+different steps of the algorithm are precised. The definition of the
+Kalman gain has been added. This gain is the one which minimises the
+mean square error $J_t(\theta)$. The different parameters for the
+algorithm are also given.}
+
+
+\item  Then in page 17, line 38 the paper provides a very brief explanation (2
+ lines) why the algorithm is sample efficient. Again, the same issue as
+ before. Please provide some more information. This is one of your stronger
+ points that this algorithm is sample efficient, so please explain in simple
+ words why this is the case. The bottom line is that the description of the
+ algorithm should be as self-sufficient as possible, minimizing the need to
+ read the whole JAIR paper.
+
+\textcolor{blue}{The classical Q-learning and SARSA algorithms are
+gradient descents (first order) while KTD minimises a second error
+term (second order algorithm). The convergence in the last case is
+thus faster. We added this explanation at the end of the Sec.~III.}
+
+\item In section IV, the paper says that there are no experiments with
+ non-stationarity handling and yet the authors claim that this is one of the
+ most important features of the algorithm. So I suggest you perform
+ experiments both in simulation (with a simulated user that can change its
+ goal even if it is a hand-crafted one) and with real users that change
+ their goals and see how the algorithm performs. Just saying that this was
+ shown in the JAIR paper is not enough because that wasn't for dialogue
+ management.
+
+\textcolor{blue}{Precisions about handling non-stationarity are
+added in Sec.~III and are experimentally presented Fig.~3. When a
+controlled and on-policy approach is used, handling the
+non-stationarity is a good feature. Indeed, the policy used for
+control varies which introduce non-stationaties.}
+
+
+\item In section IV, please provide a better description of the two dialogue
+ systems. For example, how many possible states do we have in each one of
+ them? What are the slots and the actions used?
+
+\textcolor{blue}{ A paragraph has been added to describe precisely
+each system and how the dialogue problem is cast into the MDP
+framework (state space, action space, reward function, discount
+factor) in Sec.~IV-A 2 \& 3.}
+
+\item  As I mentioned above, section IV-B is incomprehensible. You really need to
+ show examples with the structure of the networks, perhaps some figures
+ would help. In the same action I don't understand how you came up with the
+ number 144. Also what do you mean by dimensions here, features of the
+ state? Which are the 2 continuous dimensions and which are the 2 discrete
+ ones?
+
+\textcolor{blue}{We also provide now a precise description of the
+two systems in Sec.~IV-A. We also added precise descriptions of the
+features used to represent the Q-function in Sec.~IV-C.}
+
+
+\item In section V-A the text says ``random actions are chosen among reasonable
+ actions''. Could you please explain what you mean by ``reasonable actions''?
+
+\textcolor{blue}{We precised in Sec.~V-B how the handcrafted policy
+works. For the DIPPER system, a set of hand crafted rules prevents
+the system from choosing actions inconsistent with the current
+dialogue state. For example, it avoids to confirm a slot while it
+has never has been asked before.}
+
+\item In section V-A the text talks about comparing with LSPI but I can't see
+ that in Figure 1. The LSPI graph is missing.
+
+\textcolor{blue}{ We previously made a mistake while compiling the
+graphs. We added LSPI for both DIPPER and HIS systems.}
+
+What is the reward function
+ used in the experiments of Figure 1?
+
+\textcolor{blue}{A complete description of the rewards functions are
+given Sec.~IV-A. For the DIPPER system, each dialogue turn is
+penalised with a reward $-1$. At the end of the dialogue, the reward
+is provided the following: $-75$ for incorrect slot filling,  $+25$
+per slot filled correclty, and $-300$ if the slot is empty. For the
+HIS system, the reward function penalises each dialogue turn with
+$-1$. At the end of the dialogue, a reward of $+20$ is given if the
+DM managed to fulfil the user request. In both cases, the dialogue
+is stopped if it has more than $100$ turns. The definition of the
+reward function is not an easy task. Other solutions can be
+considered.}
+
+
+
+ How come there is no variance in the
+ hand-crafted graph? One would expect that the variety in the performance of
+ the n-gram based simulated user would cause differences in the resulting
+ dialogues.
+
+\textcolor{blue}{The variance has not been plotted on Fig.~1 because
+the error bars were too large. It has been precised in the comments
+of the graphs.}
+
+Of course that depends on what the reward function is which is
+ important information not provided in the paper.
+
+\item  For the HIS-based system, why don't you compare with LSPI, etc.? Is it
+ because LSPI would be in trouble because of the larger state space? If you
+ want to show that this algorithm is better than existing algorithms you'd
+ better show that in a more complex system than the DIPPER-based system. You
+ could perhaps try the LSPI with fast feature selection to deal with the
+ large state space, see the paper by Li et al. "Reinforcement Learning for
+ Dialog Management using Least-Squares Policy Iteration and Fast Feature
+ Selection" Interspeech 2009.
+
+\textcolor{blue}{Our aim was to show that one algorithm (KTD) can
+perform as well as standard other ones (and sometime better) while
+being generic. We added the LSPI comparison for both systems (Fig.~1
+and Fig.~2). Thank you very much for he reference. We added it to
+the bibliography. }
+
+
+\item In Figure 2 you only show one of the behavioural policies and the KTD one.
+ Is this correct? You say that there are two behavioural policies used (I
+ believe the graph shows the one with greedy-exploration). Why don't you
+ show both behavioural policies? And what is the reward function here?
+
+\textcolor{blue}{We modified the figures hoping the illustration of
+our points will be clearer. We also change the caption of the curves
+to be more accurate.}
+
+\item Sometimes one algorithm is trained 50 times, another 250 times, etc. Is
+ there a reason you are not being consistent?
+
+\textcolor{blue}{We precised in the article at the end of the
+Sec.~V-A that there is a difference in the number of trainings
+because the learning wich KTD, LSPI and GPTD algorithms takes much
+more time than with Q-learning and SARSA because of matrix
+inversions.}
+
+ Also, in some figures the
+ x-axis has turns and in others dialogues. Again, please try to be
+ consistent or at least explain why you are not being consistent.
+
+\textcolor{blue}{The original choice was made different for the two
+systems. We precised how to make the link between the two notations
+at the beginning of Sec.~V-A. For the HIS system, the length of the
+dialogue can be deduced from the reward. The number of dialogue can
+thus be onverted in number of samples. For example, if the mean
+discounted cumulative reward is $14$ for a set of $50$ training
+dialogues, since the maximum reward that can be obtained is $20$ and
+that each turn a penalty of $-1$ is given, the average length of the
+dialogue is $20 - 14 = 6$ turns. The number of samples is thus
+approximately $6 \cdot 50 = 300$.}
+
+\item  In Figure 3, why don't you show the hand-crafted policy?
+
+\textcolor{blue}{Most of the figures have been modified to better
+present the result. Each figure corresponds now to a particular
+aspect of the KTD algorithm. We particularly paid attention to the
+caption of the figures.}
+
+ What is the reward function? Figure 4 has the same problems as Figure 2. For on-policy learning for the graphs you use a sliding windows. Do you use that for the off-policy graphs too?
+
+\textcolor{blue}{A sliding window is only used for the controlled
+approaches (Fig.~3,4,6,7,8). It has been precised in the article
+when a sliding window is used. }
+
+
+\item  In section V-C you talk about 22 user actions and you say "the number of
+ action for the action space is 12", but earlier when you describe the
+ HIS-based system you mention
+ that there are 22 system actions. Please explain.
+Also, in the same section you perform an experiment on handling non-linearities with the HIS-based
+ system. I'd like to see that with the DIPPER-based system too.
+Also, in Figure 5 what is the reward function?
+
+\textcolor{blue}{Detailed description of the DIPPER ans HIS systems
+has been given Sec.~IV.}
+
+\end{enumerate}
+
+
+\color{blue} We hope that the modifications improve the quality of
+the paper. Whatever the final decision is, we would like to thank
+again the reviewers for their careful reading of this paper and for
+the precise and detailed comments they suggested.
+
+Best regards,
+
+\begin{flushright}
+Lucie Daubigney, Matthieu Geist, \\ Senthilkumar Chandramohan, Olivier Pietquin.
+\end{flushright}
+
+%\closing{Best regards,}
+
+\end{letter}
+\end{document}

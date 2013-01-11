@@ -1,11 +1,11 @@
 all: scirl_ria.pdf 
 
-scirl_ria.pdf : scirl_ria.tex
+scirl_ria.pdf : scirl_ria.tex scirl_ria.bib
 	pdflatex scirl_ria.tex 
 	bibtex scirl_ria
 	pdflatex scirl_ria.tex 
 	pdflatex scirl_ria.tex 
-	evince scirl_ria.pdf
+#	evince scirl_ria.pdf
 
 clean:
 	find . -maxdepth 1 -iname "scirl_nips.pdf"   | xargs $(XARGS_OPT) rm
