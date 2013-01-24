@@ -5,6 +5,10 @@
 
 # Misc.
 
+# <headingcell level=3>
+
+# Pythonesque stuff
+
 # <codecell>
 
 #!/usr/bin/env python
@@ -49,6 +53,267 @@ def zip_stack(*args):
     args = [m.reshape(-1) for m in args]
     return array(zip(*args)).reshape(shape+(nargs,))
 #zip_stack(array([[1,2,3],[4,5,6]]),rand(2,3))
+
+# <headingcell level=3>
+
+# General Mathematics code
+
+# <codecell>
+
+class GradientDescent(object):
+    
+   def alpha( self, t ):
+      raise NotImplementedError, "Cannot call abstract method"
+
+   theta_0=None
+   Threshold=None
+   T = -1
+   sign = None
+        
+   def run( self, f_grad, f_proj=None, b_norm=False ): #grad is a function of theta
+      theta = self.theta_0.copy()
+      best_theta = theta.copy()
+      best_norm = float("inf")
+      best_iter = 0
+      t=0
+      while True:#Do...while loop
+         t+=1
+         #sys.stderr.write("Iteration "+str(t)+", theta vaut au debut : "+str(theta)+"\n")
+         DeltaTheta = f_grad( theta )
+         current_norm = norm( DeltaTheta )
+         #sys.stderr.write("Le gradient de ce truc est : "+str(DeltaTheta)+" dont la norme vaut "+str(current_norm)+" et le pas : "+str(self.alpha(t))+"\n")
+         if b_norm and  current_norm > 0.:
+             DeltaTheta /= norm( DeltaTheta )
+         #sys.stderr.write("L'update pour cette iteration : "+str(self.sign * self.alpha( t )*DeltaTheta))
+         theta = theta + self.sign * self.alpha( t )*DeltaTheta
+         if f_proj:
+             theta = f_proj( theta )
+         #sys.stderr.write("Theta vaut maintenant : "+str(theta))
+         print "Norme du gradient : "+str(current_norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)
+
+         if current_norm < best_norm:
+             best_norm = current_norm
+             best_theta = theta.copy()
+             best_iter = t
+         if norm < self.Threshold or (self.T != -1 and t >= self.T):
+             break
+
+      print "Gradient de norme : "+str(best_norm)+", a l'iteration : "+str(best_iter)
+      return best_theta
+
+# <codecell>
+
+class StructuredClassifier(GradientDescent):
+    sign=-1.
+    Threshold=0.1 #Sensible default
+    #T=40 #Sensible default
+    T=40
+    phi=None
+    phi_xy=None
+    inputs=None
+    labels=None
+    label_set=None
+    dic_data={}
+    x_dim=None
+    
+    def alpha(self, t):
+        return 3./(t+1)#Sensible default
+    
+    def __init__(self, data, x_dim, phi, phi_dim, Y):
+        self.x_dim=x_dim
+        self.inputs = data[:,:-1]
+        shape = list(data.shape)
+        shape[-1] = 1
+        self.labels = data[:,-1].reshape(shape)
+        self.phi=phi
+        self.label_set = Y
+        self.theta_0 = zeros((phi_dim,1))
+        self.phi_xy = self.phi(data)
+        for x,y in zip(self.inputs,self.labels):
+            self.dic_data[str(x)] = y
+        print self.inputs.shape
+    
+    def structure(self, xy):
+        return 0. if xy[-1] == self.dic_data[str(xy[:-1])] else 1.
+        
+    def structured_decision(self, theta):
+        def decision( x ):
+            score = lambda xy: dot(theta.transpose(),self.phi(xy)) + self.structure(xy)
+            input_label_couples = [hstack([x,y]) for y in self.label_set]
+            best_label = argmax(input_label_couples, score)[-1]
+            return best_label
+        vdecision = non_scalar_vectorize(decision, (self.x_dim,), (1,1))
+        return lambda x: vdecision(x).reshape(x.shape[:-1]+(1,))
+    
+    def gradient(self, theta):
+        classif_rule = self.structured_decision(theta)
+        y_star = classif_rule(self.inputs)
+        #print "Gradient : "+str(y_star)
+        #print str(self.labels)
+        phi_star = self.phi(hstack([self.inputs,y_star]))
+        return mean(phi_star-self.phi_xy,axis=0)
+    
+    def run(self):
+        f_grad = lambda theta: self.gradient(theta)
+        theta = super(StructuredClassifier,self).run( f_grad, b_norm=True)
+        classif_rule = greedy_policy(theta,self.phi,self.label_set)
+        return classif_rule,theta
+        
+
+# <codecell>
+
+def l2str(l):
+	"""Return the unique string representing line l"""
+	answer = ""
+	for x in l:
+		if (abs(x)<1e-10): #FIXME : this is not right.
+			answer += " 0.00e+00\t"
+		elif (x>0):
+			answer += " %1.2e\t"%x
+		else:
+			answer += "%+1.2e\t"%x
+	answer +="\n"
+	return answer
+
+class LAFEM:
+   def __init__( self ):
+      if self.__class__ == LAFEM:
+         raise NotImplementedError, "Cannot create object of class LAFEM"
+
+   def l( self, s, a ): #FIXME: on utilise toujours la meme devrait y avoir moyen de factoriser (celle de cascading.org est pas degueu)
+      raise NotImplementedError, "Cannot call abstract method"
+
+   def mu_E( self, s, a ):
+      raise NotImplementedError, "Cannot call abstract method"
+
+   def alpha( self, t ):
+      raise NotImplementedError, "Cannot call abstract method"
+
+   data=[]
+
+   theta_0=array([])
+
+   Threshold = 'a'
+
+   T = -1
+
+   A=[]
+
+   def run( self ):
+      theta = self.theta_0.copy()
+      best_theta = theta.copy()
+      best_norm = 1000000.#FIXME:Il faudrait mettre plus l'infini
+      best_iter = 0
+
+      #for t in range(0,self.T):
+      t=0
+      while True:#Do...while loop
+         t += 1
+         #sys.stderr.write("Iteration "+str(t)+", theta vaut au debut : "+str(theta)+"\n")
+         DeltaTheta = zeros(( self.theta_0.size, 1 ))
+         for sa in self.data:
+            val = -Inf
+            a_star = array([])
+            for a in self.A:
+               newval = dot( theta.transpose(), self.mu_E( sa[0], a ) ) + self.l( sa[0], a )
+               assert(newval.size == 1)
+               if newval[0] > val:
+                  val = newval
+                  a_star = a
+            DeltaTheta = DeltaTheta + self.mu_E( sa[0], a_star ) - self.mu_E( sa[0], sa[1] )
+         DeltaTheta = DeltaTheta / len(self.data) #1/N
+         _norm = norm(DeltaTheta)
+         #sys.stderr.write("Le gradient de ce truc est : "+str(DeltaTheta)+" dont la norme vaut "+str(_norm)+" et le pas : "+str(self.alpha(t))+"\n")
+         #sys.stderr.write("L'update pour cette iteration : "+str(-self.alpha( t ) * DeltaTheta / _norm))
+         if _norm > 0.:
+             theta = theta - self.alpha( t ) * DeltaTheta / _norm
+         #sys.stderr.write("Theta vaut maintenant : "+str(theta))
+         print "Norme du gradient : "+str(_norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)
+
+         if _norm < best_norm:
+             best_norm = _norm
+             best_theta = theta.copy()
+             best_iter = t
+         if _norm < self.Threshold or (self.T != -1 and t >= self.T):
+             break
+
+      sys.stderr.write("Gradient de norme : "+str(best_norm)+", a l'iteration : "+str(best_iter)+"\n")
+      return best_theta
+                    
+class IRL2classif_hack( LAFEM ):
+    data = None
+    Threshold = 0.1 #Sensible default
+    #T = 40 #Sensible default
+    T=40
+    A = ACTION_SPACE
+    dicPi_E = {}
+    def __init__( self,D,phi ):
+        self.data = D
+        s_0 = D[0][0]
+        a_0 = D[0][1]
+        self.phi=phi
+        self.theta_0 = zeros( phi( s_0, a_0 ).shape )
+        #FIXME factoriser ce qui suit (optimisation de la fonction l et fonction l naive)
+        for sa in D:
+            self.dicPi_E[ l2str( sa[0] )] = sa[1]
+    def l( self, s, a ):
+        return 0 if all( self.dicPi_E[ l2str( s )] == a ) else 1
+    def mu_E( self, s, a ):
+        return self.phi( s, a )
+    def alpha( self, t):
+        return 3./(t+1) #Sensible default
+
+# <codecell>
+
+#inverted_pendulum_plot_policy(policy_good)
+states = rand(200,2)*6-3
+actions = policy_good(states)
+data = hstack([states,actions])
+lafem_phi = lambda s,a: inverted_pendulum_phi(hstack([s,a]))
+lafem_data = map( lambda trans:[trans[0:2],trans[2:3][0]],data)
+old_classifier=IRL2classif_hack(lafem_data, lafem_phi)
+theta_old = old_classifier.run()
+old_rule = greedy_policy(theta_old,inverted_pendulum_phi,ACTION_SPACE)
+data_0 = array([l for l in data if l[2]==0.])
+data_1 = array([l for l in data if l[2]==1.])
+data_2 = array([l for l in data if l[2]==2.])
+plot(data_0[:,0],data_0[:,1],ls='',marker='o')
+plot(data_1[:,0],data_1[:,1],ls='',marker='o')
+plot(data_2[:,0],data_2[:,1],ls='',marker='o')
+#show()
+classifier = StructuredClassifier(data, 2, inverted_pendulum_phi, 30, ACTION_SPACE)
+classif_rule,omega_classif = classifier.run()
+inverted_pendulum_plot_policy( old_rule )
+inverted_pendulum_plot(inverted_pendulum_V(theta_old))
+inverted_pendulum_plot_policy( classif_rule )
+inverted_pendulum_plot(inverted_pendulum_V(omega_classif))
+norm(omega_classif-theta_old)
+
+# <codecell>
+
+#inverted_pendulum_plot_policy(policy_good)
+#states = rand(1000,2)*6-3
+#actions = policy_good(states)
+data = hstack([states,actions])
+#lafem_phi = lambda s,a: inverted_pendulum_phi(hstack([s,a]))
+#lafem_data = map( lambda trans:[trans[0:2],trans[2:3][0]],data)
+#old_classifier=IRL2classif_hack(lafem_data, lafem_phi)
+#theta_old = old_classifier.run()
+#old_rule = greedy_policy(theta_old,inverted_pendulum_phi,ACTION_SPACE)
+#data_0 = array([l for l in data if l[2]==0.])
+#data_1 = array([l for l in data if l[2]==1.])
+#data_2 = array([l for l in data if l[2]==2.])
+#plot(data_0[:,0],data_0[:,1],ls='',marker='o')
+#plot(data_1[:,0],data_1[:,1],ls='',marker='o')
+#plot(data_2[:,0],data_2[:,1],ls='',marker='o')
+#show()
+classifier = StructuredClassifier(data, 2, inverted_pendulum_phi, 30, ACTION_SPACE)
+classif_rule,omega_classif = classifier.run()
+omega_classif-theta_old
+#inverted_pendulum_plot_policy( old_rule )
+#inverted_pendulum_plot(inverted_pendulum_V(theta_old))
+#inverted_pendulum_plot_policy( classif_rule )
+#inverted_pendulum_plot(inverted_pendulum_V(omega_classif))
 
 # <headingcell level=2>
 
@@ -258,6 +523,40 @@ def inverted_pendulum_plot( f, draw_contour=True, contour_levels=50, draw_surfac
 
 # <headingcell level=2>
 
+# Inverse Reinforcement Learning code
+
+# <codecell>
+
+def CSI(data, classifier, regressor, A, s_dim=1, gamma=0.9, a_dim=1):
+    pi_c,q = classifier(data)
+    s_dash = data[:,s_dim+a_dim:s_dim+a_dim+s_dim]
+    a_dash = pi_c(s_dash)
+    hat_r = q(data[:,0:s_dim+a_dim])-gamma*q(hstack([s_dash,a_dash]))
+    s = data[:,0:s_dim]
+    a = data[:,s_dim:s_dim+a_dim]
+    r_min = min(hat_r)-1.*ones(hat_r.shape)
+    regression_input_matrices = [hstack([s,action*ones(hat_r.shape)]) for action in A] #FIXME7: may not work for vectorial actions
+    def add_output_column( reg_mat ):
+        actions = reg_mat[:,-a_dim:]
+        hat_r_bool_table = actions==a
+        r_min_bool_table = not hat_r_bool_table
+        output_column = hat_r_bool_table*hat_r+r_min_bool_table*r_min
+        return hstack([reg_mat,output_column])
+    regression_matrix = vstack(map(add_output_column,regression_input_matrices))
+    return regressor( regression_matrix )
+    
+
+# <codecell>
+
+a = [1,2,3]
+a
+for i in a:
+    i = i+1
+a
+array([True, False, True])*array([1.,3.,2.])
+
+# <headingcell level=2>
+
 # Experiment 1 Code
 
 # <codecell>
@@ -275,4 +574,41 @@ print "Rate of falls for expert controller "+str(expert_falls_rate)
 #inverted_pendulum_plot( value_function, "ValueFunction.pdf" )
 #sum(data_random[:,5])
 #plot(data_random[:,0],data_random[:,1],ls='',marker='o')
+
+# <codecell>
+
+def inverted_pendulum_plot_policy( policy ):
+    two_args_pol = lambda p,s:squeeze(policy(zip_stack(p,s)))
+    inverted_pendulum_plot(two_args_pol,contour_levels=3)
+
+# <codecell>
+
+rand_policy = lambda s: choice(ACTION_SPACE)
+data_uniform = inverted_pendulum_trace( rand_policy, initial_state=inverted_pendulum_uniform_initial_state )
+data_optimal = inverted_pendulum_trace( rand_policy)
+policy_uni,omega_uni = lspi( data_uniform, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=inverted_pendulum_phi, phi_dim=30 )
+policy_good,omega_good = lspi( data_optimal, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=inverted_pendulum_phi, phi_dim=30 )
+
+inverted_pendulum_plot(inverted_pendulum_V(omega_uni))
+two_args_pol_uni = lambda p,s:squeeze(policy_uni(zip_stack(p,s)))
+inverted_pendulum_plot(two_args_pol_uni,contour_levels=3)
+
+inverted_pendulum_plot(inverted_pendulum_V(omega_good))
+two_args_pol_good = lambda p,s:squeeze(policy_good(zip_stack(p,s)))
+inverted_pendulum_plot(two_args_pol_good,contour_levels=3)
+
+trace_uni = inverted_pendulum_trace(policy_uni)
+trace_good = inverted_pendulum_trace(policy_good)
+uni_falls_rate = - mean( trace_uni[:,5] )
+good_falls_rate = - mean( trace_good[:,5] )
+print "Fall rate after training with uniform data : "+str(uni_falls_rate)
+print "Fall rate after training with good data : "+str(good_falls_rate)
+
+# <codecell>
+
+plot( data_uniform[:,0],data_uniform[:,1],ls='',marker='o')
+plot( trace_uni[:,0],trace_uni[:,1],ls='',marker='o')
+figure()
+plot( data_optimal[:,0],data_optimal[:,1],ls='',marker='o')
+plot( trace_good[:,0],trace_good[:,1],ls='',marker='o')
 
