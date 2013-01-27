@@ -258,10 +258,13 @@ def inverted_pendulum_next_state(state, action):
     next_speed = speed + acceleration*step;
     return array([next_position,next_speed])
 
-def inverted_pendulum_reward( state ):
-    position,speed = state
+def inverted_pendulum_reward( sas ):
+    position,speed = sas[-2:]
+    #print "position is "+str(position)
     if abs(position)>pi/2.:
+    #    print "-1"
         return -1.
+    #print "0"
     return 0.
 
 def inverted_pendulum_uniform_initial_state():
@@ -270,32 +273,33 @@ def inverted_pendulum_uniform_initial_state():
 def inverted_pendulum_optimal_initial_state():
     return rand(2)*0.2-0.1
 
-def inverted_pendulum_trace( pi,run_length=RANDOM_RUN_LENGTH,
-                             initial_state=inverted_pendulum_optimal_initial_state ):
+def inverted_pendulum_trace( policy,run_length=RANDOM_RUN_LENGTH,
+                             initial_state=inverted_pendulum_optimal_initial_state,
+                             reward = inverted_pendulum_reward):
     data = zeros((run_length, TRANS_WIDTH))
     state = initial_state()
     for i,void in enumerate( data ):
-        action = pi( state )
+        action = policy( state )
         new_state = inverted_pendulum_next_state( state, action )
-        reward = inverted_pendulum_reward( new_state )
-        data[i,:] = hstack([state,action,new_state,[reward]])
-        if reward == 0.:
+        r = reward( hstack([state,action,new_state]) )
+        data[i,:] = hstack([state,action,new_state,[r]])
+        if r == 0.:
             state = new_state
         else: #Pendulum has fallen
             state = initial_state()
     return data
 
-def inverted_pendulum_random_trace():
+def inverted_pendulum_random_trace(reward=inverted_pendulum_reward):
     pi = lambda s: choice(ACTION_SPACE)
-    return inverted_pendulum_trace( pi )
+    return inverted_pendulum_trace( pi,reward=reward )
 
-def inverted_pendulum_expert_trace():
-    data = inverted_pendulum_random_trace()
+def inverted_pendulum_expert_trace( reward ):
+    data = inverted_pendulum_random_trace(reward=reward)
     policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=inverted_pendulum_phi, phi_dim=30 )
     inverted_pendulum_plot(inverted_pendulum_V(omega))
     two_args_pol = lambda p,s:squeeze(policy(zip_stack(p,s)))
     inverted_pendulum_plot(two_args_pol,contour_levels=3)
-    return inverted_pendulum_trace( policy,run_length=EXPERT_RUN_LENGTH ),policy
+    return inverted_pendulum_trace( policy,run_length=EXPERT_RUN_LENGTH ),policy,omega
 
 # <codecell>
 
@@ -312,11 +316,21 @@ def inverted_pendulum_plot( f, draw_contour=True, contour_levels=50, draw_surfac
     if draw_contour:
         contourf(pos,speed,Z,levels=linspace(min(Z.reshape(-1)),max(Z.reshape(-1)),contour_levels+1))
         colorbar()
-    show()
+    #show()
 def inverted_pendulum_plot_policy( policy ):
     two_args_pol = lambda p,s:squeeze(policy(zip_stack(p,s)))
     inverted_pendulum_plot(two_args_pol,contour_levels=3)
-#test_omega=zeros((30,1))
+def inverted_pendulum_plot_SAReward(reward,policy):
+    X = linspace(-pi,pi,30)
+    Y = X
+    X,Y = meshgrid(X,Y)
+    XY = zip_stack(X,Y)
+    XYA = zip_stack(X,Y,squeeze(policy(XY)))
+    Z = squeeze(reward(XYA))
+    contourf(X,Y,Z,levels=linspace(min(Z.reshape(-1)),max(Z.reshape(-1)),51))
+    colorbar()
+                               
+#test_omega=zeros((30,1)
 #test_omega[5]=1.
 #inverted_pendulum_plot(inverted_pendulum_V(test_omega))
 #pol = greedy_policy(test_omega,inverted_pendulum_phi,ACTION_SPACE)
@@ -390,20 +404,23 @@ def lspi( data, s_dim=1, a_dim=1, A = [0], phi=None, phi_dim=1, epsilon=0.01, it
 
 # <codecell>
 
-def CSI(data, classifier, regressor, A, s_dim=1, gamma=0.9, a_dim=1):
+def CSI(data, classifier, regressor, A, s_dim=1, gamma=0.9):#FIXME7: does not work for vectorial actions
+    column_shape = (len(data),1)
     s = data[:,0:s_dim]
-    a = data[:,s_dim:s_dim+a_dim]
-    s_dash = data[:,s_dim+a_dim:s_dim+a_dim+s_dim]
+    a = data[:,s_dim:s_dim+1].reshape(column_shape)
+    sa = data[:,0:s_dim+1]
+    s_dash = data[:,s_dim+1:s_dim+1+s_dim]
     pi_c,q = classifier(hstack([s,a]))
-    a_dash = pi_c(s_dash)
-    hat_r = q(data[:,0:s_dim+a_dim])-gamma*q(hstack([s_dash,a_dash]))
-    
-    r_min = min(hat_r)-1.*ones(hat_r.shape)
-    regression_input_matrices = [hstack([s,action*ones(hat_r.shape)]) for action in A] #FIXME7: may not work for vectorial actions
+    a_dash = pi_c(s_dash).reshape(column_shape)
+    sa_dash = hstack([s_dash,a_dash])
+    hat_r = (q(sa)-gamma*q(sa_dash)).reshape(column_shape)
+    print "Shapes : s, a, s_dash, a_dash, sa, sa_dash, hat_r"+str([x.shape for x in [s,a,s_dash,a_dash,sa, sa_dash,hat_r]])
+    r_min = min(hat_r)-ones(column_shape)
+    regression_input_matrices = [hstack([s,action*ones(column_shape)]) for action in A] 
     def add_output_column( reg_mat ):
-        actions = reg_mat[:,-a_dim:]
-        hat_r_bool_table = actions==a
-        r_min_bool_table = not hat_r_bool_table
+        actions = reg_mat[:,-1].reshape(column_shape)
+        hat_r_bool_table = array(actions==a)
+        r_min_bool_table = array(hat_r_bool_table==False) #"not hat_r_bool_table" does not work as I expected
         output_column = hat_r_bool_table*hat_r+r_min_bool_table*r_min
         return hstack([reg_mat,output_column])
     regression_matrix = vstack(map(add_output_column,regression_input_matrices))
@@ -421,13 +438,15 @@ def get_structured_classifier_for_SCI(s_dim, phi, phi_dim, A):
         return classif_rule,score
     return classifier
 
-def get_least_squares_regressor_for_SCI(psi, s_dim):
+def get_least_squares_regressor_for_SCI(phi, sa_dim):
     #ax=b,find x
     def regressor(data):
-        a=squeeze(psi(data[:,0:s_dim]))
-        b=data[:,s_dim:]
+        a=squeeze(phi(data[:,0:sa_dim]))
+        b=data[:,sa_dim:]
+        print "Regressor : data, a and b shapes and s_dim: "+str(data.shape)+str(a.shape)+str(b.shape)+str(sa_dim)
         x=lstsq(a,b)[0]
-        return lambda s:dot(x.transpose(),psi(s))
+        print "Regressor : x.shape : "+str(x.shape)
+        return lambda sa:dot(x.transpose(),phi(sa))
     return lambda data: regressor(data)
 
 # <headingcell level=2>
@@ -437,18 +456,25 @@ def get_least_squares_regressor_for_SCI(psi, s_dim):
 # <codecell>
 
             
-#data_random = inverted_pendulum_random_trace()
-data_expert,policy = inverted_pendulum_expert_trace()
-#random_falls_rate = - mean( data_random[:,5] )
+data_random = inverted_pendulum_random_trace()
+data_expert,policy,omega = inverted_pendulum_expert_trace(inverted_pendulum_reward)
+random_falls_rate = - mean( data_random[:,5] )
 expert_falls_rate = - mean( data_expert[:,5] )
-#print "Rate of falls for random controller "+str(random_falls_rate)
+print "Rate of falls for random controller "+str(random_falls_rate)
 print "Rate of falls for expert controller "+str(expert_falls_rate)
-#reward = cascading_irl( data_expert )
-#value_function = lspi( reward, data_random )
-#inverted_pendulum_plot( reward, "Reward.pdf" )
-#inverted_pendulum_plot( value_function, "ValueFunction.pdf" )
-#sum(data_random[:,5])
-#plot(data_random[:,0],data_random[:,1],ls='',marker='o')
+classifier = get_structured_classifier_for_SCI(2, inverted_pendulum_phi, 30, ACTION_SPACE)#
+regressor = get_least_squares_regressor_for_SCI(inverted_pendulum_phi, 3)
+reward = CSI( data_expert, classifier, regressor, ACTION_SPACE, s_dim=2)
+CSI_reward = lambda sas: squeeze(reward(sas[:3]))
+CSI_reward(rand(5))
+data_CSI,policy_CSI,omega_CSI = inverted_pendulum_expert_trace( reward=CSI_reward)
+inverted_pendulum_plot_SAReward( reward, policy)
+def mean_reward(s,p):
+    actions = [a*ones(s.shape) for a in ACTION_SPACE]
+    matrices = [zip_stack(s,p,a) for a in actions]
+    return mean(array([squeeze(reward(m)) for m in matrices]), axis=0)
+inverted_pendulum_plot( mean_reward)
+inverted_pendulum_plot_policy( policy_CSI)
 
 # <codecell>
 
@@ -470,19 +496,24 @@ inverted_pendulum_plot(two_args_score)
 
 # <codecell>
 
-reg_X = rand(1000,2)*2-1
-test_theta = rand(10,1)-0.5
-reg_Y = dot(test_theta.transpose(),inverted_pendulum_psi(reg_X)).reshape(1000,1)
+reg_S = rand(1000,2)*2-1
+reg_A = policy(reg_S)
+reg_X = hstack([reg_S,reg_A])
+test_omega = rand(30,1)-0.5
+reg_Y = dot(test_omega.transpose(),inverted_pendulum_phi(reg_X)).reshape(1000,1)
 
-regressor = get_least_squares_regressor_for_SCI(inverted_pendulum_psi, 2)
+regressor = get_least_squares_regressor_for_SCI(inverted_pendulum_phi, 3)
 reg = regressor(hstack([reg_X,reg_Y]))
 
-X = linspace(-1,1,30)
+inverted_pendulum_plot_SAReward( reg, policy)
+
+X = linspace(-pi,pi,30)
 Y = X
 X,Y = meshgrid(X,Y)
 XY=zip_stack(X,Y)
-Z = squeeze(reg(XY))
-true_Z = squeeze(reg(XY))
+A = squeeze(policy(XY))
+B = zip_stack(X,Y,A)
+Z = squeeze(reg(B))
 
 from matplotlib import cm
 fig = figure()
@@ -490,4 +521,172 @@ ax=Axes3D(fig)
 ax.plot_surface(X,Y,Z, cmap=cm.jet,cstride=1,rstride=1)
 ax.scatter(reg_X[:,0],reg_X[:,1],reg_Y,c=reg_Y)
 show()
+
+# <codecell>
+
+#Déroulage "à la main" de l'algo CSI, pour comprendre ce qui cloche
+#def CSI(data, classifier, regressor, A, s_dim=1, gamma=0.9):#FIXME7: does not work for vectorial actions
+#data = data_expert[:50,:]
+#gamma=0.9
+#classifier, regressor, deja definis
+#A = ACTION_SPACE
+#s_dim=2
+#Algo
+#column_shape = (len(data),1)
+#s = data[:,0:s_dim]
+#a = data[:,s_dim:s_dim+1].reshape(column_shape)
+#sa = data[:,0:s_dim+1]
+#s_dash = data[:,s_dim+1:s_dim+1+s_dim]
+#pi_c,q = classifier(hstack([s,a]))
+#Plots de la politique de l'expert, des données fournies par l'expert, de la politique du classifieur
+#inverted_pendulum_plot_policy(policy)
+#data_0 = array([l for l in sa if l[2]==0.])
+#data_1 = array([l for l in sa if l[2]==1.])
+#data_2 = array([l for l in sa if l[2]==2.])
+#axis([-pi,pi,-pi,pi])
+#plot(data_0[:,0],data_0[:,1],ls='',marker='o')
+#plot(data_1[:,0],data_1[:,1],ls='',marker='o')
+#plot(data_2[:,0],data_2[:,1],ls='',marker='o')
+#figure()
+#plot(data_0[:,0],data_0[:,1],ls='',marker='o')
+#plot(data_1[:,0],data_1[:,1],ls='',marker='o')
+#plot(data_2[:,0],data_2[:,1],ls='',marker='o')
+#show()
+#inverted_pendulum_plot_policy(pi_c)
+##Plots de Q et de la fonction de score du classifieur et évaluation de la politique du classifieur
+#phi=inverted_pendulum_phi
+#Q = lambda sa: squeeze(dot(omega.transpose(),phi(sa)))
+#Q_0 = lambda p,s:Q(zip_stack(p,s,0*ones(p.shape)))
+#Q_1 = lambda p,s:Q(zip_stack(p,s,1*ones(p.shape)))
+#Q_2 = lambda p,s:Q(zip_stack(p,s,2*ones(p.shape)))
+#q_0 = lambda p,s:q(zip_stack(p,s,0*ones(p.shape)))
+#q_1 = lambda p,s:q(zip_stack(p,s,1*ones(p.shape)))
+#q_2 = lambda p,s:q(zip_stack(p,s,2*ones(p.shape)))
+#inverted_pendulum_plot(Q_0)
+#inverted_pendulum_plot(Q_1)
+inverted_pendulum_plot(Q_2)
+#inverted_pendulum_plot(q_0)
+#inverted_pendulum_plot(q_1)
+#inverted_pendulum_plot(q_2)
+##FIXME: combien de fois le classifieur tombe-t-il ?
+#On  continue CSI
+a_dash = pi_c(s_dash).reshape(column_shape)
+sa_dash = hstack([s_dash,a_dash])
+hat_r = (q(sa)-gamma*q(sa_dash)).reshape(column_shape)
+r_min = min(hat_r)#-100.*ones(column_shape)
+#Plot des samples hat_r Pour chacune des 3 actions
+#sar = hstack([sa,hat_r])
+#sr_0 = array([l for l in sar if l[2]==0.])
+#sr_1 = array([l for l in sar if l[2]==1.])
+#sr_2 = array([l for l in sar if l[2]==2.])
+#axis([-pi,pi,-pi,pi])
+#scatter(sr_0[:,0],sr_0[:,1],s=20,c=sr_0[:,3], marker = 'o', cmap = cm.jet );
+#colorbar()
+#figure()
+#axis([-pi,pi,-pi,pi])
+#scatter(sr_1[:,0],sr_1[:,1],s=20,c=sr_1[:,3], marker = 'o', cmap = cm.jet );
+#colorbar()
+#figure()
+#axis([-pi,pi,-pi,pi])
+#scatter(sr_2[:,0],sr_2[:,1],s=20,c=sr_2[:,3], marker = 'o', cmap = cm.jet );
+#colorbar()
+#figure()
+#scatter(sr_0[:,0],sr_0[:,1],s=20,c=sr_0[:,3], marker = 'o', cmap = cm.jet );
+#colorbar()
+#figure()
+#scatter(sr_1[:,0],sr_1[:,1],s=20,c=sr_1[:,3], marker = 'o', cmap = cm.jet );
+#colorbar()
+#figure()
+#scatter(sr_2[:,0],sr_2[:,1],s=20,c=sr_2[:,3], marker = 'o', cmap = cm.jet );
+#colorbar()
+#On continue SCI
+regression_input_matrices = [hstack([s,action*ones(column_shape)]) for action in A] 
+def add_output_column( reg_mat ):
+    actions = reg_mat[:,-1].reshape(column_shape)
+    hat_r_bool_table = array(actions==a)
+    r_min_bool_table = array(hat_r_bool_table==False) #"not hat_r_bool_table" does not work as I expected
+    output_column = hat_r_bool_table*hat_r+r_min_bool_table*r_min
+    return hstack([reg_mat,output_column])
+regression_matrix = vstack(map(add_output_column,regression_input_matrices))
+#On plotte les mêmes données que juste précedemment, mais avec l'heuristique en prime
+sr_0 = array([l for l in regression_matrix if l[2]==0.])
+sr_1 = array([l for l in regression_matrix if l[2]==1.])
+sr_2 = array([l for l in regression_matrix if l[2]==2.])
+axis([-pi,pi,-pi,pi])
+scatter(sr_0[:,0],sr_0[:,1],s=100,c=sr_0[:,3], marker = 'o', cmap = cm.jet );
+colorbar()
+figure()
+axis([-pi,pi,-pi,pi])
+scatter(sr_1[:,0],sr_1[:,1],s=100,c=sr_1[:,3], marker = 'o', cmap = cm.jet );
+colorbar()
+figure()
+axis([-pi,pi,-pi,pi])
+scatter(sr_2[:,0],sr_2[:,1],s=100,c=sr_2[:,3], marker = 'o', cmap = cm.jet );
+colorbar()
+figure()
+scatter(sr_0[:,0],sr_0[:,1],s=100,c=sr_0[:,3], marker = 'o', cmap = cm.jet );
+colorbar()
+figure()
+scatter(sr_1[:,0],sr_1[:,1],s=100,c=sr_1[:,3], marker = 'o', cmap = cm.jet );
+colorbar()
+figure()
+scatter(sr_2[:,0],sr_2[:,1],s=100,c=sr_2[:,3], marker = 'o', cmap = cm.jet );
+colorbar()
+
+# <codecell>
+
+def regressor(data):
+    a=squeeze(phi(data[:,0:3]))
+    b=data[:,3:]
+    print "Regressor : data, a and b shapes and s_dim: "+str(data.shape)+str(a.shape)+str(b.shape)+str(3)
+    x=lstsq(a,b,rcond=0.1)[0]
+    savetxt( "../Code/InvertedPendulum/test.mat", x)
+    #x=dot( dot( inv( dot(a.transpose(),a)-identity(30)), a.transpose()),b)
+    #x=genfromtxt("../Code/InvertedPendulum/Cascading_Exp4_omega.mat")
+    #print "Regressor : x.shape : "+str(x.shape)
+    return lambda sa:dot(x.transpose(),phi(sa))
+reg = regressor( regression_matrix )
+CSI_reward = lambda sas: squeeze(reg(sas[:3]))
+R_0 = lambda p,s: squeeze( reg(zip_stack(p,s,0*ones(p.shape))))
+R_1 = lambda p,s: squeeze( reg(zip_stack(p,s,1*ones(p.shape))))
+R_2 = lambda p,s: squeeze( reg(zip_stack(p,s,2*ones(p.shape))))
+#inverted_pendulum_plot(R_0)
+pos = linspace(-pi,pi,30)
+speed = linspace(-pi,pi,30)
+pos,speed = meshgrid(pos,speed)
+Z = R_0(pos,speed)
+fig = figure()
+contourf(pos,speed,Z,50)
+scatter(sr_0[:,0],sr_0[:,1],s=20,c=sr_0[:,3], marker = 'o', )#cmap = cm.jet );
+clim(vmin=min(Z.reshape(-1)),vmax=max(Z.reshape(-1)))
+colorbar()
+figure()
+Z = R_1(pos,speed)
+contourf(pos,speed,Z,50)
+scatter(sr_1[:,0],sr_1[:,1],s=20,c=sr_1[:,3], marker = 'o', )#cmap = cm.jet );
+clim(vmin=min(Z.reshape(-1)),vmax=max(Z.reshape(-1)))
+colorbar()
+figure()
+Z = R_2(pos,speed)
+contourf(pos,speed,Z,50)
+scatter(sr_2[:,0],sr_2[:,1],s=20,c=sr_2[:,3], marker = 'o', )#cmap = cm.jet );
+clim(vmin=min(Z.reshape(-1)),vmax=max(Z.reshape(-1)))
+colorbar()
+figure()
+def mean_reward(s,p):
+    actions = [a*ones(s.shape) for a in ACTION_SPACE]
+    matrices = [zip_stack(s,p,a) for a in actions]
+    return mean(array([squeeze(reg(m)) for m in matrices]), axis=0)
+inverted_pendulum_plot(mean_reward)
+def inverted_pendulum_expert_trace( reward ):
+    data = inverted_pendulum_random_trace(reward=reward)
+    policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=inverted_pendulum_phi, phi_dim=30, iterations_max=3 )
+    inverted_pendulum_plot(inverted_pendulum_V(omega))
+    two_args_pol = lambda p,s:squeeze(policy(zip_stack(p,s)))
+    inverted_pendulum_plot(two_args_pol,contour_levels=3)
+    return inverted_pendulum_trace( policy,run_length=EXPERT_RUN_LENGTH ),policy,omega
+#data_CSI,policy_CSI,omega_CSI = inverted_pendulum_expert_trace(inverted_pendulum_reward)
+#data_CSI,policy_CSI,omega_CSI = inverted_pendulum_expert_trace(CSI_reward)
+CSI_falls_rate = - mean( data_CSI[:,5] )
+print "Rate of falls for IRL controller "+str(CSI_falls_rate)
 
