@@ -527,118 +527,116 @@ show()
 #Déroulage "à la main" de l'algo CSI, pour comprendre ce qui cloche
 #def CSI(data, classifier, regressor, A, s_dim=1, gamma=0.9):#FIXME7: does not work for vectorial actions
 #data = data_expert[:50,:]
-#gamma=0.9
+
+data = rand(2000,2)*2*pi - pi
+data_classif = hstack([data,policy(data)])
+data_classif = hstack([data_classif,zeros((2000,2))])
+for index, line in enumerate(data_classif):
+    data_classif[index,-2:] = inverted_pendulum_next_state(data_classif[index,:2],data_classif[index,2])
+random_policy= lambda s:choice(ACTION_SPACE)
+vrandom_policy = non_scalar_vectorize( random_policy, (2,), (1,1) )
+pi_r = lambda state: vrandom_policy(state).reshape(state.shape[:-1]+(1,))
+data_regress = hstack([data,pi_r(data)])
+data_regress = hstack([data_regress,zeros((2000,2))])
+for index, line in enumerate(data_regress):
+    data_regress[index,-2:] = inverted_pendulum_next_state(data_regress[index,:2],data_regress[index,2])
+
+gamma=0.9
 #classifier, regressor, deja definis
-#A = ACTION_SPACE
-#s_dim=2
+A = ACTION_SPACE
+s_dim=2
+phi=inverted_pendulum_phi
+psi=inverted_pendulum_psi
+
+# <codecell>
+
 #Algo
-#column_shape = (len(data),1)
-#s = data[:,0:s_dim]
-#a = data[:,s_dim:s_dim+1].reshape(column_shape)
-#sa = data[:,0:s_dim+1]
-#s_dash = data[:,s_dim+1:s_dim+1+s_dim]
+column_shape = (len(data_classif),1)
+s = data_classif[:,0:s_dim]
+a = data_classif[:,s_dim:s_dim+1].reshape(column_shape)
+sa = data_classif[:,0:s_dim+1]
+s_dash = data_classif[:,s_dim+1:s_dim+1+s_dim]
+from sklearn import svm
+clf = svm.SVC(C=1000., probability=True)
+clf.fit(squeeze(psi(s)), a)
+clf_predict= lambda state : clf.predict(squeeze(psi(state)))
+vpredict = non_scalar_vectorize( clf_predict, (2,), (1,1) )
+pi_c = lambda state: vpredict(state).reshape(state.shape[:-1]+(1,))
+clf_score = lambda sa : squeeze(clf.predict_proba(squeeze(psi(sa[:2]))))[sa[-1]]
+vscore = non_scalar_vectorize( clf_score,(3,),(1,1) )
+q = lambda sa: vscore(sa).reshape(sa.shape[:-1])
 #pi_c,q = classifier(hstack([s,a]))
 #Plots de la politique de l'expert, des données fournies par l'expert, de la politique du classifieur
-#inverted_pendulum_plot_policy(policy)
-#data_0 = array([l for l in sa if l[2]==0.])
-#data_1 = array([l for l in sa if l[2]==1.])
-#data_2 = array([l for l in sa if l[2]==2.])
-#axis([-pi,pi,-pi,pi])
-#plot(data_0[:,0],data_0[:,1],ls='',marker='o')
-#plot(data_1[:,0],data_1[:,1],ls='',marker='o')
-#plot(data_2[:,0],data_2[:,1],ls='',marker='o')
-#figure()
-#plot(data_0[:,0],data_0[:,1],ls='',marker='o')
-#plot(data_1[:,0],data_1[:,1],ls='',marker='o')
-#plot(data_2[:,0],data_2[:,1],ls='',marker='o')
-#show()
-#inverted_pendulum_plot_policy(pi_c)
+inverted_pendulum_plot_policy(policy)
+scatter(data_classif[:,0],data_classif[:,1],c=data_classif[:,2])
+figure()
+scatter(data_classif[:,0],data_classif[:,1],c=data_classif[:,2])
+inverted_pendulum_plot_policy(pi_c)
 ##Plots de Q et de la fonction de score du classifieur et évaluation de la politique du classifieur
 #phi=inverted_pendulum_phi
-#Q = lambda sa: squeeze(dot(omega.transpose(),phi(sa)))
-#Q_0 = lambda p,s:Q(zip_stack(p,s,0*ones(p.shape)))
-#Q_1 = lambda p,s:Q(zip_stack(p,s,1*ones(p.shape)))
-#Q_2 = lambda p,s:Q(zip_stack(p,s,2*ones(p.shape)))
-#q_0 = lambda p,s:q(zip_stack(p,s,0*ones(p.shape)))
-#q_1 = lambda p,s:q(zip_stack(p,s,1*ones(p.shape)))
-#q_2 = lambda p,s:q(zip_stack(p,s,2*ones(p.shape)))
-#inverted_pendulum_plot(Q_0)
-#inverted_pendulum_plot(Q_1)
+Q = lambda sa: squeeze(dot(omega.transpose(),phi(sa)))
+Q_0 = lambda p,s:Q(zip_stack(p,s,0*ones(p.shape)))
+Q_1 = lambda p,s:Q(zip_stack(p,s,1*ones(p.shape)))
+Q_2 = lambda p,s:Q(zip_stack(p,s,2*ones(p.shape)))
+q_0 = lambda p,s:q(zip_stack(p,s,0*ones(p.shape)))
+q_1 = lambda p,s:q(zip_stack(p,s,1*ones(p.shape)))
+q_2 = lambda p,s:q(zip_stack(p,s,2*ones(p.shape)))
+inverted_pendulum_plot(Q_0)
+inverted_pendulum_plot(Q_1)
 inverted_pendulum_plot(Q_2)
-#inverted_pendulum_plot(q_0)
-#inverted_pendulum_plot(q_1)
-#inverted_pendulum_plot(q_2)
+inverted_pendulum_plot(q_0)
+inverted_pendulum_plot(q_1)
+inverted_pendulum_plot(q_2)
 ##FIXME: combien de fois le classifieur tombe-t-il ?
+
+# <codecell>
+
 #On  continue CSI
+s = data_regress[:,0:s_dim]
+a = data_regress[:,s_dim:s_dim+1].reshape(column_shape)
+sa = data_regress[:,0:s_dim+1]
+s_dash = data_regress[:,s_dim+1:s_dim+1+s_dim]
 a_dash = pi_c(s_dash).reshape(column_shape)
 sa_dash = hstack([s_dash,a_dash])
 hat_r = (q(sa)-gamma*q(sa_dash)).reshape(column_shape)
-r_min = min(hat_r)#-100.*ones(column_shape)
+r_min = min(hat_r)-1.*ones(column_shape)
 #Plot des samples hat_r Pour chacune des 3 actions
-#sar = hstack([sa,hat_r])
-#sr_0 = array([l for l in sar if l[2]==0.])
-#sr_1 = array([l for l in sar if l[2]==1.])
-#sr_2 = array([l for l in sar if l[2]==2.])
-#axis([-pi,pi,-pi,pi])
-#scatter(sr_0[:,0],sr_0[:,1],s=20,c=sr_0[:,3], marker = 'o', cmap = cm.jet );
-#colorbar()
-#figure()
-#axis([-pi,pi,-pi,pi])
-#scatter(sr_1[:,0],sr_1[:,1],s=20,c=sr_1[:,3], marker = 'o', cmap = cm.jet );
-#colorbar()
-#figure()
-#axis([-pi,pi,-pi,pi])
-#scatter(sr_2[:,0],sr_2[:,1],s=20,c=sr_2[:,3], marker = 'o', cmap = cm.jet );
-#colorbar()
-#figure()
-#scatter(sr_0[:,0],sr_0[:,1],s=20,c=sr_0[:,3], marker = 'o', cmap = cm.jet );
-#colorbar()
-#figure()
-#scatter(sr_1[:,0],sr_1[:,1],s=20,c=sr_1[:,3], marker = 'o', cmap = cm.jet );
-#colorbar()
-#figure()
-#scatter(sr_2[:,0],sr_2[:,1],s=20,c=sr_2[:,3], marker = 'o', cmap = cm.jet );
-#colorbar()
+sar = hstack([sa,hat_r])
+for action in ACTION_SPACE:
+    sr = array([l for l in sar if l[2]==action])
+    axis([-pi,pi,-pi,pi])
+    scatter(sr[:,0],sr[:,1],s=20,c=sr[:,3], marker = 'o', cmap = cm.jet );
+    colorbar()
+    figure()
 #On continue SCI
-regression_input_matrices = [hstack([s,action*ones(column_shape)]) for action in A] 
-def add_output_column( reg_mat ):
-    actions = reg_mat[:,-1].reshape(column_shape)
-    hat_r_bool_table = array(actions==a)
-    r_min_bool_table = array(hat_r_bool_table==False) #"not hat_r_bool_table" does not work as I expected
-    output_column = hat_r_bool_table*hat_r+r_min_bool_table*r_min
-    return hstack([reg_mat,output_column])
-regression_matrix = vstack(map(add_output_column,regression_input_matrices))
+
+##Avec l'heuristique : 
+#regression_input_matrices = [hstack([s,action*ones(column_shape)]) for action in A] 
+#def add_output_column( reg_mat ):
+#    actions = reg_mat[:,-1].reshape(column_shape)
+#    hat_r_bool_table = array(actions==a)
+#    r_min_bool_table = array(hat_r_bool_table==False) #"not hat_r_bool_table" does not work as I expected
+#    output_column = hat_r_bool_table*hat_r+r_min_bool_table*r_min
+#    return hstack([reg_mat,output_column])
+#regression_matrix = vstack(map(add_output_column,regression_input_matrices))
 #On plotte les mêmes données que juste précedemment, mais avec l'heuristique en prime
-sr_0 = array([l for l in regression_matrix if l[2]==0.])
-sr_1 = array([l for l in regression_matrix if l[2]==1.])
-sr_2 = array([l for l in regression_matrix if l[2]==2.])
-axis([-pi,pi,-pi,pi])
-scatter(sr_0[:,0],sr_0[:,1],s=100,c=sr_0[:,3], marker = 'o', cmap = cm.jet );
-colorbar()
-figure()
-axis([-pi,pi,-pi,pi])
-scatter(sr_1[:,0],sr_1[:,1],s=100,c=sr_1[:,3], marker = 'o', cmap = cm.jet );
-colorbar()
-figure()
-axis([-pi,pi,-pi,pi])
-scatter(sr_2[:,0],sr_2[:,1],s=100,c=sr_2[:,3], marker = 'o', cmap = cm.jet );
-colorbar()
-figure()
-scatter(sr_0[:,0],sr_0[:,1],s=100,c=sr_0[:,3], marker = 'o', cmap = cm.jet );
-colorbar()
-figure()
-scatter(sr_1[:,0],sr_1[:,1],s=100,c=sr_1[:,3], marker = 'o', cmap = cm.jet );
-colorbar()
-figure()
-scatter(sr_2[:,0],sr_2[:,1],s=100,c=sr_2[:,3], marker = 'o', cmap = cm.jet );
-colorbar()
+#for action in ACTION_SPACE:
+#    sr = array([l for l in regression_matrix if l[2]==action])
+#    axis([-pi,pi,-pi,pi])
+#    scatter(sr[:,0],sr[:,1],s=20,c=sr[:,3], marker = 'o', cmap = cm.jet );
+#    colorbar()
+#    figure()
+
+##Sans heuristique :
+regression_matrix=sar
 
 # <codecell>
+
+#On continue CSI
 
 def regressor(data):
     a=squeeze(phi(data[:,0:3]))
     b=data[:,3:]
-    print "Regressor : data, a and b shapes and s_dim: "+str(data.shape)+str(a.shape)+str(b.shape)+str(3)
     x=lstsq(a,b,rcond=0.1)[0]
     savetxt( "../Code/InvertedPendulum/test.mat", x)
     #x=dot( dot( inv( dot(a.transpose(),a)-identity(30)), a.transpose()),b)
@@ -647,37 +645,27 @@ def regressor(data):
     return lambda sa:dot(x.transpose(),phi(sa))
 reg = regressor( regression_matrix )
 CSI_reward = lambda sas: squeeze(reg(sas[:3]))
-R_0 = lambda p,s: squeeze( reg(zip_stack(p,s,0*ones(p.shape))))
-R_1 = lambda p,s: squeeze( reg(zip_stack(p,s,1*ones(p.shape))))
-R_2 = lambda p,s: squeeze( reg(zip_stack(p,s,2*ones(p.shape))))
-#inverted_pendulum_plot(R_0)
-pos = linspace(-pi,pi,30)
-speed = linspace(-pi,pi,30)
-pos,speed = meshgrid(pos,speed)
-Z = R_0(pos,speed)
-fig = figure()
-contourf(pos,speed,Z,50)
-scatter(sr_0[:,0],sr_0[:,1],s=20,c=sr_0[:,3], marker = 'o', )#cmap = cm.jet );
-clim(vmin=min(Z.reshape(-1)),vmax=max(Z.reshape(-1)))
-colorbar()
-figure()
-Z = R_1(pos,speed)
-contourf(pos,speed,Z,50)
-scatter(sr_1[:,0],sr_1[:,1],s=20,c=sr_1[:,3], marker = 'o', )#cmap = cm.jet );
-clim(vmin=min(Z.reshape(-1)),vmax=max(Z.reshape(-1)))
-colorbar()
-figure()
-Z = R_2(pos,speed)
-contourf(pos,speed,Z,50)
-scatter(sr_2[:,0],sr_2[:,1],s=20,c=sr_2[:,3], marker = 'o', )#cmap = cm.jet );
-clim(vmin=min(Z.reshape(-1)),vmax=max(Z.reshape(-1)))
-colorbar()
-figure()
+#On plotte les rewards en fonction de l'action
+for action in ACTION_SPACE:
+    sr = array([l for l in regression_matrix if l[2]==action])
+    R = lambda p,s: squeeze( reg(zip_stack(p,s,action*ones(p.shape))))
+    pos = linspace(-pi,pi,30)
+    speed = linspace(-pi,pi,30)
+    pos,speed = meshgrid(pos,speed)
+    Z = R(pos,speed)
+    figure()
+    contourf(pos,speed,Z,50)
+    scatter(sr[:,0],sr[:,1],s=20,c=sr[:,3], marker = 'o', )#cmap = cm.jet );
+    clim(vmin=min(Z.reshape(-1)),vmax=max(Z.reshape(-1)))
+    colorbar()
 def mean_reward(s,p):
     actions = [a*ones(s.shape) for a in ACTION_SPACE]
     matrices = [zip_stack(s,p,a) for a in actions]
     return mean(array([squeeze(reg(m)) for m in matrices]), axis=0)
 inverted_pendulum_plot(mean_reward)
+
+# <codecell>
+
 def inverted_pendulum_expert_trace( reward ):
     data = inverted_pendulum_random_trace(reward=reward)
     policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=inverted_pendulum_phi, phi_dim=30, iterations_max=3 )
@@ -685,8 +673,12 @@ def inverted_pendulum_expert_trace( reward ):
     two_args_pol = lambda p,s:squeeze(policy(zip_stack(p,s)))
     inverted_pendulum_plot(two_args_pol,contour_levels=3)
     return inverted_pendulum_trace( policy,run_length=EXPERT_RUN_LENGTH ),policy,omega
-#data_CSI,policy_CSI,omega_CSI = inverted_pendulum_expert_trace(inverted_pendulum_reward)
-#data_CSI,policy_CSI,omega_CSI = inverted_pendulum_expert_trace(CSI_reward)
+#data_expert,policy,omega = inverted_pendulum_expert_trace(inverted_pendulum_reward)
+data_CSI,policy_CSI,omega_CSI = inverted_pendulum_expert_trace(CSI_reward)
 CSI_falls_rate = - mean( data_CSI[:,5] )
 print "Rate of falls for IRL controller "+str(CSI_falls_rate)
+
+# <codecell>
+
+a
 
