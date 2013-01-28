@@ -179,7 +179,7 @@ def least_squares_regressor(data, psi, x_dim, _lambda=0.1):
 
 # <codecell>
 
-RANDOM_RUN_LENGTH=10000
+RANDOM_RUN_LENGTH=5000
 EXPERT_RUN_LENGTH=3000
 TRANS_WIDTH=6
 ACTION_SPACE=[0,1,2]
@@ -556,15 +556,16 @@ s = data_classif[:,0:s_dim]
 a = data_classif[:,s_dim:s_dim+1].reshape(column_shape)
 sa = data_classif[:,0:s_dim+1]
 s_dash = data_classif[:,s_dim+1:s_dim+1+s_dim]
-from sklearn import svm
-clf = svm.SVC(C=1000., probability=True)
-clf.fit(squeeze(psi(s)), a)
-clf_predict= lambda state : clf.predict(squeeze(psi(state)))
-vpredict = non_scalar_vectorize( clf_predict, (2,), (1,1) )
-pi_c = lambda state: vpredict(state).reshape(state.shape[:-1]+(1,))
-clf_score = lambda sa : squeeze(clf.predict_proba(squeeze(psi(sa[:2]))))[sa[-1]]
-vscore = non_scalar_vectorize( clf_score,(3,),(1,1) )
-q = lambda sa: vscore(sa).reshape(sa.shape[:-1])
+#from sklearn import svm
+#clf = svm.SVC(C=1000., probability=True)
+#clf.fit(squeeze(psi(s)), a)
+#clf_predict= lambda state : clf.predict(squeeze(psi(state)))
+#vpredict = non_scalar_vectorize( clf_predict, (2,), (1,1) )
+#pi_c = lambda state: vpredict(state).reshape(state.shape[:-1]+(1,))
+#clf_score = lambda sa : squeeze(clf.predict_proba(squeeze(psi(sa[:2]))))[sa[-1]]
+#vscore = non_scalar_vectorize( clf_score,(3,),(1,1) )
+#q = lambda sa: vscore(sa).reshape(sa.shape[:-1])
+pi_c,q=policy,lambda sa: squeeze(dot(omega.transpose(),phi(sa)))
 #pi_c,q = classifier(hstack([s,a]))
 #Plots de la politique de l'expert, des données fournies par l'expert, de la politique du classifieur
 inverted_pendulum_plot_policy(policy)
@@ -633,16 +634,20 @@ regression_matrix=sar
 # <codecell>
 
 #On continue CSI
-
 def regressor(data):
     a=squeeze(phi(data[:,0:3]))
+    #a=data[:,0:3]
     b=data[:,3:]
-    x=lstsq(a,b,rcond=0.1)[0]
-    savetxt( "../Code/InvertedPendulum/test.mat", x)
-    #x=dot( dot( inv( dot(a.transpose(),a)-identity(30)), a.transpose()),b)
-    #x=genfromtxt("../Code/InvertedPendulum/Cascading_Exp4_omega.mat")
-    #print "Regressor : x.shape : "+str(x.shape)
-    return lambda sa:dot(x.transpose(),phi(sa))
+#    print x.shape
+    #return lambda sa:dot(x,phi(sa))
+    ##Trichons
+    def triche(sa):
+        s_dash = inverted_pendulum_next_state(sa[:2],sa[-1])
+        a_dash = pi_c(s_dash)
+        sa_dash=hstack([s_dash,a_dash])
+        return q(sa)-gamma*q(sa_dash)
+    vtriche=non_scalar_vectorize(triche, (3,), (1,1))
+    return lambda sa:vtriche(sa)
 reg = regressor( regression_matrix )
 CSI_reward = lambda sas: squeeze(reg(sas[:3]))
 #On plotte les rewards en fonction de l'action
@@ -668,7 +673,7 @@ inverted_pendulum_plot(mean_reward)
 
 def inverted_pendulum_expert_trace( reward ):
     data = inverted_pendulum_random_trace(reward=reward)
-    policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=inverted_pendulum_phi, phi_dim=30, iterations_max=3 )
+    policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=inverted_pendulum_phi, phi_dim=30, iterations_max=10 )
     inverted_pendulum_plot(inverted_pendulum_V(omega))
     two_args_pol = lambda p,s:squeeze(policy(zip_stack(p,s)))
     inverted_pendulum_plot(two_args_pol,contour_levels=3)
