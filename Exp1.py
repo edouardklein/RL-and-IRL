@@ -516,3 +516,43 @@ print "Abcisse possible, epsilon_C :\t"+str(sum(sampled_pi_C != sampled_pi_E)/70
 #Epsilon R est techniquement calculable, mais pas franchement simple.
 print "Abcisse possible, epsilon_R :\t"+str(epsilon_R())
 
+# <codecell>
+
+#Jouons avec la précision de l'estimation des grandeurs intéressantes
+#Critère uniforme :
+#GAMMAS = array([pow(GAMMA,n) for n in range(0,70)])
+#TRAJ_BAG_EXPERT = [inverted_pendulum_trace(policy, run_length=70) for i in range(0,2000)]
+#TRAJ_BAG_EXPERT.extend([inverted_pendulum_trace(policy, run_length=70) for i in range(0,8000)])
+#len(TRAJ_BAG_EXPERT)
+#trajs = [inverted_pendulum_trace(policy, run_length=70) for i in range(0,2000)]
+#value = mean([sum(t[:,5]*GAMMAS) for t in  trajs])
+for i in range(0,10):
+    X=map(int,linspace(10,2000,100))
+    Y=[mean([sum(t[:,5]*GAMMAS) for t in  _t]) for _t in [TRAJ_BAG_EXPERT[i*2000:x+i*2000] for x in X]]
+    plot(X,Y)
+#On va supposer que 2000 trajectoires de 70 de long donnent un résultat à ~5% près
+
+# <codecell>
+
+#Critère de l'IRL
+#TRAJ_BAG_EXPERT_RHO=[inverted_pendulum_trace(policy, run_length=70, initial_state=lambda:rho_E.sample().reshape((2,))) for i in range(0,1000)]
+print len(TRAJ_BAG_EXPERT_RHO)
+TRAJ_BAG_EXPERT_RHO.extend([inverted_pendulum_trace(policy, run_length=70, initial_state=lambda:rho_E.sample().reshape((2,))) for i in range(0,1000)])
+print len(TRAJ_BAG_EXPERT_RHO)
+#rewards = [vCSI_reward(t[:,:5]) for t in TRAJ_BAG_EXPERT_RHO]
+rewards.extend([vCSI_reward(t[:,:5]) for t in TRAJ_BAG_EXPERT_RHO[-1000:]])
+print len(rewards)
+for i in range(0,6):
+    X=map(int,linspace(10,1000,100))
+    Y=[mean([sum(r*GAMMAS) for r in  _r]) for _r in [rewards[i*1000:x+i*1000] for x in X]]
+    plot(X,Y)
+
+#trajs_IRL = [inverted_pendulum_trace(policy_CSI, run_length=70, initial_state=lambda:rho_E.sample().reshape((2,))) for i in range(0,100)]
+#rewards_IRL = [vCSI_reward(t[:,:5]) for t in trajs_IRL]
+#value_IRL = mean([sum(r*GAMMAS) for r in rewards_IRL]) #V^*_{\hat R_C}
+#def IRL_performance(policy):
+#    trajs = [inverted_pendulum_trace(policy, run_length=70) for i in range(0,100)]
+#    rewards = [vCSI_reward(t[:,:5]) for t in trajs]
+#    value = mean([sum(r*GAMMAS) for r in rewards])
+#    return value_IRL-value
+
