@@ -458,6 +458,9 @@ data_CSI,policy_CSI,omega_CSI = inverted_pendulum_expert_trace(CSI_reward)
 
 # <codecell>
 
+
+# <codecell>
+
 #Critères de performance pour l'imitation
 GAMMAS = array([pow(GAMMA,n) for n in range(0,70)])
 def imitation_performance(policy):
@@ -471,11 +474,11 @@ def imitation_performance(policy):
 
 #Critère de performance pour l'IRL
 trajs_IRL = [inverted_pendulum_trace(policy_CSI, run_length=70, initial_state=lambda:rho_E.sample().reshape((2,))) for i in range(0,100)]
-rewards_IRL = [vCSI_reward(traj[:,:5]) for traj in trajs_IRL]
+rewards_IRL = [vCSI_reward(t[:,:5]) for t in trajs_IRL]
 value_IRL = mean([sum(r*GAMMAS) for r in rewards_IRL]) #V^*_{\hat R_C}
 def IRL_performance(policy):
     trajs = [inverted_pendulum_trace(policy, run_length=70) for i in range(0,100)]
-    rewards = [vCSI_reward(traj[:,:5]) for traj in trajs]
+    rewards = [vCSI_reward(t[:,:5]) for t in trajs]
     value = mean([sum(r*GAMMAS) for r in rewards])
     return value_IRL-value
 
@@ -493,10 +496,23 @@ print "Critere de la borne, IRL :\t"+str(IRL_performance(policy_CSI))
 
 # <codecell>
 
+def MC_R_C(state, action):
+    next_states = [inverted_pendulum_next_state(state, action)]
+    for i in range(0,10):
+        next_states.append(inverted_pendulum_next_state(state, action))
+    return q(hstack([state, action])) -GAMMA*mean([q(hstack([s,pi_c(s)])) for s in next_states])
+def epsilon_R_pi(state, action):
+    return MC_R_C(state, action) - reg.predict(hstack([state,action]))
+def epsilon_R():
+    return mean([max([epsilon_R_pi(state, a) for a in ACTION_SPACE]) for state in samples[:1000,:]])
+
+# <codecell>
+
 print "Abcisse possible, nb samples :\t"+str(traj.shape[0])
-#sampled_pi_E = policy(rho_E.sample(7000))
-#sampled_pi_C = pi_c(rho_E.sample(7000))
+samples=rho_E.sample(7000)
+sampled_pi_E = policy(samples)
+sampled_pi_C = pi_c(samples)
 print "Abcisse possible, epsilon_C :\t"+str(sum(sampled_pi_C != sampled_pi_E)/7000.)
 #Epsilon R est techniquement calculable, mais pas franchement simple.
-#print "Abcisse possible, epsilon_R"
+print "Abcisse possible, epsilon_R :\t"+str(epsilon_R())
 
