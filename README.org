@@ -1,3 +1,5 @@
 #+TITLE: Edouard Klein's PhD Code
 
-[[Exp1.py]] : LSPI on the inverted pendulum.
+[[Exp1.py]] : CSI on the inverted pendulum, parameters can be played with.
+[[Exp2.py]] : Finding out in which areas of the state space of the inverted pendulum the expert is good.
+
