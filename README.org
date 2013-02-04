@@ -2,5 +2,7 @@
 
 [[Exp1.py]] : CSI on the inverted pendulum, parameters can be played with.
 [[Exp2.py]] : Finding out in which areas of the state space of the inverted pendulum the expert is good.
-[[Exp4.py]] : Testing different parameters for CSI on the Mountain Car
+[[Exp3.py]] : Trying to find what to plot with CSI on the inverted pendulum.
+[[Exp4.py]] : Testing different parameters for CSI on the Mountain Car.
+[[Exp5.py]] : Running CSI on the mountain car and saving the policies.
 [[Exp6.py]] : Trying to find a good way to plot the data of Exp5.

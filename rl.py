@@ -3,7 +3,7 @@ from stuff import *
 
 
 GAMMA=0.9 #Discout factor
-LAMBDA=0.1 #Regularization coeff for LSTDQ
+LAMBDA=0#.1 #Regularization coeff for LSTDQ
 
 def greedy_policy( omega, phi, A ): 
     def policy( *args ):
