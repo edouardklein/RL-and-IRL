@@ -40,7 +40,7 @@ plottable_episode_average_length = inverted_pendulum_episode_average_vlength(pol
 
 X = linspace(-pi,pi,30)
 Y = linspace(-pi,pi,30)
-Y,X = meshgrid(X,Y)
+X,Y = meshgrid(X,Y)
 Z = plottable_episode_length(X,Y)
 
 # <codecell>
