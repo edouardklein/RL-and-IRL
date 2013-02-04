@@ -62,9 +62,9 @@ def mountain_car_reward(sas):
 def mountain_car_training_data(freward=mountain_car_reward):
     traj = []
     random_policy = lambda s:choice(ACTION_SPACE)
-    for i in range(0,500):
+    for i in range(0,100):
         state = mountain_car_uniform_state()
-        for i in range(0,10):
+        for i in range(0,5):
             action = random_policy(state)
             next_state = mountain_car_next_state(state, action)
             reward = freward(hstack([state, action, next_state]))
@@ -72,10 +72,40 @@ def mountain_car_training_data(freward=mountain_car_reward):
             state=next_state
     return array(traj)
 
+# <codecell>
 
     
 data = mountain_car_training_data()
 policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
+
+# <codecell>
+
+def mountain_car_episode_length(initial_position,initial_speed,policy):
+    answer = 0
+    reward = 0.
+    state = array([initial_position,initial_speed])
+    while answer < 300 and reward == 0. :
+        action = policy(state)
+        next_state = mountain_car_next_state(state,action)
+        reward = mountain_car_reward(hstack([state, action, next_state]))
+        state=next_state
+        answer+=1
+    return answer
+def mountain_car_tricky_episode_length(policy):
+    return mountain_car_episode_length(-0.9,-0.04,policy)
+
+# <codecell>
+
+savetxt("./mountain_car_expert_omega.mat",omega)
+while mountain_car_tricky_episode_length(policy) > 52:
+    print "Expert still not good enough :\t"+str(mountain_car_tricky_episode_length(policy))
+    data = mountain_car_training_data()
+    policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
+
+# <codecell>
+
+print "Expert good enough :\t"+str(mountain_car_tricky_episode_length(policy))
+savetxt("./mountain_car_expert_omega.mat",omega)
 
 # <codecell>
 
@@ -281,28 +311,6 @@ def mountain_car_episode_vlength(policy):
     return vectorize(lambda p,s:mountain_car_episode_length(p,s,policy))
 
 plottable_episode_length = mountain_car_episode_vlength(policy)
-X = linspace(-1.2,0.6,5)
-Y = linspace(-0.07,0.07,5)
-X,Y = meshgrid(X,Y)
-Z = plottable_episode_length(X,Y)
-contourf(X,Y,Z,50)
-colorbar()
-max(Z.reshape(-1))
-
-# <codecell>
-
-plottable_episode_length = mountain_car_episode_vlength(policy_CSI)
-X = linspace(-1.2,0.6,5)
-Y = linspace(-0.07,0.07,5)
-X,Y = meshgrid(X,Y)
-Z = plottable_episode_length(X,Y)
-contourf(X,Y,Z,50)
-colorbar()
-max(Z.reshape(-1))
-
-# <codecell>
-
-plottable_episode_length = mountain_car_episode_vlength(pi_c)
 X = linspace(-1.2,0.6,5)
 Y = linspace(-0.07,0.07,5)
 X,Y = meshgrid(X,Y)
