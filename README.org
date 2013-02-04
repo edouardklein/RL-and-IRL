@@ -6,3 +6,4 @@
 [[Exp4.py]] : Testing different parameters for CSI on the Mountain Car.
 [[Exp5.py]] : Running CSI on the mountain car and saving the policies.
 [[Exp6.py]] : Trying to find a good way to plot the data of Exp5.
+[[Exp7.py]] : Running SCIRL on the Mountain Car
