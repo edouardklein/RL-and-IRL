@@ -77,16 +77,25 @@ def mountain_car_episode_length(initial_position,initial_speed,policy):
     return answer
 
 def mountain_car_tricky_episode_length(policy):
-    #return mountain_car_episode_length(-0.9,-0.04,policy)
-    return mean([mountain_car_episode_length(state[0],state[1], policy) for state in starting_states])
+    return mountain_car_episode_length(-0.9,-0.04,policy)
+    #return mean([mountain_car_episode_length(state[0],state[1], policy) for state in starting_states])
 
 # <codecell>
 
 import glob
 import pickle
 
-ABCISSAS=[10,100]
-for x in ABCISSAS:
+X=[10,100]
+Y_mean_CSI=[]
+Y_deviation_CSI=[]
+Y_min_CSI=[]
+Y_max_CSI=[]
+Y_mean_Class=[]
+Y_deviation_Class=[]
+Y_min_Class=[]
+Y_max_Class=[]
+Y_expert=mountain_car_tricky_episode_length(policy)
+for x in X:
     CSI_files = glob.glob("data/CSI_omega_"+str(x)+"_*.mat")
     Classif_files = glob.glob("data/Classif_"+str(x)+"_*.obj")
     print CSI_files
@@ -106,10 +115,8 @@ for x in ABCISSAS:
         policy_CSI=greedy_policy(omega_CSI, mountain_car_phi, ACTION_SPACE)
         perf_CSI = mountain_car_tricky_episode_length(policy_CSI)
         perf_Classif = mountain_car_tricky_episode_length(pi_c)
-        perf_Expert = mountain_car_tricky_episode_length(policy)
         data_CSI.append(perf_CSI) 
         data_Classif.append(perf_Classif) 
-        data_Expert.append(perf_Expert) 
         #print "Nb_samples :\t"+str(x)
         #print "Length CSI :\t"+str(perf_CSI)
         #print "Length Class :\t"+str(perf_Classif)
@@ -117,5 +124,48 @@ for x in ABCISSAS:
     print "Nb_samples :\t"+str(x)
     print "Mean length CSI :\t"+str(mean(data_CSI))
     print "Mean length Class :\t"+str(mean(data_Classif))
-    print "Mean length exp :\t"+str(mean(data_Expert))
+    Y_mean_CSI.append(mean(data_CSI))
+    Y_deviation_CSI.append(sqrt(var(data_CSI)))
+    Y_min_CSI.append(min(data_CSI))
+    Y_max_CSI.append(max(data_CSI))
+    Y_mean_Class.append(mean(data_Classif))
+    Y_deviation_Class.append(sqrt(var(data_Classif)))
+    Y_min_Class.append(min(data_Classif))
+    Y_max_Class.append(max(data_Classif))
+Y_mean_CSI=array(Y_mean_CSI)
+Y_deviation_CSI=array(Y_deviation_CSI)
+Y_min_CSI=array(Y_min_CSI)
+Y_max_CSI=array(Y_max_CSI)
+Y_mean_Class=array(Y_mean_Class)
+Y_deviation_Class=array(Y_deviation_Class)
+Y_min_Class=array(Y_min_Class)
+Y_max_Class=array(Y_max_Class)
+    
+
+# <codecell>
+
+def filled_mean_min_max(X, Y_mean, Y_min, Y_max, color, _alpha, style, lblmain,lblminmax ):
+    "Plot data, with bold mean line, and a light color fill betwee the min and max"
+    if lblmain == None:
+        plot( X, Y_mean,color=color,lw=2)
+    else:
+        plot( X, Y_mean,color=color,lw=2, label=lblmain)
+    if lblminmax == None:
+        plot( X, Y_min, color=color,lw=1,linestyle=style)
+    else:
+        plot( X, Y_min, color=color,lw=1,linestyle=style, label=lblminmax)
+    plot( X, Y_max, color=color,lw=1,linestyle=style)
+    fill_between(X,Y_min,Y_max,facecolor=color,alpha=_alpha)
+
+#filled_mean_min_max(X,Y_mean_CSI, Y_mean_CSI-Y_deviation_CSI, Y_mean_CSI+Y_deviation_CSI,'red',
+                    #0.4,'-.',None,None)
+filled_mean_min_max(X,Y_mean_CSI, Y_min_CSI, Y_max_CSI,'red',
+                    0.2,'--',None,None)
+
+#filled_mean_min_max(X,Y_mean_Class, Y_mean_Class-Y_deviation_Class, Y_mean_Class+Y_deviation_Class,'blue',
+                    #0.4,'-.',None,None)
+filled_mean_min_max(X,Y_mean_Class, Y_min_Class, Y_max_Class,'blue',
+                    0.2,'--',None,None)
+#plot( X,Y_expert*ones(array(X).shape) , color='purple',lw=5)
+axis([10,100,0,310])
 
