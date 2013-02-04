@@ -10,7 +10,7 @@ from random import *
 import numpy
 from rl import *
 ACTION_SPACE=[-1,0,1]
-NB_SAMPLES=10
+NB_SAMPLES=100
 def mountain_car_next_state(state,action):
     position,speed=state
     next_speed = squeeze(speed+action*0.001+cos(3*position)*(-0.0025))

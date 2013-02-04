@@ -51,14 +51,14 @@ mountain_car_phi= non_scalar_vectorize(mountain_car_single_phi,(3,),(75,1))
 
 def mountain_car_reward(sas):
     position=sas[0]
-    return 1 if position > 0.5 else 0
+    return 1 if position > 0.5 else -1
 
 def mountain_car_training_data():
     traj = []
     random_policy = lambda s:choice(ACTION_SPACE)
-    for i in range(0,500):
+    for i in range(0,100):
         state = mountain_car_uniform_state()
-        for i in range(0,10):
+        for i in range(0,50):
             action = random_policy(state)
             next_state = mountain_car_next_step(state, action)
             reward = mountain_car_reward(hstack([state, action, next_state]))
@@ -75,10 +75,10 @@ policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi
 
 def mountain_car_testing_data(policy):
     traj = []
-    state = array([-0.3,0])
+    state = array([0.3,0])
     t=0
-    reward = 0
-    while t < 1500 and reward == 0:
+    reward = -1
+    while t < 300 and reward == -1:
         t+=1
         action = policy(state)
         next_state = mountain_car_next_step(state, action)
@@ -86,6 +86,7 @@ def mountain_car_testing_data(policy):
         traj.append(hstack([state, action, next_state, reward]))
         state=next_state
     return array(traj)
+
 
 state = array([0.5,0])
 action = policy(state)
@@ -125,6 +126,7 @@ def mountain_car_V(omega):
 
 mountain_car_plot(mountain_car_V(omega))
 scatter(data_test[:,0],data_test[:,1])
+#scatter(data[:,0],data[:,1])
 figure()
 mountain_car_plot_policy(policy)
 data_test.shape

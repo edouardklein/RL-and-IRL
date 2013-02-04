@@ -62,6 +62,11 @@ contourf(pos,speed,Z,50)
 colorbar()
 scatter(expert_distrib_samples[:,0],expert_distrib_samples[:,1],s=1)
 rho_E.sample()
+import pickle
+with open('inverted_pendulum_expert_distribution.obj', 'wb') as output:
+    pickle.dump(rho_E, output, pickle.HIGHEST_PROTOCOL)
+rho_E.get_params(deep=True)
+rho_E
 
 # <codecell>
 
@@ -99,6 +104,8 @@ inverted_pendulum_plot(Q_2)
 inverted_pendulum_plot(q_0)
 inverted_pendulum_plot(q_1)
 inverted_pendulum_plot(q_2)
+with open('classification.obj', 'wb') as output:
+    pickle.dump(clf, output, pickle.HIGHEST_PROTOCOL)
 
 # <codecell>
 
@@ -173,6 +180,7 @@ data_CSI,policy_CSI,omega_CSI = inverted_pendulum_expert_trace(CSI_reward)
 
 # <codecell>
 
+savetxt("omega_CSI.mat",omega_CSI)
 
 # <codecell>
 

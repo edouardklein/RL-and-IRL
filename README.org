@@ -2,4 +2,4 @@
 
 [[Exp1.py]] : CSI on the inverted pendulum, parameters can be played with.
 [[Exp2.py]] : Finding out in which areas of the state space of the inverted pendulum the expert is good.
-
+[[Exp3.py]] : Trying to find what to plot with CSI on the inverted pendulum.

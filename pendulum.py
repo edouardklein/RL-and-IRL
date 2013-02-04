@@ -13,6 +13,8 @@ ACTION_SPACE=[0,1,2]
 def inverted_pendulum_single_psi( state ):
     position,speed=state
     answer = zeros((10,1))
+    if inverted_pendulum_single_reward(state)==-1. :
+        return answer
     index = 0
     answer[index] = 1.
     index+=1
@@ -154,9 +156,18 @@ def inverted_pendulum_plot_SReward(reward,policy):
     contourf(X,Y,Z,levels=linspace(min(Z.reshape(-1)),max(Z.reshape(-1)),51))
     colorbar()
 
-
+#This value function was found by LSPI in Exp1.
 inverted_pendulum_expert_omega = genfromtxt("inverted_pendulum_expert_omega.mat")
 
 def inverted_pendulum_expert_policy():
     return greedy_policy(inverted_pendulum_expert_omega, inverted_pendulum_phi, ACTION_SPACE)
+
+#These parameters were found by training a GMM in Exp1.
+import pickle
+rho_E=None
+with open('inverted_pendulum_expert_distribution.obj', 'rb') as input:
+    rho_E = pickle.load(input)
+def inverted_pendulum_expert_distribution_sample():
+    return rho_E.sample().reshape((2,))
+
 
