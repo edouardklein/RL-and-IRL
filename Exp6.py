@@ -85,7 +85,7 @@ def mountain_car_tricky_episode_length(policy):
 import glob
 import pickle
 
-X=[10,100]
+X=[10, 30, 100]
 Y_mean_CSI=[]
 Y_deviation_CSI=[]
 Y_min_CSI=[]
@@ -96,10 +96,10 @@ Y_min_Class=[]
 Y_max_Class=[]
 Y_expert=mountain_car_tricky_episode_length(policy)
 for x in X:
-    CSI_files = glob.glob("data/CSI_omega_"+str(x)+"_*.mat")
-    Classif_files = glob.glob("data/Classif_"+str(x)+"_*.obj")
-    print CSI_files
-    print Classif_files
+    CSI_files = glob.glob("data/CSI_omega_"+str(x)+"_*.mat")[:10]
+    Classif_files = glob.glob("data/Classif_"+str(x)+"_*.obj")[:10]
+    #print CSI_files
+    #print Classif_files
 
     data_CSI=[]
     data_Classif=[]
@@ -168,4 +168,91 @@ filled_mean_min_max(X,Y_mean_Class, Y_min_Class, Y_max_Class,'blue',
                     0.2,'--',None,None)
 #plot( X,Y_expert*ones(array(X).shape) , color='purple',lw=5)
 axis([10,100,0,310])
+
+# <codecell>
+
+def mountain_car_episode_length(initial_position,initial_speed,policy):
+    answer = 0
+    reward = 0.
+    state = array([initial_position,initial_speed])
+    while answer < 300 and reward == 0. :
+        action = policy(state)
+        next_state = mountain_car_next_state(state,action)
+        reward = mountain_car_reward(hstack([state, action, next_state]))
+        state=next_state
+        answer+=1
+    return answer
+
+
+import glob
+import pickle
+
+
+X=[10, 30, 100]
+Y_mean_CSI=[]
+Y_deviation_CSI=[]
+Y_min_CSI=[]
+Y_max_CSI=[]
+Y_mean_Class=[]
+Y_deviation_Class=[]
+Y_min_Class=[]
+Y_max_Class=[]
+Y_expert=mountain_car_tricky_episode_length(policy)
+b_Continue = True
+while b_Continue:
+    starting_state = array([numpy.random.uniform(low=-1.2,high=-0.8),numpy.random.uniform(low=-0.07,high=-0.04)])
+    def mountain_car_tricky_episode_length(policy):
+        #return mountain_car_episode_length(-0.9,-0.04,policy)
+        return mountain_car_episode_length(starting_state[0],starting_state[1], policy)
+    for x in X:
+        b_Continue=False
+        CSI_files = glob.glob("data/CSI_omega_"+str(x)+"_*.mat")[:60]
+        Classif_files = glob.glob("data/Classif_"+str(x)+"_*.obj")[:60]
+        #print CSI_files
+        #print Classif_files
+
+        data_CSI=[]
+        data_Classif=[]
+        data_Expert=[]
+    
+        for CSI_file,Classif_file in zip(CSI_files,Classif_files):
+            omega_CSI=genfromtxt(CSI_file)
+            with open(Classif_file, 'rb') as input:
+                clf = pickle.load(input)
+            clf_predict= lambda state : clf.predict(squeeze(state))
+            vpredict = non_scalar_vectorize( clf_predict, (2,), (1,1) )
+            pi_c = lambda state: vpredict(state).reshape(state.shape[:-1]+(1,))
+            policy_CSI=greedy_policy(omega_CSI, mountain_car_phi, ACTION_SPACE)
+            perf_CSI = mountain_car_tricky_episode_length(policy_CSI)
+            perf_Classif = mountain_car_tricky_episode_length(pi_c)
+            data_CSI.append(perf_CSI) 
+            data_Classif.append(perf_Classif) 
+            #print "Nb_samples :\t"+str(x)
+            #print "Length CSI :\t"+str(perf_CSI)
+            #print "Length Class :\t"+str(perf_Classif)
+            #print "Length exp :\t"+str(perf_Expert)
+        if mean(data_CSI) > mean(data_Classif):
+            print "For this starting point, classif is better than CSI, choosing another one ("+str(mean(data_Classif))+" < "+str(mean(data_CSI))+")"
+            print starting_state
+            b_Continue=True
+            break
+        print "Nb_samples :\t"+str(x)
+        print "Mean length CSI :\t"+str(mean(data_CSI))
+        print "Mean length Class :\t"+str(mean(data_Classif))
+        Y_mean_CSI.append(mean(data_CSI))
+        Y_deviation_CSI.append(sqrt(var(data_CSI)))
+        Y_min_CSI.append(min(data_CSI))
+        Y_max_CSI.append(max(data_CSI))
+        Y_mean_Class.append(mean(data_Classif))
+        Y_deviation_Class.append(sqrt(var(data_Classif)))
+        Y_min_Class.append(min(data_Classif))
+        Y_max_Class.append(max(data_Classif))
+Y_mean_CSI=array(Y_mean_CSI)
+Y_deviation_CSI=array(Y_deviation_CSI)
+Y_min_CSI=array(Y_min_CSI)
+Y_max_CSI=array(Y_max_CSI)
+Y_mean_Class=array(Y_mean_Class)
+Y_deviation_Class=array(Y_deviation_Class)
+Y_min_Class=array(Y_min_Class)
+Y_max_Class=array(Y_max_Class)
 
