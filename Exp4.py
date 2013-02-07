@@ -169,6 +169,20 @@ savetxt("mountain_car_batch_data.mat",data)
 
 # <codecell>
 
+def mountain_car_manual_policy(state):
+    position,speed = state
+    return -1. if speed <=0 else 1.
+plottable_episode_length = mountain_car_episode_vlength(mountain_car_manual_policy)
+X = linspace(-1.2,0.6,30)
+Y = linspace(-0.07,0.07,30)
+X,Y = meshgrid(X,Y)
+Z6 = plottable_episode_length(X,Y)
+figure()
+contourf(X,Y,Z6,50)
+colorbar()
+
+# <codecell>
+
 def mountain_car_plot( f, draw_contour=True, contour_levels=50, draw_surface=False ):
     '''Display a surface plot of function f over the state space'''
     pos = linspace(-1.2,0.6,30)
