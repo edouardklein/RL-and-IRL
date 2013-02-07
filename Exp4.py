@@ -27,10 +27,6 @@ def mountain_car_next_state(state,action):
 
 def mountain_car_uniform_state():
     return array([numpy.random.uniform(low=-1.2,high=0.6),numpy.random.uniform(low=-0.07,high=0.07)])
-def mountain_car_interesting_state():
-    position = choice([numpy.random.uniform(low=-1.2,high=-0.8),numpy.random.uniform(low=0,high=0.6)])
-    speed = choice([numpy.random.uniform(low=-0.07,high=-0.04),numpy.random.uniform(low=0.04,high=0.07)])
-    return array([position,speed])
 
 # <codecell>
 
@@ -59,19 +55,6 @@ mountain_car_phi= non_scalar_vectorize(mountain_car_single_phi,(3,),(75,1))
 def mountain_car_reward(sas):
     position=sas[0]
     return 1 if position > 0.5 else 0
-
-def mountain_car_training_data(freward=mountain_car_reward):
-    traj = []
-    random_policy = lambda s:choice(ACTION_SPACE)
-    for i in range(0,1000):
-        state = mountain_car_uniform_state()
-        for i in range(0,5):
-            action = random_policy(state)
-            next_state = mountain_car_next_state(state, action)
-            reward = freward(hstack([state, action, next_state]))
-            traj.append(hstack([state, action, next_state, reward]))
-            state=next_state
-    return array(traj)
 
 # <codecell>
 
@@ -214,6 +197,41 @@ scatter(data_test[:,0],data_test[:,1])
 figure()
 mountain_car_plot_policy(policy)
 data_test.shape
+
+# <codecell>
+
+def mountain_car_interesting_state():
+    position = numpy.random.uniform(low=-1.2,high=0.6)
+    speed = numpy.random.uniform(low=0.04,high=0.07)
+    return array([position,speed])
+
+def mountain_car_IRL_traj():
+    traj = []
+    state = mountain_car_interesting_state()
+    reward = 0
+    while reward == 0:
+        action = mountain_car_manual_policy(state)
+        next_state = mountain_car_next_state(state, action)
+        next_action = mountain_car_manual_policy(next_state)
+        reward = mountain_car_reward(hstack([state, action, next_state]))
+        traj.append(hstack([state, action, next_state, next_action, reward]))
+        state=next_state
+    return array(traj)
+
+def mountain_car_IRL_data(nbsamples):
+    data = mountain_car_IRL_traj()
+    while len(data) < nbsamples:
+        data = vstack([data,mountain_car_IRL_traj()])
+    return data[:nbsamples]
+
+TRAJS = mountain_car_IRL_data(100)
+scatter(TRAJS[:,0],TRAJS[:,1],c=TRAJS[:,2])
+axis([-1.2,0.6,-0.07,0.07])
+
+# <codecell>
+
+for t in TRAJS:
+    print t
 
 # <codecell>
 
