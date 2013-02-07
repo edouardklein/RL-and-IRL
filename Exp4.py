@@ -16,10 +16,11 @@ def mountain_car_next_state(state,action):
     position,speed=state
     next_speed = squeeze(speed+action*0.001+cos(3*position)*(-0.0025))
     next_position = squeeze(position+next_speed)
-    next_speed = next_speed if next_speed > -0.07 else -0.07
-    next_speed = next_speed if next_speed < 0.07 else 0.07
-    next_position = next_position if next_position > -1.2 else -1.2
-    next_position = next_position if next_position < 0.6 else 0.6
+    if not -0.07 <= next_speed <= 0.07:
+        next_speed = sign(next_speed)*0.07
+    if not -1.2 <= next_position <= 0.6:
+        next_speed=0.
+        next_position = -1.2 if next_position < -1.2 else 0.6
     return array([next_position,next_speed])
 
 # <codecell>
@@ -62,7 +63,7 @@ def mountain_car_reward(sas):
 def mountain_car_training_data(freward=mountain_car_reward):
     traj = []
     random_policy = lambda s:choice(ACTION_SPACE)
-    for i in range(0,100):
+    for i in range(0,1000):
         state = mountain_car_uniform_state()
         for i in range(0,5):
             action = random_policy(state)
@@ -71,12 +72,6 @@ def mountain_car_training_data(freward=mountain_car_reward):
             traj.append(hstack([state, action, next_state, reward]))
             state=next_state
     return array(traj)
-
-# <codecell>
-
-    
-data = mountain_car_training_data()
-policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
 
 # <codecell>
 
@@ -91,45 +86,81 @@ def mountain_car_episode_length(initial_position,initial_speed,policy):
         state=next_state
         answer+=1
     return answer
-def mountain_car_tricky_episode_length(policy):
-    return mountain_car_episode_length(-0.9,-0.04,policy)
 
-# <codecell>
+def mountain_car_episode_vlength(policy):
+    return vectorize(lambda p,s:mountain_car_episode_length(p,s,policy))
 
-savetxt("./mountain_car_expert_omega.mat",omega)
-while mountain_car_tricky_episode_length(policy) > 52:
-    print "Expert still not good enough :\t"+str(mountain_car_tricky_episode_length(policy))
-    data = mountain_car_training_data()
-    policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
 
-# <codecell>
-
-print "Expert good enough :\t"+str(mountain_car_tricky_episode_length(policy))
-savetxt("./mountain_car_expert_omega.mat",omega)
-
-# <codecell>
-
-def mountain_car_testing_data(policy):
+def mountain_car_training_data(freward=mountain_car_reward,traj_length=5,nb_traj=1000):
     traj = []
-    state = mountain_car_interesting_state()
-    t=0
-    reward = 0
-    while t < 300 and reward == 0:
-        t+=1
-        action = policy(state)
-        next_state = mountain_car_next_state(state, action)
-        reward = mountain_car_reward(hstack([state, action, next_state]))
-        traj.append(hstack([state, action, next_state, reward]))
-        state=next_state
+    random_policy = lambda s:choice(ACTION_SPACE)
+    for i in range(0,nb_traj):
+        state = mountain_car_uniform_state()
+        reward=0
+        t=0
+        while t < traj_length and reward == 0:
+            t+=1
+            action = random_policy(state)
+            next_state = mountain_car_next_state(state, action)
+            reward = freward(hstack([state, action, next_state]))
+            traj.append(hstack([state, action, next_state, reward]))
+            state=next_state
     return array(traj)
 
-state = array([0.5,0])
-action = policy(state)
-action
-next_state = mountain_car_next_state(state, action)
-next_state
-data_test = mountain_car_testing_data(policy)
-#data_test
+#data = mountain_car_training_data(traj_length=1,nb_traj=5000)
+#policy1,omega1 = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
+#plottable_episode_length = mountain_car_episode_vlength(policy1)
+#X = linspace(-1.2,0.6,30)
+#Y = linspace(-0.07,0.07,30)
+#X,Y = meshgrid(X,Y)
+#Z1 = plottable_episode_length(X,Y)
+figure()
+contourf(X,Y,Z1,50)
+colorbar()
+
+#data = mountain_car_training_data(traj_length=2,nb_traj=2500)
+#policy2,omega2 = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
+#plottable_episode_length = mountain_car_episode_vlength(policy2)
+#X = linspace(-1.2,0.6,30)
+#Y = linspace(-0.07,0.07,30)
+#X,Y = meshgrid(X,Y)
+#Z2 = plottable_episode_length(X,Y)
+figure()
+contourf(X,Y,Z2,50)
+colorbar()
+
+#data = mountain_car_training_data(traj_length=5,nb_traj=1000)
+#policy3,omega3 = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
+#plottable_episode_length = mountain_car_episode_vlength(policy3)
+#X = linspace(-1.2,0.6,30)
+#Y = linspace(-0.07,0.07,30)
+#X,Y = meshgrid(X,Y)
+#Z3 = plottable_episode_length(X,Y)
+figure()
+contourf(X,Y,Z3,50)
+colorbar()
+
+#data = mountain_car_training_data(traj_length=10,nb_traj=500)
+#policy4,omega4 = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
+#plottable_episode_length = mountain_car_episode_vlength(policy4)
+#X = linspace(-1.2,0.6,30)
+#Y = linspace(-0.07,0.07,30)
+#X,Y = meshgrid(X,Y)
+#Z4 = plottable_episode_length(X,Y)
+figure()
+contourf(X,Y,Z4,50)
+colorbar()
+
+#data = mountain_car_training_data(traj_length=100,nb_traj=50)
+#policy5,omega5 = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
+#plottable_episode_length = mountain_car_episode_vlength(policy5)
+#X = linspace(-1.2,0.6,30)
+#Y = linspace(-0.07,0.07,30)
+#X,Y = meshgrid(X,Y)
+#Z5 = plottable_episode_length(X,Y)
+figure()
+contourf(X,Y,Z5,50)
+colorbar()
 
 # <codecell>
 
@@ -164,17 +195,6 @@ scatter(data_test[:,0],data_test[:,1])
 figure()
 mountain_car_plot_policy(policy)
 data_test.shape
-
-# <codecell>
-
-data = vstack([mountain_car_testing_data(policy) for i in range(0,10)])
-
-# <codecell>
-
-randomly_selected_trans = array([choice(data) for i in range(0,10)])
-mountain_car_plot(mountain_car_V(omega))
-scatter(randomly_selected_trans[:,0],randomly_selected_trans[:,1])
-traj=randomly_selected_trans
 
 # <codecell>
 
