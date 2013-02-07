@@ -154,6 +154,7 @@ savetxt("mountain_car_batch_data.mat",data)
 
 def mountain_car_manual_policy(state):
     position,speed = state
+    if -
     return -1. if speed <=0 else 1.
 plottable_episode_length = mountain_car_episode_vlength(mountain_car_manual_policy)
 X = linspace(-1.2,0.6,30)
@@ -237,8 +238,8 @@ for t in TRAJS:
 
 psi=mountain_car_psi
 phi=mountain_car_phi
-s=traj[:,:2]
-a=traj[:,2]
+s=TRAJS[:,:2]
+a=TRAJS[:,2]
 #Classification
 from sklearn import svm
 clf = svm.SVC(C=1000., probability=True)
@@ -246,7 +247,11 @@ clf.fit(s, a)
 clf_predict= lambda state : clf.predict(squeeze(state))
 vpredict = non_scalar_vectorize( clf_predict, (2,), (1,1) )
 pi_c = lambda state: vpredict(state).reshape(state.shape[:-1]+(1,))
-clf_score = lambda sa : squeeze(clf.predict_proba(squeeze(sa[:2])))[sa[-1]]
+def clf_score(sa):
+    try:
+        return squeeze(clf.predict_proba(squeeze(sa[:2])))[sa[-1]]
+    except ValueError:
+        return 0
 vscore = non_scalar_vectorize( clf_score,(3,),(1,1) )
 q = lambda sa: vscore(sa).reshape(sa.shape[:-1])
 #Plots de la politique de l'expert, des données fournies par l'expert, de la politique du classifieur
