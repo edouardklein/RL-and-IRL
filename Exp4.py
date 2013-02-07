@@ -164,6 +164,11 @@ colorbar()
 
 # <codecell>
 
+data = mountain_car_training_data(traj_length=5,nb_traj=1000)
+savetxt("mountain_car_batch_data.mat",data)
+
+# <codecell>
+
 def mountain_car_plot( f, draw_contour=True, contour_levels=50, draw_surface=False ):
     '''Display a surface plot of function f over the state space'''
     pos = linspace(-1.2,0.6,30)
