@@ -30,27 +30,28 @@ def mountain_car_uniform_state():
 
 # <codecell>
 
-mountain_car_mu_position, mountain_car_mu_speed = meshgrid(linspace(-1.2,0.6,5),linspace(-0.07,0.07,5))
+mountain_car_mu_position, mountain_car_mu_speed = meshgrid(linspace(-1.2,0.6,7),linspace(-0.07,0.07,7))
 
-mountain_car_sigma_position = 2*pow((0.6+1.2)/5.,2)
-mountain_car_sigma_speed = 2*pow((0.07+0.07)/5.,2)
+mountain_car_sigma_position = 2*pow((0.6+1.2)/10.,2)
+mountain_car_sigma_speed = 2*pow((0.07+0.07)/10.,2)
 
 def mountain_car_psi(state):
     position,speed=state
     psi=[]
-    for mu in zip_stack(mountain_car_mu_position, mountain_car_mu_speed).reshape(5*5,2):
+    for mu in zip_stack(mountain_car_mu_position, mountain_car_mu_speed).reshape(7*7,2):
         psi.append(exp( -pow(position-mu[0],2)/mountain_car_sigma_position 
                         -pow(speed-mu[1],2)/mountain_car_sigma_speed))
-    return array(psi).reshape((5*5,1))
+    psi.append(1.)
+    return array(psi).reshape((7*7+1,1))
 
 def mountain_car_single_phi(sa):
     state=sa[:2]
     index_action = int(sa[-1])+1
-    answer=zeros((5*5*3,1))
-    answer[index_action*5*5:index_action*5*5+5*5] = mountain_car_psi(state)
+    answer=zeros(((7*7+1)*3,1))
+    answer[index_action*(7*7+1):index_action*(7*7+1)+7*7+1] = mountain_car_psi(state)
     return answer
 
-mountain_car_phi= non_scalar_vectorize(mountain_car_single_phi,(3,),(75,1))
+mountain_car_phi= non_scalar_vectorize(mountain_car_single_phi,(3,),(150,1))
 
 def mountain_car_reward(sas):
     position=sas[0]
@@ -154,7 +155,6 @@ savetxt("mountain_car_batch_data.mat",data)
 
 def mountain_car_manual_policy(state):
     position,speed = state
-    if -
     return -1. if speed <=0 else 1.
 plottable_episode_length = mountain_car_episode_vlength(mountain_car_manual_policy)
 X = linspace(-1.2,0.6,30)
@@ -202,8 +202,8 @@ data_test.shape
 # <codecell>
 
 def mountain_car_interesting_state():
-    position = numpy.random.uniform(low=-1.2,high=0.6)
-    speed = numpy.random.uniform(low=0.04,high=0.07)
+    position = numpy.random.uniform(low=-1.2,high=-0.9)
+    speed = numpy.random.uniform(low=-0.07,high=0)
     return array([position,speed])
 
 def mountain_car_IRL_traj():
@@ -225,7 +225,7 @@ def mountain_car_IRL_data(nbsamples):
         data = vstack([data,mountain_car_IRL_traj()])
     return data[:nbsamples]
 
-TRAJS = mountain_car_IRL_data(100)
+TRAJS = mountain_car_IRL_data(1000)
 scatter(TRAJS[:,0],TRAJS[:,1],c=TRAJS[:,2])
 axis([-1.2,0.6,-0.07,0.07])
 
@@ -242,40 +242,40 @@ s=TRAJS[:,:2]
 a=TRAJS[:,2]
 #Classification
 from sklearn import svm
-clf = svm.SVC(C=1000., probability=True)
+clf = svm.SVC(C=1, probability=True, gamma=1/(2*pow(0.03,2)))
 clf.fit(s, a)
-clf_predict= lambda state : clf.predict(squeeze(state))
+def clf_predict(state):
+    try:
+        return clf.predict(squeeze(state))
+    except ValueError:
+        return 1.
 vpredict = non_scalar_vectorize( clf_predict, (2,), (1,1) )
 pi_c = lambda state: vpredict(state).reshape(state.shape[:-1]+(1,))
 def clf_score(sa):
-    try:
-        return squeeze(clf.predict_proba(squeeze(sa[:2])))[sa[-1]]
-    except ValueError:
+    #try:
+    action = sa[-1]
+    index=0
+    if action == -1.:
+        index = 0
+    elif action == 1.:
+        index = 1
+    else:
         return 0
+    return squeeze(clf.predict_proba(squeeze(sa[:2])))[sa[index]]
 vscore = non_scalar_vectorize( clf_score,(3,),(1,1) )
 q = lambda sa: vscore(sa).reshape(sa.shape[:-1])
 #Plots de la politique de l'expert, des données fournies par l'expert, de la politique du classifieur
-mountain_car_plot_policy(policy)
-scatter(traj[:,0],traj[:,1],c=traj[:,2])
+#mountain_car_plot_policy(mountain_car_manual_policy)
+scatter(TRAJS[:,0],TRAJS[:,1],c=TRAJS[:,2])
 figure()
 mountain_car_plot_policy(pi_c)
-scatter(traj[:,0],traj[:,1],c=traj[:,2])
+scatter(TRAJS[:,0],TRAJS[:,1],c=TRAJS[:,2])
 figure()
 ##Plots de Q et de la fonction de score du classifieur et évaluation de la politique du classifieur
 #phi=inverted_pendulum_phi
-Q = lambda sa: squeeze(dot(omega.transpose(),phi(sa)))
-Q_0 = lambda p,s:Q(zip_stack(p,s,-1*ones(p.shape)))
-Q_1 = lambda p,s:Q(zip_stack(p,s,0*ones(p.shape)))
-Q_2 = lambda p,s:Q(zip_stack(p,s,1*ones(p.shape)))
 q_0 = lambda p,s:q(zip_stack(p,s,-1*ones(p.shape)))
 q_1 = lambda p,s:q(zip_stack(p,s,0*ones(p.shape)))
 q_2 = lambda p,s:q(zip_stack(p,s,1*ones(p.shape)))
-mountain_car_plot(Q_0)
-figure()
-mountain_car_plot(Q_1)
-figure()
-mountain_car_plot(Q_2)
-figure()
 mountain_car_plot(q_0)
 figure()
 mountain_car_plot(q_1)
@@ -285,11 +285,11 @@ mountain_car_plot(q_2)
 # <codecell>
 
 #Données pour la regression
-column_shape = (len(traj),1)
-s = traj[:,0:2]
-a = traj[:,2].reshape(column_shape)
-sa = traj[:,0:3]
-s_dash = traj[:,3:5]
+column_shape = (len(TRAJS),1)
+s = TRAJS[:,0:2]
+a = TRAJS[:,2].reshape(column_shape)
+sa = TRAJS[:,0:3]
+s_dash = TRAJS[:,3:5]
 a_dash = pi_c(s_dash).reshape(column_shape)
 sa_dash = hstack([s_dash,a_dash])
 hat_r = (q(sa)-GAMMA*q(sa_dash)).reshape(column_shape)
@@ -298,10 +298,11 @@ r_min = min(hat_r)-1.*ones(column_shape)
 sar = hstack([sa,hat_r])
 for action in ACTION_SPACE:
     sr = array([l for l in sar if l[2]==action])
-    axis([-1.2,0.6,-0.07,0.07])
-    scatter(sr[:,0],sr[:,1],s=20,c=sr[:,3], marker = 'o', cmap = cm.jet );
-    colorbar()
-    figure()
+    if(len(sr)):
+        axis([-1.2,0.6,-0.07,0.07])
+        scatter(sr[:,0],sr[:,1],s=20,c=sr[:,3], marker = 'o', cmap = cm.jet );
+        colorbar()
+        figure()
 ##Avec l'heuristique : 
 regression_input_matrices = [hstack([s,action*ones(column_shape)]) for action in ACTION_SPACE] 
 def add_output_column( reg_mat ):
@@ -325,7 +326,7 @@ for action in ACTION_SPACE:
 from sklearn.svm import SVR
 y = regression_matrix[:,-1]
 X = regression_matrix[:,:-1]
-reg = SVR(C=1.0, epsilon=0.2)
+reg = SVR(C=1.0, epsilon=0.2, gamma=1/(2*pow(0.03,2)))
 reg.fit(X, y)
 CSI_reward = lambda sas:reg.predict(sas[:3])[0]
 vCSI_reward = non_scalar_vectorize( CSI_reward, (5,),(1,1) )
@@ -352,32 +353,67 @@ mountain_car_plot(mean_reward)
 # <codecell>
 
 #Evaluation de l'IRL
-data = mountain_car_training_data(freward=CSI_reward)
-policy_CSI,omega_CSI = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=75, iterations_max=20 )
+data = genfromtxt("mountain_car_batch_data.mat")
+data[:,5] = squeeze(vCSI_reward(data[:,:5]))
+policy_CSI,omega_CSI = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
 
 # <codecell>
 
-def mountain_car_episode_length(initial_position,initial_speed,policy):
-    answer = 0
-    reward = 0.
-    state = array([initial_position,initial_speed])
-    while answer < 300 and reward == 0. :
-        action = policy(state)
-        next_state = mountain_car_next_state(state,action)
-        reward = mountain_car_reward(hstack([state, action, next_state]))
-        state=next_state
-        answer+=1
-    return answer
+data = genfromtxt("mountain_car_batch_data.mat")
+policy,omega = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
 
-def mountain_car_episode_vlength(policy):
-    return vectorize(lambda p,s:mountain_car_episode_length(p,s,policy))
+# <codecell>
 
 plottable_episode_length = mountain_car_episode_vlength(policy)
-X = linspace(-1.2,0.6,5)
-Y = linspace(-0.07,0.07,5)
+X = linspace(-1.2,0.6,30)
+Y = linspace(-0.07,0.07,30)
 X,Y = meshgrid(X,Y)
-Z = plottable_episode_length(X,Y)
-contourf(X,Y,Z,50)
+#Z9 = plottable_episode_length(X,Y)
+figure()
+mountain_car_plot_policy(policy)
+figure()
+contourf(X,Y,Z9,50)
 colorbar()
-max(Z.reshape(-1))
+
+# <codecell>
+
+scatter(data[:,0],data[:,1],c=data[:,2])
+
+# <codecell>
+
+plottable_episode_length = mountain_car_episode_vlength(policy_CSI)
+X = linspace(-1.2,0.6,30)
+Y = linspace(-0.07,0.07,30)
+X,Y = meshgrid(X,Y)
+Z7 = plottable_episode_length(X,Y)
+figure()
+mountain_car_plot_policy(policy_CSI)
+figure()
+contourf(X,Y,Z7,50)
+colorbar()
+
+# <codecell>
+
+plottable_episode_length = mountain_car_episode_vlength(pi_c)
+X = linspace(-1.2,0.6,30)
+Y = linspace(-0.07,0.07,30)
+X,Y = meshgrid(X,Y)
+Z8 = plottable_episode_length(X,Y) 
+figure()
+mountain_car_plot_policy(pi_c)
+figure()
+contourf(X,Y,Z8,50)
+colorbar()
+
+# <codecell>
+
+def mountain_car_testing_state():
+    position = numpy.random.uniform(low=-1.2,high=0.5)
+    speed = numpy.random.uniform(low=-0.07,high=0.07)
+    return array([position,speed])
+
+def mountain_car_mean_performance(policy):
+    return mean([mountain_car_episode_length(state[0],state[1],policy) for state in [mountain_car_testing_state() for i in range(0,100)]])
+
+print mountain_car_mean_performance(policy_CSI),mountain_car_mean_performance(pi_c)
 
