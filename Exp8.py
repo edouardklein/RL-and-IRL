@@ -145,6 +145,27 @@ phi=mountain_car_phi
 
 # <codecell>
 
+def mountain_car_boubou_traj():
+    traj = []
+    state = mountain_car_interesting_state()
+    reward = 0
+    t=0
+    while reward == 0 and t<60:
+        t+=1
+        action = choice(ACTION_SPACE)
+        next_state = mountain_car_next_state(state, action)
+        reward = mountain_car_reward(hstack([state, action, next_state]))
+        traj.append(hstack([state, action, next_state, reward]))
+        state=next_state
+    return array(traj)
+
+data_r = vstack([mountain_car_boubou_traj() for i in range(0,400)])
+savetxt("mountain_car_boubou_trajs.mat",data_r)
+
+# <codecell>
+
+GAMMA = 0.99
+
 def end_of_episode(data,i):
     try:
         if all(data[i,3:5] == data[i+1,:2]):
@@ -186,7 +207,9 @@ def relative_entropy(data_c,data_r,delta):
     feature_c_mean=mean(feature_c,0);
     
     #epsilon=sqrt(-log2(1-delta)/(2*H_c))*(gamma^(H_c+1)-1)/(gamma-1);
-    epsilon=sqrt(-log2(1-delta)/(2*300))*(pow(GAMMA,(300+1))-1)/(GAMMA-1);
+    #epsilon=sqrt(-log2(1-delta)/(2*300))*(pow(GAMMA,(300+1))-1)/(GAMMA-1);
+    epsilon = 0.01
+    print "epsilon "+str(epsilon)
     
     #for i=1:L_r
     #    for j=1:H_r
@@ -213,7 +236,7 @@ def relative_entropy(data_c,data_r,delta):
     counter=1
 
     #while Criterion>epsilon_re&&counter<N_final
-    while criterion > 0.1 and counter < 30:
+    while criterion > 0.01 and counter < 1000:
         #buffer_derivative_t=zeros(1,size_phi(2));
         derivative = zeros((1,150))
         #buffer_t=0;
@@ -228,30 +251,33 @@ def relative_entropy(data_c,data_r,delta):
             #end    
 
         #buffer_derivative=feature_c_mean-buffer_derivative_t/(buffer_t)-sign(theta)*epsilon;
-        print feature_c_mean.shape,derivative.shape,sign(theta).shape
         derivative=feature_c_mean-derivative/(t)-sign(theta)*epsilon
 
+        print "Boubou run \t"+str(counter)+" criterion is \t"+str(criterion)+" ||derivative|| is \t"+str(norm(derivative))
+        
         #if norm(buffer_derivative)==0
         if norm(derivative)==0:
             #theta=buffer_theta;
             break
         else:
             #theta=buffer_theta+(1/counter)*buffer_derivative/norm(buffer_derivative,2);
-            delta_theta = (1/counter)*derivative/norm(derivative,2)
-            theta+=delta_theta
+            delta_theta = (100./float(counter))*derivative/norm(derivative,2)
             #end
         #Criterion=norm(buffer_theta-theta,2);
-        criterion=norm(delta_theta-theta,2)
+        criterion=norm(delta_theta,2)
+        theta+=delta_theta
         #counter=counter+1;    
         counter += 1
         #end    
-
+    print "Stop boubou @ run "+str(counter-1)+" criterion is "+str(criterion)
     #reward=phi*theta';
     return lambda sas: dot(theta,phi(sas[:3]))[0]
     
-data_r = genfromtxt("mountain_car_batch_data.mat")
 
-RE_reward = relative_entropy(TRAJS, data_r, 0.1)
+#data_r = genfromtxt("mountain_car_batch_data.mat")
+data_r = genfromtxt("mountain_car_boubou_trajs.mat")
+
+RE_reward = relative_entropy(TRAJS, data_r, 0.99)
 vRE_reward = non_scalar_vectorize( RE_reward, (5,),(1,1) )
 data = genfromtxt("mountain_car_batch_data.mat")
 data[:,5] = squeeze(vRE_reward(data[:,:5]))
@@ -263,12 +289,12 @@ plottable_episode_length = mountain_car_episode_vlength(policy_RE)
 X = linspace(-1.2,0.6,20)
 Y = linspace(-0.07,0.07,20)
 X,Y = meshgrid(X,Y)
-Z2 = plottable_episode_length(X,Y)
+#Z2 = plottable_episode_length(X,Y)
 figure()
 mountain_car_plot_policy(policy_RE)
 figure()
-contourf(X,Y,Z2,50)
-colorbar()
+#contourf(X,Y,Z2,50)
+#colorbar()
 
 # <codecell>
 
@@ -280,5 +306,6 @@ def mountain_car_testing_state():
 def mountain_car_mean_performance(policy):
     return mean([mountain_car_episode_length(state[0],state[1],policy) for state in [mountain_car_testing_state() for i in range(0,100)]])
 
+mountain_car_plot_policy(policy_RE)
 print mountain_car_mean_performance(policy_RE)
 
