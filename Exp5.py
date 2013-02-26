@@ -499,6 +499,7 @@ toto = True
 while toto:
     try:
         RE_reward = relative_entropy(TRAJS, data_r, 0.99)
+        print "Trying again "
         toto = False
     except Exception:
         pass
