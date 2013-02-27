@@ -71,7 +71,7 @@ class GradientDescent(object):
 class StructuredClassifier(GradientDescent):
     sign=-1.
     Threshold=0.1 #Sensible default
-    T=10 #Sensible default
+    T=40 #Sensible default
     phi=None
     phi_xy=None
     inputs=None
