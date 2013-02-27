@@ -1,0 +1,18 @@
+ $time python Exp9.py
+(325, 1000)
+Norme du gradient : 24.5704096822, pas : 1.5, iteration : 1
+Norme du gradient : 12.5215890252, pas : 1.0, iteration : 2
+Norme du gradient : 13.7506793807, pas : 0.75, iteration : 3
+Norme du gradient : 8.5642183932, pas : 0.6, iteration : 4
+Norme du gradient : 7.51692370667, pas : 0.5, iteration : 5
+Norme du gradient : 8.65101970937, pas : 0.428571428571, iteration : 6
+Norme du gradient : 7.32577325926, pas : 0.375, iteration : 7
+Norme du gradient : 6.31295540275, pas : 0.333333333333, iteration : 8
+Norme du gradient : 2.87877028316, pas : 0.3, iteration : 9
+Norme du gradient : 4.13831169303, pas : 0.272727272727, iteration : 10
+Gradient de norme : 2.87877028316, a l'iteration : 9
+
+real    18m33.261s
+user    18m28.303s
+sys     0m1.147s
+
