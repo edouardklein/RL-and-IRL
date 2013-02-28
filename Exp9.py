@@ -64,7 +64,7 @@ class GradientDescent(object):
 class StructuredClassifier(GradientDescent):
     sign=-1.
     Threshold=0.1 #Sensible default
-    T=40 #Sensible default
+    T=100 #Sensible default
     phi=asterix_phi
     label_set=None
     
@@ -110,8 +110,8 @@ class StructuredClassifier(GradientDescent):
 
 # <codecell>
 
-Psi = genfromtxt('asterix/psi.mat')
-A = genfromtxt('asterix/actions.mat')
+Psi = genfromtxt('asterix/psi2.mat')
+A = genfromtxt('asterix/actions2.mat')
 A = A.reshape((len(A),1))
 ACTION_SPACE = range(0,18)
 Psi.shape,A.shape
@@ -123,10 +123,6 @@ clf = StructuredClassifier(Psi, A, 18)
 theta_C = clf.run()
 q = lambda sa: squeeze(dot(theta_C.transpose(),asterix_phi(sa)))
 savetxt("CSI_asterix_theta_C.mat", theta_C)
-
-# <codecell>
-
-theta_C
 
 # <codecell>
 
