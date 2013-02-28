@@ -11,14 +11,6 @@ from rl import *
 
 # <codecell>
 
-Psi = genfromtxt('asterix/psi.mat')
-A = genfromtxt('asterix/actions.mat')
-A = A.reshape((len(A),1))
-ACTION_SPACE = range(0,18)
-Psi.shape,A.shape
-
-# <codecell>
-
 #Classification code
 def greedy_policy( omega, phi, A ): 
     def policy( *args ):
@@ -83,39 +75,36 @@ class StructuredClassifier(GradientDescent):
     def alpha(self, t):
         return 3./(t+1)#Sensible default
     
-    def __init__(self, data, x_dim, phi, phi_dim, Y):
-        self.x_dim=x_dim
-        self.inputs = data[:,:-1]
-        shape = list(data.shape)
-        shape[-1] = 1
-        self.labels = data[:,-1].reshape(shape)
-        self.phi=phi
-        self.label_set = Y
-        self.theta_0 = zeros((phi_dim,1))
-        self.phi_xy = self.phi(data)
-        for x,y in zip(self.inputs,self.labels):
-            self.dic_data[str(x)] = y
-        print self.inputs.shape
-    
-    def structure(self, xy):
-        return 0. if xy[-1] == self.dic_data[str(xy[:-1])] else 1.
-        
-    def structured_decision(self, theta):
-        def decision( x ):
-            score = lambda xy: dot(theta.transpose(),self.phi(xy)) + self.structure(xy)
-            input_label_couples = [hstack([x,y]) for y in self.label_set]
-            best_label = argmax(input_label_couples, score)[-1]
-            return best_label
-        vdecision = non_scalar_vectorize(decision, (self.x_dim,), (1,1))
-        return lambda x: vdecision(x).reshape(x.shape[:-1]+(1,))
+    def __init__(self, psi, actions, nb_actions):
+        self.N,self.K = psi.shape
+        self.A = nb_actions
+        self.theta_0 = zeros(self.K*self.A)
+        self.ExpertDecision = zeros((self.N,self.A))
+        for i,j in zip( range(0,self.N), actions.reshape(self.N) ):
+            self.ExpertDecision[i,j] = 1.
+        self.Structure = array(self.ExpertDecision!=1)
+        self.ExpertDecision = self.ExpertDecision.reshape(self.N,self.A,1)
+        self.Psi_3 = array([[p for i in range(0,self.A)] for p in psi])
+        self.Phi = self.ExpertDecision*self.Psi_3
+        self.Phi = self.Phi.reshape(self.N,self.K*self.A)
+        self.Psi = psi
     
     def gradient(self, theta):
-        classif_rule = self.structured_decision(theta)
-        y_star = classif_rule(self.inputs)
-        #print "Gradient : "+str(y_star)
-        #print str(self.labels)
-        phi_star = self.phi(hstack([self.inputs,y_star]))
-        return mean(phi_star-self.phi_xy,axis=0)
+        theta_2 = hstack([theta[i*self.K:(i+1)*self.K].reshape((self.K,1)) for i in range(0,self.A)])
+        score = dot(self.Psi,theta_2)+self.Structure
+        maxScore = dot(score.max(axis=1).reshape((self.N,1)),ones((1,self.A)))
+        decision = (score==maxScore).reshape(self.N,self.A,1)
+        #We restrict ourselves to one arbitrary decision
+        for i in range(0,self.N):
+            gotOne = False
+            for j in range(0,self.A):
+                if decision[i,j] and not gotOne:
+                    gotOne = True
+                elif decision[i,j] and gotOne:
+                    decision[i,j] = False
+        phi_star = decision*self.Psi_3
+        phi_star = phi_star.reshape(self.N,self.K*self.A)
+        return mean(phi_star-self.Phi,axis=0)
     
     def run(self):
         f_grad = lambda theta: self.gradient(theta)
@@ -125,16 +114,16 @@ class StructuredClassifier(GradientDescent):
 
 # <codecell>
 
+Psi = genfromtxt('asterix/psi.mat')
+A = genfromtxt('asterix/actions.mat')
+A = A.reshape((len(A),1))
+ACTION_SPACE = range(0,18)
+Psi.shape,A.shape
+
+# <codecell>
+
 #Running the classifier gives pi_c and q
-def asterix_single_phi(psi_a):
-    psi = psi_a[:1000]
-    a = psi_a[-1]
-    answer = zeros((18000,1))
-    index = a*1000
-    answer[index:index+1000,0] = psi
-    return answer
-asterix_phi = non_scalar_vectorize(asterix_single_phi, (1001,), (18000,1))
-clf = StructuredClassifier(hstack([Psi,A]), 1000, asterix_phi, 18000, ACTION_SPACE)
+clf = StructuredClassifier(Psi, A, 18)
 pi_c,theta_C = clf.run()
 q = lambda sa: squeeze(dot(theta_C.transpose(),asterix_phi(sa)))
 savetxt("CSI_asterix_theta_C.mat", theta_C)
