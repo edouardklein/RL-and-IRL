@@ -12,18 +12,19 @@ from rl import *
 # <codecell>
 
 #Classification code
-def greedy_policy( omega, phi, A ): 
-    def policy( *args ):
-        state_actions = [hstack(args+(a,)) for a in A]
-        q_value = lambda sa: float(dot(omega.transpose(),phi(sa)))
-        best_action = argmax( state_actions, q_value )[-1] #FIXME6: does not work for multi dimensional actions
-        return best_action
-    vpolicy = non_scalar_vectorize( policy, (1000,), (1,1) ) #FIXME, the 1000 here is s_dim and is problem-dependant
-    return lambda state: vpolicy(state).reshape(state.shape[:-1]+(1,))
+def asterix_single_phi(psi_a):
+    psi = psi_a[:1000]
+    a = psi_a[-1]
+    answer = zeros((18000,1))
+    index = a*1000
+    answer[index:index+1000,0] = psi
+    return answer
+asterix_phi = non_scalar_vectorize(asterix_single_phi, (1001,), (18000,1))
+
+
 
 #Structured Classifier
 class GradientDescent(object):
-    
    def alpha( self, t ):
       raise NotImplementedError, "Cannot call abstract method"
 
@@ -64,18 +65,14 @@ class StructuredClassifier(GradientDescent):
     sign=-1.
     Threshold=0.1 #Sensible default
     T=40 #Sensible default
-    phi=None
-    phi_xy=None
-    inputs=None
-    labels=None
+    phi=asterix_phi
     label_set=None
-    dic_data={}
-    x_dim=None
     
     def alpha(self, t):
         return 3./(t+1)#Sensible default
     
     def __init__(self, psi, actions, nb_actions):
+        self.label_set=range(0,nb_actions)
         self.N,self.K = psi.shape
         self.A = nb_actions
         self.theta_0 = zeros(self.K*self.A)
@@ -109,8 +106,7 @@ class StructuredClassifier(GradientDescent):
     def run(self):
         f_grad = lambda theta: self.gradient(theta)
         theta = super(StructuredClassifier,self).run( f_grad, b_norm=True)
-        classif_rule = greedy_policy(theta,self.phi,self.label_set)
-        return classif_rule,theta
+        return theta
 
 # <codecell>
 
@@ -124,9 +120,13 @@ Psi.shape,A.shape
 
 #Running the classifier gives pi_c and q
 clf = StructuredClassifier(Psi, A, 18)
-pi_c,theta_C = clf.run()
+theta_C = clf.run()
 q = lambda sa: squeeze(dot(theta_C.transpose(),asterix_phi(sa)))
 savetxt("CSI_asterix_theta_C.mat", theta_C)
+
+# <codecell>
+
+theta_C
 
 # <codecell>
 
@@ -142,7 +142,20 @@ s.shape
 a = A[:-1].reshape(column_shape)
 sa = hstack([s,a])
 s_dash = Psi[1:,:]
-a_dash = pi_c(s_dash).reshape(column_shape)
+a_dash = -ones(column_shape)
+#a_dash = pi_c(s_dash).reshape(column_shape)
+theta_2 = hstack([theta_C[i*1000:(i+1)*1000].reshape((1000,1)) for i in range(0,18)])
+score = dot(s_dash,theta_2)
+maxScore = dot(score.max(axis=1).reshape((len(Psi)-1,1)),ones((1,18)))
+decision = (score==maxScore).reshape(len(Psi)-1,18,1)
+for i in range(0,len(Psi)-1):
+    gotOne = False
+    for j in range(0,18):
+        if decision[i,j] and not gotOne:
+            gotOne = True
+            a_dash[i] = j
+        elif decision[i,j] and gotOne:
+            decision[i,j] = False
 sa_dash = hstack([s_dash,a_dash])
 hat_r = (q(sa)-GAMMA*q(sa_dash)).reshape(column_shape)
 r_min = min(hat_r)-1.*ones(column_shape)
@@ -155,7 +168,10 @@ for action in ACTION_SPACE:
     hat_r_bool_table = array(a==action)
     r_min_bool_table = array(hat_r_bool_table==False) #"not hat_r_bool_table" does not work as I expected
     Y =  hat_r_bool_table*hat_r + r_min_bool_table*r_min
-    thetas[action] = squeeze( dot(dot(inv(dot(X.transpose(),X)+0.1*identity(X.shape[1])),X.transpose()),Y) )
+    if sum(hat_r_bool_table) == 0:
+        thetas[action] = zeros(1000)
+    else:
+        thetas[action] = squeeze( dot(dot(inv(dot(X.transpose(),X)+0.1*identity(X.shape[1])),X.transpose()),Y) )
     
 
 # <codecell>
