@@ -110,8 +110,8 @@ class StructuredClassifier(GradientDescent):
 
 # <codecell>
 
-Psi = genfromtxt('asterix/psi2.mat')
-A = genfromtxt('asterix/actions2.mat')
+Psi = genfromtxt('asterix/psi3.mat')
+A = genfromtxt('asterix/actions3.mat')
 A = A.reshape((len(A),1))
 ACTION_SPACE = range(0,18)
 Psi.shape,A.shape
