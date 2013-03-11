@@ -23,12 +23,7 @@ def s_index( state ):
     return index
 
 def sa_index( state, action ):
-    v = state[0]
-    x_b = state[1]
-    y_r = state[2]
-    x_r = state[3]
-    a = action
-    index = x_r + y_r*3 + x_b*3*9 + v*3*9*9 + a*3*9*9*3
+    index = s_index(state) + a*3*9*9*3
     return index
 
 def next_states( state, action ):
@@ -81,26 +76,26 @@ def P( a ):
             P_a[ current_index, next_index ] = 1./len(possible_outcomes) #This line assumes two outcome won't share the same index
     return P_a
 
-P = hstack([P(a) for a in A])
+P = vstack([P(a) for a in A])
 savetxt("Highway_P.mat",P)
 
 # <codecell>
 
 def R( ):
-    reward = zeros((3*9*9*3,1))
+    reward = zeros((3*9*9*3*5,1))
     for state in S:
-        current_index = s_index( state )
+        current_indices = [sa_index(state,a) for a in A]
         v = state[0]
         xb = state[1]
         yr = state[2]
         xr = state[3]
         lane_nb2blue_x = [[1,2,3],[3,4,5],[5,6,7]] #Coincidentally, lane_nb is xr
         if yr in [6,7,8] and xb in lane_nb2blue_x[xr] : #Collision
-            reward[ current_index ] = -1.
+            reward[ current_indices ] = -1.
         elif xb in [0,1,7,8]:
-            reward[ current_index ] = -0.5
+            reward[ current_indices ] = -0.5
         elif v == 2:
-            reward[ current_index ] = 1.
+            reward[ current_indices ] = 1.
         else:
             pass #already at 0
     return reward
