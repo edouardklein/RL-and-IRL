@@ -45,7 +45,7 @@ class MDP:
             print "Iteration "+str(T)+", "+str(sum(Pi!=oldPi))+"\tactions changed."
             if( all( Pi == oldPi ) ):
                 break
-        return Pi,V,lambda s: control(s,Pi)
+        return Pi,V,lambda s: self.control(s,Pi)
 
     def Q2Pi(self, Q):
         #This assumes that sa_index(s,a) = s_index(s)+a*card(S)
@@ -63,4 +63,25 @@ class MDP:
 
     def control( self, s, pi ):
         choices = [(a,pi[s,s+a*self.cardS]) for a in range(0,self.cardA)]
+        return weighted_choice( choices )
+    
+    def D_func(self, control, M, L ,rho, reward = None):
+        "Returns M episodes of length L when acting according to control and starting according to rho"
+        answer = []
+        for m in range(0,M):
+            s = rho()
+            for l in range(0,L):
+                a = control( s )
+                s_dash = self.simul( s, a )
+                r = 0
+                if reward != None:
+                    r = reward( s, a, s_dash )
+                trans = [s,a,s_dash,r]
+                answer.append( trans )
+                s = s_dash
+        return answer
+    
+    def simul( self, s, a ):
+        sa_index = s + a*self.cardS
+        choices = zip(range(0,self.cardS),self.P[sa_index])
         return weighted_choice( choices )

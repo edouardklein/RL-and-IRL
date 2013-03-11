@@ -15,11 +15,6 @@ R = genfromtxt("Highway_R.mat")
 
 # <codecell>
 
-Highway = MDP(P,R)
-mPi_E, V_E, pi_E = Highway.optimal_policy()
-
-# <codecell>
-
 #Relative Entropy
 class GradientDescent(object):
    def alpha( self, t ):
@@ -84,4 +79,38 @@ class RelativeEntropy(GradientDescent):
         f_grad = lambda theta: self.gradient(theta)
         theta = super(StructuredClassifier,self).run( f_grad, b_norm=True)
         return theta
+
+# <codecell>
+
+Highway = MDP(P,R)
+mPi_E, V_E, Pi_E = Highway.optimal_policy()
+
+# <codecell>
+
+rho = lambda : int(rand()*729) #uniform distribtion over S
+D_E = Highway.D_func(Pi_E, 50, 100,  rho)
+
+# <codecell>
+
+Mu_E = zeros((3645,1))
+for sasr in D_E:
+    s = sasr[0]
+    Mu_E[s] += 1.
+Mu_E /= float(len(D_E))
+
+# <codecell>
+
+random_policy = lambda s: int(rand()*5)
+random_trajs = []
+for i in range(0,50):
+    D = Highway.D_func(random_policy, 1, 100, rho)
+    random_trajs.append(D)
+Mus = []
+for D in random_trajs:
+    mu = zeros((3645,1))
+    for sasr in D:
+        s = sasr[0]
+        mu[s] += 1.
+    mu /= float(len(D))
+    Mus.append(mu)
 
