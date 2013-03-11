@@ -7,6 +7,7 @@
 [[Exp5.py]] : Running all algos (SCRIL x2, SCI, Classif, RE) on the Moutnain Car.
 [[Exp6.py]] : Trying to find a good way to plot the data of Exp5.
 [[file:Exp7.py]] Running SCIRL on the Mountain Car
-[[Exp8.py]] : Relative entropy on the mountian car.
+[[file:Exp8.py]] : Relative entropy on the mountain car.
 [[file:Exp9.py]] : Cascading on the data from Asterix
+[[file:Exp10.py]] : Relative Entropy on the Highway
 
