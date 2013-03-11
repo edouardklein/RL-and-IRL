@@ -84,3 +84,25 @@ def P( a ):
 P = hstack([P(a) for a in A])
 savetxt("Highway_P.mat",P)
 
+# <codecell>
+
+def R( ):
+    reward = zeros((3*9*9*3,1))
+    for state in S:
+        current_index = s_index( state )
+        v = state[0]
+        xb = state[1]
+        yr = state[2]
+        xr = state[3]
+        lane_nb2blue_x = [[1,2,3],[3,4,5],[5,6,7]] #Coincidentally, lane_nb is xr
+        if yr in [6,7,8] and xb in lane_nb2blue_x[xr] : #Collision
+            reward[ current_index ] = -1.
+        elif xb in [0,1,7,8]:
+            reward[ current_index ] = -0.5
+        elif v == 2:
+            reward[ current_index ] = 1.
+        else:
+            pass #already at 0
+    return reward
+savetxt("Highway_R.mat", R())
+
