@@ -164,6 +164,10 @@ savetxt("mountain_car_RE_trajs.mat",data_r)
 
 # <codecell>
 
+sqrt(-log2(1-0.0001)/(2*70))*(pow(0.99,(70+1))-1)/(0.99-1)#Epsilon
+
+# <codecell>
+
 GAMMA = 0.99
 
 def end_of_episode(data,i):
@@ -242,8 +246,9 @@ class RelativeEntropy(GradientDescent):
         return theta
 
     
-#data_r = genfromtxt("mountain_car_batch_data.mat")
-data_r = genfromtxt("mountain_car_RE_trajs.mat")
+data_r_LSPI = genfromtxt("mountain_car_batch_data.mat") #See Exp4 : rho uniform, M=1000, L=5
+data_r_RE = genfromtxt("mountain_car_RE_trajs.mat") #rho  interesting, M=400, L<=60
+data_r_Other = mountain_car_training_data( nb_traj=50, traj_length=100) #rho uniform, M=50,L=100
 
 #Computing the feature expectations
 t=0.
@@ -256,31 +261,88 @@ for i in range(0,len(TRAJS)):
         t+=1.
 Mu_E /= float(len(TRAJS))
 
-Mus=[]
+Mus_LSPI=[]
 mu = zeros(((7*7+1)*3,1))
 t=0.
-for i in range(0,len(data_r)):
-    mu += pow(GAMMA,t)*mountain_car_phi(data_r[i,:3])
-    if end_of_episode(data_r,i):
-        mu /= t
-        Mus.append(mu)
+for i in range(0,len(data_r_LSPI)):
+    mu += pow(GAMMA,t)*mountain_car_phi(data_r_LSPI[i,:3])
+    if end_of_episode(data_r_LSPI,i):
+        mu /= t+1.
+        Mus_LSPI.append(mu)
         t=0.
         mu = zeros(((7*7+1)*3,1))
     else:
-        t += 1.
+        t += 1. 
+Mus_LSPI.append(Mu_E)
 
-RE = RelativeEntropy(Mu_E, Mus)
-reward_RE = RE.run()
+Mus_RE=[]
+mu = zeros(((7*7+1)*3,1))
+t=0.
+for i in range(0,len(data_r_RE)):
+    mu += pow(GAMMA,t)*mountain_car_phi(data_r_RE[i,:3])
+    if end_of_episode(data_r_RE,i):
+        mu /= t+1.
+        Mus_RE.append(mu)
+        t=0.
+        mu = zeros(((7*7+1)*3,1))
+    else:
+        t += 1. 
+Mus_RE.append(Mu_E)
+
+Mus_Other=[]
+mu = zeros(((7*7+1)*3,1))
+t=0.
+for i in range(0,len(data_r_Other)):
+    mu += pow(GAMMA,t)*mountain_car_phi(data_r_Other[i,:3])
+    if end_of_episode(data_r_Other,i):
+        mu /= t+1.
+        Mus_Other.append(mu)
+        t=0.
+        mu = zeros(((7*7+1)*3,1))
+    else:
+        t += 1. 
+Mus_Other.append(Mu_E)
+
+RE_LSPI = RelativeEntropy(Mu_E, Mus_LSPI)
+theta_RE_LSPI = RE_LSPI.run()
      
+RE_RE = RelativeEntropy(Mu_E, Mus_RE)
+theta_RE_RE = RE_RE.run()
 
+RE_Other = RelativeEntropy(Mu_E, Mus_Other)
+theta_RE_Other = RE_Other.run()
 
 # <codecell>
 
-RE_reward = relative_entropy(TRAJS, data_r, 0.99)
-vRE_reward = non_scalar_vectorize( RE_reward, (5,),(1,1) )
+def RE_reward_LSPI(sas):
+    sa = sas[:3]
+    return squeeze(dot(theta_RE_LSPI.transpose(),mountain_car_phi(sa)))
+vRE_reward = non_scalar_vectorize( RE_reward_LSPI, (5,),(1,1) )
 data = genfromtxt("mountain_car_batch_data.mat")
 data[:,5] = squeeze(vRE_reward(data[:,:5]))
-policy_RE,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )#None,zeros((75,1))#
+policy_RE_LSPI,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
+
+def RE_reward_RE(sas):
+    sa = sas[:3]
+    return squeeze(dot(theta_RE_RE.transpose(),mountain_car_phi(sa)))
+vRE_reward = non_scalar_vectorize( RE_reward_RE, (5,),(1,1) )
+data = genfromtxt("mountain_car_batch_data.mat")
+data[:,5] = squeeze(vRE_reward(data[:,:5]))
+policy_RE_RE,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
+
+def RE_reward_Other(sas):
+    sa = sas[:3]
+    return squeeze(dot(theta_RE_Other.transpose(),mountain_car_phi(sa)))
+vRE_reward = non_scalar_vectorize( RE_reward_Other, (5,),(1,1) )
+data = genfromtxt("mountain_car_batch_data.mat")
+data[:,5] = squeeze(vRE_reward(data[:,:5]))
+policy_RE_Other,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
+
+mountain_car_plot_policy(policy_RE_LSPI)
+figure()
+mountain_car_plot_policy(policy_RE_RE)
+figure()
+mountain_car_plot_policy(policy_RE_Other)
 
 # <codecell>
 
@@ -288,12 +350,12 @@ plottable_episode_length = mountain_car_episode_vlength(policy_RE)
 X = linspace(-1.2,0.6,20)
 Y = linspace(-0.07,0.07,20)
 X,Y = meshgrid(X,Y)
-#Z2 = plottable_episode_length(X,Y)
+Z2 = plottable_episode_length(X,Y)
 figure()
 mountain_car_plot_policy(policy_RE)
 figure()
-#contourf(X,Y,Z2,50)
-#colorbar()
+contourf(X,Y,Z2,50)
+colorbar()
 
 # <codecell>
 
