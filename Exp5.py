@@ -4,6 +4,8 @@
 # <codecell>
 
 #Mountain Car
+import matplotlib
+matplotlib.use('Agg')
 from stuff import *
 from pylab import *
 from random import *
