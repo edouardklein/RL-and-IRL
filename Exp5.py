@@ -4,8 +4,6 @@
 # <codecell>
 
 #Mountain Car
-import matplotlib
-matplotlib.use('Agg')
 from stuff import *
 from pylab import *
 from random import *
@@ -127,6 +125,9 @@ def mountain_car_IRL_data(nbsamples):
     return data[:nbsamples]
 
 TRAJS = mountain_car_IRL_data(NB_SAMPLES)
+while all(TRAJS[:,2]==-1):
+    print "Resampling manual policy until we get 2 actions"
+    TRAJS = mountain_car_IRL_data(NB_SAMPLES)
 
 psi=mountain_car_psi
 phi=mountain_car_phi
