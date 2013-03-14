@@ -191,7 +191,7 @@ def mountain_car_testing_state():
     return array([position,speed])
 
 def mountain_car_mean_performance(policy):
-    return mean([mountain_car_episode_length(state[0],state[1],policy) for state in [mountain_car_testing_state() for i in range(0,100)]])
+    return mean([mountain_car_episode_length(state[0],state[1],policy) for state in [mountain_car_testing_state() for i in range(0,1)]])
 print "Samples : "+str(NB_SAMPLES)
 print "CSI, classif : "
 print mountain_car_mean_performance(policy_CSI),mountain_car_mean_performance(pi_c)
@@ -391,123 +391,112 @@ def end_of_episode(data,i):
     except:
         return True
 
-#function reward=relative_entropy_boularias(phi,n_s,gamma,data_c,data_r,L_c,H_c,L_r,H_r,delta,epsilon_re,N_final)
-def relative_entropy(data_c,data_r,delta):
-    #size_phi=size(phi);
-    
-    #feature_c=zeros(L_c,size_phi(2));
-    #feature_r=zeros(L_r,size_phi(2));
-    feature_c=[]
-    feature_r=[]
-    
-    #theta=zeros(1,size_phi(2));
-    theta=zeros((1,150))
-    #for i=1:L_c
-        #for j=1:H_c
-    eoe_indices = [i for i in range(0,len(data_c)) if end_of_episode(data_c,i)]
-    for start_index,end_index in zip( [0] + map(lambda x:x+1,eoe_indices[:-1]),eoe_indices):
-        #feature_c(i,:)=feature_c(i,:)+gamma^j*phi(data_c(j+H_c*(i-1),1)+n_s*(data_c(j+H_c*(i-1),2)-1),:);
-        data_MC=data_c[start_index:end_index+1,:3]
-        GAMMAS = range(0,len(data_MC))
-        GAMMAS = array(map( lambda x: pow(GAMMA,x), GAMMAS))
-        state_action = data_MC[0,:3]
-        mu = None
-        if len(data_MC) > 1:
-            mu = dot( GAMMAS,squeeze(phi(data_MC[:,:3])))
-        else:
-            mu = squeeze(phi(squeeze(data_MC[:,:3])))
-        feature_c.append(mu)   
-    feature_c=array(feature_c)
+#Relative Entropy
+class GradientDescent(object):
+   def alpha( self, t ):
+      raise NotImplementedError, "Cannot call abstract method"
 
-    #feature_c_mean=mean(feature_c,1);
-    feature_c_mean=mean(feature_c,0);
-    
-    #epsilon=sqrt(-log2(1-delta)/(2*H_c))*(gamma^(H_c+1)-1)/(gamma-1);
-    #epsilon=sqrt(-log2(1-delta)/(2*300))*(pow(GAMMA,(300+1))-1)/(GAMMA-1);
-    epsilon = 0.01
-    print "epsilon "+str(epsilon)
-    
-    #for i=1:L_r
-    #    for j=1:H_r
-    eoe_indices = [i for i in range(0,len(data_r)) if end_of_episode(data_r,i)]
-    for start_index,end_index in zip( [0] + map(lambda x:x+1,eoe_indices[:-1]),eoe_indices):
-        #feature_r(i,:)=feature_r(i,:)+gamma^j*phi(data_r(j+H_r*(i-1),1)+n_s*(data_r(j+H_r*(i-1),2)-1),:)
-        data_MC=data_r[start_index:end_index+1,:3]
-        GAMMAS = range(0,len(data_MC))
-        GAMMAS = array(map( lambda x: pow(GAMMA,x), GAMMAS))
-        state_action = data_MC[0,:3]
-        mu = None
-        if len(data_MC) > 1:
-            mu = dot( GAMMAS,squeeze(phi(data_MC[:,:3])))
-        else:
-            mu = squeeze(phi(squeeze(data_MC[:,:3])))
-        feature_r.append(mu)
-        #    end   
-        #end
-    feature_r=array(feature_r)
-
-    #Criterion=epsilon_re+1;
-    criterion=numpy.inf
-    #counter=1;
-    counter=1
-
-    #while Criterion>epsilon_re&&counter<N_final
-    while criterion > 0.01 and counter < 100:
-        #buffer_derivative_t=zeros(1,size_phi(2));
-        derivative = zeros((1,150))
-        #buffer_t=0;
-        t = 0
-        #buffer_theta=theta;
-        #for i=1:L_r
-        for i in range(0,len(feature_r)):
-            #buffer_derivative_t=buffer_derivative_t+exp(theta*feature_r(i,:)')*feature_r(i,:);
-            derivative += exp(dot(theta,feature_r[i,:].transpose()))*feature_r[i,:]
-            #buffer_t=buffer_t+exp(theta*feature_r(i,:)');
-            t +=  exp(dot(theta,feature_r[i,:].transpose()))
-            #end    
-
-        #buffer_derivative=feature_c_mean-buffer_derivative_t/(buffer_t)-sign(theta)*epsilon;
-        derivative=feature_c_mean-derivative/(t)-sign(theta)*epsilon
-
-        print "Boubou run \t"+str(counter)+" criterion is \t"+str(criterion)+" ||derivative|| is \t"+str(norm(derivative))
-        if isnan(derivative):
-            raise Exception
+   theta_0=None
+   Threshold=None
+   T = -1
+   sign = None
         
-        #if norm(buffer_derivative)==0
-        if norm(derivative)==0:
-            #theta=buffer_theta;
-            break
-        else:
-            #theta=buffer_theta+(1/counter)*buffer_derivative/norm(buffer_derivative,2);
-            delta_theta = (100./float(counter))*derivative/norm(derivative,2)
-            #end
-        #Criterion=norm(buffer_theta-theta,2);
-        criterion=norm(delta_theta,2)
-        theta+=delta_theta
-        #counter=counter+1;    
-        counter += 1
-        #end    
-    print "Stop boubou @ run "+str(counter-1)+" criterion is "+str(criterion)
-    #reward=phi*theta';
-    return lambda sas: dot(theta,phi(sas[:3]))[0]
+   def run( self, f_grad, f_proj=None, b_norm=False, b_best=True ): #grad is a function of theta
+      theta = self.theta_0.copy()
+      best_theta = theta.copy()
+      best_norm = float("inf")
+      best_iter = 0
+      t=0
+      while True:#Do...while loop
+         t+=1
+         DeltaTheta = f_grad( theta )
+         current_norm = norm( DeltaTheta )
+         if b_norm and  current_norm > 0.:
+             DeltaTheta /= norm( DeltaTheta )
+         theta = theta + self.sign * self.alpha( t )*DeltaTheta
+         if f_proj:
+             theta = f_proj( theta )
+         print "Norme du gradient : "+str(current_norm)+", pas : "+str(self.alpha(t))+", iteration : "+str(t)
+
+         if current_norm < best_norm or not b_best:
+             best_norm = current_norm
+             best_theta = theta.copy()
+             best_iter = t
+         if current_norm < self.Threshold or (self.T != -1 and t >= self.T):
+             break
+
+      print "Gradient de norme : "+str(best_norm)+", a l'iteration : "+str(best_iter)
+      return best_theta
+                            
+class RelativeEntropy(GradientDescent):
+    sign=+1.
+    Threshold=0.01 #Sensible default
+    T=50 #Sensible default
+    Epsilon = 0.05 #RelEnt parameter, sensible default
+
+    def alpha(self, t):
+        return 1./(t+1)#Sensible default
     
+    def __init__(self, mu_E, mus):
+        self.theta_0 = zeros(mu_E.shape)
+        self.Mu_E = mu_E
+        self.Mus = mus
+    
+    def gradient(self, theta):
+        numerator = 0
+        denominator = 0
+        for mu in self.Mus:
+            c = exp(dot(theta.transpose(),mu))
+            numerator += c*mu
+            denominator += c
+        assert denominator != 0,"A sum of exp(...) is null, some black magic happened here."
+        return self.Mu_E - numerator/denominator - sign(theta)*self.Epsilon
+    
+    def run(self):
+        f_grad = lambda theta: self.gradient(theta)
+        theta = super(RelativeEntropy,self).run( f_grad, b_norm=True, b_best=False)
+        return theta
 
-#data_r = genfromtxt("mountain_car_batch_data.mat")
-data_r = genfromtxt("mountain_car_boubou_trajs.mat")
+    
+data_r = genfromtxt("mountain_car_batch_data.mat")
+#data_r = genfromtxt("mountain_car_RE_trajs.mat")
 
-toto = True
-while toto:
-    try:
-        RE_reward = relative_entropy(TRAJS, data_r, 0.99)
-        print "Trying again "
-        toto = False
-    except Exception:
-        pass
+#Computing the feature expectations
+t=0.
+Mu_E = zeros(((7*7+1)*3,1))
+for i in range(0,len(TRAJS)):
+    Mu_E += pow(GAMMA,t)*mountain_car_phi(TRAJS[i,:3])
+    if end_of_episode(TRAJS,i):
+        t=0.
+    else:
+        t+=1.
+Mu_E /= float(len(TRAJS))
+
+Mus=[]
+mu = zeros(((7*7+1)*3,1))
+t=0.
+for i in range(0,len(data_r)):
+    mu += pow(GAMMA,t)*mountain_car_phi(data_r[i,:3])
+    if end_of_episode(data_r,i):
+        mu /= t+1.
+        Mus.append(mu)
+        t=0.
+        mu = zeros(((7*7+1)*3,1))
+    else:
+        t += 1.
+        
+Mus.append(Mu_E)
+
+RE = RelativeEntropy(Mu_E, Mus)
+theta_RE = RE.run()
+def RE_reward(sas):
+    sa = sas[:3]
+    return squeeze(dot(theta_RE.transpose(),mountain_car_phi(sa)))
 vRE_reward = non_scalar_vectorize( RE_reward, (5,),(1,1) )
 data = genfromtxt("mountain_car_batch_data.mat")
 data[:,5] = squeeze(vRE_reward(data[:,:5]))
-policy_RE,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )#None,zeros((75,1))#
-savetxt("data/Boubou_omega_"+str(NB_SAMPLES)+"_"+RAND_STRING+".mat",omega_RE)
-print "Relative entropy : "
+policy_RE,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
+savetxt("data/RE_omega_"+str(NB_SAMPLES)+"_"+RAND_STRING+".mat",omega_RE)
+print "RE: "
 print mountain_car_mean_performance(policy_RE)
 

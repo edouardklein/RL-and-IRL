@@ -4,7 +4,7 @@
 [[Exp2.py]] : Finding out in which areas of the state space of the inverted pendulum the expert is good.
 [[Exp3.py]] : Trying to find what to plot with CSI on the inverted pendulum.
 [[file:Exp4.py]] : Testing different parameters for LSPI  and CSI on the Mountain Car.
-[[Exp5.py]] : Running all algos (SCRIL x2, SCI, Classif, RE) on the Moutnain Car.
+[[Exp5.py]] : Running all algos (SCRIL x2, SCI, Classif, RE) on the Mountain Car.
 [[Exp6.py]] : Trying to find a good way to plot the data of Exp5.
 [[file:Exp7.py]] Running SCIRL on the Mountain Car
 [[file:Exp8.py]] : Relative entropy on the mountain car.
