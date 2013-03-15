@@ -11,3 +11,4 @@
 [[file:Exp9.py]] : Cascading on the data from Asterix
 [[file:Exp10.py]] : Relative Entropy on the Highway
 [[file:Exp11.py]] : Plotting the results of different IRL algos on the mountain car
+[[file:Exp12.py]] : Running SCIRL on the Highway

@@ -3,7 +3,7 @@
 
 # <codecell>
 
-#Training an expert on the highway
+#Relative Entropy on the Highway
 from DP import *
 P = genfromtxt("Highway_P.mat")
 R = genfromtxt("Highway_R.mat")
