@@ -165,10 +165,11 @@ savetxt("mountain_car_RE_trajs.mat",data_r)
 # <codecell>
 
 sqrt(-log2(1-0.0001)/(2*70))*(pow(0.99,(70+1))-1)/(0.99-1)#Epsilon
+sqrt(-log2(1-0.1)/(2*300))*(pow(0.9,(300+1))-1)/(0.9-1)
 
 # <codecell>
 
-GAMMA = 0.99
+GAMMA = 0.9
 
 def end_of_episode(data,i):
     try:
@@ -219,8 +220,8 @@ class GradientDescent(object):
 class RelativeEntropy(GradientDescent):
     sign=+1.
     Threshold=0.01 #Sensible default
-    T=50 #Sensible default
-    Epsilon = 0.05 #RelEnt parameter, sensible default
+    T=30 #Sensible default
+    Epsilon = 0.15 #RelEnt parameter, sensible default
 
     def alpha(self, t):
         return 1./(t+1)#Sensible default
@@ -273,44 +274,44 @@ for i in range(0,len(data_r_LSPI)):
         mu = zeros(((7*7+1)*3,1))
     else:
         t += 1. 
-Mus_LSPI.append(Mu_E)
+#Mus_LSPI.append(Mu_E)
 
-Mus_RE=[]
-mu = zeros(((7*7+1)*3,1))
-t=0.
-for i in range(0,len(data_r_RE)):
-    mu += pow(GAMMA,t)*mountain_car_phi(data_r_RE[i,:3])
-    if end_of_episode(data_r_RE,i):
-        mu /= t+1.
-        Mus_RE.append(mu)
-        t=0.
-        mu = zeros(((7*7+1)*3,1))
-    else:
-        t += 1. 
-Mus_RE.append(Mu_E)
+#Mus_RE=[]
+#mu = zeros(((7*7+1)*3,1))
+#t=0.
+#for i in range(0,len(data_r_RE)):
+#    mu += pow(GAMMA,t)*mountain_car_phi(data_r_RE[i,:3])
+#    if end_of_episode(data_r_RE,i):
+#        mu /= t+1.
+#        Mus_RE.append(mu)
+#        t=0.
+#        mu = zeros(((7*7+1)*3,1))
+#    else:
+#        t += 1. 
+#Mus_RE.append(Mu_E)
 
-Mus_Other=[]
-mu = zeros(((7*7+1)*3,1))
-t=0.
-for i in range(0,len(data_r_Other)):
-    mu += pow(GAMMA,t)*mountain_car_phi(data_r_Other[i,:3])
-    if end_of_episode(data_r_Other,i):
-        mu /= t+1.
-        Mus_Other.append(mu)
-        t=0.
-        mu = zeros(((7*7+1)*3,1))
-    else:
-        t += 1. 
-Mus_Other.append(Mu_E)
+#Mus_Other=[]
+#mu = zeros(((7*7+1)*3,1))
+#t=0.
+#for i in range(0,len(data_r_Other)):
+#    mu += pow(GAMMA,t)*mountain_car_phi(data_r_Other[i,:3])
+#   if end_of_episode(data_r_Other,i):
+#        mu /= t+1.
+#        Mus_Other.append(mu)
+#        t=0.
+#        mu = zeros(((7*7+1)*3,1))
+#    else:
+#        t += 1. 
+#Mus_Other.append(Mu_E)
 
 RE_LSPI = RelativeEntropy(Mu_E, Mus_LSPI)
 theta_RE_LSPI = RE_LSPI.run()
      
-RE_RE = RelativeEntropy(Mu_E, Mus_RE)
-theta_RE_RE = RE_RE.run()
+#RE_RE = RelativeEntropy(Mu_E, Mus_RE)
+#theta_RE_RE = RE_RE.run()
 
-RE_Other = RelativeEntropy(Mu_E, Mus_Other)
-theta_RE_Other = RE_Other.run()
+#RE_Other = RelativeEntropy(Mu_E, Mus_Other)
+#theta_RE_Other = RE_Other.run()
 
 # <codecell>
 
@@ -322,27 +323,27 @@ data = genfromtxt("mountain_car_batch_data.mat")
 data[:,5] = squeeze(vRE_reward(data[:,:5]))
 policy_RE_LSPI,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
 
-def RE_reward_RE(sas):
-    sa = sas[:3]
-    return squeeze(dot(theta_RE_RE.transpose(),mountain_car_phi(sa)))
-vRE_reward = non_scalar_vectorize( RE_reward_RE, (5,),(1,1) )
-data = genfromtxt("mountain_car_batch_data.mat")
-data[:,5] = squeeze(vRE_reward(data[:,:5]))
-policy_RE_RE,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
+#def RE_reward_RE(sas):
+#    sa = sas[:3]
+#    return squeeze(dot(theta_RE_RE.transpose(),mountain_car_phi(sa)))
+#vRE_reward = non_scalar_vectorize( RE_reward_RE, (5,),(1,1) )
+#data = genfromtxt("mountain_car_batch_data.mat")
+#data[:,5] = squeeze(vRE_reward(data[:,:5]))
+#policy_RE_RE,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
 
-def RE_reward_Other(sas):
-    sa = sas[:3]
-    return squeeze(dot(theta_RE_Other.transpose(),mountain_car_phi(sa)))
-vRE_reward = non_scalar_vectorize( RE_reward_Other, (5,),(1,1) )
-data = genfromtxt("mountain_car_batch_data.mat")
-data[:,5] = squeeze(vRE_reward(data[:,:5]))
-policy_RE_Other,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
+#def RE_reward_Other(sas):
+#    sa = sas[:3]
+#    return squeeze(dot(theta_RE_Other.transpose(),mountain_car_phi(sa)))
+#vRE_reward = non_scalar_vectorize( RE_reward_Other, (5,),(1,1) )
+#data = genfromtxt("mountain_car_batch_data.mat")
+#data[:,5] = squeeze(vRE_reward(data[:,:5]))
+#policy_RE_Other,omega_RE = lspi( data, s_dim=2,a_dim=1, A=ACTION_SPACE, phi=mountain_car_phi, phi_dim=150, iterations_max=20 )
 
 mountain_car_plot_policy(policy_RE_LSPI)
-figure()
-mountain_car_plot_policy(policy_RE_RE)
-figure()
-mountain_car_plot_policy(policy_RE_Other)
+#figure()
+#mountain_car_plot_policy(policy_RE_RE)
+#figure()
+#mountain_car_plot_policy(policy_RE_Other)
 
 # <codecell>
 
