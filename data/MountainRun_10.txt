@@ -1,0 +1,88 @@
+LSPI, iter :1, diff : 40.014731975
+LSPI, iter :2, diff : 28.612191504
+LSPI, iter :3, diff : 1.9318987351
+LSPI, iter :4, diff : 0.539386537321
+LSPI, iter :5, diff : 0.00709912967247
+Samples : 10
+CSI, classif : 
+22.0 300.0
+(10, 2)
+Norme du gradient : 1.00442282734, pas : 1.5, iteration : 1
+Norme du gradient : 0.0, pas : 1.0, iteration : 2
+Gradient de norme : 0.0, a l'iteration : 2
+LSPI, iter :1, diff : 34.3406767592
+LSPI, iter :2, diff : 5.04835323046
+LSPI, iter :3, diff : 1.04295180198
+LSPI, iter :4, diff : 0.0688385990026
+LSPI, iter :5, diff : 0.000926917812912
+(10, 2)
+Norme du gradient : 0.541232316333, pas : 1.5, iteration : 1
+Norme du gradient : 0.255248399308, pas : 1.0, iteration : 2
+Norme du gradient : 0.0806949493316, pas : 0.75, iteration : 3
+Gradient de norme : 0.0806949493316, a l'iteration : 3
+LSPI, iter :1, diff : 76.3896819434
+LSPI, iter :2, diff : 10.7939431186
+LSPI, iter :3, diff : 2.39889306642
+LSPI, iter :4, diff : 0.353724488222
+LSPI, iter :5, diff : 0.005812380988
+SCIRL, SCIRL MC : 
+300.0 300.0
+Norme du gradient : 0.750504282655, pas : 0.5, iteration : 1
+Norme du gradient : 0.707936143675, pas : 0.333333333333, iteration : 2
+Norme du gradient : 0.893385883203, pas : 0.25, iteration : 3
+Norme du gradient : 0.761136841087, pas : 0.2, iteration : 4
+Norme du gradient : 0.75852331958, pas : 0.166666666667, iteration : 5
+Norme du gradient : 0.748005724722, pas : 0.142857142857, iteration : 6
+Norme du gradient : 0.835056769096, pas : 0.125, iteration : 7
+Norme du gradient : 0.742385762626, pas : 0.111111111111, iteration : 8
+Norme du gradient : 0.756247458657, pas : 0.1, iteration : 9
+Norme du gradient : 0.798921328844, pas : 0.0909090909091, iteration : 10
+Norme du gradient : 0.765446651491, pas : 0.0833333333333, iteration : 11
+Norme du gradient : 0.75050862195, pas : 0.0769230769231, iteration : 12
+Norme du gradient : 0.795374019297, pas : 0.0714285714286, iteration : 13
+Norme du gradient : 0.761484136375, pas : 0.0666666666667, iteration : 14
+Norme du gradient : 0.762634280829, pas : 0.0625, iteration : 15
+Norme du gradient : 0.76404456429, pas : 0.0588235294118, iteration : 16
+Norme du gradient : 0.773133064727, pas : 0.0555555555556, iteration : 17
+Norme du gradient : 0.776280703937, pas : 0.0526315789474, iteration : 18
+Norme du gradient : 0.756517864854, pas : 0.05, iteration : 19
+Norme du gradient : 0.769625540138, pas : 0.047619047619, iteration : 20
+Norme du gradient : 0.769377066773, pas : 0.0454545454545, iteration : 21
+Norme du gradient : 0.745420396383, pas : 0.0434782608696, iteration : 22
+Norme du gradient : 0.790147676983, pas : 0.0416666666667, iteration : 23
+Norme du gradient : 0.753490152786, pas : 0.04, iteration : 24
+Norme du gradient : 0.748242049832, pas : 0.0384615384615, iteration : 25
+Norme du gradient : 0.786056503363, pas : 0.037037037037, iteration : 26
+Norme du gradient : 0.747460236943, pas : 0.0357142857143, iteration : 27
+Norme du gradient : 0.765898156841, pas : 0.0344827586207, iteration : 28
+Norme du gradient : 0.772645103561, pas : 0.0333333333333, iteration : 29
+Norme du gradient : 0.761166571066, pas : 0.0322580645161, iteration : 30
+Norme du gradient : 0.755351193951, pas : 0.03125, iteration : 31
+Norme du gradient : 0.766496826281, pas : 0.030303030303, iteration : 32
+Norme du gradient : 0.758973361954, pas : 0.0294117647059, iteration : 33
+Norme du gradient : 0.754652675353, pas : 0.0285714285714, iteration : 34
+Norme du gradient : 0.776947237607, pas : 0.0277777777778, iteration : 35
+Norme du gradient : 0.730750476699, pas : 0.027027027027, iteration : 36
+Norme du gradient : 0.774326448545, pas : 0.0263157894737, iteration : 37
+Norme du gradient : 0.769380557567, pas : 0.025641025641, iteration : 38
+Norme du gradient : 0.754973383271, pas : 0.025, iteration : 39
+Norme du gradient : 0.754562726335, pas : 0.0243902439024, iteration : 40
+Norme du gradient : 0.769334655741, pas : 0.0238095238095, iteration : 41
+Norme du gradient : 0.751142477761, pas : 0.0232558139535, iteration : 42
+Norme du gradient : 0.740531321723, pas : 0.0227272727273, iteration : 43
+Norme du gradient : 0.783575331638, pas : 0.0222222222222, iteration : 44
+Norme du gradient : 0.759372666446, pas : 0.0217391304348, iteration : 45
+Norme du gradient : 0.737242204397, pas : 0.0212765957447, iteration : 46
+Norme du gradient : 0.774364514411, pas : 0.0208333333333, iteration : 47
+Norme du gradient : 0.762379895789, pas : 0.0204081632653, iteration : 48
+Norme du gradient : 0.746674201518, pas : 0.02, iteration : 49
+Norme du gradient : 0.751876105094, pas : 0.0196078431373, iteration : 50
+Gradient de norme : 0.751876105094, a l'iteration : 50
+LSPI, iter :1, diff : 21.1004331822
+LSPI, iter :2, diff : 29.4749175266
+LSPI, iter :3, diff : 3.22687205137
+LSPI, iter :4, diff : 2.18344889341
+LSPI, iter :5, diff : 0.50902228847
+LSPI, iter :6, diff : 0.00891575733028
+RE: 
+300.0
