@@ -174,12 +174,12 @@ all_data_SCIRLMC=[]
 all_data_RE=[]
 
 for x in X:
-    CSI_files = glob.glob("data/CSI_omega_"+str(x)+"_*.mat")[:3]
-    Classif_files = glob.glob("data/Classif_"+str(x)+"_*.obj")[:3]
-    #Expert_files = glob.glob("data/Expert_omega_"+str(x)+"_*.mat")#[:3]
-    SCIRL_files = glob.glob("data/SCIRL_omega_"+str(x)+"_*.mat")[:3]
-    SCIRLMC_files = glob.glob("data/SCIRLMC_omega_"+str(x)+"_*.mat")[:3]
-    RE_files = glob.glob("data/RE_omega_"+str(x)+"_*.mat")[:3]
+    CSI_files = glob.glob("data/CSI_omega_"+str(x)+"_*.mat")#
+    Classif_files = glob.glob("data/Classif_"+str(x)+"_*.obj")#
+    #Expert_files = glob.glob("data/Expert_omega_"+str(x)+"_*.mat")##
+    SCIRL_files = glob.glob("data/SCIRL_omega_"+str(x)+"_*.mat")#
+    SCIRLMC_files = glob.glob("data/SCIRLMC_omega_"+str(x)+"_*.mat")#
+    RE_files = glob.glob("data/RE_omega_"+str(x)+"_*.mat")#
     #print CSI_files
     #print Classif_files
     #print Expert_files
