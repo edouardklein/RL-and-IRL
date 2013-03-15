@@ -4,8 +4,6 @@
 # <codecell>
 
 #Mountain Car
-import matplotlib
-matplotlib.use('Agg')
 from stuff import *
 from pylab import *
 from random import *
@@ -15,7 +13,7 @@ from rl import *
 import sys
 
 NB_SAMPLES=100
-NB_SAMPLES=int(sys.argv[1])
+#NB_SAMPLES=int(sys.argv[1])
 RAND_STRING=str(int(rand()*10000000000))
 
 
