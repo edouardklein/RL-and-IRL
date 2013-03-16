@@ -5,15 +5,15 @@ from stuff import *
 GAMMA=0.9 #Discout factor
 LAMBDA=0#.1 #Regularization coeff for LSTDQ
 
-def greedy_policy( omega, phi, A ): 
+def greedy_policy( omega, phi, A, s_dim=2 ): 
     def policy( *args ):
         state_actions = [hstack(args+(a,)) for a in A]
         q_value = lambda sa: float(dot(omega.transpose(),phi(sa)))
         best_action = argmax( state_actions, q_value )[-1] #FIXME6: does not work for multi dimensional actions
         return best_action
-    vpolicy = non_scalar_vectorize( policy, (2,), (1,1) )
+    vpolicy = non_scalar_vectorize( policy, (s_dim,), (1,1) )
     return lambda state: vpolicy(state).reshape(state.shape[:-1]+(1,))
-
+    
 def lstdq(phi_sa, phi_sa_dash, rewards, phi_dim=1):
     #print "shapes of phi de sa, phi de sprim a prim, rewards"+str(phi_sa.shape)+str(phi_sa_dash.shape)+str(rewards.shape)
     A = zeros((phi_dim,phi_dim))
