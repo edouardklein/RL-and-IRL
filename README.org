@@ -12,3 +12,4 @@
 [[file:Exp10.py]] : Relative Entropy on the Highway
 [[file:Exp11.py]] : Plotting the results of different IRL algos on the mountain car
 [[file:Exp12.py]] : Running SCIRL on the Highway
+[[file:Exp13.py]] : Running CSI on the Highway
