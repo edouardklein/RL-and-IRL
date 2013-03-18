@@ -3,6 +3,11 @@
 
 # <codecell>
 
+%load_ext autoreload
+%autoreload 2
+
+# <codecell>
+
 #SCIRL on the Highway
 from DP import *
 from stuff import *
@@ -14,11 +19,6 @@ P = genfromtxt("Highway_P.mat")
 R = genfromtxt("Highway_R.mat")
 Gamma = 0.9
 ACTION_SPACE = range(0,5)
-
-# <codecell>
-
-%load_ext autoreload
-%autoreload 2
 
 # <codecell>
 
@@ -180,7 +180,7 @@ def s_index( state ):
     return index
 
 def sa_index( state, action ):
-    index = s_index(state) + a*3*9*9*3
+    index = s_index(state) + action*3*9*9*3
     return index
 
 print reward_SCIRL_short.shape
@@ -200,4 +200,7 @@ Highway3 = MDP(P,rand(3645,1))
 mPi_R, V_R, Pi_R = Highway3.optimal_policy()
 true_V_R = linalg.solve( identity( 729 ) - 0.9*dot(mPi_R,P), dot( mPi_R, R) )
 mean(true_V_A),mean(true_V_R),mean(V_E)
+
+# <codecell>
+
 
