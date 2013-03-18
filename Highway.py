@@ -23,7 +23,7 @@ def s_index( state ):
     return index
 
 def sa_index( state, action ):
-    index = s_index(state) + a*3*9*9*3
+    index = s_index(state) + action*3*9*9*3
     return index
 
 def next_states( state, action ):
