@@ -4,6 +4,8 @@
 # <codecell>
 
 #All IRL algs on the Highway
+import matplotlib
+matplotlib.use('Agg')
 from DP import *
 from stuff import *
 from pylab import *
