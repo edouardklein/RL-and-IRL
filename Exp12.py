@@ -28,7 +28,8 @@ mPi_E, V_E, Pi_E = Highway.optimal_policy()
 # <codecell>
 
 rho = lambda : int(rand()*729) #uniform distribtion over S
-D_E = array(Highway.D_func(Pi_E, 1, 100,  rho))
+l_D_E = [array(Highway.D_func(Pi_E, 1, 7,  rho)) for i in range(0,7)]
+D_E = vstack(l_D_E)
 
 # <codecell>
 
@@ -41,19 +42,26 @@ def MC_mu(episode):
     return answer
 
 feature_expectations_MC = {}
-for start_index in range(0,len(D_E)):
-    data_MC=D_E[start_index:,:2]
-    GAMMAS = range(0,len(data_MC))
-    GAMMAS = array(map( lambda x: pow(Gamma,x), GAMMAS))
-    state_action = data_MC[0,:2]
-    state = data_MC[0,0]
-    action = data_MC[0,1]
-    mu = MC_mu(data_MC[:,0])
-    feature_expectations_MC[str(state_action)] = mu
-    for other_action in [a for a in ACTION_SPACE if a != action]:
-        state_action=hstack([state,other_action])
-        feature_expectations_MC[str(state_action)]=Gamma*mu
-        
+d_mu_MC = {}
+for episode in l_D_E:
+    for start_index in range(0,len(episode)):
+        data_MC=episode[start_index:,:2]
+        state_action = data_MC[0,:2]
+        state = data_MC[0,0]
+        action = data_MC[0,1]
+        mu = MC_mu(data_MC[:,0])
+        try:
+            d_mu_MC[str(state_action)].append(mu)
+        except KeyError:
+            d_mu_MC[str(state_action)] = [mu]
+        for other_action in [a for a in ACTION_SPACE if a != action]:
+            state_action=hstack([state,other_action])
+            try:
+                d_mu_MC[str(state_action)].append(Gamma*mu)
+            except KeyError:
+                d_mu_MC[str(state_action)]=[Gamma*mu]
+for sa in d_mu_MC.keys():
+    feature_expectations_MC[sa] = mean(d_mu_MC[sa],axis=0)
 
 # <codecell>
 
@@ -98,7 +106,7 @@ class GradientDescent(object):
 
 class StructuredClassifier(GradientDescent):
     sign=-1.
-    Threshold=0.1 #Sensible default
+    Threshold=0.01 #Sensible default
     T=40 #Sensible default
     phi=None
     phi_xy=None
@@ -195,12 +203,7 @@ print reward_SCIRL.shape
 reward_SCIRL.shape
 Highway2 = MDP(P,reward_SCIRL)
 mPi_A, V_A, Pi_A = Highway2.optimal_policy()
-true_V_A = linalg.solve( identity( 729 ) - 0.9*dot(mPi_A,P), dot( mPi_A, R) )
 Highway3 = MDP(P,rand(3645,1))
 mPi_R, V_R, Pi_R = Highway3.optimal_policy()
-true_V_R = linalg.solve( identity( 729 ) - 0.9*dot(mPi_R,P), dot( mPi_R, R) )
-mean(true_V_A),mean(true_V_R),mean(V_E)
-
-# <codecell>
-
+Highway.evaluate(mPi_A),Highway.evaluate(mPi_R),Highway.evaluate(mPi_E)
 
