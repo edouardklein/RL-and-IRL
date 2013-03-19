@@ -23,7 +23,7 @@ class MDP:
         self.cardA = self.cardSA/self.cardS
         self.gamma=0.9
         self.P = P
-        assert all(self.P.sum(axis=1) == 1), "Probability matrix unproperly conditionned"
+        assert all(f_eq(self.P.sum(axis=1), 1)), "Probability matrix unproperly conditionned"
         self.R = R
         #self.A = range(0,self.cardA)
         print "Shape of P "+str(P.shape)
@@ -44,7 +44,7 @@ class MDP:
         while True: #Do..while
             oldPi = Pi.copy()
             oldV = V.copy()
-            assert all((dot(Pi,self.P)).sum(axis=1) == 1), "A sum of probabilities should give 1."
+            assert all(f_eq(dot(Pi,self.P).sum(axis=1),1)), "A sum of probabilities should give 1."
             V = linalg.solve( identity( self.cardS ) - self.gamma*dot(Pi,self.P), dot( Pi, self.R) )
             assert (V-oldV).min() >= -1e-10,"Greedy policy not better than old policy, min and max of diff are"+str([(V-oldV).min(),(V-oldV).max()])
             assert allclose(V, dot(Pi,self.R) + self.gamma*dot(dot(Pi,self.P),V)), "Bellman equation"
