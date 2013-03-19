@@ -94,16 +94,22 @@ mPi_E, V_E, Pi_E = Highway.optimal_policy()
 # <codecell>
 
 rho = lambda : int(rand()*729) #uniform distribtion over S
-D_E = Highway.D_func(Pi_E, 1, 100,  rho)
+l_D_E = [array(Highway.D_func(Pi_E, 1, 3,  rho)) for i in range(0,3)]
+D_E = vstack(l_D_E)
 
 # <codecell>
 
 Mu_E = zeros((3645,1))
-for i in range(0,100):
-    s = D_E[i][0]
-    a = D_E[i][1]
-    Mu_E[s + a*729] += pow(Gamma,i)
-Mu_E /= 100.
+l_mu_E = []
+for episode in l_D_E:
+    mu = zeros((3645,1))
+    for i in range(0,len(episode)):
+        s = episode[i][0]
+        a = episode[i][1]
+        mu[s + a*729] += pow(Gamma,i)
+    mu /= float(len(episode))
+    l_mu_E.append(mu)
+Mu_E = mean(l_mu_E,axis=0)
 Mu_E.shape
 
 # <codecell>
@@ -132,8 +138,7 @@ reward_RE = RE.run()
 reward_RE.shape
 Highway2 = MDP(P,reward_RE)
 mPi_A, V_A, Pi_A = Highway2.optimal_policy()
-true_V_A = linalg.solve( identity( 729 ) - 0.9*dot(mPi_A,P), dot( mPi_A, R) )
-mean(true_V_A),mean(V_E)
+Highway.evaluate(mPi_A)
 
 # <codecell>
 
