@@ -18,6 +18,9 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{subfigure}
+% scientific notation, 1\e{9} will print as 1x10^9
+\providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
+\usepackage{booktabs} % Fancy tables
 \tolerance=1000
 %\usepackage{amsmath}
 %\usepackage{amsthm}
@@ -61,7 +64,7 @@ Not needing to repeatedly solve a Markov Decision Process (MDP) and the ability 
 \label{sec-2}
 Sequential decision making consists in choosing the appropriate action given the available data in order to maximize a certain criterion. When framed in a Markov Decision Process (MDP) (see Sec.~\ref{sec:background}), (Approximate) Dynamic programming ((A)DP) or Reinforcement Learning (RL) are often used to solve the problem by maximizing the expected sum of discounted rewards. The Inverse Reinforcement Learning (IRL)~\cite{russell1998learning} problem, which is addressed here, aims at inferring a reward function for which a demonstrated expert policy is optimal.
 
-IRL is one of many ways to perform Apprenticeship Learning (AL): imitating a demonstrated expert policy, without necessarily explicitely looking for the reward function. The reward function nevertheless is of interest in its own right. As mentionned in \cite{russell1998learning}, its semantics can be analyzed in biology or econometrics for instance. Practically, the reward can be seen as a succinct description of a task. Discovering it removes the coupling that exists in AL between understanding the task and learning how to fulfill it. IRL allows the use of (A)DP or RL techniques to learn the task from the computed reward function. Although some approaches use it as a byproduct, most AL algorithm makes no use of the reward function, or have nothing to do with IRL altogether. A very straightforward non-IRL way to do AL is for example to use a multi-class classifier to directly learn the expert policy. We provide in the experiments (Sec.~\ref{sec:experiments}) a comparison between AL and IRL algorithms by using IRL as a way to do AL.
+IRL is one of many ways to perform Apprenticeship Learning (AL): imitating a demonstrated expert policy, without necessarily explicitely looking for the reward function. The reward function nevertheless is of interest in its own right. As mentionned in \cite{russell1998learning}, its semantics can be analyzed in biology or econometrics for instance. Practically, the reward can be seen as a succinct description of a task. Discovering it removes the coupling that exists in AL between understanding the task and learning how to fulfill it. IRL allows the use of (A)DP or RL techniques to learn the task from the computed reward function. A very straightforward non-IRL way to do AL is for example to use a multi-class classifier to directly learn the expert policy. We provide in the experiments (Sec.~\ref{sec:experiments}) a comparison between AL and IRL algorithms by using IRL as a way to do AL.
 
 A lot of existing approaches in either IRL or IRL-based AL need to repeatedly solve the underlying MDP to find the optimal policies of intermediate reward functions. Thus, their performance depends strongly on the quality of the associated subroutine. Consequently, they suffer from the same challenges of scalability, data scarcity, etc., as RL and (A)DP. In order to avoid \emph{repeatedly} solving such problems, we adopt a different point of view.
 
@@ -290,10 +293,25 @@ More generally, the error terms  $\epsilon_C$ and $\epsilon_R$ can be reduced by
 
 Other differences between existing IRL or apprenticeship learning approaches and the proposed cascading algorithm are further examined Sec.~\ref{sec:related}.
 
+
+\section{Related Work}
+\label{sec:related}
+IRL was first introduced in \cite{russell1998learning} and then formalized in \cite{ng2000algorithms}. Approaches summarized in \cite{neu2009training} can be seen as iteratively contructing a reward function, solving an MDP at each iteration. Some of these algorithms are IRL algorithms while others fall in the Apprenticeship Learning (AL) category, as for example the projection version of the algorithm in \cite{abbeel2004apprenticeship}. In both cases the need to solve an MDP at each step may be very demanding, both sample-wise and computationally. CSI being able to output a reward function without having to solve the MDP is thus a significant improvement.
+
+AL via classification has been proposed for example in \cite{ratliff2007imitation}, with the help of a structured margin method. Using the non trivial notion of metric in an MDP, the authors of \cite{melo2010learning} build a kernel which is used
+in a classification algorithm, showing improvements compared to a
+non-structured kernel.
+
+Classification and IRL have met in the past in \cite{ratliff2006maximum}, but the labels were complete optimal policies rather than actions and the inputs were MDPs, which had to be solved. It may be unclear how SCIRL \cite{klein2012scirl} relates to the proposed approach of his paper. Both algorithms use the score function of a classifier as a proxy to the action-value function of the expert with respect to the (unknown) true reward: $Q^{\pi_E}_R$. The way this proxy is constructed and used, however, fundamentally differs in the two algorithms. This difference will cause the theoretical analysis of both approaches (see Sec.~\ref{sec:analysis}) to be distinct. In SCIRL, the score function of the classifier is approximated {\it via} a linear parametrization that relies on the feature expectation of the expert $\mu^E(s) = E[\sum_{t\geq 0}\gamma^t\phi(s_t)|s_0=s,\pi_E]$. This entails the use of a specific kind of classifier (namely linearly-parametrized-score-function-based classifiers) and of a method of approximation of $\mu^E$. By contrast, almost any off-the-shelf classifier can be used in the first step of the cascading approach of this paper. The classification step of CSI is unaware of the structure of the MDP whereas SCIRL knows about it thanks to the use of $\mu^E$. In CSI, the structure of the MDP is injected by reversing the Bellman equation prior to the regression step (Eq.~\ref{eq:rc} and \eqref{eq:rj}), a step that does not exist in SCIRL as SCIRL directly outputs the parameter vector found by its linearly-parametrized-score-function-based classifier. The regressor of CSI can be chosen off-the-shelf. One can argue that this and not having to approximate $\mu^E$ increases the ease-of-use of CSI over SCIRL and makes for a more versatile algorithm. In practice, as seen in Sec.~\ref{sec:experiments}, perfomance of SCIRL and CSI are very close to one another thus CSI may be a better choice as it is easier to deploy. We would like to emphasize the fact that although SCIRL and CSI share similarities, there exist key differences that we just explained. Neither approach is a generalization of the other.
+
+Few IRL or AL algorithms do not require solving an MDP. The approach of \cite{syed2008apprenticeship} requires knowing the transition probabilities of the MDP (which CSI does not need) and outputs a policy (and not a reward). The algorithm in \cite{dvijotham2010inverse} only applies to linearly-solvable MDPs whereas our approach does not place such restrictions. Closer to our use-case is the idea presented in \cite{boularias2011relative} to use a subgradient ascent of a utility function based on the notion of relative entropy. Importance sampling is suggested as a way to avoid solving the MDP. This requires sampling trajectories according to a non-expert policy and
+the direct problem remains at the core of the approach (even if
+solving it is avoided).
+
 %% Feel good comment
 \section{Experiments}
 \label{sec:experiments}
-In this section, we empirically demonstrate the behavior of our approach. We begin by providing information pertaining to both benchmarks: an explanation about the amount and source of the available data, the rationale behind the heuristics we use to compensate for the dire data scarcity and a quick word about the contenders CSI is compared to are given Sec.~\ref{subsec:generalities}. We supply quantitative results and comparisons of CSI with state-of-the art approaches on first a classical RL benchmark (the mountain car) Sec.~\ref{subsec:mountaincar} and then on a more difficult highway driving simulator (Sec.~\ref{subsec:highway}).
+In this section, we empirically demonstrate the behavior of our approach. We begin by providing information pertaining to both benchmarks: an explanation about the amount and source of the available data, the rationale behind the heuristics we use to compensate for the dire data scarcity and a quick word about the contenders CSI is compared to are given Sec.~\ref{subsec:generalities}. We supply quantitative results and comparisons of CSI with state-of-the art approaches on first a classical RL benchmark (the mountain car) Sec.~\ref{subsec:mountaincar} and then on a highway driving simulator (Sec.~\ref{subsec:highway}).
 \subsection{Generalities}
 \label{subsec:generalities}
 \subsubsection{Data scarcity}
@@ -377,20 +395,37 @@ Our complete instanciation of CSI is summed up in Alg.~\ref{alg:CSIimp}.
 \end{algorithm}
 \subsection{Mountain car}
 \label{subsec:mountaincar}
-The mountain car is a classical toy problem in RL: an underpowered car is tasked with climbing a steep hill. In order to do so, it has to first move away from the target and climb the slope on its left, and then it moves right, gaining enough momentum to climb the hill on the right on top of which lies the target. We used standard parameters for this problem, as can for example be found in \cite{sutton1998reinforcement}. When training an RL agent, the reward is, for example, $1$ if the car's position is greater than $0.5$ and $0$ anywhere else. The expert was a very simple hand crafted policy in which the agent uses the power of the car to go in the direction it already moves ({\it i.e.} go left when the speed is negative, right when it is positive)\\
+The mountain car is a classical toy problem in RL: an underpowered car is tasked with climbing a steep hill. In order to do so, it has to first move away from the target and climb the slope on its left, and then it moves right, gaining enough momentum to climb the hill on the right on top of which lies the target. We used standard parameters for this problem, as can for example be found in \cite{sutton1998reinforcement}. When training an RL agent, the reward is, for example, $1$ if the car's position is greater than $0.5$ and $0$ anywhere else. The expert was a very simple hand crafted policy in which the agent uses the power of the car to go in the direction it already moves ({\it i.e.}, go left when the speed is negative, right when it is positive).\\
 
-The initial position of the car was uniformly randomly picked in $[-1.2;-0.9]$ and its speed uniformly randomly picked in $[-0.07;0]$. From this position, the hand-crafted policy was left to play until the car reached the objective ({\it i.e.} a position greater than $0.5$) at which point the episode ended. Enough episodes were played (and the last one was truncated) so that the dataset $D_E$ contained exactly $n$ samples, with $n$ successively equal to $10$, $30$, $100$ and $300$. With these parameters, the expert is always able to reach the top on the first time it tries to climb the hill on the right. Therefore a whole part of the state space (when the position is on the hill on the right and the speed is negative) is not visited by the expert. This hole about the state space in the data will be dealt with differently by the classifier and the IRL algorithms. The classifier will use its generalization power to find a default action in this part of the state space, while the IRL algorithms will devise a default reward; a (potentially untrained) RL agent finding itself in this part of the state space will use the reward signal to decide what to do, making use of new data available at that time.
+The initial position of the car was uniformly randomly picked in $[-1.2;-0.9]$ and its speed uniformly randomly picked in $[-0.07;0]$. From this position, the hand-crafted policy was left to play until the car reached the objective ({\it i.e.}, a position greater than $0.5$) at which point the episode ended. Enough episodes were played (and the last one was truncated) so that the dataset $D_E$ contained exactly $n$ samples, with $n$ successively equal to $10$, $30$, $100$ and $300$. With these parameters, the expert is always able to reach the top on the first time it tries to climb the hill on the right. Therefore, a whole part of the state space (when the position is on the hill on the right and the speed is negative) is not visited by the expert. This hole about the state space in the data will be dealt with differently by the classifier and the IRL algorithms. The classifier will use its generalization power to find a default action in this part of the state space, while the IRL algorithms will devise a default reward; a (potentially untrained) RL agent finding itself in this part of the state space will use the reward signal to decide what to do, making use of new data available at that time.
 
 In order to get a policy from the rewards given by SCIRL, CSI and RE, the RL problem was solved by LSPI fed with a dataset $D_{random}$ of $1000$ episodes of length $5$ with a starting point uniformly and randomly chosen in the whole state space and actions picked at random. This dataset was also used by RE (and not by SCIRL nor CSI).
 
-The objective criterion for success is the number of steps needed to attain the goal when starting from a state picked at random ; the lesser the better. We can see Fig.~\ref{fig:MountainCar} that the optimal policies for the rewards found by SCIRL and CSI very rapidly attain expert-level performance and outperform the optimal policy for the reward of RE and the classification policy.
+The classifier for CSI was an off-the-shelf SVM\footnote{\url{http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html}} which also was the classifier we evaluate, the regressor of CSI was an off-the-shelf SVR\footnote{\url{http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html}}. RE and SCIRL need features over the state space, we used the same evenly-spaced hand-tuned $7\times 7$ RBF network for both algorithms.
+
+The objective criterion for success is the number of steps needed to attain the goal when starting from a state picked at random ; the lesser the better. We can see Fig.~\ref{fig:MountainCar} that the optimal policies for the rewards found by SCIRL and CSI very rapidly attain expert-level performance and outperform the optimal policy for the reward of RE and the classification policy. When very few samples are available, CSI does better than SCIRL (with such a low $p$-value for $n=10$, see Tab.~\ref{tab:mc}, the hypothesis that the mean performance is equal can be rejected); SCIRL catches up when more samples are available. Furthermore, CSI required very little engineering as we cascaded two off-the-shelf implementations whereas SCIRL used hand-tuned features and a custom classifier.
+\begin{table}
+	\begin{center}
+		\begin{tabular}{cc}
+		\toprule
+			Number of expert samples & $p$-value\\
+			\midrule
+			$10$ & $4.5195\e{-14}$\\
+			$30$ & $0.0131123$\\
+			$100$ & $0.139975$\\
+			$300$ & $0.893752$\\
+		\bottomrule
+		\end{tabular}
+	\end{center}
+        \caption{Kolmogorov–Smirnov mean equality test $p$-values for CSI and SCIRL on the mountain car. High values (>0.01) means that the hypothesis that the means are equal cannot be rejected.}
+        \label{tab:mc}
+\end{table}
 \begin{figure}
   \includegraphics[width=\textwidth]{Exp11.pdf}
-  \caption{Performance of various policies on the mountain car problem. This is the mean over 50 runs.}
+  \caption{Performance of various policies on the mountain car problem. This is the mean over 100 runs.}
   \label{fig:MountainCar}
 \end{figure}
 
-The classifier for CSI was an off-the-shelf SVM\footnote{\url{http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html}}, the regressor was an off-the-shelf SVR\footnote{\url{http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html}}.
 
 \subsection{Highway driving simulator}
 \label{subsec:highway}
@@ -405,49 +440,28 @@ The performance criterion for a policy $\pi$ is the mean (over the uniform distr
 Expert performance averages to $7.74$ ; we also show the natural random baseline that consists in drawing a random reward vector (with a uniform law) and training an agent on it. The reward functions found by SCIRL, CSI and RE are then optimized using a DP algorithm. The dataset $D_{random}$ needed by RE (and neither by CSI nor SCIRL) is made of $100$ episodes of length $10$ starting randomly in the state space and following a random policy. the dataset $D_E$ is made of $n$ episodes of length $n$, with $n \in \{3,7,10,15,20\}$.
 
 
-Results are shown Fig.~\ref{fig:Highway} and Tab.~\ref{tab:highway}. We give the values of $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$ with $\pi$ being in turn the optimal policy for the rewards given by SCIRL, CSI and RE, the policy $\pi_C$ of the classifier (the very one the classification step of CSI outputs), and the optimal policy for a randomly drawn reward. Performance for CSI is slightly but definitively higher than for SCIRL (see the variance in Tab.~\ref{tab:highway}), slightly below the performance of the expert itself. Very few samples (100) are needed to reliably achieve expert-level performance.
+Results are shown Fig.~\ref{fig:Highway}. We give the values of $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$ with $\pi$ being in turn the optimal policy for the rewards given by SCIRL, CSI and RE, the policy $\pi_C$ of the classifier (the very one the classification step of CSI outputs), and the optimal policy for a randomly drawn reward. Performance for CSI is slightly but definitively higher than for SCIRL (see the $p$-values for the mean equality test in Tab.~\ref{tab:highway}), slightly below the performance of the expert itself. Very few samples (100) are needed to reliably achieve expert-level performance.
 
 It is very interesting to compare our algorithm to the behavior of a classifier alone (respectively red and green plots on Fig.~\ref{tutu}). With \emph{the exact same data}, albeit the use of a very simple heuristics, the cascading approach demonstrates far better performance from the start. This is a clear illustration of the fact that using the Bellman equation to construct the data fed to the regressor and outputting not a policy, but a reward function that can be optimized on the MDP truly makes use of the information that the transitions $(s,a,s')$ bear (we recall that the classifier only uses $(s,a)$ couples).
 
 Furthermore, the classifier whose results are diplayed here is the output of the first step of the algorithm. The classification performance is obviously not that good, this hints to the fact that our algorithm may be empirically more forgiving of classification errors than our theoretical bound lets us expect.
-\begin{figure}
-      \begin{tabular}{|l|l|l|l|l|}
-        \hline
-        &\bf CSI& \bf SCIRL& \bf RE& \bf Classif\\
-        \hline \multicolumn{5}{|c|}{$n = 9$}\\ \hline
-        Var& 5.139& 5.684& 4.686& 0.045 \\
-        Min& -2.708& -3.175& -2.717& -1.564 \\
-        Mean& 2.419& 2.762& 2.286& -1.149 \\
-        Max& 7.050& 7.060& 7.027& -0.596 \\
-        \hline \multicolumn{5}{|c|}{$n = 49$}\\ \hline
-        Var& 0.214& 0.517& 0.701& 0.121 \\
-        Min& 5.406& 4.652& 4.214& -1.148 \\
-        Mean& 7.012& 6.784& 6.314& -0.158 \\
-        Max& 7.454& 7.529& 7.465& 0.619 \\
-        \hline \multicolumn{5}{|c|}{$n = 100$}\\ \hline
-        Var& 0.011& 0.269& 0.486& 0.154 \\
-        Min& 7.078& 5.724& 5.487& -0.574 \\
-        Mean& 7.364& 7.194& 6.778& 0.456 \\
-        Max& 7.526& 7.562& 7.509& 1.483 \\ \hline
-        \end{tabular}
-      \begin{tabular}{|l|l|l|l|l|}
-        \hline
-        &\bf CSI& \bf SCIRL& \bf RE& \bf Classif\\
-        \hline \multicolumn{5}{|c|}{$n = 225$}\\ \hline
-        Var& 0.006& 0.029& 0.146& 0.167 \\
-        Min& 7.172& 5.882& 5.612& 0.128 \\
-        Mean& 7.459& 7.377& 7.215& 1.151 \\
-        Max& 7.563& 7.572& 7.578& 2.220 \\
-        \hline \multicolumn{5}{|c|}{$n = 400$}\\ \hline
-        Var& 0.002& 0.002& 0.005& 0.267 \\
-        Min& 7.321& 7.247& 7.144& 0.041 \\
-        Mean& 7.495& 7.369& 7.279& 1.744 \\
-        Max& 7.552& 7.557& 7.519& 2.761 \\
-        \hline
-      \end{tabular}
-      \caption{Raw results on the Highway driving problem, see how the variance of SCIRL and CSI decreases.}
-     \label{tab:highway}
-      \end{figure}
+\begin{table}[ht]
+	\begin{center}
+		\begin{tabular}{cc}
+		\toprule
+			Number of expert samples & $p$-value\\
+			\midrule
+			$9$ & $0.193042$\\
+			$49$ & $0.00178467$\\
+			$100$ & $0.00178467$\\
+			$225$ & $6.66654\e{-22}$\\
+			$400$ & $3.70654\e{-36}$\\
+		\bottomrule
+		\end{tabular}
+	\end{center}
+        \caption{Kolmogorov–Smirnov mean equality test $p$-values for CSI and SCIRL on the highway simulator. High values (>0.01) means that the hypothesis that the means are equal cannot be rejected.}
+        \label{tab:highway}
+\end{table}
   \begin{figure}
    \subfigure[Mean performance over 100 runs on the Highway driving problem.]{\label{tutu}\includegraphics[width=.5\linewidth]{"Exp14"}}
    \subfigure[Zoom of Fig~\ref{tutu} showing the ranking of the three IRL algorithms.]{\includegraphics[width=.5\linewidth]{"Exp14_zoom"}}
@@ -457,24 +471,9 @@ Furthermore, the classifier whose results are diplayed here is the output of the
 \end{figure}
 
 
-\section{Related Work}
-\label{sec:related}
-IRL was first introduced in \cite{russell1998learning} and then formalized in \cite{ng2000algorithms}. Approaches summarized in \cite{neu2009training} can be seen as iteratively contructing a reward function, solving an MDP at each iteration. Some of these algorithms are IRL algorithms while others fall in the Apprenticeship Learning (AL) category, as for example the projection version of the algorithm in \cite{abbeel2004apprenticeship}. In both cases the need to solve an MDP at each step may be very demanding, both sample-wise and computationally. CSI being able to output a reward function without having to solve the MDP is thus a significant improvement.
-
-AL via classification has been proposed for example in \cite{ratliff2007imitation}, with the help of a structured margin method. Using the non trivial notion of metric in an MDP, the authors of \cite{melo2010learning} build a kernel which is used
-in a classification algorithm, showing improvements compared to a
-non-structured kernel.
-
-Classification and IRL have met in the past in \cite{ratliff2006maximum}, but the labels were complete optimal policies rather than actions and the inputs were MDPs, which had to be solved. It may be unclear how SCIRL \cite{klein2012scirl} relates to the proposed approach of his paper. Both algorithms use the score function of a classifier as a proxy to the action-value function of the expert with respect to the (unknown) true reward: $Q^{\pi_E}_R$. The way this proxy is constructed and used, however, fundamentally differs in the two algorithms. This difference will cause the theoretical analysis of both approaches (see Sec.~\ref{sec:analysis}) to be distinct. In SCIRL, the score function of the classifier is approximated {\it via} a linear parametrization that relies on the feature expectation of the expert $\mu^E(s) = E[\sum_{t\geq 0}\gamma^t\phi(s_t)|s_0=s,\pi_E]$. This entails the use of a specific kind of classifier (namely linearly-parametrized-score-function-based classifiers) and of a method of approximation of $\mu^E$. By contrast, almost any off-the-shelf classifier can be used in the first step of the cascading approach of this paper. The classification step of CSI is unaware of the structure of the MDP whereas SCIRL knows about it thanks to the use of $\mu^E$. In CSI, the structure of the MDP is injected by reversing the Bellman equation prior to the regression step (Eq.~\ref{eq:rc} and \eqref{eq:rj}), a step that does not exist in SCIRL as SCIRL directly outputs the parameter vector found by its linearly-parametrized-score-function-based classifier. The regressor of CSI can be chosen off-the-shelf. One can argue that this and not having to approximate $\mu^E$ increases the ease-of-use of CSI over SCIRL and makes for a more versatile algorithm. In practice, as seen in Sec.~\ref{sec:experiments}, perfomance of SCIRL and CSI are very close to one another thus CSI may be a better choice as it is easier to deploy. We would like to emphasize the fact that although SCIRL and CSI share similarities, there exist key differences that we just explained. Neither approach is a generalization of the other.
-
-Few IRL or AL algorithms do not require solving an MDP. The approach of \cite{syed2008apprenticeship} requires knowing the transition probabilities of the MDP (which CSI does not need) and outputs a policy (and not a reward). The algorithm in \cite{dvijotham2010inverse} only applies to linearly-solvable MDPs whereas our approach does not place such restrictions. Closer to our use-case is the idea presented in \cite{boularias2011relative} to use a subgradient ascent of a utility function based on the notion of relative entropy. Importance sampling is suggested as a way to avoid solving the MDP. This requires sampling trajectories according to a non-expert policy and
-the direct problem remains at the core of the approach (even if
-solving it is avoided).
-
-
 \section{Conclusion}
 \label{sec:conclusion}
-We have introduced a new way to perform IRL by cascading two supervised approaches. The expert is theoretically shown to be near-optimal for the reward function the proposed algorithm outputs, given small classification and regression errors. Practical examples of classifiers and regressors have been given, and two combinations have been empirically (on two classic benchmarks) shown to be very resilient to dire lack of data on the input (only data from the expert was used to retrieve the reward function), provided the use of simple heuristics. On one of the benchmarks (a highway driving simulator), our algorithm is shown to outperform other state-of-the-art approaches. We plan on deepening the analysis of the theoretical properties of our approach and on applying it to real world robotics problems.
+We have introduced a new way to perform IRL by cascading two supervised approaches. The expert is theoretically shown to be near-optimal for the reward function the proposed algorithm outputs, given small classification and regression errors. Practical examples of classifiers and regressors have been given, and two combinations have been empirically (on two classic benchmarks) shown to be very resilient to dire lack of data on the input (only data from the expert was used to retrieve the reward function), provided the use of simple heuristics. On both benchmarks, our algorithm is shown to outperform other state-of-the-art approaches (although SCIRL catches up on the mountain car). We plan on deepening the analysis of the theoretical properties of our approach and on applying it to real world robotics problems.
 
 \bibliographystyle{plain}
 \bibliography{Biblio}
