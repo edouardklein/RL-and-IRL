@@ -59,6 +59,19 @@ savefig("Exp11.pdf")
 
 # <codecell>
 
+mean(CSI_data[0])
+
+# <codecell>
+
+from scipy.stats import ks_2samp
+for i in range(0,len(X)):
+    y_csi = CSI_data[i]
+    y_scirl = SCIRL_data[i]
+    pvalue = ks_2samp(y_csi,y_scirl)[1]
+    print "Pour X = "+str(X[i])+(", \tKS mean equality test p-value : %.2e "%pvalue)+"\t\t"+("REJECTED" if pvalue < 0.01 else "")
+
+# <codecell>
+
 #plotting the mountain car data
 def filled_mean_min_max(X, Y_mean, Y_min, Y_max, color, _alpha, style, lblmain,lblminmax ):
     "Plot data, with bold mean line, and a light color fill betwee the min and max"

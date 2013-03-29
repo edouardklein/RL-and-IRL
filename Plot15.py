@@ -38,16 +38,13 @@ grid()
 axis([0,410,-2.2,8])
 savefig("Exp14.pdf")
 
-name = ["Var", "Min","Mean","Max"]
-for i in range(0,len(Y_CSI)):
-    print "\hline \multicolumn{4}{|c|}{$n = "+str(Abcissas[i])+"$}\\\\ \hline"
-    j=0
-    for func in [var, min, mean, max]:
-        print name[j]+"&",
-        j+=1
-        for dataset in [Y_CSI,Y_SCIRL,Y_RE, Y_Classif]:
-            print "%.3f" %func(dataset[i])+"&",
-        print "\\\\"
+# <codecell>
+
+from scipy.stats import ks_2samp
+for i in range(0,len(Abcissas)):
+    y_csi = Y_CSI[i]
+    y_scirl = Y_SCIRL[i]
+    print "Pour X = "+str(Abcissas[i])+", \tKS mean equality test p-value : %.2e "%ks_2samp(y_csi,y_scirl)[1]
 
 # <codecell>
 
