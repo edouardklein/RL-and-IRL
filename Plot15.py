@@ -11,6 +11,7 @@ Y_Classif = []
 Y_RE = []
 Y_SCIRL = []
 Y_CSI = []
+Y_expert = []
 for x in X:
     Y = genfromtxt("data/Exp14_"+str(x)+".mat")
     Y_random.append(Y[:,0])
@@ -18,6 +19,7 @@ for x in X:
     Y_RE.append(Y[:,2])
     Y_SCIRL.append(Y[:,3])
     Y_CSI.append(Y[:,4])
+    Y_expert.append(Y[:5])
 #On va partir sur la moyenne seule
 rc('text', usetex=True)
 rcParams['text.usetex'] = True
@@ -35,6 +37,23 @@ ylabel("Average performance")
 grid()
 axis([0,410,-2.2,8])
 savefig("Exp14.pdf")
+
+name = ["Var", "Min","Mean","Max"]
+for i in range(0,len(Y_CSI)):
+    print "\hline \multicolumn{4}{|c|}{$n = "+str(Abcissas[i])+"$}\\\\ \hline"
+    j=0
+    for func in [var, min, mean, max]:
+        print name[j]+"&",
+        j+=1
+        for dataset in [Y_CSI,Y_SCIRL,Y_RE, Y_Classif]:
+            print "%.3f" %func(dataset[i])+"&",
+        print "\\\\"
+
+# <codecell>
+
+def student_t(X1,X2):
+    return abs((mean(X1)-mean(X2)))/sqrt(abs(pow(X1.var(),2)/len(X1)-pow(X2.var(),2)/len(X2)))
+[student_t(Y_SCIRL[i],Y_CSI[i]) for i in range(0,5)]
 
 # <codecell>
 
@@ -83,4 +102,10 @@ ylabel("Average performance")
 grid()
 axis([0,910,-2.2,4])
 savefig("Exp17.pdf")
+
+# <codecell>
+
+def student_t(X1,X2):
+    return abs((mean(X1)-mean(X2)))/sqrt(abs(pow(X1.var(),2)/len(X1)-pow(X2.var(),2)/len(X2)))
+[student_t(Y_SCIRL[i],Y_CSI[i]) for i in range(0,7)]
 
