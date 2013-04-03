@@ -59,16 +59,24 @@ savefig("Exp11.pdf")
 
 # <codecell>
 
-mean(CSI_data[0])
+from matrix2latex import matrix2latex
+m = [[1, 1], [2, 4], [3, 9]] # python nested list
+t = matrix2latex(m)
+print t
+X
 
 # <codecell>
 
 from scipy.stats import ks_2samp
-for i in range(0,len(X)):
+table = zeros((4,2))
+for i in range(0,len(X[:4])):
     y_csi = CSI_data[i]
     y_scirl = SCIRL_data[i]
     pvalue = ks_2samp(y_csi,y_scirl)[1]
-    print "Pour X = "+str(X[i])+(", \tKS mean equality test p-value : %.2e "%pvalue)+"\t\t"+("REJECTED" if pvalue < 0.01 else "")
+    table[i,0] = X[i]
+    table[i,1] = pvalue
+t = matrix2latex(table, headerRow=["Number of expert samples","$p$-value"])
+print t
 
 # <codecell>
 

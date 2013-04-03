@@ -41,10 +41,15 @@ savefig("Exp14.pdf")
 # <codecell>
 
 from scipy.stats import ks_2samp
+from matrix2latex import matrix2latex
+table = zeros((len(Abcissas),2))
 for i in range(0,len(Abcissas)):
     y_csi = Y_CSI[i]
     y_scirl = Y_SCIRL[i]
-    print "Pour X = "+str(Abcissas[i])+", \tKS mean equality test p-value : %.2e "%ks_2samp(y_csi,y_scirl)[1]
+    table[i][0] = Abcissas[i]
+    table[i][1] = ks_2samp(y_csi,y_scirl)[1]
+t = matrix2latex(table, headerRow=["Number of expert samples","$p$-value"])
+print t
 
 # <codecell>
 
