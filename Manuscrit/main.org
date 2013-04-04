@@ -1,0 +1,48 @@
+#+TITLE:Plan
+# #+LaTeX_CLASS: report 
+#+LATEX_HEADER: \usepackage{natbib}
+* Axe de recherche
+** Contrôle optimal
+** Trouver la consigne à partir du contrôle
+*** Intérêt intrinsèque
+*** Imitation
+** Annonce du plan
+* Formalisme mathématique, notations
+** Imitation non-ARI
+** Cadre des PDMs pour la prise de décision séquentielle
+** ARI
+*** DP et AR
+*** Attribut moyen
+* Etat de l'art et problématique
+** Méthodes nécessitant la résolution répétée d'un MDP
+   - Première mention dans \cite{russell1998learning}
+   - Premiers algorithmes dans \cite{ng2000algorithms}
+   - PIRL : \cite{abbeel2004apprenticeship}
+   - Parler de 
+     - MWAL \cite{syed2008game},
+     - MMP \cite{ratliff2006maximum} et sa version boostée \cite{ratliff2007boosting}, et son cousin \cite{ratliff2007imitation}
+     - Policy matching \cite{neu2007apprenticeship}, 
+     - MaxEnt \cite{ziebart2008maximum},
+     - la généralisation de \cite{neu2009training}.
+   - Mais aussi de
+     - Linear programming \cite{syed2008apprenticeship}
+     - Bayesian \cite{ramachandran2007bayesian}  et \cite{chajewska2001learning}
+
+** Méthodes ne nécessitant pas la résolution répétée d'un MDP
+   Mentionner :
+   - GPIRL \cite{levine2011nonlinear} et FIRL \cite{levine2010feature}
+   - "IRLGP" \cite{qiao2011inverse} et \cite{jin2010gaussian}
+   - RelEnt \cite{boularias2011relative}
+   - Linearly solvable MDP : \cite{dvijotham2010inverse}
+   - IRL basé sur une métrique dans le MDP
+
+* LSTD-$\mu$
+* SCIRL
+* Cascading
+* (Validation expérimentale)
+* Rappel des contributions
+* Perspectives de recherche
+* Bibliographie
+\bibliographystyle{plainnat}
+\bibliography{Biblio}
+
