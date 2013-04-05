@@ -443,14 +443,14 @@ The objective criterion for success is the number of steps needed to attain the 
 		\toprule
 			Number of expert samples & $p$-value\\
 			\midrule
-			$10$ & $4.5195\e{-14}$\\
-			$30$ & $0.0131123$\\
-			$100$ & $0.139975$\\
-			$300$ & $0.893752$\\
-		\bottomrule
+                        $ 10$ & $\mathbf{1.5e-12}$\\
+                        $ 30$ & $3.8e-01$\\
+                        $100$ & $1.3e-02$\\
+                        $300$ & $7.4e-01$\\
+                        \bottomrule
 		\end{tabular}
 	\end{center}
-        \caption{Kolmogorov–Smirnov mean equality test $p$-values for CSI and SCIRL on the mountain car. High values (>0.01) means that the hypothesis that the means are equal cannot be rejected.}
+        \caption{Student or Welch test of mean equality (depending on wether a Bartlett test of variance equality succeeds) $p$-values for CSI and SCIRL on the mountain car. High values ($>1.0\e{-02}$) means that the hypothesis that the means are equal cannot be rejected. As highlighted here, the means are different when the algorithms are fed only $10$ expert samples in which case CSI outperforms SCIRL.}
         \label{tab:mc}
 \end{table}
 \begin{figure}
@@ -484,15 +484,15 @@ Furthermore, the classifier whose results are diplayed here is the output of the
 		\toprule
 			Number of expert samples & $p$-value\\
 			\midrule
-			$9$ & $0.193042$\\
-			$49$ & $0.00178467$\\
-			$100$ & $0.00178467$\\
-			$225$ & $6.66654\e{-22}$\\
-			$400$ & $3.70654\e{-36}$\\
-		\bottomrule
+                        $  9$ & $3.0e-01$\\
+                        $ 49$ & $\mathbf{8.9e-03}$\\
+                        $100$ & $\mathbf{1.8e-03}$\\
+                        $225$ & $\mathbf{2.4e-05}$\\
+                        $400$ & $\mathbf{2.0e-50}$\\
+                        \bottomrule
 		\end{tabular}
 	\end{center}
-        \caption{Kolmogorov–Smirnov mean equality test $p$-values for CSI and SCIRL on the highway simulator. High values (>0.01) means that the hypothesis that the means are equal cannot be rejected.}
+        \caption{Student or Welch test of mean equality (depending on wether a Bartlett test of variance equality succeeds) $p$-values for CSI and SCIRL on the driving simulator. High values ($>1.0\e{-02}$) means that the hypothesis that the means are equal cannot be rejected. As highlighted here, the means are different from 49 samples on : CSI slightly but definitively outperforms SCIRL.}
         \label{tab:highway}
 \end{table}
   \begin{figure}
