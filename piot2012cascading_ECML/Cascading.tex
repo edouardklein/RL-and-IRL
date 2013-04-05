@@ -3,6 +3,7 @@
 
 
 %\usepackage{amsthm}
+\usepackage{subfig}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{fixltx2e}
@@ -19,7 +20,7 @@
 \usepackage{hyperref}
 \usepackage{algorithm}
 \usepackage{algorithmic}
-\usepackage{subfigure}
+%\usepackage{subfigure}
 %\usepackage{natbib}
 % scientific notation, 1\e{9} will print as 1x10^9
 \providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
@@ -88,30 +89,19 @@ Let $E$ and $F$ be two non-empty sets, $E^F$ is the set of functions from $F$ to
 We note $\Delta_X$ the set of distributions over $X$.
 Let $\alpha\in\mathbb{R}^X$ and $\beta\in\mathbb{R}^X$: $\alpha\geq\beta \Leftrightarrow \forall x\in X, \alpha(x) \geq \beta(x)$. We will often slightly abuse the notations and consider (where applicable) most objects as if they were matrices and vectors indexed by the set they operate upon.
 
-We work with finite MDPs \cite{puterman1994markov}, that is tuples $\{S,A,P,R,\gamma\}$. The state space is noted $S$, $A$ is a finite action space, $R\in\mathbb{R}^{S\times A}$ is a reward-function, $\gamma\in (0,1)$ is a discount factor and $P\in \Delta_{S}^{S\times A}$ is the Markovian dynamics of the MDP. Thus, for each $(s,a)\in S\times A$, $P(.|s,a)$ is a distribution over $S$ and $P(s'|s,a)$ is the probability to reach $s'$ by choosing action $a$ in state $s$. At each time step $t$, the agent uses the information encoded in the state $s_t\in S$ in order to choose an action $a_t \in A$ according to a (deterministic\footnote{We restrict ourselves here to deterministic policies, but the loss of generality is minimal as there exists at least one optimal deterministic policy.}) policy $\pi\in A^S$. The agent then steps to a new state $s_{t+1}\in S$ according to the Markovian transition probabilities $P(s_{t+1}|s_t,a_t)$. Given that $P_\pi = (P(s'|s,\pi(s)))_{s,s' \in S}$ is the irreductible transition probability matrix, the stationary distribution over the states $\rho_\pi$ induced by a policy $\pi$ satisfies
-\begin{equation}
-  \rho_\pi^TP_\pi = \rho_\pi^T\textrm{, with }X^T\textrm{ being the transpose of }X.
-  \end{equation}
+We work with finite MDPs \cite{puterman1994markov}, that is tuples $\{S,A,P,R,\gamma\}$. The state space is noted $S$, $A$ is a finite action space, $R\in\mathbb{R}^{S\times A}$ is a reward-function, $\gamma\in (0,1)$ is a discount factor and $P\in \Delta_{S}^{S\times A}$ is the Markovian dynamics of the MDP. Thus, for each $(s,a)\in S\times A$, $P(.|s,a)$ is a distribution over $S$ and $P(s'|s,a)$ is the probability to reach $s'$ by choosing action $a$ in state $s$. At each time step $t$, the agent uses the information encoded in the state $s_t\in S$ in order to choose an action $a_t \in A$ according to a (deterministic\footnote{We restrict ourselves here to deterministic policies, but the loss of generality is minimal as there exists at least one optimal deterministic policy.}) policy $\pi\in A^S$. The agent then steps to a new state $s_{t+1}\in S$ according to the Markovian transition probabilities $P(s_{t+1}|s_t,a_t)$. Given that $P_\pi = (P(s'|s,\pi(s)))_{s,s' \in S}$ is the irreductible transition probability matrix, the stationary distribution over the states $\rho_\pi$ induced by a policy $\pi$ satisfies $\rho_\pi^TP_\pi = \rho_\pi^T\textrm{, with }X^T\textrm{ being the transpose of }X$.
 The stationary distribution relative to the exert policy $\pi_E$ is $\rho_E$.
 
 The reward function $R$ is a local measure of the quality of the control. The global quality of the control induced by a policy $\pi$, with respect to a reward $R$, is assessed by the value function $V^\pi_R \in \mathbb{R}^{S}$ which associates to each state the expected discounted cumulative reward for following policy $\pi$ from this state:
-\begin{equation}
-V^\pi_R(s) = \E[\sum_{t\geq 0}\gamma^tR(s_t,\pi(s_t))|s_0 = s,\pi].
-\end{equation}
+$V^\pi_R(s) = \E[\sum_{t\geq 0}\gamma^tR(s_t,\pi(s_t))|s_0 = s,\pi]$.
 This long-term criterion is what is being optimized when solving an MDP. Therefore, an optimal policy $\pi^*_R$ is a policy whose value function (the optimal value function $V^*_R$) is greater than that of any other policy, for all states: $\forall \pi, V^*_R\geq V^\pi_R$.
 
 The Bellman evaluation operator $T^\pi_R: \mathbb{R}^{S} \rightarrow  \mathbb{R}^{S}$ is defined by
-\begin{equation}
-  T^{\pi}_RV = R_\pi + \gamma P_\pi V
-  \end{equation}
+$  T^{\pi}_RV = R_\pi + \gamma P_\pi V$
 where $R_\pi = (R(s,\pi(s)))_{s\in S}$. The Bellman optimality operator follows naturally:
-\begin{equation}
-  T^*_RV = \max_\pi T^\pi_RV.
-\end{equation}
+ $ T^*_RV = \max_\pi T^\pi_RV$.
   Both operators are contractions. The fixed point of the Bellman evaluation operator $T^\pi_R$ is the value function of $\pi$ with respect to reward R:
-  \begin{eqnarray}
-    V^\pi_R &=& T^\pi_R V^\pi_R \Leftrightarrow V^\pi_R = R_\pi + \gamma P_\pi V^\pi_R.
-  \end{eqnarray}
+    $V^\pi_R = T^\pi_R V^\pi_R \Leftrightarrow V^\pi_R = R_\pi + \gamma P_\pi V^\pi_R$.
 The Bellman optimality operator $T^*_R$ also admits a fixed point, the optimal value function $V_R^*$ with respect to reward $R$.
 
 Another object of interest is the action-value function $Q^\pi_R\in\mathbb{R}^{S\times A}$ that adds a degree of freedom on the choice of the first action, formally defined by $Q^\pi_R(s,a) = T^a_RV^\pi_R(s)$, with $a$ the policy that always returns action $a$ ($T^a_RV = R_a + \gamma P_a V$ with $P_a = (P(s'|s,a))_{s,s' \in S}$ and $R_a$ = $(R(s,a))_{s\in S}$). The value function $V^\pi_R$ and the action-value function $Q^\pi_R$ are quite directly related: $\forall s \in S, V^\pi_R(s) = Q^\pi_R(s,\pi(s))$. The Bellman evaluation equation for $Q^\pi_R$ is therefore:
@@ -174,13 +164,9 @@ In this section, we prove that the deterministic expert policy $\pi_E$ is near o
 More formally, recalling from Sec.~\ref{sec:background} that $\rho_E$ is the stationary distribution of the expert policy, we prove that $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]$ is bounded by a term that depends on:
 \begin{itemize}
   \item the classification error defined as
-\begin{equation}  
-\epsilon_C=\E_{s\sim\rho_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}];
-\end{equation}
+$\epsilon_C=\E_{s\sim\rho_E}[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}]$;
 \item the regression error defined as 
-  \begin{equation}
-    \epsilon_R=\max_{\pi\in A^S}\|\epsilon_\pi^R\|_{1,\rho_E},
-  \end{equation}
+ $   \epsilon_R=\max_{\pi\in A^S}\|\epsilon_\pi^R\|_{1,\rho_E}$,
   with:
   \begin{itemize}
   \item the subscript notation already used for $R_\pi$ and $P_\pi$ in Sec.~\ref{sec:background} meaning that, given an $X\in\mathbb{R}^{S\times A}$, $\pi\in A^S$, and $a\in A$,  $X_\pi\in\mathbb{R}^S$ and $X_a\in\mathbb{R}^S$ are respectively such that: $\forall s\in S, X_\pi(s)=X(s,\pi(s))$ and $\forall s\in S, X_a(s)=X(s,a)$ ;
@@ -193,10 +179,8 @@ More formally, recalling from Sec.~\ref{sec:background} that $\rho_E$ is the sta
   \item $\hat \pi_C$, the optimal policy for the reward $\hat R^C$ output by the algorithm ;
   \end{itemize}
   The constant $C_*$ can be estimated \emph{a posteriori} (after $\hat{R}^C$ is computed). {\it A priori}, $C_*$ can be upper-bounded by a more usual and general concentration coefficient but $C_*$ gives a tighter final result: one can informally see $C_*$ as a measure of the similarity between the distributions induced by $\hat\pi_C$ and $\pi_E$ (roughly, if $\hat{\pi}_C\approx\pi_E$ then $C_* \approx 1$).
-\item $\Delta q$, defined by 
-  \begin{eqnarray}
-    \Delta q &= &\max_{s\in S}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))=\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a)),
-    \end{eqnarray} which could be normalized to $1$ without loss of generality. The range of variation of $q$ induces the one of $R^C$, $\hat{R}^C$ and $V^{\pi_C}_{\hat{R^C}}$.
+\item $\Delta q = \max_{s\in S}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))=\max_{s\in S}(q(s,\pi_C(s))-\min_{a\in A}q(s,a))$,
+    which could be normalized to $1$ without loss of generality. The range of variation of $q$ induces the one of $R^C$, $\hat{R}^C$ and $V^{\pi_C}_{\hat{R^C}}$.
   \end{itemize}
 \begin{theorem}
 \label{thm}
@@ -206,10 +190,7 @@ Let $\pi_E$ be the deterministic expert policy, $\rho_E$ its stationary distribu
 \end{equation}
 \end{theorem}
 \begin{proof}
-First let's recall some notations, $q\in\mathbb{R}^{S\times A}$ is the score function output by the classification step, $\pi_C$ is a deterministic classifier policy so that $\forall s \in S,\pi_C(s)\in\argmax_{a\in A}q(s,a)$, $R^C\in\mathbb{R}^{S\times A}$ is:
-\begin{equation}
-\forall (s,a)\in S\times A, R^C(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\pi_C(s')),
-\end{equation}
+First let's recall some notations, $q\in\mathbb{R}^{S\times A}$ is the score function output by the classification step, $\pi_C$ is a deterministic classifier policy so that $\forall s \in S,\pi_C(s)\in\argmax_{a\in A}q(s,a)$, $R^C\in\mathbb{R}^{S\times A}$ is so that $\forall (s,a)\in S\times A, R^C(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\pi_C(s'))$,
 and $\hat{R}^C\in\mathbb{R}^{S\times A}$ is the reward function output by the regression step.
 
 The difference between $R^C$ and $\hat{R}^C$ is noted $\epsilon^R=R^C-\hat{R}^C$.
@@ -218,23 +199,17 @@ We also introduce the reward function $R^E\in\mathbb{R}^{S\times A}$ which will 
 \forall (s,a)\in S\times A, R^E(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\pi_E(s')).
 \end{equation}
 
-We can now introduce the following vectorial equations:
-\begin{align}
-&R^C_a=q_a-\gamma P_aq_{\pi_C},
-\\
-&R^E_a=q_a-\gamma P_aq_{\pi_E},
-\\
-&\epsilon^R_a=R^C_a-\hat{R}^C_a.
-\end{align}
+We no have the following vectorial equalities $
+R^C_a=q_a-\gamma P_aq_{\pi_C} ;
+R^E_a=q_a-\gamma P_aq_{\pi_E};
+\epsilon^R_a=R^C_a-\hat{R}^C_a$.
 Now, we are going to upper bound the term: $\E_{s\sim\rho_E}[V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}]\geq0$ (the lower bound is obvious as $V^*$ is optimal).
 Recall that $\hat{\pi}_C$ is a deterministic optimal policy of the reward $\hat{R}^C$. First, the term $V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}$ is decomposed:
 \begin{equation}
 V^*_{\hat{R}^C}-V^{\pi_E}_{\hat{R}^C}=(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C})+(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})+(V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C}).
 \end{equation}
 We are going to bound each of these three terms. First, let $\pi$ be a given deterministic policy. We have, using $\epsilon^R = R^C - \hat R^C$:
-\begin{equation}
-V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C}=V^{\pi}_{\epsilon^R}=(I-\gamma P_\pi)^{-1}\epsilon^R_{\pi}.
-\end{equation}
+$V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C}=V^{\pi}_{\epsilon^R}=(I-\gamma P_\pi)^{-1}\epsilon^R_{\pi}$.
 If $\pi=\pi_E$, we have, thanks to the power series expression of $(I-\gamma P_{\pi_E})^{-1}$, the definition of $\rho_E$ and the definition of the $\mu$-weighted $L_1$ norm, one property of which is that $\forall X, \mu^TX \leq \|X\|_{1,\mu}$:
 \begin{equation}
   \rho_E^T(V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C})=\rho_E^T(I-\gamma P_{\pi_E})^{-1}\epsilon^R_{\pi_E}=\frac{1}{1-\gamma}\rho_E^T\epsilon^R_{\pi_E}\leq\frac{1}{1-\gamma}\|\epsilon^R_{\pi_E}\|_{1,\rho_E}.\end{equation}
@@ -244,9 +219,7 @@ If $\pi\neq\pi_E$, we use the concentration coefficient $C_\pi$. We have then:
   \rho_E^T(V^{\pi}_{R^C}-V^{\pi}_{\hat{R}^C})\leq\frac{C_\pi}{1-\gamma}\rho_E^T\epsilon^R_{\pi}\leq\frac{C_\pi}{1-\gamma}\|\epsilon^R_{\pi}\|_{1,\rho_E}.
   \end{equation}
 So, using the notations introduced before we stated the theorem, we are able to give an upper bound to the first and third terms (recall also the notation $C_{\hat \pi_C} = C_*$):
-\begin{equation}
-\rho_E^T((V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})+(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}))\leq\frac{1+C_*}{1-\gamma}\epsilon_R.
-\end{equation}
+$\rho_E^T((V^{\pi_E}_{R^C}-V^{\pi_E}_{\hat{R}^C})+(V^{\hat{\pi}_C}_{\hat{R}^C}-V^{\hat{\pi}_C}_{R^C}))\leq\frac{1+C_*}{1-\gamma}\epsilon_R$.
 Now, there is still an upper bound to find for the second term. It is possible to decompose it as follows:
 \begin{equation}
 V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C}=(V^{\hat{\pi}_C}_{R^C}-V^{\pi_C}_{R^C})+(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})+(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C}).
@@ -261,22 +234,15 @@ By construction, we have $V^{\pi_C}_{R^C}=q_{\pi_C}$ and $V^{\pi_E}_{R^E}=q_{\pi
 &=&\sum_{s\in S}\rho_E(s)(q(s,\pi_C(s))-q(s,\pi_E(s)))[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}].
 \end{eqnarray}
 Using $\Delta q$, we have:
-\begin{equation}
-\rho_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})\leq\Delta q\sum_{s\in S}\rho_E(s)[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}]= \Delta q \epsilon_C.
-\end{equation}
+$\rho_E^T(V^{\pi_C}_{R^C}-V^{\pi_E}_{R^E})\leq\Delta q\sum_{s\in S}\rho_E(s)[\mathds{1}_{\{\pi_C(s)\neq\pi_E(s)\}}]= \Delta q \epsilon_C$.
 Finally, we also have:
 \begin{align}
-\rho_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})&=\rho_E^T(I-\gamma P_{\pi_E})^{-1}(R^E_{\pi_E}-R^C_{\pi_E}),
-\\
-&=\rho_E^T(I-\gamma P_{\pi_E})^{-1}\gamma P_{\pi_E}(q_{\pi_C}-q_{\pi_E}),
+\rho_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})&=\rho_E^T(I-\gamma P_{\pi_E})^{-1}(R^E_{\pi_E}-R^C_{\pi_E})=\rho_E^T(I-\gamma P_{\pi_E})^{-1}\gamma P_{\pi_E}(q_{\pi_C}-q_{\pi_E}),
 \\
 &=\frac{\gamma}{1-\gamma}\rho_E^T(q_{\pi_C}-q_{\pi_E})\leq \frac{\gamma}{1-\gamma}\Delta q \epsilon_C \leq  \frac{1}{1-\gamma}\Delta q \epsilon_C\textrm{ as }\gamma<1.
 \end{align}
 So the upper bound for the second term is: $\rho_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})\leq \frac{\Delta q}{1-\gamma}\epsilon_C$.
-If we combine all of the results, we obtain the final bound:
-\begin{equation}
-0\leq\E_{s\sim\rho_E}[V^*_{\hat{R}^C}(s)-V^{\pi_E}_{\hat{R}^C}(s)]\leq \frac{1}{1-\gamma}(\epsilon_C\Delta q +\epsilon_R(1+C_*))).
-\end{equation}
+If we combine all of the results, we obtain the final bound as stated in the theorem.
 %\qed
 \end{proof}
 Readers familiar with the work presented in \cite{klein2012scirl} will see some similarities between the theoretical analyses of SCIRL and CSI as both study error propagation in IRL algorithms. Another shared feature is the use of the score function $q$ of the classifier as a proxy for the action-value function of the expert $Q^{\pi_E}_{R_E}$. \\
@@ -328,9 +294,7 @@ The CSI algorithm was designed not to repeatedly solve the RL problem. This feat
 
 More precisely, the expert controls the system for $M$ runs of lengths $\{L_i\}_{1\leq i \leq M}$, %with values of $n$ in $\{3,7,10,15,20\}$,
 giving samples $\{(s_k,a_k=\pi_E(a_k),s'_k)_k\} = D_E$. The dataset $D_C$ fed to the classifier is straightforwardly constructed from $D_E$ by dropping the $s'_k$ terms:
-\begin{equation}
-  D_C = \{(s_i = s_k,a_i=a_k)_i\}.
-\end{equation}
+$  D_C = \{(s_i = s_k,a_i=a_k)_i\}$.
 \subsubsection{Heuristics}
 \label{subsubsec:heuristics}
 
@@ -338,9 +302,7 @@ There is no particular problem for the classification step. It is however not re
 This means that for a certain state $s_k$ we only know the corresponding expert action $a_k=\pi_E(s_k)$ and the following state $s'_k$ sampled according to the MDP dynamics : $s'_k \sim P(\cdot|s_k,a_k)$. For the regression to be meaningful, we need samples associating the same state $s_k$ and a different action $a\neq a_k$ with a datapoint $\hat r \neq \hat r_k$.\\
 Recall that $\hat r_j = q(s_j,a_j) - \gamma q(s'_j,\pi_C(s'_j))$ (Eq.~\eqref{eq:rj}); without knowing $s'_k \sim P(\cdot|s_k,a\neq a_k)$, we cannot provide the regressor with a datapoint to associate with $(s_k,a\neq a_k)$.
 We artificially augment the dataset $D_R$ with samples $((s_j=s_k,a),r_{min})_{j;\forall a\neq \pi_E(s_j) = a_k}$ where
-\begin{equation}
-  r_{min} = \min_k\hat r_k - 1.
-\end{equation}
+$  r_{min} = \min_k\hat r_k - 1$.
 This heuristics intructs the regressor to associate a state-action tuple disagreeing with the expert ({\it i.e.}, $(s_k,a\neq a_k)$) with a reward strictly inferior to any of those associated with expert state action tuples ({\it i.e.}, $(s_k,a_k=\pi_E(s_k))$). Semantically, we are asserting that disagreeing with the expert in states the expert visited is a bad idea. This heuristics says nothing about states absent from the expert dataset. For such states the generalization capabilities of the regressor and, later on, the exploration of the MDP by an agent optimizing the reward will solve the problem.
 Although this heuristics was not analyzed in Sec.~\ref{sec:analysis} (where the availability of a more complete dataset $D_R$ was assumed), the results shown in the next two subsections demonstrate its soundness.
 \subsubsection{Comparison with state-of-the-art approaches}
@@ -413,25 +375,49 @@ The classifier for CSI was an off-the-shelf SVM\footnote{\url{http://scikit-lear
 
 The objective criterion for success is the number of steps needed to attain the goal when starting from a state picked at random ; the lesser the better. We can see Fig.~\ref{fig:MountainCar} that the optimal policies for the rewards found by SCIRL and CSI very rapidly attain expert-level performance and outperform the optimal policy for the reward of RE and the classification policy. When very few samples are available, CSI does better than SCIRL (with such a low $p$-value for $n=10$, see Tab.~\ref{tab:mc}, the hypothesis that the mean performance is equal can be rejected); SCIRL catches up when more samples are available. Furthermore, CSI required very little engineering as we cascaded two off-the-shelf implementations whereas SCIRL used hand-tuned features and a custom classifier.
 \begin{table}
-	\begin{center}
-		\begin{tabular}{cc}
-		\toprule
-			Number of expert samples & $p$-value\\
-			\midrule
-                        $ 10$ & $\mathbf{1.5e-12}$\\
-                        $ 30$ & $3.8e-01$\\
-                        $100$ & $1.3e-02$\\
-                        $300$ & $7.4e-01$\\
-                        \bottomrule
-		\end{tabular}
-	\end{center}
-        \caption{Student or Welch test of mean equality (depending on wether a Bartlett test of variance equality succeeds) $p$-values for CSI and SCIRL on the mountain car. High values ($>1.0\e{-02}$) means that the hypothesis that the means are equal cannot be rejected. As highlighted here, the means are different when the algorithms are fed only $10$ expert samples in which case CSI outperforms SCIRL.}
-        \label{tab:mc}
+  \small
+  \subfloat[Mountain Car\label{tab:mc}]{
+    \begin{tabular}{cc}
+      \toprule
+      Number of expert samples & $p$-value\\
+      \midrule
+      $ 10$ & $\mathbf{1.5e-12}$\\
+      $ 30$ & $3.8e-01$\\
+      $100$ & $1.3e-02$\\
+      $300$ & $7.4e-01$\\
+      \bottomrule
+    \end{tabular}
+  }
+  \hfill
+  \subfloat[Highway Driving\label{tab:highway}]{
+    \begin{tabular}{cc}
+      \toprule
+      Number of expert samples & $p$-value\\
+      \midrule
+      $  9$ & $3.0e-01$\\
+      $ 49$ & $\mathbf{8.9e-03}$\\
+      $100$ & $\mathbf{1.8e-03}$\\
+      $225$ & $\mathbf{2.4e-05}$\\
+      $400$ & $\mathbf{2.0e-50}$\\
+      \bottomrule
+    \end{tabular}
+  }
+  \caption{Student or Welch test of mean equality (depending on wether a Bartlett test of variance equality succeeds) $p$-values for CSI and SCIRL on the mountain car (\ref{tab:mc}) and the highway driving simulator (\ref{tab:highway}). High values ($>1.0\e{-02}$) means that the hypothesis that the means are equal cannot be rejected.}
 \end{table}
 \begin{figure}
-  \includegraphics[width=\textwidth]{Exp11.pdf}
+  \center
+  \includegraphics[width=.71\textwidth]{Exp11.pdf}
   \caption{Performance of various policies on the mountain car problem. This is the mean over 100 runs.}
   \label{fig:MountainCar}
+\end{figure}
+
+
+  \begin{figure}
+   \subfloat[Mean performance over 100 runs on the Highway driving problem.]{\label{tutu}\includegraphics[width=.5\linewidth]{"Exp14"}}
+   \subfloat[Zoom of Fig~\ref{tutu} showing the ranking of the three IRL algorithms.]{\includegraphics[width=.5\linewidth]{"Exp14_zoom"}}
+  \caption{Results on the highway driving problem.}
+  \label{fig:Highway}
+  
 \end{figure}
 
 
@@ -448,36 +434,11 @@ The performance criterion for a policy $\pi$ is the mean (over the uniform distr
 Expert performance averages to $7.74$ ; we also show the natural random baseline that consists in drawing a random reward vector (with a uniform law) and training an agent on it. The reward functions found by SCIRL, CSI and RE are then optimized using a DP algorithm. The dataset $D_{random}$ needed by RE (and neither by CSI nor SCIRL) is made of $100$ episodes of length $10$ starting randomly in the state space and following a random policy. the dataset $D_E$ is made of $n$ episodes of length $n$, with $n \in \{3,7,10,15,20\}$.
 
 
-Results are shown Fig.~\ref{fig:Highway}. We give the values of $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$ with $\pi$ being in turn the optimal policy for the rewards given by SCIRL, CSI and RE, the policy $\pi_C$ of the classifier (the very one the classification step of CSI outputs), and the optimal policy for a randomly drawn reward. Performance for CSI is slightly but definitively higher than for SCIRL (see the $p$-values for the mean equality test in Tab.~\ref{tab:highway}), slightly below the performance of the expert itself. Very few samples (100) are needed to reliably achieve expert-level performance.
+Results are shown Fig.~\ref{fig:Highway}. We give the values of $\mathbf{E}_{s\sim\mathcal{U}}[V^{\pi}_{R_E}(s)]$ with $\pi$ being in turn the optimal policy for the rewards given by SCIRL, CSI and RE, the policy $\pi_C$ of the classifier (the very one the classification step of CSI outputs), and the optimal policy for a randomly drawn reward. Performance for CSI is slightly but definitively higher than for SCIRL (see the $p$-values for the mean equality test in Tab.~\ref{tab:highway}, from 49 samples on), slightly below the performance of the expert itself. Very few samples (100) are needed to reliably achieve expert-level performance.
 
 It is very interesting to compare our algorithm to the behavior of a classifier alone (respectively red and green plots on Fig.~\ref{tutu}). With \emph{the exact same data}, albeit the use of a very simple heuristics, the cascading approach demonstrates far better performance from the start. This is a clear illustration of the fact that using the Bellman equation to construct the data fed to the regressor and outputting not a policy, but a reward function that can be optimized on the MDP truly makes use of the information that the transitions $(s,a,s')$ bear (we recall that the classifier only uses $(s,a)$ couples).
 
 Furthermore, the classifier whose results are diplayed here is the output of the first step of the algorithm. The classification performance is obviously not that good, this hints to the fact that our algorithm may be empirically more forgiving of classification errors than our theoretical bound lets us expect.
-\begin{table}[ht]
-	\begin{center}
-		\begin{tabular}{cc}
-		\toprule
-			Number of expert samples & $p$-value\\
-			\midrule
-                        $  9$ & $3.0e-01$\\
-                        $ 49$ & $\mathbf{8.9e-03}$\\
-                        $100$ & $\mathbf{1.8e-03}$\\
-                        $225$ & $\mathbf{2.4e-05}$\\
-                        $400$ & $\mathbf{2.0e-50}$\\
-                        \bottomrule
-		\end{tabular}
-	\end{center}
-        \caption{Student or Welch test of mean equality (depending on wether a Bartlett test of variance equality succeeds) $p$-values for CSI and SCIRL on the driving simulator. High values ($>1.0\e{-02}$) means that the hypothesis that the means are equal cannot be rejected. As highlighted here, the means are different from 49 samples on : CSI slightly but definitively outperforms SCIRL.}
-        \label{tab:highway}
-\end{table}
-  \begin{figure}
-   \subfigure[Mean performance over 100 runs on the Highway driving problem.]{\label{tutu}\includegraphics[width=.5\linewidth]{"Exp14"}}
-   \subfigure[Zoom of Fig~\ref{tutu} showing the ranking of the three IRL algorithms.]{\includegraphics[width=.5\linewidth]{"Exp14_zoom"}}
-  \caption{Results on the highway driving problem.}
-  \label{fig:Highway}
-  
-\end{figure}
-
 
 \section{Conclusion}
 \label{sec:conclusion}
