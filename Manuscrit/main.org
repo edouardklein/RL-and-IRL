@@ -1,4 +1,5 @@
 #+TITLE:Plan
+# (setq org-export-latex-hyperref-format "\\ref{%s}")
 # #+LaTeX_CLASS: report 
 #+LATEX_HEADER: \usepackage{natbib}
 * Axe de recherche
@@ -37,7 +38,26 @@
    - IRL basé sur une métrique dans le MDP
 
 * LSTD-$\mu$
+** Principe
+  On rappelle que l'attribut moyen est une grandeur centrale en renforcement (dit en [[Attribut moyen]]). Les algorithmes qui l'utilisent ne présupposent pas de moyen de le calculer. La méthode de base consiste à faire jouer un simulateur et faire une estimation de Monte-Carlo.
+
+  L'attribut moyen est par sa définition une fonction de valeur vectorielle. LSTD peut donc être adapté pour l'approximer.
+** Avantages
+  Les avantages que LSTD possède pour l'approximation de fonction de valeur : /batch/, /offline/ et /sample-efficient/ sont transférés à l'approximation de l'attribut moyen.
+
+  On peut ainsi estimer l'attribut moyen d'une politique arbitraire sans utiliser de simulateur et sans connaître les probabilités de transition.
+
+** Illustration 
+   En utilisant PIRL avec LSPI et LSTD-$\mu$, on peut porter PIRL en mode /batch/ avec une perte de performance minimale, et que l'on peut mitiger en fonction de la quantité de données non expertes disponibles. Cela évite d'avoir à se servir d'un simulateur, qui n'est pas toujours disponible.
 * SCIRL
+** Liens entre classification et AR
+  La classification peut-être utilisée pour faire de l'imitation (fait mentionné en [[Imitation non-ARI]]). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un PDM (equation présentée en [[Cadre des PDMs pour la prise de décision séquentielle]]) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
+
+  SCIRL et Cascading (décrit en [[Cascading]]) utilisent cette similarité pour introduire la structure du MDP dans une méthode de classification. On espère ainsi pouvoir faire de l'ARI (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
+
+  Si l'on utilise un classifieur où cette fonction de score/qualité est approximée par un schéma linéaire, alors on retombe sur l'attribut moyen. Il faut encore approximer celui-ci, mais cela est courant dans la littérature, et surtout c'est précisément le problème résolu par LSTD-$\mu$ (en [[LSTD-$\mu$]]). 
+
+  
 * Cascading
 * (Validation expérimentale)
 * Rappel des contributions
