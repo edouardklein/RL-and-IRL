@@ -67,7 +67,7 @@ France\\}
   This paper considers the Inverse Reinforcement Learning (IRL) problem, that is inferring a reward function for which a demonstrated expert policy is optimal.
 We propose to break the IRL problem down into two generic Supervised Learning steps: this is the Cascaded Supervised IRL (CSI) approach. A classification step that defines a score function is followed by a regression step providing a reward function.
 A theoretical analysis shows that the demonstrated expert policy is near-optimal for the computed reward function.
-Not needing to repeatedly solve a Markov Decision Process (MDP) and the ability to leverage existing techniques for classification and regression are two important advantages of the CSI approach. It is furthermore empirically demonstrated to work with only transitions sampled according to the expert policy, up to the use of some heuristics. This is exemplified on two classical benchmarks (the mountain car problem and a highway driving simulator).
+Not needing to repeatedly solve a Markov Decision Process (MDP) and the ability to leverage existing techniques for classification and regression are two important advantages of the CSI approach. It is furthermore empirically demonstrated to compare positively to state-of-the-art approaches when using only transitions sampled according to the expert policy, up to the use of some heuristics. This is exemplified on two classical benchmarks (the mountain car problem and a highway driving simulator).
   \end{abstract}
 \section{Introduction}
 \label{sec-2}
@@ -239,9 +239,9 @@ Finally, we also have:
 \begin{align}
 \rho_E^T(V^{\pi_E}_{R^E}-V^{\pi_E}_{R^C})&=\rho_E^T(I-\gamma P_{\pi_E})^{-1}(R^E_{\pi_E}-R^C_{\pi_E})=\rho_E^T(I-\gamma P_{\pi_E})^{-1}\gamma P_{\pi_E}(q_{\pi_C}-q_{\pi_E}),
 \\
-&=\frac{\gamma}{1-\gamma}\rho_E^T(q_{\pi_C}-q_{\pi_E})\leq \frac{\gamma}{1-\gamma}\Delta q \epsilon_C \leq  \frac{1}{1-\gamma}\Delta q \epsilon_C\textrm{ as }\gamma<1.
+&=\frac{\gamma}{1-\gamma}\rho_E^T(q_{\pi_C}-q_{\pi_E})\leq \frac{\gamma}{1-\gamma}\Delta q \epsilon_C.
 \end{align}
-So the upper bound for the second term is: $\rho_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})\leq \frac{\Delta q}{1-\gamma}\epsilon_C$.
+So the upper bound for the second term is: $\rho_E^T(V^{\hat{\pi}_C}_{R^C}-V^{\pi_E}_{R^C})\leq (\Delta q +\frac{\gamma}{1-\gamma}\Delta q) \epsilon_C =   \frac{\Delta q}{1-\gamma}\epsilon_C$.
 If we combine all of the results, we obtain the final bound as stated in the theorem.
 %\qed
 \end{proof}
