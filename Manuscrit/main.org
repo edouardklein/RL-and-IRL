@@ -2,6 +2,8 @@
 # (setq org-export-latex-hyperref-format "\\ref{%s}")
 # #+LaTeX_CLASS: report 
 #+LATEX_HEADER: \usepackage{natbib}
+* TAF :noexport:
+** TODO Articuler les parties problème jouets
 * Axe de recherche
 ** Contrôle optimal
 ** Trouver la consigne à partir du contrôle
