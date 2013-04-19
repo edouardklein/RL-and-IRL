@@ -1,12 +1,13 @@
 %\newcommand{\filespath}{../../Style/}%  JANCL path
 
 \documentclass[french,utf8]{./hermes-journal}
+\usepackage[frenchb]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 % \journalName{year}{volume}{issue}
-\ria{2012}{22}{1}
-
-\firstpagenumber{9}
+\ria{2013}{27}{2}
+\firstpagenumber{155}
+%\lastpagenumber{179}
 \let\chapter\section
 \usepackage[ruled,algo2e,french]{algorithm2e}
 \usepackage{mathtools}
@@ -46,28 +47,31 @@
 % addresses are automatically numbered
 \address{LORIA -- équipe ABC\\
 Nancy, France
+\vspace{-2em}
 }{}
 \address{Supélec -- Groupe de recherche IMS-MaLIS\\
 Metz, France}
         {prenom.nom@supelec.fr}
 \address{ UMI 2958 (GeorgiaTech-CNRS)\\
-Metz, France}{}
+Metz, France
+\vspace{-2em}
+}{}
 
 \abstract{  This paper adresses the inverse reinforcement learning (IRL) problem, that
   is inferring a reward for which a demonstrated expert behavior is
   optimal. We introduce a new algorithm, SCIRL, whose principle is to use
   the so-called feature expectation of the expert as the
-  parameterization of the score function of a multi-class
+  parameterization of the score function of a multiclasse
   classifier. This approach produces a reward function for which the
   expert policy is provably near-optimal. Contrary to most of
   existing IRL algorithms, SCIRL does not require solving the
   direct RL problem. Moreover, with an appropriate heuristic, it can succeed with only trajectories sampled
   according to the expert behavior. This is illustrated on a car
   driving simulator.}
-\resume{Cette contribution traite le problème de l'Apprentissage par Renforcement Inverse (ARI), défini comme la recherche d'une fonction de récompense pour laquelle le comportement d'un expert (connu par le biais de démonstrations) est optimal. Nous introduisons SCIRL, un nouvel algorithme qui utilise la grandeur dénommée attribut moyen de l'expert comme la paramétrisation d'une fonction de score pour un classifieur multi-classe. Cette approche donne une fonction de récompense pour laquelle la politique de l'expert est (nous le démontrons) quasi-optimale. Contrairement à la plupart des algorithmes d'ARI existants, SCIRL n'a pas besoin de résoudre le problème direct de l'Apprentissage par Renforcement. De plus, en utilisant une heuristique, il peut être utilisé avec uniquement des trajectoires échantillonnées par l'expert. Nous illustrons cela sur un simulateur de conduite.}
+\resume{Cette contribution traite le problème de l'apprentissage par renforcement inverse (ARI), défini comme la recherche d'une fonction de récompense pour laquelle le comportement d'un expert (connu par le biais de démonstrations) est optimal. Nous introduisons SCIRL, un nouvel algorithme qui utilise la grandeur dénommée attribut moyen de l'expert comme la paramétrisation d'une fonction de score pour un classifieur multiclasse. Cette approche donne une fonction de récompense pour laquelle la politique de l'expert est (nous le démontrons) quasi optimale. Contrairement à la plupart des algorithmes d'ARI existants, SCIRL n'a pas besoin de résoudre le problème direct de l'apprentissage par renforcement. De plus, en utilisant une heuristique, il fonctionne avec uniquement des trajectoires échantillonnées par l'expert. Nous illustrons cela sur un simulateur de conduite.}
 
-\keywords{Reinforcement Learning, Inverse Reinforcement Learning}
-\motscles{Apprentissage par Renforcement, Apprentissage par Renforcement Inverse}
+\keywords{reinforcement learning, inverse reinforcement learning.}
+\motscles{apprentissage par renforcement, apprentissage par renforcement inverse.}
 
 
 \begin{document}
@@ -77,20 +81,20 @@ Metz, France}{}
 \section{Introduction}
 \label{sentro}
 
-L'Apprentissage par Renforcement Inverse (ARI) est le problème lié à la recherche, à partir de démonstrations d'un expert, d'une fonction de récompense telle que le comportement de l'expert soit optimal ; historiquement proposé dans~\cite{Russel998}, ce mécanisme trouve des applications dans divers champs, de la biologie à la neuropsychologie en passant par l'économie et plus récemment la robotique~\cite{abbeel2010autonomous}. Beaucoup d'algorithmes d'ARI (que nous décrirons succintement Sec.~\ref{seelatedWorks}) cherchent une fonction de récompense dont la politique optimale associée génère une distribution sur les trajectoires (ou une grandeur liée à cette distribution) proche de celle générée par l'expert. Souvent, cette distribution est caractérisée par ce que l'on appelle l'attribut moyen (voir Sec.~\ref{subseackgrounrl}) : étant donnée une fonction de récompense linéairement paramétrée par un vecteur d'attributs, il s'agit de l'espérance de la somme pondérée des vecteurs d'attributs sachant que l'on commence dans un certain état en choisissant une certaine action avant de suivre la politique concernée.
+L'apprentissage par renforcement inverse (ARI) est le problème lié à la recherche, à partir de démonstrations d'un expert, d'une fonction de récompense telle que le comportement de l'expert soit optimal ; historiquement proposé dans~\cite{Russel998}, ce mécanisme trouve des applications dans divers champs, de la biologie à la neuropsychologie en passant par l'économie et plus récemment la robotique~\cite{abbeel2010autonomous}. Beaucoup d'algorithmes d'ARI (que nous décrirons succinctement section~\ref{seelatedWorks}) cherchent une fonction de récompense dont la politique optimale associée génère une distribution sur les trajectoires (ou une grandeur liée à cette distribution) proche de celle générée par l'expert. Souvent, cette distribution est caractérisée par ce que l'on appelle l'attribut moyen (voir section~\ref{subseackgrounrl}) : étant donnée une fonction de récompense linéairement paramétrée par un vecteur d'attributs, il s'agit de l'espérance de la somme pondérée des vecteurs d'attributs sachant que l'on commence dans un certain état en choisissant une certaine action avant de suivre la politique concernée.
 
-Dans cette publication, nous choisissons une autre option. Il est possible d'imiter le comportement de l'expert via un algorithme d'apprentissage supervisé généralisant l'association des actions aux états. Nous considérons ici les classifieurs multi-classes qui à partir d'une base d'entraînement calculent les paramètres d'une fonction de score paramétrée linéairement ; la règle de décision pour un état est l'argument (l'action) qui maximise la fonction de score pour cet état (voir Sec.~\ref{subseackgrounlassif}). L'idée de base de l'algorithme SCIRL que nous proposons est simplement d'estimer l'attribut moyen de l'expert comme la paramétrisation de la fonction de score (voir Sec.~\ref{subsecirlgo}). Le vecteur de paramètres ainsi calculé définit une fonction de récompense dont on montre qu'elle admet pour politique quasi-optimale la politique de l'expert (voir Sec.~\ref{subsecirnalysis}).
+Dans cette publication, nous choisissons une autre option. Il est possible d'imiter le comportement de l'expert via un algorithme d'apprentissage supervisé généralisant l'association des actions aux états. Nous considérons ici les classifieurs multiclasses qui à partir d'une base d'entraînement calculent les paramètres d'une fonction de score paramétrée linéairement ; la règle de décision pour un état est l'argument (l'action) qui maximise la fonction de score pour cet état (voir section~\ref{subseackgrounlassif}). L'idée de base de l'algorithme SCIRL que nous proposons est simplement d'estimer l'attribut moyen de l'expert comme la paramétrisation de la fonction de score (voir section~\ref{subsecirlgo}). Le vecteur de paramètres ainsi calculé définit une fonction de récompense dont on montre qu'elle admet pour politique quasi optimale la politique de l'expert (voir section~\ref{subsecirnalysis}).
 
-Un grand avantage de SCIRL est qu'il ne requiert pas, contrairement à la plupart des algorithmes d'ARI, la résolution répétée du problème direct, celui de l'apprentissage par renforcement. Il nécessite d'estimer l'attribut moyen de l'expert, mais ceci est équivalent à un problème d'évaluation de la politique (pour une politique observée, ce qui est moins problématique que l'optimisation répétée d'une politique), voir Sec.~\ref{seracticalApproach}.
-De plus, à l'aide d'une heuristique, SCIRL peut s'éxécuter en utilisant uniquement des transitions issues de la politique de l'expert (il n'y a pas besoin d'échantilloner la dynamique complète). Nous illustrons cela sur un simulateur de conduite Sec.~\ref{sexperiments}.
+Un grand avantage de SCIRL est qu'il ne requiert pas, contrairement à la plupart des algorithmes d'ARI, la résolution répétée du problème direct, celui de l'apprentissage par renforcement. Il nécessite d'estimer l'attribut moyen de l'expert, mais ceci est équivalent à un problème d'évaluation de la politique (pour une politique observée, ce qui est moins problématique que l'optimisation répétée d'une politique), voir section~\ref{seracticalApproach}.
+De plus, à l'aide d'une heuristique, SCIRL peut s'éxécuter en utilisant uniquement des transitions issues de la politique de l'expert (il n'y a pas besoin d'échantillonner la dynamique complète). Nous illustrons cela sur un simulateur de conduite section~\ref{sexperiments}.
 
 \section{Contexte et notations}
 \label{seackground}
 
-\subsection{Apprentissage par Renforcement (Inverse)}
+\subsection{Apprentissage par renforcement (inverse)}
 \label{subseackgrounrl}
 
-Un Processus Décisionnel de Markov (PDM)~\cite{Puterma994} est donné par le tuple $\{\s,\A,\p,\R,\gamma\}$ où $\s$ est l'espace d'état fini, $\A$ est l'espace d'action fini, $\p =
+Un processus décisionnel de Markov (PDM)~\cite{Puterma994} est donné par le tuple $\{\s,\A,\p,\R,\gamma\}$ où $\s$ est l'espace d'état fini, $\A$ est l'espace d'action fini, $\p =
 \{P_a = (p(s'|s,a))_{1\leq s,s'\leq |\s|}, a\in\A\}$ est l'ensemble des probabilités de transition markoviennes, $\R\in\mathbb{R}^\s$ est la fonction de récompense sur les états et $\gamma$ est le facteur d'oubli.
 Une politique déterministe $\pi\in\s^\A$ définit le comportement d'un agent. La qualité de ce comportement est quantifiée par le biais de la fonction de valeur $v_\R^\pi\in\mathbb{R}^\s$, qui à chaque état associe la récompense pondérée cumulée moyenne recueillie par l'agent lorsqu'il part de cet état et suit la politique $\pi$ par la suite : $v_\R^\pi(s) = \E[\sum_{t\geq 0} \gamma^t \R(S_t)|S_0=s,\pi]$. Une politique optimale $\pi_\R^*$ (vis-à-vis de la fonction de récompense $\R$) est une politique dont la fonction de valeur $v^*_\R$ vérifie $v_\R^* \geq v_\R^\pi$ (composante par composante) pour toute politique $\pi$.
 
@@ -105,11 +109,11 @@ Ces opérateurs sont des contractions qui admettent $v_\R^\pi$ et $v^*_\R$ comme
 La fonction de qualité $Q^\pi\in\mathbb{R}^{\s\times \A}$ ajoute un degré de liberté dans le choix de la première action : $Q_\R^\pi(s,a)
 = [T^a_\R v^\pi_\R](s)$. La distribution stationnaire de la politique $\pi$ est notée $\rho_\pi$, elle satisfait $\rho_\pi^\top P_\pi = \rho_\pi^\top$.
 
-L'objectif de l'Apprentissage par Renforcement (AR) est d'estimer la politique de contrôle optimale lorsque le modèle (les probabilités de transition et la fonction de récompense) est inconnu (mais observé par interaction avec le système à contrôler) et quand l'espace d'état est trop grand pour qu'une représentation exacte des objets concernés (fonctions de valeur, politiques) soit possible~\cite{Bertseka996,Sutto998,szepesvari2010c}.
+L'objectif de l'apprentissage par renforcement (AR) est d'estimer la politique de contrôle optimale lorsque le modèle (les probabilités de transition et la fonction de récompense) est inconnu (mais observé par interaction avec le système à contrôler) et quand l'espace d'état est trop grand pour qu'une représentation exacte des objets concernés (fonctions de valeur, politiques) soit possible~\cite{Bertseka996,Sutto998,szepesvari2010c}.
 %
 C'est le problème direct.
 %
-L'Apprentissage par Renforcement Inverse (approché)~\cite{N000} consiste à estimer la fonction de récompense pour laquelle une politique observée est optimale.
+L'apprentissage par renforcement inverse (approché)~\cite{N000} consiste à estimer la fonction de récompense pour laquelle une politique observée est optimale.
 %
 Cette politique est la politique de l'expert, notée $\pi_E$. Elle est supposée optimale vis-à-vis d'une certaine fonction de récompense $\mathcal{R}_E$ inconnue. Le but de l'ARI est de calculer une fonction de récompense $\hat{\R}$ telle que la politique de l'expert soit (quasiment) optimale, c'est-à-dire telle que $v^*_{\hat{\R}}
 \approx v^{\pi_E}_{\hat{\R}}$.
@@ -140,34 +144,34 @@ Conséquemment, la fonction de qualité partage son vecteur de paramètres avec 
 
 Soit $\X$ un ensemble fini ou compact (d'entrées à classifier)
  et soit $\Y$ un ensemble fini (de labels). Supposons que les entrées $x\in
-\X$ sont tirées selon une distribution inconnue $\prob(x)$ et qu'il existe un oracle qui à chacune de ces entrées associe un label $y\in Y$ tiré selon une distribution de probabilité conditionnelle inconnue $\prob(y|x)$. De manière générale, la classification multi-classe cherche, étant donné une base d'entraînement $\{(x_i,y_i)_{1\leq i \leq N}\}$ tirée selon $\prob(x,y)$, une règle de décision $g\in\Y^\X$ minimisant l'erreur de classification $\E[\chi_{\{g(x)\neq y\}}] = \prob(g(x)\neq y)$, où $\chi$ est la fonction indicatrice.
+\X$ sont tirées selon une distribution inconnue $\prob(x)$ et qu'il existe un oracle qui à chacune de ces entrées associe un label $y\in Y$ tiré selon une distribution de probabilité conditionnelle inconnue $\prob(y|x)$. De manière générale, la classification multiclasse cherche, étant donné une base d'entraînement $\{(x_i,y_i)_{1\leq i \leq N}\}$ tirée selon $\prob(x,y)$, une règle de décision $g\in\Y^\X$ minimisant l'erreur de classification $\E[\chi_{\{g(x)\neq y\}}] = \prob(g(x)\neq y)$, où $\chi$ est la fonction indicatrice.
 
 Nous nous préoccupons ici d'un ensemble plus réduit de classifieurs. Nous supposons que la règle de décision associe à l'entrée l'argument qui maximise une certaine fonction de score, celle-ci étant paramétrée linéairement, les paramètres étant appris par le classifieur. Formellement, soit $\psi(x,y) =
 (\psi_1(x,y)  \dots  \psi_d(x,y))^\top\in \mathbb{R}^d$
 %\begin{pmatrix}   \psi_1(x,y) & \dots & \psi_d(x,y)
 %\end{pmatrix}^\top \in \mathbb{R}^d$
 un vecteur d'attributs dont les composantes sont $d$ fonctions de base $\psi_i\in\mathbb{R}^{\X\times\Y}$. La fonction de score linéairement paramétrée $s_w\in\mathbb{R}^{\X\times \Y}$ de vecteur de paramètres $w\in\mathbb{R}^d$ est définie par $s_w(x,y) = w^\top \psi(x,y)$. La règle de décision associée $g_w\in{\Y^\X}$ est définie par $g_w(x) \in \argmax_{y\in\Y}s_w(x,y)$. En se basant sur une base d'entraînement $\{(x_i,y_i)_{1\leq
-i\leq N}\}$, un classifieur multi-classe (noté CMC) à fonction de score paramétrée linéairement choisit un vecteur de paramètres $\theta_c$. La qualité de ce choix est quantifiée par l'erreur de classification $\epsilon_c =
+i\leq N}\}$, un classifieur multiclasse (noté CMC) à fonction de score paramétrée linéairement choisit un vecteur de paramètres $\theta_c$. La qualité de ce choix est quantifiée par l'erreur de classification $\epsilon_c =
 \prob(g_{\theta_c}(x)\neq y)$. %Riflette
 
-Notre étude est valable pour tout algorithme de classification tant qu'il opère en maximisant l'argument d'une fonction de score paramétrée linéairement. Par exemple, un séparateur à vaste marge multi-classe pourrait être choisie~\cite{Guermeu007} (en considérant le noyau induit par le vecteur d'attributs) ou encore une approche à vaste marge structurée~\cite{Taska005}. 
+Notre étude est valable pour tout algorithme de classification tant qu'il opère en maximisant l'argument d'une fonction de score paramétrée linéairement. Par exemple, un séparateur à vaste marge multiclasse pourrait être choisie~\cite{Guermeu007} (en considérant le noyau induit par le vecteur d'attributs) ou encore une approche à vaste marge structurée~\cite{Taska005}. 
 
 \section{Classification structurée pour l'apprentissage par renforcement inverse} \label{secirl}
 
 \subsection{Forme générale de l'algorithme}
 \label{subsecirlgo}
 
-Nous nous trouvons dans le cadre de la classification décrit en Sec.~\ref{subseackgrounlassif}. L'entrée $x$ peut être vue comme un état et le label $y$ comme une action. Il s'ensuit que la règle de décision 
-$g_w(x)$ est interprétable comme une politique gloutonne vis-à-vis de la fonction de score $w^\top \psi(x,y)$, qui peut elle-même être vue comme une fonction de qualité. Le parallèle avec l'Eq.~\eqref{eeu} est aisé, si $\psi(x,y)$ est l'attribut moyen d'une politique $\pi$ qui a fourni les labels de la base d'entraînement, et si l'erreur de classification est faible, alors $w$ est le vecteur de paramètres de la fonction de récompense vis-à-vis de laquelle on espère que la politique $\pi$ est quasi-optimale. 
+Nous nous trouvons dans le cadre de la classification décrit en section~\ref{subseackgrounlassif}. L'entrée $x$ peut être vue comme un état et le label $y$ comme une action. Il s'ensuit que la règle de décision 
+$g_w(x)$ est interprétable comme une politique gloutonne vis-à-vis de la fonction de score $w^\top \psi(x,y)$, qui peut elle-même être vue comme une fonction de qualité. Le parallèle avec l'équation~\eqref{eeu} est aisé, si $\psi(x,y)$ est l'attribut moyen d'une politique $\pi$ qui a fourni les labels de la base d'entraînement, et si l'erreur de classification est faible, alors $w$ est le vecteur de paramètres de la fonction de récompense vis-à-vis de laquelle on espère que la politique $\pi$ est quasi optimale. 
 Ces remarques nous permettent maintenant d'introduire notre algorithme d'ARI par classification structurée (SCIRL pour \emph{Structured Classification-based Inverse Reinforcement Learning}).
 
 Soit $\pi_E$ la politique de l'expert à partir de laquelle nous souhaitons inférer une fonction de récompense. Soit $\D = \{(s_i, a_i=\pi_E(s_i))_{1\leq i\leq N}\}$ une base d'entraînement où les états sont échantillonnés selon la distribution stationnaire de l'expert\footnote{Par exemple, si la chaîne de Markov induite par la politique de l'expert est à mélange rapide (\emph{fast-mixing}), l'échantillonnage d'une trajectoire donnera rapidement des échantillons tirés selon cette distribution.} $\rho_E = \rho_{\pi_E}$.
-Supposons également avoir à disposition une estimée $\hat{\mu}^{\pi_E}$ de l'attribut moyen de l'expert $\mu^{\pi_E}$ défini à l'équation Eq.~\eqref{eeu}. Une description de la manière d'estimer cette quantité en pratique est reportée à la Sec.~\ref{subseracticalApproacuE}; rappelons tout de même qu'estimer $\mu^{\pi_E}$ est simplement un problème d'\emph{évaluation de la politique} (estimation de la fonction de qualité d'une politique), comme signalé Sec.~\ref{subseackgrounrl}. Supposons enfin qu'un algorithme de CMC a été choisi. L'algorithme formant notre contribution consiste simplement à choisir $\theta^\top\hat{\mu}^{\pi_E}(s,a)$ comme fonction de score paramétrée linéairement, puis à entraîner le classifieur sur $\D$, ce qui produit un vecteur de paramètres $\theta_c$, puis enfin à renvoyer la fonction de récompense $\R_{\theta_c}(s) = \theta_c^\top \phi(s)$.
+Supposons également avoir à disposition une estimée $\hat{\mu}^{\pi_E}$ de l'attribut moyen de l'expert $\mu^{\pi_E}$ défini à l'équation~\eqref{eeu}. Une description de la manière d'estimer cette quantité en pratique est reportée à la section~\ref{subseracticalApproacuE}; rappelons tout de même qu'estimer $\mu^{\pi_E}$ est simplement un problème d'\emph{évaluation de la politique} (estimation de la fonction de qualité d'une politique), comme signalé section~\ref{subseackgrounrl}. Supposons enfin qu'un algorithme de CMC a été choisi. L'algorithme formant notre contribution consiste simplement à choisir $\theta^\top\hat{\mu}^{\pi_E}(s,a)$ comme fonction de score paramétrée linéairement, puis à entraîner le classifieur sur $\D$, ce qui produit un vecteur de paramètres $\theta_c$, puis enfin à renvoyer la fonction de récompense $\R_{\theta_c}(s) = \theta_c^\top \phi(s)$.
 
 \begin{algorithm2e}%[tbh]
     %\small
   \SetAlgoVlined
-  \caption{Algorithme SCIRL}
+  \caption{{\it SCIRL}}
   \label{algcirl}
   %
   \BlankLine
@@ -181,7 +185,7 @@ Supposons également avoir à disposition une estimée $\hat{\mu}^{\pi_E}$ de l'
   \emph{\textbf{Renvoyer}} la fonction de récompense $\R_{\theta_c}(s) = \theta_c^\top\phi(s)$ \;
 \end{algorithm2e}
 
-L'approche proposée est résumé par l'Alg.~\ref{algcirl}. Le nom de l'algorithme (SCRIL, que l'on peut traduire par Classification structurée pour l'ARI), vient de l'utilisation de l'attribut moyen de l'expert dans le classifieur, ce qui revient d'une certaine manière à prendre en compte la structure du MDP dans le problème de classification et permet le calcul du vecteur de paramètres de la récompense. Contrairement à la plupart des algorithmes d'ARI existants, SCIRL n'a pas besoin de résoudre le problème direct. Cet algorithme requiert une estimation de l'attribut moyen de l'expert mais il ne s'agit là que d'un problème d'évaluation de la politique, notoirement moins difficile que la recherche de politiques optimales qu'implique la résolution du problème direct. Cela est discuté plus en détail Sec.~\ref{seelatedWorks}.
+L'approche proposée est résumée par l'algorithme~\ref{algcirl}. Le nom de l'algorithme (SCI\-RL, que l'on peut traduire par Classification structurée pour l'ARI), vient de l'utilisation de l'attribut moyen de l'expert dans le classifieur, ce qui revient d'une certaine manière à prendre en compte la structure du MDP dans le problème de classification et permet le calcul du vecteur de paramètres de la récompense. Contrairement à la plupart des algorithmes d'ARI existants, SCIRL n'a pas besoin de résoudre le problème direct. Cet algorithme requiert une estimation de l'attribut moyen de l'expert mais il ne s'agit là que d'un problème d'évaluation de la politique, notoirement moins difficile que la recherche de politiques optimales qu'implique la résolution du problème direct. Cela est discuté plus en détail section~\ref{seelatedWorks}.
 %
 %Now, we formally show that the proposed approach makes sens, as long
 %as $\mu^{\pi_E}$ is well estimated et as long as the classification
@@ -191,7 +195,7 @@ L'approche proposée est résumé par l'Alg.~\ref{algcirl}. Le nom de l'algorith
 \subsection{Analyse}
 \label{subsecirnalysis}
 
-Dans cette section, nous montrons que la politique de l'expert $\pi_E$ est quasi-optimale vis-à-vis de la fonction de récompense $\R_{\theta_c}$, plus précisément qu'il est possible de contrôler le terme
+Dans cette section, nous montrons que la politique de l'expert $\pi_E$ est quasi optimale vis-à-vis de la fonction de récompense $\R_{\theta_c}$, plus précisément qu'il est possible de contrôler le terme
 $\E_{s\sim\rho_E}[v^*_{\theta_c}(s)-v^{\pi_E}_{\theta_c}(s)]$.
 Avant de présenter le résultat principal, il nous faut introduire quelques notations et définir quelques objets.
 
@@ -235,7 +239,7 @@ $\epsilon_Q = \hat{Q}^{\pi_E}_{\theta_c} - Q^{\pi_E}_{\theta_c} =
   \end{equation}
 \end{theorem}
 \begin{proof*}[Preuve du Théorème \ref{th}]
-  La démonstration repose uniquement sur la récompense $\R_{\theta_c}$, donc par soucis de clarté certains indices relatifs à la récompense sont omis des notations  
+  La démonstration repose uniquement sur la récompense $\R_{\theta_c}$, donc par souci de clarté certains indices relatifs à la récompense sont omis des notations  
   (\textit{e.g.}, $v^\pi$ pour
   $v^\pi_{\theta_c}=v^\pi_{\R_{\theta_c}}$ ou $\R$ pour $\R_{\theta_c}$). Tout d'abord, l'erreur $\E_{s\sim\rho_E}[v^*(s)-v^{\pi_E}(s)]$ est reliée au résidu de Bellman $\E_{s\sim\rho_E}[[T^*v^{\pi_E}](s)-v^{\pi_E}(s)]$.
   %
@@ -323,11 +327,11 @@ $\epsilon_Q = \hat{Q}^{\pi_E}_{\theta_c} - Q^{\pi_E}_{\theta_c} =
     \epsilon_c \frac{2\gamma}{1-\gamma} \|\R\|_\infty.
     \label{eroo2}
   \end{equation}
-  Injecter les bornes des Eq.~\eqref{eroo1}
-  and~\eqref{eroo2} dans l'Eq.~\eqref{erooesidual} achève la démonstration.%, which concludes the proof.
-%  Injecting bounds of Eqs.~\eqref{eroo1}
-%  and~\eqref{eroo2} into Eq.~\eqref{erooesidual} using the
-%  decomposition of Eq.~\eqref{erooecomposition} gives the
+  Injecter les bornes des équations~\eqref{eroo1}
+  et~\eqref{eroo2} dans l'équation~\eqref{erooesidual} achève la démonstration.%, which concludes the proof.
+%  Injecting bounds of l'équation.~\eqref{eroo1}
+%  and~\eqref{eroo2} into l'équation~\eqref{erooesidual} using the
+%  decomposition of l'équation~\eqref{erooecomposition} gives the
 %  stated result:
 %  \begin{equation}
 %    0\leq\E_{s\sim\rho_E}[v^*(s)-v^{\pi_E}(s)] \leq
@@ -338,7 +342,7 @@ $\epsilon_Q = \hat{Q}^{\pi_E}_{\theta_c} - Q^{\pi_E}_{\theta_c} =
 \end{proof*}
 
 Ce résultat montre que si l'attribut moyen de l'expert est bien estimé (dans le sens d'une faible erreur d'estumation $\epsilon_\mu$ pour les états échantillonnés selon la politique stationnaire de l'expert et pour toutes les actions) et si l'erreur de classification $\epsilon_c$ et également faible, alors l'algorithme générique proposé fournit une fonction de récompense 
-$\R_{\theta_c}$ vis-à-vis de laquelle l'expert sera quasi-optimal. Un corollaire direct du Th.~\ref{th} stipule qu'avec le vrai attribut moyen de l'expert $\mu^{\pi_E}$ et un classifieur parfait 
+$\R_{\theta_c}$ vis-à-vis de laquelle l'expert sera quasi optimal. Un corollaire direct du théorème~\ref{th} stipule qu'avec le vrai attribut moyen de l'expert $\mu^{\pi_E}$ et un classifieur parfait 
 ($\epsilon_c=0$), $\pi_E$ est l'unique politique optimale pour 
 $\R_{\theta_c}$.
 
@@ -385,10 +389,10 @@ P_a(I-\gamma P_{\pi_E})^{-1} \Phi$.
 %\end{equation}
 %Therefore, knowing the model (the dynamic), the expert feature
 %expectation can be easily computed.
-Ajoutons que le coût computationel de cette méthode est du même ordre de grandeur que l'évaluation d'une seule politique, en effet la partie coûteuse (le calcul de $(I-\gamma P_{\pi_E})^{-1}$) est partagée par toutes les composantes.
+Ajoutons que le coût computationnel de cette méthode est du même ordre de grandeur que l'évaluation d'une seule politique, en effet la partie coûteuse (le calcul de $(I-\gamma P_{\pi_E})^{-1}$) est partagée par toutes les composantes.
 
-Si le modèle est inconnu, tous les algorithmes d'apprentissage par différences temporelles peuvent être utilisés pour obtenir une estimation de l'attribut moyen de l'expert~\cite{Klei011}, comme par exemple LSTD (Least-Squares Temporal
-Differences)~\cite{Bradtk996}. Soit $\psi:\s\times \A \rightarrow
+Si le modèle est inconnu, tous les algorithmes d'apprentissage par différences temporelles peuvent être utilisés pour obtenir une estimation de l'attribut moyen de l'expert~\cite{Klei011}, comme par exemple LSTD ({\it Least-Squares Temporal
+Differences})~\cite{Bradtk996}. Soit $\psi:\s\times \A \rightarrow
 \mathbb{R}^d$ un vecteur d'attributs composé de $d$ fonctions de base
 $\psi_i \in\mathbb{R}^{\s\times \A}$. Chaque composante $\mu_i^{\pi_E}$
  de l'attribut moyen de l'expert est paramétée par un vecteur
@@ -396,7 +400,7 @@ $\xi_i\in\mathbb{R}^d$: $\mu_i^{\pi_E}(s,a)\approx \xi_i^\top
 \psi(s,a)$. Supposons l'existence d'une base d'entraînement
 $\{(s_i,a_i,s'_i,a'_i=\pi_E(s'_i))_{1\leq i \leq M}\}$ dont les actions 
 $a_i$ ne sont pas nécessairement échantillonnées selon la politique $\pi_E$
-(\textit{e.g.}, on peut utiliser des trajectoires obtenues par un agent suivant une politique $\epsilon$-gloutonne), le but étant d'obtenir une meilleure représentativité des données (des actions sous optimales devraient être essayées). Soit $\tilde{\Psi}\in \mathbb{R}^{M\times d}$
+(\textit{e.g.}, on peut utiliser des trajectoires obtenues par un agent suivant une politique $\epsilon$-gloutonne), le but étant d'obtenir une meilleure représentativité des données (des actions sous-optimales devraient être essayées). Soit $\tilde{\Psi}\in \mathbb{R}^{M\times d}$
 (resp. $\tilde{\Psi}'$) la matrice d'attributs dont les lignes sont les vecteurs d'attributs $\psi(s_i,a_i)^\top$ (resp. $\psi(s'_i,a'_i)^\top$).
 Soit $\tilde{\Phi}\in \mathbb{R}^{M\times p}$ la matrice d'attributs dont les lignes sont les vecteurs d'attributs de la récompense $\phi(s_i)^\top$.
 Enfin, soit $\Xi =
@@ -413,13 +417,13 @@ $\hat{\mu}^{\pi_E}(s,a) = \Xi^\top \psi(s,a)$.
 De la même manière que pour le cas exact, la partie coûteuse de l'algorithme (inverser la matrice) est partagée par toutes les composantes. Le coût reste donc raisonnable (du même ordre que LSTD).
 
 %
-Si l'on dispose d'un simulateur permettant notammment d'échantillonner selon la politique à imiter, l'attribut moyen de l'expert peut également être estimé via une méthode de Monte-Carlo pour chaque couple état-action (comme signalé en Sec.~\ref{subsecirnalysis}, $\hat{\mu}^{\pi_E}$ ne doit être connu que pour $(s_i,a)_{1\leq i\leq N,a\in\A}$). Si $K$
+Si l'on dispose d'un simulateur permettant notammment d'échantillonner selon la politique à imiter, l'attribut moyen de l'expert peut également être estimé via une méthode de Monte-Carlo pour chaque couple état-action (comme signalé en section~\ref{subsecirnalysis}, $\hat{\mu}^{\pi_E}$ ne doit être connu que pour $(s_i,a)_{1\leq i\leq N,a\in\A}$). Si $K$
 trajectoires sont échantillonnées pour chaque couple, cette méthode requiert $KN|\A|$ simulations.
 
 Pour minimiser l'erreur $\bar{\epsilon}_Q$, il est nécessaire d'utiliser des transitions dont l'état de départ est tiré selon 
 $\rho_E$ et dont les actions sont uniformément distribuées. Cependant, il est possible que seules les transitions issues de l'expert soient disponibles : $\T =
-\{(s_i,a_i=\pi_E(s_i),s'_i)_{1\leq i \leq N}\}$. Bien que le couple état-action $(s_i,a_i)$ puisse être exploité par le classifieur, les transitions $(s_i,a_i,s'_i)$ seules ne sont pas seules suffisantes pour une estimation précise de l'attribut moyen. Il est toujours possible de rester précis sur l'estimation de $\mu^{\pi_E}(s,\pi_E(s))$, mais il y a peu d'espoir de l'être pour $\mu^{\pi_E}(s,a\neq\pi_E(s))$, ces actions (et la dynamique résultante) n'étant représentées dans les données. Il est heureusement possible de recourir à des heuristiques ; ce cas ne rentre pas dans l'analyse présentée en 
-Sec.~\ref{subsecirnalysis}, mais peut malgré tout fournir de bons résultats expérimentaux comme illustré en Sec.~\ref{sexperiments}.
+\{(s_i,a_i=\pi_E(s_i),s'_i)_{1\leq i \leq N}\}$. Bien que le couple état-action $(s_i,a_i)$ puisse être exploité par le classifieur, les transitions $(s_i,a_i,s'_i)$ seules ne sont pas seules suffisantes pour une estimation précise de l'attribut moyen. Il est toujours possible de rester précis sur l'estimation de $\mu^{\pi_E}(s,\pi_E(s))$, mais il y a peu d'espoir de l'être pour $\mu^{\pi_E}(s,a\neq\pi_E(s))$, ces actions (et la dynamique résultante) n'étant pas représentées dans les données. Il est heureusement possible de recourir à des heuristiques ; ce cas ne rentre pas dans l'analyse présentée en 
+section~\ref{subsecirnalysis}, mais peut malgré tout fournir de bons résultats expérimentaux comme illustré en section~\ref{sexperiments}.
 
 
 Nous proposons une telle heuristique. Supposons que  $\T$ contienne les seules données disponibles, que nous utilisons pour fournir une estimation 
@@ -451,7 +455,7 @@ $\mu^{\pi_E}(s_i,a_i)$ est estimé en utilisant la seule trajectoire disponible 
 
 Pour résumer, l'attribut moyen de l'expert peut être vu comme un vecteur de fonctions de qualité (pour une même politique  $\pi_E$ et pour différentes fonctions de récompense $\phi_i$). En conséquence, tout algorithme d'évaluation de la fonction de qualité peut être utilisé pour estimer $\mu^\pi(s,a)$.
 Selon la quantité et la nature des données disponibles, une heuristique peut-être employée pour évaluer l'attribut moyen pour une action différente de celle de l'expert. Cette estimation n'est nécessaire que pour entraîner le classifieur, il est donc suffisant de disposer de valeurs uniquement pour les couples état-action $(s_i,a)_{1\leq i \leq N,a\in \A}$.
-En tous cas, estimer  $\mu^{\pi_E}$ n'est pas plus coûteux que d'estimer la fonction de qualité d'une politique donnée, dans le cas \emph{on-policy}, ce qui est rappelons-le moins coûteux que de trouver la politique optimale pour une fonction de récompense arbitraire (comme l'exigent la plupart des algorithmes d'ARI existants, voir Sec.~\ref{seelatedWorks}).
+En tous cas, estimer  $\mu^{\pi_E}$ n'est pas plus coûteux que d'estimer la fonction de qualité d'une politique donnée, dans le cas \emph{on-policy}, ce qui est rappelons-le moins coûteux que de trouver la politique optimale pour une fonction de récompense arbitraire (comme l'exigent la plupart des algorithmes d'ARI existants, voir section~\ref{seelatedWorks}).
 
 
 \subsection{Instanciation}
@@ -473,16 +477,16 @@ De façon similaire à ~\cite{Ratlif006}, nous fournissons la forme \emph{hinge-
   \theta^\top\hat{\mu}^{\pi_E}(s_i,a_i) +
   \frac{\lambda}{2}\|\theta\|^2.
 \end{equation}
-La fonction objectif est minimisée en utilisant une descente de sous-gradient. L'attribut moyen de l'expert est estimé en utilisant le principe décrit par Eq.~\eqref{ec_plus_heuristic}.
+La fonction objectif est minimisée en utilisant une descente de sous-gradient. L'attribut moyen de l'expert est estimé en utilisant le principe décrit par l'équation~\eqref{ec_plus_heuristic}.
 
-%This is the instantiation we use in Sec.~\ref{sexperiments}, but
+%This is the instantiation we use in section~\ref{sexperiments}, but
 %our approach is more general: other choices could have been done for
 %the CMC algorithm as well as for the expert feature expectation
 %estimation. Notice that if the model is known, $\mu^{\pi_E}$ can be
 %exactly computed ($\bar{\epsilon}_Q=0$). Assuming that the reward
 %feature vector is rich enough (in the sense that there exists a
 %parameter vector such that $\pi_E$ is the unique optimal policy),
-%constraints of Eq.~\eqref{ep_taskar} can be satisfied for all
+%constraints of l'équation~\eqref{ep_taskar} can be satisfied for all
 %state-action couples. This means that the proposed approach is able
 %to produce a non-trival reward for which the expert policy is the
 %unique optimal policy, et this without solving any direct problem.
@@ -501,7 +505,7 @@ Voir~\cite{Ne010} pour un état de l'art partiel.
 %maximization~\cite{Ramachandra007}, \textit{etc}. Some of these
 %approaches et others are nicely reviewed in~\cite{Ne010}.
 %
-Certains algorithmes mentionnés ne sont pas capable de renvoyer une fonction de récompense, bien qu'ils utilisent l'ARI comme étape. Ils rentrent dans le champ généralement appelé l'apprentissage par imitation.
+Certains algorithmes mentionnés ne sont pas capables de renvoyer une fonction de récompense, bien qu'ils utilisent l'ARI comme étape. Ils rentrent dans le champ généralement appelé l'apprentissage par imitation.
 %
 %Notice that related algorithms do not always output a reward
 %function (\textit{e.g.}, in~\cite{Abbee004}, the algorithm
@@ -511,12 +515,12 @@ Certains algorithmes mentionnés ne sont pas capable de renvoyer une fonction de
 %as ``apprenticeship learning'' algorithms (they may make use of IRL
 %as intermediate steps but do not output a reward).
 
-Plus proche de notre contribution, quelques approches introduisent également de la structure dans la classification~\cite{Mel010,Ratlif006}. Dans~\cite{Mel010},
+Plus proches de notre contribution, quelques approches introduisent également de la structure dans la classification~\cite{Mel010,Ratlif006}. Dans~\cite{Mel010},
 une métrique induite par le PDM est utilisée pour construire un noyau qui sera utilisé par l'algorithme de classification, permettant des améliorations par rapport à un noyau non structuré. Cette approche n'est cependant pas un algorithme d'ARI, et plus important l'évaluation d'une métrique dans un PDM n'est pas triviale. Dans~\cite{Ratlif006}, un algorithme de classification est utilisé pour fournir une fonction de récompense. Au lieu d'associer des actions à des états comme nous le faisons, cet algorithme associe des politiques optimales (qui jouent le rôle de labels) à des PDM (entrées), ce qui permet d'incorporer la structure, au prix de la résolution d'un grand nombre de PDM.
 
 Tous les algorithmes d'ARI à notre connaissance requièrent la résolution du problème direct de l'AR de manière répétée, à l'exception de~\cite{Dvi010,boularia011}.
 Le travail présenté dans \cite{Dvi010} ne s'applique qu'aux PDM solvables linéairement (où le contrôle se fait en imposant une dynamique au système).
-Dans~\cite{boularia011}, en utilisant l'argument de l'entropie relative, une fonction objectif est maximisée via une montée de sous-gradient. Estimer la valeur du sous-gradient demande des trajectoires échantillonnées selon la politique optimale pour la fonction de récompense courante. On peut contourner le problème grâce à l'échantillonage préférentiel. Cela requiert cependant d'échantillonner des trajectoires selon une politique différente de celle de l'expert, et le problème direct se maintient au coeur de l'approche (même si sa résolution est évitée).
+Dans~\cite{boularia011}, en utilisant l'argument de l'entropie relative, une fonction objectif est maximisée via une montée de sous-gradient. Estimer la valeur du sous-gradient demande des trajectoires échantillonnées selon la politique optimale pour la fonction de récompense courante. On peut contourner le problème grâce à l'échantillonnage préférentiel. Cela requiert cependant d'échantillonner des trajectoires selon une politique différente de celle de l'expert, et le problème direct se maintient au coeur de l'approche (même si sa résolution est évitée).
 
 SCIRL n'a pas besoin de résoudre le problème direct, mais uniquement d'estimer l'attribut moyen de la politique de l'expert. Autrement dit, plutôt que de résoudre plusieurs fois le problème de l'optimisation d'une politique, nous ne résolvons qu'une seule fois un problème d'évaluation de politique\footnote{La résolution d'un MDP (en utilisant par exemple un algorithme d'\emph{itération de la valeur}) implique en effet de calculer de manière répétée la valeur de politiques arbitraires. Résoudre plusieurs fois le MDP pour des récompenses arbitraires est donc beaucoup plus dur que d'estimer une fois pour toutes l'attribut moyen de l'expert (sans mentionner le problème de l'apprentissage \emph{off-policy}).}. Cela amène des garanties théoriques (ce qui n'est pas le cas de tous les algorithmes d'ARI, par exemple~\cite{boularia011}). De plus, par l'utilisation d'une heuristique qui dépasse le cadre de notre analyse, il est possible à SCIRL de se contenter de données fournies par l'expert. La prochaine section présente une démonstration empirique de cela. Nous ne connaissons aucun autre algorithme d'ARI en mesure de fonctionner dans des conditions si drastiques.
 
@@ -524,10 +528,10 @@ SCIRL n'a pas besoin de résoudre le problème direct, mais uniquement d'estimer
 \section{Expériences}
 \label{sexperiments}
 
-Nous illustrons SCIRL sur un simulateur de conduite similaire à~\cite{Abbee004,Sye00ame}.  Le but est de conduire une voiture sur une autoroute à trois voies dont le traffic est généré aléatoirement (les sorties de route sont possibles des deux côtés). La voiture peut se déplacer vers la gauche ou la droite, accélérer ou ralentir et conserver sa vitesse. L'expert optimise une récompense définie par nos soins, $\R_E$, qui récompense la vitesse, punit les sorties de route, punit sévèrement les collisions et ne donne pas d'information dans les autres cas.
+Nous illustrons SCIRL sur un simulateur de conduite similaire à~\cite{Abbee004,Sye00ame}.  Le but est de conduire une voiture sur une autoroute à trois voies dont le trafic est généré aléatoirement (les sorties de route sont possibles des deux côtés). La voiture peut se déplacer vers la gauche ou la droite, accélérer ou ralentir et conserver sa vitesse. L'expert optimise une récompense définie par nos soins, $\R_E$, qui récompense la vitesse, punit les sorties de route, punit sévèrement les collisions et ne donne pas d'information dans les autres cas.
 
 Nous avons comparé SCIRL, tel qu'instancié comme décrit en
-Sec.~\ref{subseracticalApproacnstantiation}, à un classifieur non structuré (en utilisant le même algorithme de classification que celui placé au coeur de SCIRL) ainsi qu'à l'algorithme de~\cite{Abbee004} (appelé ici PIRL pour \emph{
+section~\ref{subseracticalApproacnstantiation}, à un classifieur non structuré (en utilisant le même algorithme de classification que celui placé au c{\oe}ur de SCIRL) ainsi qu'à l'algorithme de~\cite{Abbee004} (appelé ici PIRL pour \emph{
 Projection Inverse Reinforcement Learning}). Nous nous préoccupons également du comportement optimal vis-à-vis d'une récompense tirée aléatoirement (en utilisant la même paramétrisation que SCIRL et PIRL, le vecteur de paramètres est tiré selon une loi uniforme) afin de disposer d'un autre point de comparaison.
 
 Pour SCIRL et PIRL on discrétise l'espace d'état en un vecteur d'attribut pour la récompense, $\phi\in\mathbb{R}^{729}$: $9$ positions horizontales pour la voiture du joueur, $3$ positions horizontales et $9$ verticales pour la voiture la plus proche de celle du joueur et $3$ vitesses. Ces attributs sont bien moins informatifs que ceux utilisés dans~\cite{Abbee004,Sye00ame}. Les attributs de~\cite{Sye00ame} sont si informatifs que tirer aléatoirement un vecteur $\theta$ de paramètres positifs pour la récompense donne lieu à un comportement acceptable. Le facteur d'oubli est $\gamma = 0.9$. Le classifieur utilise le même vecteur d'attributs reproduit pour chaque action.
@@ -537,7 +541,7 @@ $400$ transitions). Chaque expérience est répétée 50 fois. Le classifieur ut
 la distribution uniforme (ce qui permet de tester la capacité de généralisation de chaque approche même pour des états infréquemment rencontrés), $\R_E$ étant la récompense de l'expert et $\pi$ est l'une des politiques suivantes: la politique optimale pour $\R_E$ (point de référence haut),
 la politique optimale pour une récompense aléatoire (point de référence bas), la politique optimale pour $\R_{\theta_c}$ (SCIRL), la politique produite par PIRL et la règle de décision du classifieur.
 
-\begin{figure}[fies]{Problème de la conduite. La ligne la plus haute est la valeur de l'expert. Pour chaque courbe, nous dessinons la moyenne (trait plein), l'écart-type (foncé) et les valeurs min et max (plus clair). La politique correspondant à une récompense aléatoire est en bleu, la politique retournée par le classifieur est en jaune et la politique optimale pour la récompense trouvée par SCIRL est en rouge. La ligne bleue foncée correspond à PIRL.}
+\begin{figure}[fies]{Problème de la conduite. La ligne la plus haute est la valeur de l'expert. Pour chaque courbe, nous dessinons la moyenne (trait plein), l'écart-type (foncé) et les valeurs min et max (plus clair). La politique correspondant à une récompense aléatoire occupe le bas des deux graphes, la politique retournée par le classifieur donne la courbe croissante du graphe de gauche et la politique optimale pour la récompense trouvée par SCIRL donne la courbe croissante du graphe de droite. La ligne solitaire constante à gauche correspond à PIRL.}
 \begin{minipage}[l]{0.49\linewidth}
 \centering
   \centerline{\includegraphics[width=1.2\linewidth]{fig_classif.pdf}}
@@ -548,12 +552,12 @@ la politique optimale pour une récompense aléatoire (point de référence bas)
 \end{minipage}
 \end{figure}
 
-La Fig.~\ref{fies} montre la performance de chacune des approches en fonction du nombre de transitions de l'expert utilisées (sauf pour PIRL qui a utilisé le modèle). On peut voir que le classifieur ne fonctionne pas bien sur ce problème. Augmenter le nombre de transitions améliorerait ses performances, mais après 400 transitions, il ne fonctionne pas aussi bien que SCIRL avec uniquement une dizaine de transitions. Cela illustre la pertinence d'utiliser $\mu$ et non $\phi$ dans la paramétrisation de la fonction de score, l'attribut moyen contient en effet de l’information quant à la dynamique engendrée par la politique de l’expert. SCIRL fonctionne particulièrement bien ici : après seulement une centaine de transitions il atteint les performances de PIRL. Ces deux algorithmes sont proches de la valeur de l'expert. Nous ne fournissons pas de données exactes en ce qui concerne les temps de calcul, mais faire fonctionner SCIRL une fois avec $400$ transitions en entrée est environ une centaine de fois plus rapide que de faire fonctionner PIRL pour $70$ itérations.
+La figure~\ref{fies} montre la performance de chacune des approches en fonction du nombre de transitions de l'expert utilisées (sauf pour PIRL qui a utilisé le modèle). On peut voir que le classifieur ne fonctionne pas bien sur ce problème. Augmenter le nombre de transitions améliorerait ses performances, mais après 400 transitions, il ne fonctionne pas aussi bien que SCIRL avec uniquement une dizaine de transitions. Cela illustre la pertinence d'utiliser $\mu$ et non $\phi$ dans la paramétrisation de la fonction de score, l'attribut moyen contient en effet de l’information quant à la dynamique engendrée par la politique de l’expert. SCIRL fonctionne particulièrement bien ici : après seulement une centaine de transitions il atteint les performances de PIRL. Ces deux algorithmes sont proches de la valeur de l'expert. Nous ne fournissons pas de données exactes en ce qui concerne les temps de calcul, mais faire fonctionner SCIRL une fois avec $400$ transitions en entrée est environ une centaine de fois plus rapide que de faire fonctionner PIRL pour $70$ itérations.
 %
 % (this is due to the need to repeatedly solve MDPs for PIRL).
 
 %Recall that for SCIRL the instantiation of
-%Sec.~\ref{subseracticalApproacnstantiation} is considered,
+%section~\ref{subseracticalApproacnstantiation} is considered,
 %with a single Monte-Carlo rollout for estimating
 %$\hat{\mu}^{\pi_E}(s_i,a_i)$ et using the proposed heuristic for
 %$\hat{\mu}^{\pi_E}(s_i,a\neq a_i)$, which goes beyond our analysis.
@@ -564,14 +568,16 @@ La Fig.~\ref{fies} montre la performance de chacune des approches en fonction du
 \section{Conclusion}
 \label{seonclusion}
 
-Nous avons introduit une nouvelle approche de résolution du problème de l'ARI en structurant un classifieur à fonction de score linéairement paramétrée avec une estimée de l'attribut moyen de l'expert. Il renvoie une fonction de récompense pour laquelle nous avons montré que l'expert est quasi-optimal, pour peu que l'erreur de classification soit faible et que l'estimation de l'attribut moyen de l'expert soit bonne. Des méthodes pratiques pour l'estimation de cette grandeur ont été présentées et nous avons introduit une heuristique pour le cas où les seules données disponibles proviennent de l'expert, ainsi qu'une instanciation spécifique de l'algorithme SCIRL. Nous avons exhibé, grâce à un simulateur de conduite sur autoroute, que l'approche proposée fonctionne bien (même combinée à l'heuristique discutée), bien mieux qu'un classifieur non structuré et aussi bien que la méthode de l'état de l'art qui avait accès au modèle (et avec un coût computationel moindre). Nous prévoyons de poursuivre notre analyse des propritétés théoriques de SCIRL (notamment en vue de l'utilisation avec des heuristiques) et l'appliquer à des problèmes robotiques réels.
+Nous avons introduit une nouvelle approche de résolution du problème de l'ARI en structurant un classifieur à fonction de score linéairement paramétrée avec une estimée de l'attribut moyen de l'expert. Il renvoie une fonction de récompense pour laquelle nous avons montré que l'expert est quasi optimal, pour peu que l'erreur de classification soit faible et que l'estimation de l'attribut moyen de l'expert soit bonne. Des méthodes pratiques pour l'estimation de cette grandeur ont été présentées et nous avons introduit une heuristique pour le cas où les seules données disponibles proviennent de l'expert, ainsi qu'une instanciation spécifique de l'algorithme SCIRL. Nous avons exhibé, grâce à un simulateur de conduite sur autoroute, que l'approche proposée fonctionne bien (même combinée à l'heuristique discutée), bien mieux qu'un classifieur non structuré et aussi bien que la méthode de l'état de l'art qui avait accès au modèle (et avec un coût computationnel moindre). Nous prévoyons de poursuivre notre analyse des propritétés théoriques de SCIRL (notamment en vue de l'utilisation avec des heuristiques) et de l'appliquer à des problèmes robotiques réels.
 
 %\acknowledgements{Ces travaux ont été en partie financés par le projet EU FP7 ILHAIRE (Bourse
 %n\degree 270780), par le projet EU INTERREG IVa  ALLEGRO et par la Région
 %Lorraine (France).}
 
-\newpage
+%\newpage
 %\small
+
+\renewcommand\bibname{Bibliographie}
 \bibliography{scirl_ria.bib}
 
 \end{document} 
