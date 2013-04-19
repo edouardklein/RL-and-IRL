@@ -1,0 +1,365 @@
+#+TITLE:Addressing the reviewer's remarks on submission MACH1431
+#+OPTIONS: toc:nil
+#+AUTHOR: Edouard Klein, Bilal Piot, Matthieu Geist and Olivier Pietquin
+
+#+LaTeX_HEADER:\usepackage{tikz}
+#+LaTeX_HEADER:\usepackage{framed}
+#+LaTeX_HEADER:\usepackage{color}
+#+LaTeX_HEADER:\definecolor{shadecolor}{rgb}{0.7421875,0.7421875,0.7421875}
+#+LaTeX_HEADER: \usepackage{yfonts} % or any other font package (or none)
+#+LaTeX_HEADER:  \newcommand*\quotefont{\fontfamily{swab}} % selects Libertine for quote font
+#+LaTeX_HEADER:  % Make commands for the quotes
+#+LaTeX_HEADER:\newcommand*{\openquote}{\tikz[remember picture,overlay,xshift=-15pt,yshift=-10pt]
+#+LaTeX_HEADER:     \node (OQ) {\quotefont\fontsize{100}{100}\selectfont``};\kern0pt}
+#+LaTeX_HEADER:\newcommand*{\closequote}{\tikz[remember picture,overlay,xshift=15pt,yshift=10pt]
+#+LaTeX_HEADER:     \node (CQ) {\quotefont\fontsize{100}{100}\selectfont''};}
+
+
+
+#+LaTeX_HEADER:\makeatletter
+#+LaTeX_HEADER:\newif\if@right
+#+LaTeX_HEADER:\def\shadequote{\@righttrue\shadequote@i}
+#+LaTeX_HEADER:\def\shadequote@i{\begin{snugshade}\begin{quote}\openquote}
+#+LaTeX_HEADER:\def\endshadequote{%
+#+LaTeX_HEADER:  \if@right\hfill\fi\closequote\end{quote}\end{snugshade}}
+#+LaTeX_HEADER:\@namedef{shadequote*}{\@rightfalse\shadequote@i}
+#+LaTeX_HEADER:\@namedef{endshadequote*}{\endshadequote}
+#+LaTeX_HEADER:\makeatother
+
+
+We would like to thank all the reviewers for their advice and remarks. 
+#+begin_shadequote
+Reviewer #1: Summary:
+
+I think this paper merits a conference acceptance, but not a journal
+acceptance as is -- major revisions are required as outlined in my
+comments to bring the paper up to journal quality.  Hence I recommend
+to reject and encourage the authors to resubmit this work for
+future consideration of publication as a journal article.
+
+The paper introduces a rather ingenious method for performing inverse
+reinforcement learning by first learning a policy classifier and then
+inverting this to solve for the immediate reward.  I have found
+previously proposed optimization solutions to IRL to be quite
+unsatisfying (numerous questionable constraints are often added to
+avoid degenerate solutions) and this is the first work *I've seen*
+that gives an elegant and intuitively justified solution to the IRL
+problem that does not require solving the underlying MDP and is
+further backed up by a nice theoretical investigation (albeit an
+investigation that may be considered incremental given a somewhat
+similar analysis by the authors in NIPS 2012).
+
+[MAJOR] Unfortunately, the experimental results in the paper appear
+rushed and incomplete and prevent me from accepting this as a journal
+article -- the authors only offer one domain with quantitative
+comparison to competing approaches and have not clearly shown that
+their method offers an empirical advantage over the state-of-the-art
+(SCIRL from their NIPS 2012 work).
+
+Detailed Comments: (points are MINOR unless marked MAJOR)
+
+Page numbers correspond to those on pages themselves (not PDF reader).
+
+p3,l11: odd notation for gamma, do you mean (0,1) or [0,1]?
+
+p3,l19: Aren't their more requirements on the transition/policy for
+the stationary distribution to exist?  E.g., irreducible, positive
+recurrent?
+
+p4,l42-44: Confusing to use term "label" for action... just directly
+say that the classifier predictions actions given a state.
+
+p5,Eq (5): This would be SARSA, right?  If so, please mention this.
+It seems to me that this is a key insight that others have missed...
+you need a way to invert the reward function for all states, but you
+also have to make use of the policy -- manipulating the SARSA Q-update
+provides all of the necessary ingredients whereas a direct value
+update as in standard TD value-based approaches (directly learning V)
+would not be appropriate.  It be worth highlighting these
+ideas/insights more.
+
+p5,Eq (6): This is a nice way to do avoid direct approximation of
+the transition... but it begs the question of whether more
+sample-efficient methods like those used in LSTD Q-learning would
+apply here (or are implicit).
+
+p6,l27: spelling "respectively"
+
+p6-8: This is nice theory, although apparently incrementally building
+on the previous NIPS 2012 paper by the authors in citation [5].  Are
+there major insights here not present in the NIPS 2012 paper?
+
+Two additional comments:
+
+- p6, l31-38, it would be good to explain more what $C_*$ means and how
+it will be used in the proof... on an initial read, it seems to be a
+rather curious definition without clear relation to the forthcoming
+proof.
+
+- p7, l42 & l49: please clarify the reason why the substitution can be
+made on the rightmost inequality.
+
+- p9, l14-18: I fully agree... because this work is not taking an
+optimization (requiring an MDP-solving subroutine) approach like most
+previous work and instead leveraging highly scalable off-the-shelf
+regressors and classifiers (e.g., those that may be found in amazing
+packages like LibLinear), one would expect this work to be highly
+scalable.  I think it is important to foreshadow here how this work
+differs from previous IRL approaches -- I know it will be discussed
+later in Related Work.
+
+[MAJOR] Section 5, Experiments: The spelling, language, and technical
+writing quality is *very poor* here compared to the previous parts of
+the paper -- the authors need to carefully revise this section before
+publication.
+
+- p9, l41-47: The method you've defined is model-free... why are you
+arguing for it here?  You have not defined an alternate method that
+could make use of the model even if it had been given.  This
+discussion confuses me.
+
+- p10, Section 5.1.2: I don't understand this section -- a specific
+example would help in interpreting the math and the reason why this
+trick is useful (aside from empirical evidence that it works).
+
+- p11, l1-2: Huh?  Provide a fair comparison between what algorithm?
+
+[MAJOR] - p12, It is insufficient and inappropriate to claim results
+without actually showing them.  Further, showing quantitative analysis
+on only one problem is insufficient empirical evaluation of a new
+algorithm claimed to be better than existing approaches -- one should
+not attempt to generalize from one example.
+
+- p13, Figure 1: The experiments and plots are informative although
+the layout here is poor... please increase the size of the graphs to
+make use of the available space and increase the axis label font size
+so they can actually be read.
+
+- p14, Line 31: What is PIRL?  It is discussed here as if it had
+aleady been discussed in detail.
+
+- p16, Figure 2: These plots are difficult to read (impossible if
+printed in B&W).  Please plot error bars rather than semitransparent
+filled bars and use different markers / linestyles to differentiate
+algrotihms.
+
+[MAJOR] - p16: It is important to note that in the only quantitative
+comparison of results, SCIRL outperforms CSI (the contribution of this
+paper), hence it is not possible to argue that this paper has improved
+the state-of-the-art.  Later in Related Work, the authors argue that
+CSI is more convenient than SCIRL, but these advantages must be
+empirically demonstrated on multiple domains if this work is to
+achieve the quality required for journal publication.
+
+- p16, l45: What is AL?  This is undefined!
+
+
+
+
+Reviewer #2: A cascaded supervised learning approach to inverse reinforcement
+learning
+------------------------------------------------------------------
+
+In this paper the authors propose a two phase approach to discovering
+the underlying reward function of an MDP given an expert
+trajectory. First, they train a multiclass classifier to output
+actions in the expert trajectory at the given states. Then they take a
+score associated with the classifier's confidence and treat it as a
+"Q-value." They collect another dataset corresponding to (random)
+transitions in the MDP. Using the classifier's output and the putative
+"Q-values", they construct an estimated reward function using
+regression. They show that the given expert policy is near optimal
+with respect to the produced reward function, assuming reasonable
+classifiers and regressor functions. they show two results on inverted
+pendulum and highway driving for this approach.
+
+First I will say that I like the general approach. It is simple and
+easy to understand, and intuitively plausible. With some modifications
+as suggested below this will be a solid contribution.
+
+However, this paper also makes me uneasy. In NIPS 2012 (December
+2012), these authors have published a paper along very similar lines
+(citation 5). This current work is a strict generalization of that
+work in the sense that the NIPS approach was restricted to linear Q/R
+functions, and the current one is not. In fact, if the current one is
+restricted to linear functions as done by the authors in the
+experiments it produces about the same behavior in their single
+comparison experiment as their NIPS work (Fig 2c). Even the proofs
+etc have a very similar flavor. This really makes me wonder why the
+authors chose to publish the NIPS paper, which they knew was basically
+superseded even before the conference (this paper was submitted before NIPS was
+held). I recommend the authors avoid this sort of gamesmanship in
+future, it is not good scholarship.
+
+For this paper, two issues need to be addressed before publication. A
+minor though pervasive issue is a very large number of language
+problems, including numerous spelling errors. Please run a
+spell-checker and have a native English speaker read
+it before submission. The second, larger issue concerns the
+experiments, which are very weak. The authors claim in each case that
+their approach learns good reward functions after 300 and 100 (!!) samples
+respectively. They conclude this is because of the algorithm. It is
+much more likely to me that this reflects the simplicity of the
+domains, which are too trivial to conclude anything very
+meaningful. Several factors need to be explored here:
+(i) Run the algorithm with more complex and realistic, non-toy
+domains, with more realistic reward functions.
+(ii) Since the main advantage of this approach over the NIPS work is
+the nonlinearity, at least one experiment needs to demonstrate this
+aspect using a domain with rewards nonlinear in the feature space.
+(iii) More baselines need to be implemented and compared. The authors
+attempt to avoid this by saying the other approaches require "solving MDPs,"
+which is undesirable. While this may certainly be a point in favor of this
+work, it is still not a reason to leave out these methods from an
+empirical comparison. They may be more computationally expensive, but
+maybe they also produce better results? Please implement at least
+baselines from citations 2 and 3. 3 seems especially relevant because in these
+experiments the authors also use linear approximations.
+
+To summarize, in general I like this work. However the weak
+experiments need to be improved and the language issues need to be
+fixed. Also I hope the authors are not planning another paper next
+month at a different conference that has a tweak that will make this
+one useless.
+
+
+Reviewer #3:
+
+Summary: This paper addresses the problem of inverse reinforcement learning,
+namely extracting the reward function of an MDP from trajectories of an
+optimal policy. The problem is reduced to two steps. First a score-function
+-based multi-class classifier is learned which is consistent with the
+expert trajectories. The scores of the classifier are interpreted as the
+Q-values, which are converted into examples of reward function via the
+Bellman equation on a separate dataset. A reward function is then
+learned by regression. This method avoids the repetitive solution of
+MDPs as was done in previous approaches to IRL. Empirical results show that
+the method works competitively with the other approches such as SCIRL.
+
+Recommendation: Major revisions needed for publication.
+
+Main comments:
+The approach described is interesting and novel. The theoretical results
+show that the optimal value function for the reward function output by the
+method  is close to the value function of the expert's policy on the
+stationary distribution of the expert's policy. Except for some minor
+missing steps (see below), the theory appears sound and relevant.
+
+The empirical results are quite weak, however. First, there are only two
+domains. The results on the cart-pole domain are only qualitatively
+discussed. The driving domain is more thorough. However, the results
+appear to be no better than the authors's previous work on SCIRL. I
+believe that the paper is not publishable in the Machine Learning journal
+without significantly stronger results in multiple domains.
+
+A final weakness is that the intution behind the algorithm and its
+relationship to previous work are not thoroughly discussed. It is not
+clear how the MDP is solved through "dynamic programming" since the transition
+dynamics is not known. Or is it known? If it is known, why do you say that
+this is the only method other than SCIRL that only uses the expert
+trajectories. Secondly, why exactly does this method perfom better than
+the initial classifier? Since the initial classifier is learned from the
+stationary distribution of the expert policy, doesn't the theory predict
+that it should have less error than the reward function-based policy on
+that distribution?
+
+There are also several other pieces of work on inverse RL, e.g.
+Bayesian inverse RL by Ramachandran and Amir; Maximum Entropy Inverse
+RL Ziebert, Maas, Bagnell, and Dey that deserve a discussion. Finally
+some recent papers on apprenticeship learning, e.g., Babes, Marivate,
+Subramanian, and Littman might also be relevant.
+
+The paper is well-written except that there are many small typos and
+wording defects.
+
+Detailed comments
+-------------------
+Abstract and elsewhere. The phrase "up to the use of some heuristics" is
+not common and unclear. Perhaps saying "using some domain-independent
+heuristics" might be better.  
+
+Page 2. "Discovering it removes the coupling between understanding .."
+Awkward sentence. Perhaps moving "that exists in AL" to after "coupling"
+reads better.
+
+"optimal for the related reward function" -> "... corresponding reward
+function"
+
+"associated to the score function" -> "associated with the score
+function"
+
+"from expert and non-experts policies" -> "expert and non-expert policies"
+
+"exposed in Sec 6" -> "discussed in Sec 6"
+
+Page 3. Change " notations" to "notation" in all pages.
+"note Delta_X -> "denote with Delta_x"
+
+Here and elsewhere I assume the T in $X^T_\pi$ is for transpose. Please
+have a footnote to clarify.
+
+Page 4. "matricial representations" -> "matrix representations"
+"lots of progress have been made" -> "a lot of progress has been made"
+
+Page 5. "transitionned" should not have two n's.
+"Action a_j needs not be chosen" -> "... need not be chosen"
+
+The need for D_R separate fro D_C should be better motivated. What is
+the problem here in using D_C alone? What kind of properties should
+D_C have? For example what if it is a separate set of trajectories by the
+same expert, or some other expert? It is not clear what os required of it
+and why.
+
+You argue that the transition dynamics is not available in D_R; however
+transition dynamics is not needed to act - the so called model-free learning
+does fine without knowing the rewards or transition dynamics. What is
+the rationale for learning them. Is it only useful in ceratin domains?
+Please elaborate this point since it is crucial to understand the
+philosphy of inverse RL and why it does better than the classification
+learning alone.
+
+Explain the intuitive meaning of concentration coefficient. Why is it
+needed and what is its role?
+
+Page 7. Missing step. In the end of the page, you seem to be using the
+fact that: $\epsilon_{\pi_e}^R \leq \epsilon_\pi^R C_\pi$
+
+Why is this true?
+
+Page 8. I did not follw the two steps following
+"Finally we also have" ...
+
+"term term" occurs in the next line. Also gamma was dropped in this line
+from the previous line.
+
+Page 9. "litterature" -> "literature"
+
+Page 10. "by using a heuristics" -> "by using a heuristic"
+Hasn't this or something similar  been used in prior work?
+
+Page 11. instanciation -> instantiation
+
+Page 12. Several typos in thi spage. "pendule", "eature" etc.
+
+It is not clear how the final reward is optimized through DP. What DP?
+Exact? Approximate? value iteration? policy iteration? LSPI? Don't you need
+the transition function to do this? How do you do this with large or
+continuous state spaces?
+
+It would be good to also see the Q-values learned from the expert's policy
+in Figure 1.
+
+The final results are underwhelming because you were not able to do better
+than the previous best algorithm. More experiments are needed to prove the
+value of this method. It is also not adequately explained by you perform
+so much better than the policy learned from the expert trajectories.
+
+Page 17. "This requires sampling trajectories accotding to a non-expert
+policy and the direct problem remains at the core of the approach (even
+solving it is avoided)"
+
+I can't understand this sentence. Please rewrite more simply.
+
+"provided the use of simple heuristics" -> "given a few simple heuristics"
+#+end_shadequote
+
