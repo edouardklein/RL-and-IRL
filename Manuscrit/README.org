@@ -1,0 +1,5 @@
+* File list
+  - main.org : Master file of the manuscript
+  - OrgMode.dict : Hunspell private dictionary for org-mode commands
+  - Jargon.dict : Hunspell private dictonary for correct words in French that non researcher don't know about
+

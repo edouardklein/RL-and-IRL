@@ -1,7 +1,45 @@
 #+TITLE:Plan
+
 # (setq org-export-latex-hyperref-format "\\ref{%s}")
-# #+LaTeX_CLASS: report 
+#+LaTeX_CLASS: article 
+#+LaTeX_CLASS_OPTIONS: [frenchb] 
 #+LATEX_HEADER: \usepackage{natbib}
+#+LaTeX_header:\usepackage[utf8]{inputenc}
+#+LaTeX_header:\usepackage[T1]{fontenc}
+#+LaTeX_header:\usepackage{babel}
+#+LaTeX_header:\usepackage[xindy,toc,acronym,nomain]{glossaries}
+#+LaTeX_header:\newglossary[angl]{anglicisme}{aot}{atn}{Anglicismes}
+#+LaTeX_header:\newcommand{\newangl}[3]{\newglossaryentry{#1}{type=anglicisme,name={\emph{#2}},description={#3}}}
+#+LaTeX_header:\makeglossaries
+
+#+LaTeX_header:\newacronym{mdp}{PDM}{Processus Décisionnel de Markov}
+#+LaTeX_header:\newacronym{irl}{ARI}{Apprentissage par Renforcement Inverse}
+#+LaTeX_header:\newacronym{dp}{PD}{Programmation Dynamique}
+#+LaTeX_header:\newacronym{rl}{AR}{Apprentissage par Renforcement}
+#+LaTeX_header:\newacronym{lspi}{LSPI}{\emph{Least Square Policy Iteration}}
+#+LaTeX_header:\newacronym{pirl}{PIRL}{\emph{Projection Inverse Reinforcement Learning}, algorithme proposé dans \cite{abbeel2004apprenticeship}}
+#+LaTeX_header:\newacronym{mmp}{MMP}{\emph{Maximum Margin Planning}}
+#+LaTeX_header:\newacronym{pm}{PM}{\emph{Policy Matching}}
+#+LaTeX_header:\newacronym{mwal}{MWAL}{\emph{Multiplicative Weights for Apprenticeship Learning}}
+#+LaTeX_header:\newacronym{maxent}{MaxEnt}{\emph{Maximum Entropy}}
+#+LaTeX_header:\newacronym{relent}{RelEnt}{\emph{Relative Entropy}}
+#+LaTeX_header:\newacronym{lpal}{LPAL}{\emph{Linear Programming for Apprenticeship Learning}}
+#+LaTeX_header:\newacronym{birl}{BIRL}{\emph{Bayesian Inverse Reinforcement Learning}}
+#+LaTeX_header:\newacronym{gpirl}{GPIRL}{\emph{Gaussian Processes Inverse Reinforcement Learning}}
+#+LaTeX_header:\newacronym{firl}{FIRL}{\emph{Feature Inverse Reinforcement Learning}}
+#+LaTeX_header:\newacronym{irlgp}{FIRL}{\emph{Inverse Reinforcement Learning with Gaussian Processes}}
+#+LaTeX_header:\newacronym{lstdmu}{LSTD-$\mu$}{\emph{Least Square Tenporal Differences feature expectations}}
+#+LaTeX_header:\newacronym{lstd}{LSTD}{\emph{Least Square Tenporal Differences}}
+#+LaTeX_header:\newacronym{scirl}{SCIRL}{\emph{Structured Classification for Inverse Reinforcement Learning}}
+#+LaTeX_header:\newacronym{cascading}{CSI}{\emph{Cascaded Supervised learning for Inverse reinforcement learning}}
+
+#+LaTeX_header:\newangl{batch}{batch}{Par paquet}
+#+LaTeX_header:\newangl{offpolicy}{off-policy}{Hors ligne}
+#+LaTeX_header:\newangl{gridworld}{gridworld}{Echiquier, damier}
+#+LaTeX_header:\newangl{rewardshaping}{reward shaping}{Transformation de la récompense ne changeant pas les politiques optimales}
+#+LaTeX_header:\newangl{mixing}{mixing}{Mixante}
+#+LaTeX_header:\newangl{boosting}{boosting}{Ajout de nouveaux attributs}
+
 * TAF :noexport:
 ** TODO Articuler les parties problème jouets
 * Axe de recherche
@@ -10,112 +48,114 @@
 *** Intérêt intrinsèque
     Approches économiques, biologiques ou psychologiques.
 *** Imitation
-    Cadre général de  l'imitation, mentionner ici les approches sans formalisme MDP, si il y en a qu'il est pertinent de mentionner.
+    Cadre général de  l'imitation, mentionner ici les approches sans formalisme \gls{mdp}, si il y en a qu'il est pertinent de mentionner.
 ** Annonce du plan
 * Formalisme mathématique, notations
-** Imitation non-ARI
+** Imitation non \gls{irl}
+#<<hier:nonari>>
    Introduire état/action et politique, sans probabilités de transitions.
 
-   La classification permet d'apprendre par coeur la politique de l'expert. On ne se soucie pas de la structure temporelle du problème. Les capacités de généralisation du classifieur peuvent néanmoins deviner la structure de la politique si elle est simple.
+   La classification permet d'apprendre par cœur la politique de l'expert. On ne se soucie pas de la structure temporelle du problème. Les capacités de généralisation du classifieur peuvent néanmoins deviner la structure de la politique si elle est simple.
 
    Décrire \cite{ratliff2007imitation}.
-** Cadre des PDMs pour la prise de décision séquentielle
-   Probabilités de transitions, fonction de récompense, fonction de valeur, politique optimale. Dynamic programming.
+** Cadre des \glspl{mdp} pour la prise de décision séquentielle
+   Probabilités de transitions, fonction de récompense, fonction de valeur, politique optimale. \gls{dp}.
 
-   Approximation de la fonction de valeur, AR. L'AR permettant d'apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le DP, comme la possiblilité de s'adapter à un milieu changeant par exemple.
+   Approximation de la fonction de valeur, \gls{rl}. L'\gls{rl} permettant d'apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le \gls{dp}, comme la possibilité de s'adapter à un milieu changeant par exemple.
 
-   Pour appliquer l'AR au monde réel, il est pratique d'exploiter efficacement les échantillons. Les échantillons sont très faciles à obtenir si on dispose d'un simulateur, et sont les seules données accessible sur certains systèmes. Pouvoir les exploiter en /batch/ et /off-policy/ permet de contrôler beaucoup de types de systèmes différents (qui peut le plus peut le moins). LSPI \cite{lagoudakis2003least}.
-** Définition de l'ARI
+   Pour appliquer l'\gls{rl} au monde réel, il est pratique d'exploiter efficacement les échantillons. Les échantillons sont très faciles à obtenir si on dispose d'un simulateur, et sont les seules données accessible sur certains systèmes. Pouvoir les exploiter en \gls{batch} et \gls{offpolicy} permet de contrôler beaucoup de types de systèmes différents (qui peut le plus peut le moins). \gls{lspi} \cite{lagoudakis2003least}.
+** Définition de l'\gls{irl}
 *** Définition du problème
-   Cette section pose les notations qu'on utilisera dans tous le manuscrit, on ne cite pas l'état de l'art tout de suite (puisque les notions et notations entrent parfois en conflit, notamment en ce qui concerne l'attribut moyen) cela est reporté au chapitre d'après. Il s'agit de donner les acteurs et de préciser le problème que l'on résoud, on ne rentre pas dans la description des problèmes qu'on va rencontrer tout de suite. C'est une section assez courte mais plutôt dense.
+   Cette section pose les notations qu'on utilisera dans tous le manuscrit, on ne cite pas l'état de l'art tout de suite (puisque les notions et notations entrent parfois en conflit, notamment en ce qui concerne l'attribut moyen) cela est reporté au chapitre d'après. Il s'agit de donner les acteurs et de préciser le problème que l'on résout, on ne rentre pas dans la description des problèmes qu'on va rencontrer tout de suite. C'est une section assez courte mais plutôt dense.
 
-   Dans le cadre de l'AR, trouver la consigne à partir du contrôle devient l'ARI. Il s'agit de retrouver la fonction de récompense à partir d'une politique optimale.
+   Dans le cadre de l'\gls{rl}, trouver la consigne à partir du contrôle devient l'\gls{irl}. Il s'agit de retrouver la fonction de récompense à partir d'une politique optimale.
 
-   Nuances importantes : le MDP est un modèle qui a des limites. Il faut que les états soient markoviens, il faut en pratique que l'espace d'action ne soit pas trop large, on suppose que l'expert agit optimalement pour une récompense sur ce MDP. Il faut donc que l'expert agisse effectivement optimalement (un humain peut faire des erreurs) et que la fonction de récompense existe, et soit exprimable sur l'espace d'état etc. Le problème qu'on étudie est bien celui de trouver la fonction de récompense (qui existe) d'un expert (qui est vraiment optimal).
+   Nuances importantes : le MDP est un modèle qui a des limites. Il faut que les états soient markoviens, il faut en pratique que l'espace d'action ne soit pas trop large, on suppose que l'expert agit de manière optimale pour une récompense sur ce MDP. Il faut donc que l'expert agisse effectivement de manière optimale (un humain peut faire des erreurs) et que la fonction de récompense existe, et soit exprimable sur l'espace d'état etc. Le problème qu'on étudie est bien celui de trouver la fonction de récompense (qui existe) d'un expert (qui est vraiment optimal).
 
 *** Attribut moyen
-    L'approximation linéaire de la fonction de récompense induit (par le biais de la fonction de valeur) l'apparition de l'attribut moyen. C'est, comme nous allons le voir au chapitre suivant, une notion centrale en renforcement inverse. C'est un fonction vectorielle qui porte la structure temporelle du MDP (illustrer graphiquement sur le gridworld, par exemple).
+    L'approximation linéaire de la fonction de récompense induit (par le biais de la fonction de valeur) l'apparition de l'attribut moyen. C'est, comme nous allons le voir au chapitre suivant, une notion centrale en renforcement inverse. C'est un fonction vectorielle qui porte la structure temporelle du MDP (illustrer graphiquement sur le \gls{gridworld}, par exemple).
 
-    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelque soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le gridworld, passage en haut à gauche et passage en bas à droite).
-* Etat de l'art et problématique
+    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelque soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
+* État de l'art et problématique
 ** Fonction de récompense
 
-   Récompense état ou état-action ? En changeant l'espace d'état, les deux sont équivalents. Le reward shaping \cite{ng1999policy} étudie les changements que l'on peut appliquer à une récompense sans changer les politiques optimales.
+   Récompense état ou état-action ? En changeant l'espace d'état, les deux sont équivalents. Le \gls{rewardshaping}   \cite{ng1999policy} étudie les changements que l'on peut appliquer à une récompense sans changer les politiques optimales.
 
 ** Premières formulation du problème
-   Mentionné pour la première fois dans \cite{russell1998learning}. La formulation informée du problème \cite{ng2000algorithms} n'est pas bien posée. Deux solutions sont malgré tout proposées dont une fait déjà usage de l'attribut moyen, mais pas sous ce nom. La solution informée n'est pas celle qui nous intéresse pour les mêmes raisons qui nous font préférer l'AR au DP (voir plus haut). La solution approchée est également problématique (FIXME:précisier pourquoi exactement).
+   Mentionné pour la première fois dans \cite{russell1998learning}. La formulation informée du problème \cite{ng2000algorithms} n'est pas bien posée. Deux solutions sont malgré tout proposées dont une fait déjà usage de l'attribut moyen, mais pas sous ce nom. La solution informée n'est pas celle qui nous intéresse pour les mêmes raisons qui nous font préférer l'\gls{rl} au DP (voir plus haut). La solution approchée est également problématique (FIXME:préciser pourquoi exactement).
 
-   Détail important : dans l'AR, on cherche le point fixe d'un opérateur attractif, il existe une solution et elle est unique. Dans l'ARI la solution n'est pas unique et il existe des solutions dégénérées. Résoudre le problème de l'ARI risque donc de s'avérer plus complexe que de résoudre le problème de l'AR.
+   Détail important : dans l'\gls{rl}, on cherche le point fixe d'un opérateur attractif, il existe une solution et elle est unique. Dans l'\gls{irl} la solution n'est pas unique et il existe des solutions dégénérées. Résoudre le problème de l'\gls{irl} risque donc de s'avérer plus complexe que de résoudre le problème de l'\gls{rl}.
 
 ** Méthodes nécessitant la résolution répétée d'un MDP
-   \cite{abbeel2004apprenticeship} propose PIRL, un algorithme qui sert de base à beaucoup d'autres solutions par la suite. L'idée est, par itérations successives sur la récompense, de rapprocher l'attribut moyen de l'agent et celui de l'expert. Pour une certaine notion de distance entre attributs moyens.  Cette approche fondatrice impose cependant des contraintes assez fortes :
+   \cite{abbeel2004apprenticeship} propose \gls{pirl}, un algorithme qui sert de base à beaucoup d'autres solutions par la suite. L'idée est, par itérations successives sur la récompense, de rapprocher l'attribut moyen de l'agent et celui de l'expert. Pour une certaine notion de distance entre attributs moyens.  Cette approche fondatrice impose cependant des contraintes assez fortes :
    - il faut de manière répétée résoudre un MDP
    - il faut de manière répétée estimer l'attribut moyen d'une politique arbitraire et de la politique experte
-   - la sortie est une politique avec du $\beta$-mixing, pas une récompense
+   - la sortie est une politique avec du $\beta$\gls{mixing}, pas une récompense
 
      
-   \cite{ratliff2006maximum} propose MMP, une approche dont on peut tordre la formulation pour la comparer à PIRL \cite{neu2009training}, mais qui associe non pas des états à des actions mais des politiques à des MDP. Cela pose encore d'autres problèmes comme la nécessité de résoudre de multiples MDPs de manière tractable, et de formuler le problème du contrôle non pas comme un MDP, mais comme de multiples MDPs "compatibles" entre eux. Cet algorithme peut apprendre des attributs par boosting \cite{ratliff2007boosting}.
+   \cite{ratliff2006maximum} propose \gls{mmp}, une approche dont on peut tordre la formulation pour la comparer à \gls{pirl} \cite{neu2009training}, mais qui associe non pas des états à des actions mais des politiques à des MDP. Cela pose encore d'autres problèmes comme la nécessité de résoudre de multiples \glspl{mdp} de manière tractable, et de formuler le problème du contrôle non pas comme un MDP, mais comme de multiples \glspl{mdp} "compatibles" entre eux. Cet algorithme peut apprendre des attributs par \gls{boosting} \cite{ratliff2007boosting}.
 
-   La technique proposée dans \cite{neu2007apprenticeship} (Policy Matching) est plus robuste que celles décrites jusqu'à présent aux changements d'échelles des attributs ou au bruit dans les attributs. Elle souffre des même types de contraintes que PIRL ; comme PIRL, elle raisonne sur des politiques et non sur des récompenses.
+   La technique proposée dans \cite{neu2007apprenticeship} (\gls{pm}) est plus robuste que celles décrites jusqu'à présent aux changements d'échelles des attributs ou au bruit dans les attributs. Elle souffre des même types de contraintes que \gls{pirl} ; comme \gls{pirl}, elle raisonne sur des politiques et non sur des récompenses.
 
-   Basé sur la théorie des jeux, l'algorithme MWAL de \cite{syed2008game} tombe sur un os[fn::Os à MWAL, haha.]. Plus rapide à l'exécution que PIRL et capable de gérer la non optimalité de l'expert, il exige cependant énormément de connaissances à priori sur le problème : il faut que le vecteur de paramètres de l'approximation de la récompense soit positif. Il souffre des mêmes soucis de résolution répétée du MDP et d'estimation de l'attribut moyen que PIRL. Ce papier mentionne les problèmes liés aux raisonnements sur des politiques mixées et non des récompenses, sans pour autant les résoudre explicitement.
+   Basé sur la théorie des jeux, l'algorithme \gls{mwal} de \cite{syed2008game} tombe sur un os[fn::Os à \gls{mwal}, humour.]. Plus rapide à l'exécution que \gls{pirl} et capable de gérer la non optimalité de l'expert, il exige cependant énormément de connaissances à priori sur le problème : il faut que le vecteur de paramètres de l'approximation de la récompense soit positif. Il souffre des mêmes soucis de résolution répétée du MDP et d'estimation de l'attribut moyen que \gls{pirl}. Ce papier mentionne les problèmes liés aux raisonnements sur des politiques mixées et non des récompenses, sans pour autant les résoudre explicitement.
 
-   Ce travail est étendu dans \cite{syed2008apprenticeship}, en formulant la résolution du MDP comme un programme linéaire, on peut trouver une politique stationnaire, sans mixing dans PIRL et MWAL. En formulant l'ARI comme un programme linéaire également, les auteurs trouvent LPAL, qui retourne un politique (non une récompense). La formulation de ce programme linéaire met en jeu des grandeurs qui correspondent à l'attribut moyen de politiques optimales pour des récompenses arbitraires.
+   Ce travail est étendu dans \cite{syed2008apprenticeship}, en formulant la résolution du MDP comme un programme linéaire, on peut trouver une politique stationnaire, sans \gls{mixing} dans \gls{pirl} et \gls{mwal}. En formulant l'\gls{irl} comme un programme linéaire également, les auteurs trouvent \gls{lpal}, qui retourne un politique (non une récompense). La formulation de ce programme linéaire met en jeu des grandeurs qui correspondent à l'attribut moyen de politiques optimales pour des récompenses arbitraires.
 
-   MaxEnt de \cite{ziebart2008maximum} raisonne également sur les récompenses et non les politiques. La formulation probabilistique de la méthode est intéressante et donne un critère (l'entropie) pour choisir entre deux politiques qui jusqu'à présent étaient équivalentes (même valeur ou même attribut moyen). Structurellement, cependant, les mêmes défauts réapparaissent. Le calcul des quantités en jeu implique toujours la résolution répétée d'un MDP et l'estimation de l'attribut moyen de politiques arbitraire.
+   \gls{maxent} de \cite{ziebart2008maximum} raisonne également sur les récompenses et non les politiques. La formulation probabiliste de la méthode est intéressante et donne un critère (l'entropie) pour choisir entre deux politiques qui jusqu'à présent étaient équivalentes (même valeur ou même attribut moyen). Structurellement, cependant, les mêmes défauts réapparaissent. Le calcul des quantités en jeu implique toujours la résolution répétée d'un MDP et l'estimation de l'attribut moyen de politiques arbitraire.
 
-   Une approche bayesienne (BIRL) de \cite{ramachandran2007bayesian} (et curieusement donnant le même algorithme qu'une approche non officiellement ARI et plus ancienne, \cite{chajewska2001learning}) diffère dans l'exposition du raisonnement, mais reste très similaire dans l'implémentation, puisqu'il faut toujours calculer des politiques optimales et obtenir des échantillons de cette politique (pour calculer des postérieurs bayésiens et non plus des attributs moyens).
+   Une approche bayésienne (\gls{birl}) de \cite{ramachandran2007bayesian} (et curieusement donnant le même algorithme qu'une approche non officiellement \gls{irl} et plus ancienne, \cite{chajewska2001learning}) diffère dans l'exposition du raisonnement, mais reste très similaire dans l'implémentation, puisque'il faut toujours calculer des politiques optimales et obtenir des échantillons de cette politique (pour calculer des postérieurs bayésiens et non plus des attributs moyens).
 
-   La plupart de ces approches sont résumées dans \cite{neu2009training}. Ces différentes contributions ont le mérite d'observer le problème sous plusieurs angles, de se placer aux limites du problème (expert non optimal, attributs bruités, etc.) et d'aborder des questions fondamentales (notion de distance entre politiques ou récompenses). Le manque d'harmonisation du domaine de l'ARI (encore jeune) se fait sentir. Chacun redéfinit le problème à sa manière. Toutes ces approches sont malgrès cela structurellement très similaires (résolution répétée de MDP et approximation de l'attribut moyen). Les approches les plus tardives font apparaître les difficultés soulevées par la recherche d'un politique mixée, d'une politique au lieu d'une récompense, de l'absence d'un critère commun, de la résolution répétée du MDP et de l'approximation de l'attribut moyen. Si de bonnes solutions aux deux premiers problèmes sont proposées, les autres soucis ne trouvent en revanche pas de réponse.
+   La plupart de ces approches sont résumées dans \cite{neu2009training}. Ces différentes contributions ont le mérite d'observer le problème sous plusieurs angles, de se placer aux limites du problème (expert non optimal, attributs bruités, etc.) et d'aborder des questions fondamentales (notion de distance entre politiques ou récompenses). Le manque d'harmonisation du domaine de l'\gls{irl} (encore jeune) se fait sentir. Chacun redéfinit le problème à sa manière. Toutes ces approches sont malgré cela structurellement très similaires (résolution répétée de MDP et approximation de l'attribut moyen). Les approches les plus tardives font apparaître les difficultés soulevées par la recherche d'un politique mixée, d'une politique au lieu d'une récompense, de l'absence d'un critère commun, de la résolution répétée du MDP et de l'approximation de l'attribut moyen. Si de bonnes solutions aux deux premiers problèmes sont proposées, les autres soucis ne trouvent en revanche pas de réponse.
    
-   Citer les applications (acrobatie hélico p.e.) et expliquer comment ils ont contourné le problème (c'est dur à contourner, mais c'est faisable). Hint, ça serait bien pour ces applications si on disposait d'algorithmes n'ayant pas ces contraintes.
+   Citer les applications (acrobatie hélico p.e.) et expliquer comment ils ont contourné le problème (c'est dur à contourner, mais c'est faisable). Signaler que  ça serait bien pour ces applications si on disposait d'algorithmes n'ayant pas ces contraintes.
 
 ** Méthodes ne nécessitant pas la résolution répétée d'un MDP
    
    \cite{lopes2009active} : définir une métrique dans un MDP reste difficile.
 
-   GPIRL \cite{levine2011nonlinear} dans la lignée de FIRL \cite{levine2010feature} débloque plusieurs problèmes d'un coup. On ne suppose plus que la fonction de récompense est linéaire dans les features. On peut l'apprendre et faire de la sélection de feature par la même occasion. FIXME: Il y avait une raison pour laquelle ce n'était pas tractable, la retrouver.
+   \gls{gpirl} \cite{levine2011nonlinear} dans la lignée de \gls{firl} \cite{levine2010feature} débloque plusieurs problèmes d'un coup. On ne suppose plus que la fonction de récompense est linéaire dans les attributs. On peut l'apprendre et faire de la sélection de attribut par la même occasion. FIXME: Il y avait une raison pour laquelle ce n'était pas tractable, la retrouver.
 
-   "IRLGP" \cite{qiao2011inverse} et \cite{jin2010gaussian} ne sont pas tractables non plus FIXME:retrouver pourquoi.
-
-
-     Linearly solvable MDP : \cite{dvijotham2010inverse}. Il faut des MDP linearly solvable.
-
-   Relative Entropy fait sauter la plupart des contraintes qui nous préoccupent (argumentaire à rapprocher de MaxEnt) \cite{boularias2011relative}. Il suffit d'avoir des échantillons experts et des échantillons randoms. On est dans le cadre définit avant de commencer l'état de l'art, et non plus dans le cadre mal défini des approches qui on suivi PIRL.
+   "\gls{irlgp}" \cite{qiao2011inverse} et \cite{jin2010gaussian} ne sont pas tractables non plus FIXME:retrouver pourquoi.
 
 
+     \gls{mdp} soluble linéairement : \cite{dvijotham2010inverse}. Il faut des \gls{mdp} solubles linéairement.
 
-* LSTD-$\mu$
+   \gls{relent} fait sauter la plupart des contraintes qui nous préoccupent (argumentaire à rapprocher de \gls{maxent}) \cite{boularias2011relative}. Il suffit d'avoir des échantillons experts et des échantillons aléatoires. On est dans le cadre définit avant de commencer l'état de l'art, et non plus dans le cadre mal défini des approches qui on suivi \gls{pirl}.
+
+
+* \gls{lstdmu}
+#<<hier:lstdmu>>
 ** Principe
   On rappelle que l'attribut moyen est une grandeur centrale en renforcement (dit en [[Attribut moyen]]). Les algorithmes qui l'utilisent ne présupposent pas de moyen de le calculer. La méthode de base consiste à faire jouer un simulateur et faire une estimation de Monte-Carlo.
 
-  L'attribut moyen est par sa définition une fonction de valeur vectorielle. LSTD peut donc être adapté pour l'approximer.
+  L'attribut moyen est par sa définition une fonction de valeur vectorielle. \gls{lstd} peut donc être adapté pour l'approximer.
 ** Avantages
-  Les avantages que LSTD possède pour l'approximation de fonction de valeur : /batch/, /offline/ et /sample-efficient/ sont transférés à l'approximation de l'attribut moyen.
+  Les avantages que \gls{lstd} possède pour l'approximation de fonction de valeur : \gls{batch}, /offline/ et /sample-efficient/ sont transférés à l'approximation de l'attribut moyen.
 
   On peut ainsi estimer l'attribut moyen d'une politique arbitraire sans utiliser de simulateur et sans connaître les probabilités de transition.
 
 ** Illustration 
-   En utilisant PIRL avec LSPI et LSTD-$\mu$, on peut porster PIRL en mode /batch/ avec une perte de performance minimale, et que l'on peut mitiger en fonction de la quantité de données non expertes disponibles. Cela évite d'avoir à se servir d'un simulateur, qui n'est pas toujours disponible. En le modifiant pour qu'il sorte une récompense et non une politique on peut corriger les "erreurs de jeunesse" des algos dans la lignée de PIRL. Ca reste non idéal cependant.
-* SCIRL
-** Liens entre classification et AR
-  La classification peut-être utilisée pour faire de l'imitation (fait mentionné en [[Imitation non-ARI]]). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un PDM (equation présentée en [[Cadre des PDMs pour la prise de décision séquentielle]]) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
+   En utilisant \gls{pirl} avec LSPI et \gls{lstdmu}$\mu$, on peut porter PIRL en mode /batch/ avec une perte de performance minimale, et que l'on peut mitiger en fonction de la quantité de données non expertes disponibles. Cela évite d'avoir à se servir d'un simulateur, qui n'est pas toujours disponible. En le modifiant pour qu'il sorte une récompense et non une politique on peut corriger les "erreurs de jeunesse" des algorithmes dans la lignée de \gls{pirl}. Ça reste non idéal cependant.
+* \gls{scirl}
+** Liens entre classification et \gls{rl}
+  La classification peut-être utilisée pour faire de l'imitation (fait mentionné en sous-section \ref{hier:nonari}). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un \gls{mdp} (équation présentée en [[Cadre des \glspl{mdp} pour la prise de décision séquentielle]]) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
 
-  SCIRL et Cascading (décrit en [[Cascading]]) utilisent cette similarité pour introduire la structure du MDP dans une méthode de classification. On espère ainsi pouvoir faire de l'ARI (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
+  \gls{scirl} et \gls{cascading} (décrit en \ref{hier:cascading}) utilisent cette similarité pour introduire la structure du MDP dans une méthode de classification. On espère ainsi pouvoir faire de l'\gls{irl} (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
 
-  Si l'on utilise un classifieur où cette fonction de score/qualité est approximée par un schéma linéaire, alors on retombe sur l'attribut moyen. Il faut encore approximer celui-ci, mais cela est courant dans la littérature, et surtout c'est précisément le problème résolu par LSTD-$\mu$ (en [[LSTD-$\mu$]]). 
+  Si l'on utilise un classifieur où cette fonction de score/qualité est approximée par un schéma linéaire, alors on retombe sur l'attribut moyen. Il faut encore approximer celui-ci, mais cela est courant dans la littérature, et surtout c'est précisément le problème résolu par \gls{lstdmu} (en [[hier:lstdmu]]). 
 
 ** Description
 ** Validation théorique
 ** Validation pratique rapide (problèmes jouets)
 ** Mise en relief de l'influence des paramètres
 ** Conclusion
-   SCIRL résoud tous les problèmes des premiers algorithmes d'IRL et a de meilleures performances que MaxEnt. Il est théoriquement simple à expliquer et résoud bien le problème de l'ARI tel qu'on l'a formulé. Il peut fonctionner avec uniquement des données de l'expert, ce qui ouvre la porte à des applications réelles.
+   SCIRL résout tous les problèmes des premiers algorithmes d'IRL et a de meilleures performances que \gls{maxent}. Il est théoriquement simple à expliquer et résout bien le problème de l'\gls{irl} tel qu'on l'a formulé. Il peut fonctionner avec uniquement des données de l'expert, ce qui ouvre la porte à des applications réelles.
 * SCIRLBoost
 ** Problème de la définition des fonctions de base
 ** Description de l'algorithme
 ** Validation sur les problèmes jouets
 * Cascading
+#<<hier:cascading>>
 ** Description
 *** Description
 *** Différences de concept avec SCIRL
@@ -124,11 +164,13 @@
 ** Mise en relief de l'influence des paramètres
 ** Comparaison pratique rapide de SCIRL et Cascading
 ** Conclusion
-   Cascading a des performances similaires à SCIRL et est encore plus flexible, puisque des méthodes supervisées non paramétriques (ou à détermination automatique de paramètres) peuvent être employées, ce qui en plus de résoudre les problèmes structurels de PIRL, résoud les problèmes plus fondamentaux de l'approximation linéaire de la fonction de valeur ou du choix des attributs.
+   Cascading a des performances similaires à SCIRL et est encore plus flexible, puisque des méthodes supervisées non paramétriques (ou à détermination automatique de paramètres) peuvent être employées, ce qui en plus de résoudre les problèmes structurels de PIRL, résout les problèmes plus fondamentaux de l'approximation linéaire de la fonction de valeur ou du choix des attributs.
 * (Validation expérimentale)
 * Rappel des contributions
 * Perspectives de recherche
 * Bibliographie
 \bibliographystyle{plainnat}
 \bibliography{Biblio}
-
+* Glossaire
+#\printglossary[type=\acronymtype] 
+\printglossaries
