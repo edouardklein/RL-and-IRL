@@ -52,40 +52,46 @@
 * Formalisme mathématique, notations				       
 ** Imitation non \gls{irl} 
 #<<hier:nonari>>
+#?s state 's' 'Un état'
+   Un état est généralement noté $\state$.
    Introduire état/action et politique, sans probabilités de transitions.
 
    La classification permet d'apprendre par cœur la politique de l'expert. On ne se soucie pas de la structure temporelle du problème. Les capacités de généralisation du classifieur dépendent des attributs utilisés.
 
    Décrire \cite{ratliff2007imitation}.
-** Cadre des \glspl{mdp} pour la prise de décision séquentielle 
+*** TODO Faire l'état de l'art de l'imitation avec classifieur
+** Cadre des \glspl{mdp} pour la prise de décision séquentielle
+*** TODO justifier le cadre, dire pourquoi on introduit ces notions
    Probabilités de transitions, fonction de récompense, fonction de valeur, politique optimale. \gls{dp}.
 
-   Approximation de la fonction de valeur, \gls{rl}. L'\gls{rl} permettant d'apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le \gls{dp}, comme la possibilité de s'adapter à un milieu changeant par exemple.
+   Approximation de la fonction de valeur, \gls{rl}. L'\gls{rl} permettant d'apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le \gls{dp}, comme la possibilité de s'adapter à un milieu changeant pour certains algorithmes ou de manière plus générale l'absence de besoin de connaître les probabilités de transition.
 
-   Pour appliquer l'\gls{rl} au monde réel, il est pratique d'exploiter efficacement les échantillons. Les échantillons sont très faciles à obtenir si on dispose d'un simulateur, et sont les seules données accessible sur certains systèmes. Pouvoir les exploiter en \gls{batch} et \gls{offpolicy} permet de contrôler beaucoup de types de systèmes différents (qui peut le plus peut le moins). \gls{lspi} \cite{lagoudakis2003least}.
+   Pour appliquer l'\gls{rl} au monde réel, il est nécessaire d'exploiter efficacement les échantillons. Les échantillons sont très faciles à obtenir si on dispose d'un simulateur, et sont les seules données accessible sur certains systèmes. Pouvoir les exploiter en \gls{batch} et \gls{offpolicy} permet de contrôler beaucoup de types de systèmes différents (qui peut le plus peut le moins). \gls{lspi} \cite{lagoudakis2003least}.
 ** Définition de l'\gls{irl} 
 *** Définition du problème 
-   Cette section pose les notations qu'on utilisera dans tous le manuscrit, on ne cite pas l'état de l'art tout de suite (puisque les notions et notations entrent parfois en conflit, notamment en ce qui concerne l'attribut moyen) cela est reporté au chapitre d'après. Il s'agit de donner les acteurs et de préciser le problème que l'on résout, on ne rentre pas dans la description des problèmes qu'on va rencontrer tout de suite. C'est une section assez courte mais plutôt dense.
+   Cette section pose les notations qu'on utilisera dans tous le manuscrit, on ne cite pas l'état de l'art tout de suite (puisque les notions et notations entrent parfois en conflit, notamment en ce qui concerne l'attribut moyen) sauf Russell cela est reporté au chapitre d'après. Il s'agit de donner les acteurs et de préciser le problème que l'on résout, on ne rentre pas dans la description des problèmes qu'on va rencontrer tout de suite. C'est une section assez courte mais plutôt dense.
 
    Dans le cadre de l'\gls{rl}, trouver la consigne à partir du contrôle devient l'\gls{irl}. Il s'agit de retrouver la fonction de récompense à partir d'une politique optimale.
 
-   Nuances importantes : le MDP est un modèle qui a des limites. Il faut que les états soient markoviens, il faut en pratique que l'espace d'action ne soit pas trop large, on suppose que l'expert agit de manière optimale pour une récompense sur ce MDP. Il faut donc que l'expert agisse effectivement de manière optimale (un humain peut faire des erreurs) et que la fonction de récompense existe, et soit exprimable sur l'espace d'état etc. Le problème qu'on étudie est bien celui de trouver la fonction de récompense (qui existe) d'un expert (qui est vraiment optimal).
+   Nuances importantes : le MDP est un modèle qui a des limites. Il faut que les états soient markoviens, il faut en pratique que l'espace d'action ne soit pas trop large, on suppose que l'expert agit de manière optimale pour une récompense sur ce MDP. Il faut donc que l'expert agisse effectivement de manière optimale (un humain peut faire des erreurs) et que la fonction de récompense existe (au sens philosophique, en math il y en a au moins toujjours une), et soit exprimable sur l'espace d'état etc. Le problème qu'on étudie est bien celui de trouver la fonction de récompense (qui existe) d'un expert (qui est vraiment optimal).
 
 *** Attribut moyen 
-    L'approximation linéaire de la fonction de récompense induit (par le biais de la fonction de valeur) l'apparition de l'attribut moyen. C'est, comme nous allons le voir au chapitre suivant, une notion centrale en renforcement inverse. C'est un fonction vectorielle qui porte la structure temporelle du MDP (illustrer graphiquement sur le \gls{gridworld}, par exemple).
+    L'approximation linéaire de la fonction de récompense induit (par le biais de la fonction de valeur) l'apparition de l'attribut moyen. C'est, comme nous allons le voir au chapitre suivant, une notion centrale en renforcement inverse. C'est un fonction vectorielle qui porte la structure temporelle du MDP contraint par la politique (bref de la chaine de Markov sous jacente) (illustrer graphiquement sur le \gls{gridworld}, par exemple).
 
-    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelque soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
+    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelle que soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
 * État de l'art et problématique
 ** Fonction de récompense 
 
    Récompense état ou état-action ? En changeant l'espace d'état, les deux sont équivalents. Le \gls{rewardshaping}   \cite{ng1999policy} étudie les changements que l'on peut appliquer à une récompense sans changer les politiques optimales.
 
 ** Premières formulation du problème 
-   Mentionné pour la première fois dans \cite{russell1998learning}. La formulation informée du problème \cite{ng2000algorithms} n'est pas bien posée. Deux solutions sont malgré tout proposées dont une fait déjà usage de l'attribut moyen, mais pas sous ce nom. La solution informée n'est pas celle qui nous intéresse pour les mêmes raisons qui nous font préférer l'\gls{rl} au DP (voir plus haut). La solution approchée est également problématique (FIXME:préciser pourquoi exactement).
+   Mentionné pour la première fois dans \cite{russell1998learning}. La formulation informée (qui connait les probabilités de transition) du problème \cite{ng2000algorithms} n'est pas bien posée. Deux solutions sont malgré tout proposées dont une fait déjà usage de l'attribut moyen, mais pas sous ce nom. La solution informée n'est pas celle qui nous intéresse pour les mêmes raisons qui nous font préférer l'\gls{rl} au DP (voir plus haut). La solution approchée est également problématique (FIXME:préciser pourquoi exactement).
 
+#Rem Olivier: Quand on fait des critiques purs
    Détail important : dans l'\gls{rl}, on cherche le point fixe d'un opérateur attractif, il existe une solution et elle est unique. Dans l'\gls{irl} la solution n'est pas unique et il existe des solutions dégénérées. Résoudre le problème de l'\gls{irl} risque donc de s'avérer plus complexe que de résoudre le problème de l'\gls{rl}.
 
-** Méthodes nécessitant la résolution répétée d'un MDP 
+** Méthodes nécessitant la résolution répétée d'un MDP
+#Rem olivier:  En gros, on trouve une récompense et on regarde, par optimisation, si le mu de la politique pour R est proche de celui de la politique de l'expert. Ca nécessite de résoudre l'AR et de connaître la politique de l'expert partout. 
    \cite{abbeel2004apprenticeship} propose \gls{pirl}, un algorithme qui sert de base à beaucoup d'autres solutions par la suite. L'idée est, par itérations successives sur la récompense, de rapprocher l'attribut moyen de l'agent et celui de l'expert. Pour une certaine notion de distance entre attributs moyens.  Cette approche fondatrice impose cependant des contraintes assez fortes :
    - il faut de manière répétée résoudre un MDP
    - il faut de manière répétée estimer l'attribut moyen d'une politique arbitraire et de la politique experte
@@ -96,6 +102,7 @@
 
    La technique proposée dans \cite{neu2007apprenticeship} (\gls{pm}) est plus robuste que celles décrites jusqu'à présent aux changements d'échelles des attributs ou au bruit dans les attributs. Elle souffre des même types de contraintes que \gls{pirl} ; comme \gls{pirl}, elle raisonne sur des politiques et non sur des récompenses.
 
+ #Rem olivier: Puis faut la dynamique
    Basé sur la théorie des jeux, l'algorithme \gls{mwal} de \cite{syed2008game} tombe sur un os[fn::Os à \gls{mwal}, humour.]. Plus rapide à l'exécution que \gls{pirl} et capable de gérer la non optimalité de l'expert, il exige cependant énormément de connaissances à priori sur le problème : il faut que le vecteur de paramètres de l'approximation de la récompense soit positif. Il souffre des mêmes soucis de résolution répétée du MDP et d'estimation de l'attribut moyen que \gls{pirl}. Ce papier mentionne les problèmes liés aux raisonnements sur des politiques mixées et non des récompenses, sans pour autant les résoudre explicitement.
 
    Ce travail est étendu dans \cite{syed2008apprenticeship}, en formulant la résolution du MDP comme un programme linéaire, on peut trouver une politique stationnaire, sans \gls{mixing} dans \gls{pirl} et \gls{mwal}. En formulant l'\gls{irl} comme un programme linéaire également, les auteurs trouvent \gls{lpal}, qui retourne un politique (non une récompense). La formulation de ce programme linéaire met en jeu des grandeurs qui correspondent à l'attribut moyen de politiques optimales pour des récompenses arbitraires.
@@ -109,7 +116,7 @@
    Citer les applications (acrobatie hélico p.e.) et expliquer comment ils ont contourné le problème (c'est dur à contourner, mais c'est faisable). Signaler que  ça serait bien pour ces applications si on disposait d'algorithmes n'ayant pas ces contraintes.
 
 ** Méthodes ne nécessitant pas la résolution répétée d'un MDP 
-   
+# Rem olivier : faudrait voir si la définition de la métrique n'impose pas de résolution ou qq chose de similaire. Me souviens plus exactement. 
    \cite{lopes2009active} : définir une métrique dans un MDP reste difficile.
 
    \gls{gpirl} \cite{levine2011nonlinear} dans la lignée de \gls{firl} \cite{levine2010feature} débloque plusieurs problèmes d'un coup. On ne suppose plus que la fonction de récompense est linéaire dans les attributs. On peut l'apprendre et faire de la sélection de attribut par la même occasion. FIXME: Il y avait une raison pour laquelle ce n'était pas tractable, la retrouver.
@@ -133,21 +140,24 @@
   On peut ainsi estimer l'attribut moyen d'une politique arbitraire sans utiliser de simulateur et sans connaître les probabilités de transition.
 
 ** Illustration							       
+# rem olivier : Faire la liste des expériences en disant ce qu'elles montrent. C'est nécessaire pour trouver une structure cohérente aux parties expérimentales dans les 3 chapitres de contribution.
    En utilisant \gls{pirl} avec LSPI et \gls{lstdmu}$\mu$, on peut porter PIRL en mode /batch/ avec une perte de performance minimale, et que l'on peut mitiger en fonction de la quantité de données non expertes disponibles. Cela évite d'avoir à se servir d'un simulateur, qui n'est pas toujours disponible. En le modifiant pour qu'il sorte une récompense et non une politique on peut corriger les "erreurs de jeunesse" des algorithmes dans la lignée de \gls{pirl}. Ça reste non idéal cependant.
+   
 * \gls{scirl}
 ** Liens entre classification et \gls{rl}
   La classification peut-être utilisée pour faire de l'imitation (fait mentionné en sous-section \ref{hier:nonari}). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un \gls{mdp} (équation présentée en [[Cadre des \glspl{mdp} pour la prise de décision séquentielle]]) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
 
-  \gls{scirl} et \gls{cascading} (décrit en \ref{hier:cascading}) utilisent cette similarité pour introduire la structure du MDP dans une méthode de classification. On espère ainsi pouvoir faire de l'\gls{irl} (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
+  \gls{scirl} et \gls{cascading} (décrit en \ref{hier:cascading}) utilisent cette similarité pour introduire la structure du MDP dans (ou à la suite de) une méthode de classification. On espère ainsi pouvoir faire de l'\gls{irl} (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
 
   Si l'on utilise un classifieur où cette fonction de score/qualité est approximée par un schéma linéaire, alors on retombe sur l'attribut moyen. Il faut encore approximer celui-ci, mais cela est courant dans la littérature, et surtout c'est précisément le problème résolu par \gls{lstdmu} (en [[hier:lstdmu]]). 
 
 ** Description 
 ** Validation théorique 
 ** Validation pratique rapide (problèmes jouets) 
-** Mise en relief de l'influence des paramètres 
+*** TODO Donner la structure : qu'est-ce que chaque appli démontre ?
+** Mise en relief de l'influence des routines 
 ** Conclusion 
-   SCIRL résout tous les problèmes des premiers algorithmes d'IRL et a de meilleures performances que \gls{maxent}. Il est théoriquement simple à expliquer et résout bien le problème de l'\gls{irl} tel qu'on l'a formulé. Il peut fonctionner avec uniquement des données de l'expert, ce qui ouvre la porte à des applications réelles.
+   SCIRL règle quelques problèmes des premiers algorithmes d'IRL et a de meilleures performances que \gls{maxent}. Il est théoriquement simple à expliquer et résout bien le problème de l'\gls{irl} tel qu'on l'a formulé. Il peut fonctionner avec uniquement des données de l'expert, ce qui ouvre la porte à des applications réelles.
 * SCIRLBoost 
 ** Problème de la définition des fonctions de base  
 ** Description de l'algorithme 
@@ -159,7 +169,7 @@
 *** Différences de concept avec SCIRL 
 ** Validation théorique 
 ** Validation pratique rapide (problèmes jouets) 
-** Mise en relief de l'influence des paramètres 
+** Mise en relief de l'influence des routines 
 ** Comparaison pratique rapide de SCIRL et Cascading 
 ** Conclusion 
    Cascading a des performances similaires à SCIRL et est encore plus flexible, puisque des méthodes supervisées non paramétriques (ou à détermination automatique de paramètres) peuvent être employées, ce qui en plus de résoudre les problèmes structurels de PIRL, résout les problèmes plus fondamentaux de l'approximation linéaire de la fonction de valeur ou du choix des attributs.
