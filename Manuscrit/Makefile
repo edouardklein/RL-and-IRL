@@ -1,4 +1,5 @@
-org2pdf=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.emacs && pdflatex $1.tex && bibtex $1 && makeglossaries main && pdflatex $1.tex && pdflatex $1.tex
+org2pdf=python3 ForC_parser.py $1.org > tmp.org && emacs -batch --visit tmp.org --funcall org-export-as-latex --script ~/.emacs && pdflatex tmp.tex && bibtex tmp && makeglossaries tmp && pdflatex tmp.tex && pdflatex tmp.tex && pdflatex tmp.tex && mv tmp.pdf main.pdf
+
 
 show: main.pdf
 	open main.pdf
@@ -11,7 +12,7 @@ integration: non_interactive_spellcheck count_pages
 	echo $$(make -s count_pages)
 
 count_pages: main.pdf
-	pdflatex main.tex | egrep '[0-9]+ pages' | cut -d'(' -f2  | cut -d',' -f1
+	pdfinfo main.pdf 2>/dev/null| grep Pages
 
 interactive_spellcheck: All.dict main.org
 	hunspell -t -p ./All.dict main.org
@@ -32,6 +33,8 @@ clean:
 	rm -f *~
 	rm -f main.aux main.tex main.bbl main.blg main.log main.out main.pdf main.toc main.acn main.acr main.alg  main.angl main.aot main.atn main.glg main.glo main.gls main.xdy
 	rm -f Glossary.dict Citations.dict All.dict
+	rm -f tmp.*
+	rm -rf __pycache__ parser.out parsetab.py
 
 fixme:
 	egrep --color FIXME *
