@@ -1,2 +1,8 @@
 
-#+LaTeX_header:\usepackage[xindy,toc,acronym,nomain]{glossaries}
+#+latex_header:\def\E{\operatornamewithlimits{%
+#+latex_header:\mathchoice{\vcenter{\hbox{\huge \ensuremath{\mathbb{E}}}}}
+#+latex_header: {\vcenter{\hbox{\Large  \ensuremath{\mathbb{E}}}}}
+#+latex_header:    { \ensuremath{\mathbb{E}}}
+#+latex_header:  { \ensuremath{\mathbb{E}}}}}
+#+LaTeX_header:\usepackage{dsfont}
+#+LaTeX_header:\usepackage[xindy,toc,acronym,nomain,sort=def]{glossaries}

@@ -1,4 +1,4 @@
-org2pdf=python3 ForC_parser.py $1.org > tmp.org && emacs -batch --visit tmp.org --funcall org-export-as-latex --script ~/.emacs && pdflatex tmp.tex && bibtex tmp && makeglossaries tmp && pdflatex tmp.tex && pdflatex tmp.tex && pdflatex tmp.tex && mv tmp.pdf main.pdf
+org2pdf=python3 ForC_parser.py $1.org > tmp.org && emacs -batch --visit tmp.org --funcall org-export-as-latex --script ~/.emacs && pdflatex tmp.tex && bibtex tmp && makeglossaries tmp && pdflatex tmp.tex && pdflatex tmp.tex && pdflatex tmp.tex && pdflatex tmp.tex && mv tmp.pdf main.pdf
 
 
 show: main.pdf

@@ -1,9 +1,13 @@
 #+TITLE:Plan
+* Options and headers :noexport:
 #+OPTIONS: tags:0
 # (setq org-export-latex-hyperref-format "\\ref{%s}")
 #+LaTeX_CLASS: article 
-#+LaTeX_CLASS_OPTIONS: [frenchb] 
+#+LaTeX_CLASS_OPTIONS: [frenchb]
+
+
 #+LATEX_HEADER: \usepackage{natbib}
+#+latex_header: \usepackage{stmaryrd}
 #+LaTeX_header:\usepackage[utf8]{inputenc}
 #+LaTeX_header:\usepackage[T1]{fontenc}
 #+LaTeX_header:\usepackage{babel}
@@ -52,15 +56,75 @@
 * Formalisme mathématique, notations				       
 ** Imitation non \gls{irl} 
 #<<hier:nonari>>
-#?s state 's' 'Un état'
-   Un état est généralement noté $\state$.
-   Introduire état/action et politique, sans probabilités de transitions.
+#Goal:Introduire uniquement le formalisme nécessaire à l'imitation par classification.
+#Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense
+#Requires:Agent artificiel, environnement, tâche
+#Ensures: État, action, politique, classifieur, erreur de classification, politique de l'expert, traces sa, généralisation
+#?s policy '\pi' 'Une politique'
+#?s statespace '\mathcal{S}' 'Espace d{\apos}état'
+#?s actionspace '\mathcal{A}' 'Espace d{\apos}action'
+#?cs 2 twosetsfunctions '#2^{#1}' 'B^A' 'Ensemble des applications de $A$ dans $B$.'
+*** Formalisme
+   D'un point de vue mathématique, un agent, qu'il soit artificiel ou humain, qu'il s'agisse de l'expert qu'il soit cours d'apprentissage ou même qu'il agisse de manière aléatoire (utile pour l'exploration), implémente une politique. Une politique $\policy$ est formellement définie comme une application d'un espace d'état vers un espace d'action :
+\begin{equation}
+\policy \in \twosetsfunctions{\statespace}{\actionspace}.
+\end{equation}
+  
+#?s state 's' 'État'
+   Cette politique encode le comportement de l'agent : dans un état $\state \in \statespace$, l'agent choisira l'action $\policy(\state) \in \actionspace$. L'on constate que ce formalisme implique que pour choisir son action, l'agent n'utilise que les informations stockées dans l'état. Il faudra donc en pratique veiller à ce que celui-ci contienne toutes les informations utiles à la prise de décision, c'est à dire par exemple pour un système physique, non seulement les valeurs courantes des capteurs, mais aussi peut-être certaines valeurs passées afin de pouvoir calculer des taux de variation. 
+#Exemple: could use an exemple (pendule ?)
+#snippet: La notion d'agent artificiel déborde sur l'espace d'état, qui n'est lui même du coup pas directement lié à l'environnement. Un agent, ce n'est pas seulement une politique, mais aussi la définition de l'espace d'état et d'action, qui ne sont qu'une vue (plus ou moins bonne selon l'ingénierie) de la réalité
+   
+   Les espaces d'état et d'action sont mal nommés puisqu'il s'agit en général non d'espaces vectoriels mais de parties d'espaces vectoriels : la plage de valeurs que peut prendre une composante est rarement illimitée. Il s'agit même parfois de parties finies. C'est dans les problèmes qui nous préoccupent quasiment toujours le cas pour l'espace d'action. Nous considérons par défaut qu'il s'agit d'un ensemble fini de faible cardinal.
 
-   La classification permet d'apprendre par cœur la politique de l'expert. On ne se soucie pas de la structure temporelle du problème. Les capacités de généralisation du classifieur dépendent des attributs utilisés.
+*** Classification
+#?s expertpolicy '\pi^E' 'Politique de l{\apos}expert'
+   Il est possible de voir le problème de l'imitation comme celui de la recherche d'une politique correspondant point par point (ou au mieux en fonction des contraintes en mémoire et en temps de l'agent) à celle de l'expert. Il est en effet évident que si deux politiques sont égales alors elles accomplissent la même tâche avec le même degré d'efficacité. Même lorsque la politique de l'expert (notée $\expertpolicy$) est intégralement connue cette formulation n'est pas forcément dénuée de sens, l'on peut en effet souhaiter remplacer l'expert par un agent moins coûteux mais donc probablement plus limité. Apprendre par cœur (ou apprendre au mieux avec quelques erreurs) la politique de l'expert est alors sensé.
 
-   Décrire \cite{ratliff2007imitation}.
+   Bien souvent cependant il est impossible de connaître intégralement la politique de l'expert, ne fut-ce que parce que l'espace d'état est trop grand. Il faut alors se contenter d'exemples sur un certain nombre $\nbsamples$ d'états :
+#?cs 1 satrace 'D_{sa}^{#1}' 'D_{sa}^{\policy}' 'Trace de type $s,a$ obtenue en suivant la politique $\policy$'
+#?s nbsamples 'N' 'Nombre d{\apos}exemples dans une trace'
+#?s action 'a' 'Une action'
+#?s datasetindex 'i' 'Entier indexant une base de données'
+\begin{equation}
+\satrace{\expertpolicy} = \{(\state_{\datasetindex},\action_{\datasetindex}=\expertpolicy(\state_{\datasetindex})) | \datasetindex \in \llbracket 0;\nbsamples-1\rrbracket\}.
+\end{equation}
+
+   Le problème de l'imitation se trouve ainsi réduit à celui de la classification. Étant donné que l'espace d'action est fini et de faible cardinal, chaque action est vue comme un label à appliquer à un état. La démonstration de l'expert fournit la base d'entraînement.
+
+#?s spacedistrib '\rho' 'Loi de probabilité ou fonction de poids'
+#?s classifpolicy '\pi^C' 'Politique issue d{\apos}un classifieur'
+#?s empiricalclassiferror '\epsilon_C^{empirical}' 'Erreur empirique de classification'
+#?cs 1 classiferror '\epsilon_C^{#1}' '\epsilon_C^{\spacedistrib}' 'Erreur théorique de classification sur la distribution $\spacedistrib$'
+#?cs 1 indicatorfunc '\mathds{1}(#1)' '\mathds{1}' 'Fonction indicatrice'
+#?cs 3 weightedexpectation '\E_{#1 \sim #2} \left[ #3\right]' '\E_{x \sim \rho} \left[ f(x)\right]' 'Espérance de $f(x)$ pour $x$ tiré selon $\rho$'
+La classification est un problème plus subtil que celui de naïvement apprendre par cœur la base d'entraînement. Ce que nous cherchons à optimiser n'est pas la performance sur la base d'entraînement fournie, mais la performance sur l'espace d'état en général. Plus précisément, certains états nous intéressent plus que d'autres. Pour une justification intuitive, il suffit de penser aux jeux de plateau, où bien agir dans les quelques états qui apparaissent souvent en début de partie est beaucoup plus intéressant que bien agir dans un état bizarre que l'on ne rencontrera peut-être jamais ; d'où par exemple le travail sur les ouvertures aux échecs. Pour mesurer l'importance accordée à un état, l'on définit une fonction de poids qui somme à un : $\spacedistrib \in \twosetsfunctions{\statespace}{[0,1]}$ telle que $\int_{\statespace} \spacedistrib(s) ds = 1$ ou $\sum_{\state \in \statespace} \spacedistrib(\state) = 1$ selon que l'on se trouve en cas fini ou continu. La mesure de l'erreur d'une politique de classification se basant uniquement sur la base d'entraînement :
+\begin{equation}
+\empiricalclassiferror = {1\over \nbsamples}\sum_{(\state_{\datasetindex},\action_{\datasetindex}) \in \satrace{\expertpolicy}} \indicatorfunc{\classifpolicy(\state_{\datasetindex}) \neq \action_{\datasetindex}}
+\end{equation}
+est potentiellement différente de celle que l'on cherche réellement à optimiser :
+\begin{eqnarray}
+\classiferror{\spacedistrib} &=& \sum_{\state \in \statespace} \spacedistrib(\state)\indicatorfunc{\classifpolicy(\state) \neq \expertpolicy(\state)}\\
+&=& \weightedexpectation{\state}{\spacedistrib}{ \indicatorfunc{\classifpolicy(\state) \neq \expertpolicy(\state)}}.
+\end{eqnarray}
+Les problèmes de sur-apprentissage apparaissent lorsque l'on minimise l'erreur empirique au détriment de l'erreur de classification $\classiferror{\spacedistrib}$. Une des difficultés étant malheureusement que l'on ne peut qu'estimer $\classiferror{\spacedistrib}$.
+
+Le choix de la distribution $\spacedistrib$ sur laquelle il nous importe d'optimiser la classification est également un paramètre important. On peut comme on l'a vu intuitivement favoriser les états de départ. Il est possible de tenter d'estimer à partir d'une base d'exemple la vraie distribution des états qui seront soumis au contrôle de l'agent. On peut également pour certains environnements accorder plus d'importance à certains états critiques où une erreur aurait des conséquences fâcheuses.
+
+*** Attributs
+#?s featurestateactionspace '\Phi' 'Espace d{\apos}attributs état-action'
+#?s featurestateactionfunc '\phi' 'Fonction d{\apos}attributs état-action'
+    Ce que l'on appelle la capacité de généralisation d'un classifieur est son aptitude à minimiser l'erreur théorique $\classiferror{\spacedistrib}$ à l'aide de données tirées selon une distribution potentiellement différente de $\spacedistrib$. Cette capacité de généralisation est affectée par la manière dont l'espace d'état apparaît au classifieur. Afin d'obtenir une description exploitable du problème, l'on va souvent choisir de travailler non pas directement dans l'espace d'état-action $\statespace\times\actionspace$ mais dans un espace d'attributs $\featurestateactionspace$ qui est l'image de l'espace d'état-action $\statespace\times\actionspace$ par une fonction vectorielle d'attribut $\featurestateactionfunc$ :
+    \begin{equation}
+    \featurestateactionspace = \featurestateactionfunc(\statespace\times\actionspace)
+    \end{equation}
+
+Illustrons ce propos par l'étude d'une approche d'imitation par la classification qui utilise une fonction de score linéairement paramétrée sur l'espace d'attribut état-action $\featurestateactionspace$ : \cite{ratliff2007imitation}.
+
+Le principe quasi-ubiquitaire en classification [fn::Les classifieurs à arbres de décision formant un contre-exemple notable \citep{safavian1991survey}.]de la fonction de score est le suivant :
 *** TODO Faire l'état de l'art de l'imitation avec classifieur
 ** Cadre des \glspl{mdp} pour la prise de décision séquentielle
+#Snippet: La classification ne se soucie pas de l'objectif de l'expert. Quid si une action mal choisie fait dérailler l'agent sur une partie totalement inconnue de l'espace d'état ?
 *** TODO justifier le cadre, dire pourquoi on introduit ces notions
    Probabilités de transitions, fonction de récompense, fonction de valeur, politique optimale. \gls{dp}.
 
@@ -73,10 +137,10 @@
 
    Dans le cadre de l'\gls{rl}, trouver la consigne à partir du contrôle devient l'\gls{irl}. Il s'agit de retrouver la fonction de récompense à partir d'une politique optimale.
 
-   Nuances importantes : le MDP est un modèle qui a des limites. Il faut que les états soient markoviens, il faut en pratique que l'espace d'action ne soit pas trop large, on suppose que l'expert agit de manière optimale pour une récompense sur ce MDP. Il faut donc que l'expert agisse effectivement de manière optimale (un humain peut faire des erreurs) et que la fonction de récompense existe (au sens philosophique, en math il y en a au moins toujjours une), et soit exprimable sur l'espace d'état etc. Le problème qu'on étudie est bien celui de trouver la fonction de récompense (qui existe) d'un expert (qui est vraiment optimal).
+   Nuances importantes : le MDP est un modèle qui a des limites. Il faut que les états soient markoviens, il faut en pratique que l'espace d'action ne soit pas trop large, on suppose que l'expert agit de manière optimale pour une récompense sur ce MDP. Il faut donc que l'expert agisse effectivement de manière optimale (un humain peut faire des erreurs) et que la fonction de récompense existe (au sens philosophique, en math il y en a au moins toujours une), et soit exprimable sur l'espace d'état etc. Le problème qu'on étudie est bien celui de trouver la fonction de récompense (qui existe) d'un expert (qui est vraiment optimal).
 
 *** Attribut moyen 
-    L'approximation linéaire de la fonction de récompense induit (par le biais de la fonction de valeur) l'apparition de l'attribut moyen. C'est, comme nous allons le voir au chapitre suivant, une notion centrale en renforcement inverse. C'est un fonction vectorielle qui porte la structure temporelle du MDP contraint par la politique (bref de la chaine de Markov sous jacente) (illustrer graphiquement sur le \gls{gridworld}, par exemple).
+    L'approximation linéaire de la fonction de récompense induit (par le biais de la fonction de valeur) l'apparition de l'attribut moyen. C'est, comme nous allons le voir au chapitre suivant, une notion centrale en renforcement inverse. C'est un fonction vectorielle qui porte la structure temporelle du MDP contraint par la politique (bref de la chaine de Markov sous-jacente) (illustrer graphiquement sur le \gls{gridworld}, par exemple).
 
     Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelle que soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
 * État de l'art et problématique
@@ -91,7 +155,7 @@
    Détail important : dans l'\gls{rl}, on cherche le point fixe d'un opérateur attractif, il existe une solution et elle est unique. Dans l'\gls{irl} la solution n'est pas unique et il existe des solutions dégénérées. Résoudre le problème de l'\gls{irl} risque donc de s'avérer plus complexe que de résoudre le problème de l'\gls{rl}.
 
 ** Méthodes nécessitant la résolution répétée d'un MDP
-#Rem olivier:  En gros, on trouve une récompense et on regarde, par optimisation, si le mu de la politique pour R est proche de celui de la politique de l'expert. Ca nécessite de résoudre l'AR et de connaître la politique de l'expert partout. 
+#Rem olivier:  En gros, on trouve une récompense et on regarde, par optimisation, si le mu de la politique pour R est proche de celui de la politique de l'expert. Ça nécessite de résoudre l'\gls{rl} et de connaître la politique de l'expert partout. 
    \cite{abbeel2004apprenticeship} propose \gls{pirl}, un algorithme qui sert de base à beaucoup d'autres solutions par la suite. L'idée est, par itérations successives sur la récompense, de rapprocher l'attribut moyen de l'agent et celui de l'expert. Pour une certaine notion de distance entre attributs moyens.  Cette approche fondatrice impose cependant des contraintes assez fortes :
    - il faut de manière répétée résoudre un MDP
    - il faut de manière répétée estimer l'attribut moyen d'une politique arbitraire et de la politique experte
@@ -116,7 +180,7 @@
    Citer les applications (acrobatie hélico p.e.) et expliquer comment ils ont contourné le problème (c'est dur à contourner, mais c'est faisable). Signaler que  ça serait bien pour ces applications si on disposait d'algorithmes n'ayant pas ces contraintes.
 
 ** Méthodes ne nécessitant pas la résolution répétée d'un MDP 
-# Rem olivier : faudrait voir si la définition de la métrique n'impose pas de résolution ou qq chose de similaire. Me souviens plus exactement. 
+# Rem olivier : faudrait voir si la définition de la métrique n'impose pas de résolution ou quelque chose de similaire. Me souviens plus exactement. 
    \cite{lopes2009active} : définir une métrique dans un MDP reste difficile.
 
    \gls{gpirl} \cite{levine2011nonlinear} dans la lignée de \gls{firl} \cite{levine2010feature} débloque plusieurs problèmes d'un coup. On ne suppose plus que la fonction de récompense est linéaire dans les attributs. On peut l'apprendre et faire de la sélection de attribut par la même occasion. FIXME: Il y avait une raison pour laquelle ce n'était pas tractable, la retrouver.
@@ -154,7 +218,7 @@
 ** Description 
 ** Validation théorique 
 ** Validation pratique rapide (problèmes jouets) 
-*** TODO Donner la structure : qu'est-ce que chaque appli démontre ?
+*** TODO Donner la structure : qu'est-ce que chaque application démontre ?
 ** Mise en relief de l'influence des routines 
 ** Conclusion 
    SCIRL règle quelques problèmes des premiers algorithmes d'IRL et a de meilleures performances que \gls{maxent}. Il est théoriquement simple à expliquer et résout bien le problème de l'\gls{irl} tel qu'on l'a formulé. Il peut fonctionner avec uniquement des données de l'expert, ce qui ouvre la porte à des applications réelles.
