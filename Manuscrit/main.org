@@ -55,49 +55,49 @@
 ** Annonce du plan 
 * Formalisme mathématique, notations				       
 ** Imitation non \gls{irl} 
-#<<hier:nonari>>
-#Goal:Introduire uniquement le formalisme nécessaire à l'imitation par classification.
-#Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense
-#Requires:Agent artificiel, environnement, tâche
-#Ensures: État, action, politique, classifieur, erreur de classification, politique de l'expert, traces sa, généralisation
-#?s policy '\pi' 'Une politique'
-#?s statespace '\mathcal{S}' 'Espace d{\apos}état'
-#?s actionspace '\mathcal{A}' 'Espace d{\apos}action'
-#?cs 2 twosetsfunctions '#2^{#1}' 'B^A' 'Ensemble des applications de $A$ dans $B$.'
+# <<hier:nonari>>
+# Goal:Introduire uniquement le formalisme nécessaire à l'imitation par classification.
+# Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense
+# Requires:Agent artificiel, environnement, tâche
+# Ensures: État, action, politique, classifieur, erreur de classification, politique de l'expert, traces sa, généralisation
+# ?s policy '\pi' 'Une politique'
+# ?s statespace '\mathcal{S}' 'Espace d{\apos}état'
+# ?s actionspace '\mathcal{A}' 'Espace d{\apos}action'
+# ?cs 2 twosetsfunctions '{#2}^{#1}' 'B^A' 'Ensemble des applications de $A$ dans $B$.'
 *** Formalisme
    D'un point de vue mathématique, un agent, qu'il soit artificiel ou humain, qu'il s'agisse de l'expert qu'il soit cours d'apprentissage ou même qu'il agisse de manière aléatoire (utile pour l'exploration), implémente une politique. Une politique $\policy$ est formellement définie comme une application d'un espace d'état vers un espace d'action :
 \begin{equation}
 \policy \in \twosetsfunctions{\statespace}{\actionspace}.
 \end{equation}
   
-#?s state 's' 'État'
+# ?s state 's' 'État'
    Cette politique encode le comportement de l'agent : dans un état $\state \in \statespace$, l'agent choisira l'action $\policy(\state) \in \actionspace$. L'on constate que ce formalisme implique que pour choisir son action, l'agent n'utilise que les informations stockées dans l'état. Il faudra donc en pratique veiller à ce que celui-ci contienne toutes les informations utiles à la prise de décision, c'est à dire par exemple pour un système physique, non seulement les valeurs courantes des capteurs, mais aussi peut-être certaines valeurs passées afin de pouvoir calculer des taux de variation. 
-#Exemple: could use an exemple (pendule ?)
-#snippet: La notion d'agent artificiel déborde sur l'espace d'état, qui n'est lui même du coup pas directement lié à l'environnement. Un agent, ce n'est pas seulement une politique, mais aussi la définition de l'espace d'état et d'action, qui ne sont qu'une vue (plus ou moins bonne selon l'ingénierie) de la réalité
+# Exemple: could use an exemple (pendule ?)
+# snippet: La notion d'agent artificiel déborde sur l'espace d'état, qui n'est lui même du coup pas directement lié à l'environnement. Un agent, ce n'est pas seulement une politique, mais aussi la définition de l'espace d'état et d'action, qui ne sont qu'une vue (plus ou moins bonne selon l'ingénierie) de la réalité
    
    Les espaces d'état et d'action sont mal nommés puisqu'il s'agit en général non d'espaces vectoriels mais de parties d'espaces vectoriels : la plage de valeurs que peut prendre une composante est rarement illimitée. Il s'agit même parfois de parties finies. C'est dans les problèmes qui nous préoccupent quasiment toujours le cas pour l'espace d'action. Nous considérons par défaut qu'il s'agit d'un ensemble fini de faible cardinal.
 
 *** Classification
-#?s expertpolicy '\pi^E' 'Politique de l{\apos}expert'
+# ?s expertpolicy '\pi^E' 'Politique de l{\apos}expert'
    Il est possible de voir le problème de l'imitation comme celui de la recherche d'une politique correspondant point par point (ou au mieux en fonction des contraintes en mémoire et en temps de l'agent) à celle de l'expert. Il est en effet évident que si deux politiques sont égales alors elles accomplissent la même tâche avec le même degré d'efficacité. Même lorsque la politique de l'expert (notée $\expertpolicy$) est intégralement connue cette formulation n'est pas forcément dénuée de sens, l'on peut en effet souhaiter remplacer l'expert par un agent moins coûteux mais donc probablement plus limité. Apprendre par cœur (ou apprendre au mieux avec quelques erreurs) la politique de l'expert est alors sensé.
 
    Bien souvent cependant il est impossible de connaître intégralement la politique de l'expert, ne fut-ce que parce que l'espace d'état est trop grand. Il faut alors se contenter d'exemples sur un certain nombre $\nbsamples$ d'états :
-#?cs 1 satrace 'D_{sa}^{#1}' 'D_{sa}^{\policy}' 'Trace de type $s,a$ obtenue en suivant la politique $\policy$'
-#?s nbsamples 'N' 'Nombre d{\apos}exemples dans une trace'
-#?s action 'a' 'Une action'
-#?s datasetindex 'i' 'Entier indexant une base de données'
+# ?cs 1 satrace 'D_{sa}^{#1}' 'D_{sa}^{\policy}' 'Trace de type $s,a$ obtenue en suivant la politique $\policy$'
+# ?s nbsamples 'N' 'Nombre d{\apos}exemples dans une trace'
+# ?s action 'a' 'Une action'
+# ?s datasetindex 'i' 'Entier indexant une base de données'
 \begin{equation}
 \satrace{\expertpolicy} = \{(\state_{\datasetindex},\action_{\datasetindex}=\expertpolicy(\state_{\datasetindex})) | \datasetindex \in \llbracket 0;\nbsamples-1\rrbracket\}.
 \end{equation}
 
    Le problème de l'imitation se trouve ainsi réduit à celui de la classification. Étant donné que l'espace d'action est fini et de faible cardinal, chaque action est vue comme un label à appliquer à un état. La démonstration de l'expert fournit la base d'entraînement.
 
-#?s spacedistrib '\rho' 'Loi de probabilité ou fonction de poids'
-#?s classifpolicy '\pi^C' 'Politique issue d{\apos}un classifieur'
-#?s empiricalclassiferror '\epsilon_C^{empirical}' 'Erreur empirique de classification'
-#?cs 1 classiferror '\epsilon_C^{#1}' '\epsilon_C^{\spacedistrib}' 'Erreur théorique de classification sur la distribution $\spacedistrib$'
-#?cs 1 indicatorfunc '\mathds{1}(#1)' '\mathds{1}' 'Fonction indicatrice'
-#?cs 3 weightedexpectation '\E_{#1 \sim #2} \left[ #3\right]' '\E_{x \sim \rho} \left[ f(x)\right]' 'Espérance de $f(x)$ pour $x$ tiré selon $\rho$'
+# ?s spacedistrib '\rho' 'Loi de probabilité ou fonction de poids'
+# ?s classifpolicy '\pi^C' 'Politique issue d{\apos}un classifieur'
+# ?s empiricalclassiferror '\epsilon_C^{empirical}' 'Erreur empirique de classification'
+# ?cs 1 classiferror '\epsilon_C^{#1}' '\epsilon_C^{\spacedistrib}' 'Erreur théorique de classification sur la distribution $\spacedistrib$'
+# ?cs 1 indicatorfunc '\mathds{1}(#1)' '\mathds{1}' 'Fonction indicatrice'
+# ?cs 3 weightedexpectation '\E_{#1 \sim #2} \left[ #3\right]' '\E_{x \sim \rho} \left[ f(x)\right]' 'Espérance de $f(x)$ pour $x$ tiré selon $\rho$'
 La classification est un problème plus subtil que celui de naïvement apprendre par cœur la base d'entraînement. Ce que nous cherchons à optimiser n'est pas la performance sur la base d'entraînement fournie, mais la performance sur l'espace d'état en général. Plus précisément, certains états nous intéressent plus que d'autres. Pour une justification intuitive, il suffit de penser aux jeux de plateau, où bien agir dans les quelques états qui apparaissent souvent en début de partie est beaucoup plus intéressant que bien agir dans un état bizarre que l'on ne rencontrera peut-être jamais ; d'où par exemple le travail sur les ouvertures aux échecs. Pour mesurer l'importance accordée à un état, l'on définit une fonction de poids qui somme à un : $\spacedistrib \in \twosetsfunctions{\statespace}{[0,1]}$ telle que $\int_{\statespace} \spacedistrib(s) ds = 1$ ou $\sum_{\state \in \statespace} \spacedistrib(\state) = 1$ selon que l'on se trouve en cas fini ou continu. La mesure de l'erreur d'une politique de classification se basant uniquement sur la base d'entraînement :
 \begin{equation}
 \empiricalclassiferror = {1\over \nbsamples}\sum_{(\state_{\datasetindex},\action_{\datasetindex}) \in \satrace{\expertpolicy}} \indicatorfunc{\classifpolicy(\state_{\datasetindex}) \neq \action_{\datasetindex}}
@@ -112,19 +112,108 @@ Les problèmes de sur-apprentissage apparaissent lorsque l'on minimise l'erreur 
 Le choix de la distribution $\spacedistrib$ sur laquelle il nous importe d'optimiser la classification est également un paramètre important. On peut comme on l'a vu intuitivement favoriser les états de départ. Il est possible de tenter d'estimer à partir d'une base d'exemple la vraie distribution des états qui seront soumis au contrôle de l'agent. On peut également pour certains environnements accorder plus d'importance à certains états critiques où une erreur aurait des conséquences fâcheuses.
 
 *** Attributs
-#?s featurestateactionspace '\Phi' 'Espace d{\apos}attributs état-action'
-#?s featurestateactionfunc '\phi' 'Fonction d{\apos}attributs état-action'
-    Ce que l'on appelle la capacité de généralisation d'un classifieur est son aptitude à minimiser l'erreur théorique $\classiferror{\spacedistrib}$ à l'aide de données tirées selon une distribution potentiellement différente de $\spacedistrib$. Cette capacité de généralisation est affectée par la manière dont l'espace d'état apparaît au classifieur. Afin d'obtenir une description exploitable du problème, l'on va souvent choisir de travailler non pas directement dans l'espace d'état-action $\statespace\times\actionspace$ mais dans un espace d'attributs $\featurestateactionspace$ qui est l'image de l'espace d'état-action $\statespace\times\actionspace$ par une fonction vectorielle d'attribut $\featurestateactionfunc$ :
+# ?s featurestateactionspace '\Phi' 'Espace d{\apos}attributs état-action'
+# ?s featurestateactionfunc '\phi' 'Fonction d{\apos}attributs état-action'
+# ?s dimphi 'd_{\phi}' 'Dimension de l{\apos}espace d{\apos}attributs état-action'
+    Ce que l'on appelle la capacité de généralisation d'un classifieur est son aptitude à minimiser l'erreur théorique $\classiferror{\spacedistrib}$ à l'aide de données tirées selon une distribution potentiellement différente de $\spacedistrib$. Cette capacité de généralisation est affectée par la manière dont l'espace d'état apparaît au classifieur. Afin d'obtenir une description exploitable du problème, l'on va souvent choisir de travailler non pas directement dans l'espace d'état-action $\statespace\times\actionspace$ mais dans un espace d'attributs $\featurestateactionspace$ qui est l'image de l'espace d'état-action $\statespace\times\actionspace$ par une fonction vectorielle d'attribut $\featurestateactionfunc \in \twosetsfunctions{\statespace \times \actionspace}{\reals^{\dimphi}}$ :
     \begin{equation}
     \featurestateactionspace = \featurestateactionfunc(\statespace\times\actionspace)
     \end{equation}
+Illustrons ce propos par l'étude d'une approche de classification qui utilise une fonction de score linéairement paramétrée sur l'espace d'attribut état-action $\featurestateactionspace$ : \cite[Chapitre 10]{taskar2005learning}.
 
-Illustrons ce propos par l'étude d'une approche d'imitation par la classification qui utilise une fonction de score linéairement paramétrée sur l'espace d'attribut état-action $\featurestateactionspace$ : \cite{ratliff2007imitation}.
+# ?s classifscorefunc 'q' 'Fonction de score pour la classification'
+# ?s reals '\mathbb{R}' 'Le corps des réels'
+Le principe quasi-ubiquitaire en classification[fn::Les classifieurs à arbres de décision formant un contre-exemple notable \citep{safavian1991survey}.] de la fonction de score est le suivant : à chaque couple état-action une fonction $\classifscorefunc$ associe un score. Pour associer une action à un état, le classifieur passe simplement en revue toutes les actions (on voit donc l'intérêt d'un petit espace d'action) et choisi celle qui associée à cet état obtient le score le plus haut :
+\begin{eqnarray}
+\classifscorefunc &\in& \twosetsfunctions{\statespace \times \actionspace}{\reals},\\
+\forall \state, \classifpolicy(\state) &=& \arg\max_{\action \in \actionspace} \classifscorefunc(\state,\action).
+\end{eqnarray}
+Apprendre une bonne fonction de score permet donc de résoudre le problème de classification. L'approche proposée dans \citep{taskar2005learning} prend le parti d'une fonction de score paramétrée linéairement. Il va de soi que rien ne garantit qu'une fonction de score linéaire sur l'espace d'état-action soit en mesure de donner un bon classifieur, dès lors le recours à une fonction d'attribut choisie avec soin est indispensable :
+# ?s paramclassif '\omega' 'Vecteur de paramètres pour la classification'
+# ?cs 1 transpose '#1^T' 'X^T' 'Transposée de la matrice ou du vecteur $X$'
+\begin{equation}
+q(\state,\action) = \transpose{\paramclassif}\featurestateactionfunc(\state,\action)
+\end{equation}
+Ce que nous cherchons maintenant est donc un bon vecteur de paramètres $\paramclassif$. Une telle recherche serait vaine si les attributs choisis ne permettaient pas d'exprimer une bonne fonction de score.
 
-Le principe quasi-ubiquitaire en classification [fn::Les classifieurs à arbres de décision formant un contre-exemple notable \citep{safavian1991survey}.]de la fonction de score est le suivant :
+# ?s featurestatefunc '\psi' 'Fonction d{\apos}attribut sur l{\apos}espace d{\apos}état'
+# ?s dimpsi 'd_{\psi}' 'Dimension de l{\apos}espace d{\apos}attributs sur l{\apos}espace d{\apos}état'
+# ?cs 1 card '\left|#1\right|' '|A|' 'Cardinal de l{\apos}ensemble A'
+Si l'on dispose d'une fonction d'attribut $\featurestatefunc \in \twosetsfunctions{\statespace}{\reals^{\dimpsi}}$ sur l'espace d'état, une technique classique pour obtenir une fonction d'attribut sur l'espace d'état-action consiste à exploser la représentation sur les différentes actions. D'un vecteur de dimension $\dimpsi$, l'on passe à un vecteur de dimension $\dimphi = \card{A}\dimpsi$ (où $\card{\cdot}$ dénote le cardinal d'un ensemble) en définissant :
+# ?cs 2 kronecker '{\delta}^{#1}_{#2}' '\delta^i_j' 'Symbole de Kronecker, vaut $1$ si $i=j$, $0$ sinon'
+\begin{equation}
+\featurestateactionfunc(\state,\action) = \begin{pmatrix}
+\kronecker{\action}{\action_1}\featurestatefunc(\state)\\
+\vdots\\
+\kronecker{\action}{\action_{\card{\actionspace}}}\featurestatefunc(\state)\\
+\end{pmatrix}
+\end{equation}
+avec $\kronecker{i}{j}$ le symbole de Kronecker.
+
+Définir une fonction d'attributs sur l'espace d'état est extrêmement problème-dépendant, néanmoins dans les cas les plus sympathiques deux techniques simples donnent de bons résultats. Dans le cas d'un espace d'état fini de taille raisonnable, il est possible de définir une fonction d'attribut binaire en associant un unique indice à chaque état. Le vecteur d'attribut d'un état est nul partout sauf en l'indice associé à l'état :
+\begin{equation}
+\featurestatefunc(\state) = \begin{pmatrix}
+\kronecker{\state}{\state_1}\\
+\vdots\\
+\kronecker{\state}{\state_{\card{\statespace}}}\\
+\end{pmatrix}.
+\end{equation}
+Un avantage de ce schéma est qu'il permet une représentation exacte de la fonction de score. En effet le produit $q(\state,\action) = \transpose{\paramclassif}\featurestateactionfunc(\state,\action)$ revient à isoler la composante de $\paramclassif$ correspondant à l'unique indice associé au couple $(\state, \action)$. Les deux gros désavantages sont l'incapacité de ce schéma de passer à l'échelle et l'absence totale de structure : l'on aura beau disposer d'énormément d'information sur les "voisins" d'un élément de l'espace, tant que l'on aura pas vu précisément cet élément dans la base d'exemple, c'est la valeur par défaut de la coordonnée correspondante dans $\paramclassif$ qui sera utilisée.
+
+# ?cs 1 gaussperdim 'g_{#1}' 'g_i' 'Nombre de gaussiennes pour la dimension $i$ dans un vecteur d{\apos}attribut basé sur un réseau de gaussiennes'
+# ?s dimstate 'd_{\mathcal{S}}' 'Dimension de l{\apos}esapce d{\apos}état'
+# ?s gaussiancenter 'm' 'Centre d{\apos}une gaussienne'
+# ?s gaussianvar '\sigma' 'Variance d{\apos}une gaussienne'
+# ?cs 3 gaussian '\mathfrak{G}^{#1}_{#2}(#3)' '\mathfrak{G}^{m}_{\sigma}' 'Fonction gaussienne de centre $m$ et de variance $\sigma$'
+# ?cs 2 component '{#1}^{#2}' 'X^i' 'Composante $i$ du vecteur $X$'
+# ?s dimindex 'j' 'Entier indexant les dimensions d{\apos}un espace'
+# ?s dimindexbis 'k' 'Entier indexant les dimensions d{\apos}un espace'
+Pour les espaces continus, une paramétrisation usuelle consiste à paver l'espace de gaussiennes. L'on assigne un nombre $\gaussperdim{\dimindex}$ à chacune des dimensions $0 < \dimindex \leq \dimstate$ de l'espace d'état et l'on construit un maillage de $\dimpsi = \prod_{\dimindex=1}^{\dimstate}\gaussperdim{\dimindex}$ points $m_{\dimindexbis}, 0<\dimindexbis\leq\dimpsi$ répartis à équidistance dans l'espace qui seront les centres des $\dimpsi$ composantes gaussiennes de la fonction d'attribut. La variance pour une dimension $\dimindex$ peut être choisie par exemple comme 
+\begin{equation}
+\gaussianvar^{\dimindex} = { \max(\component{\state}{\dimindex})-\min(\component{\state}{\dimindex})\over 2 \gaussperdim{\dimindex}}.
+\end{equation}
+En notant :
+\begin{equation}
+\gaussian{\gaussiancenter}{\gaussianvar}{s} = \exp\left(-\sum_{\dimindex=1}^{\dimstate}{\component{s}{\dimindex}-\component{\gaussiancenter}{\dimindex}\over 2\component{\gaussianvar}{\dimindex}}\right),
+\end{equation}
+on obtient finalement la fonction d'attribut suivante :
+\begin{equation}
+\featurestatefunc(s) = \begin{pmatrix}
+\gaussian{\gaussiancenter_{1}}{\sigma}{s}\\
+\vdots\\
+\gaussian{\gaussiancenter_{\dimpsi}}{\sigma}{s}\\
+\end{pmatrix}.
+\end{equation}
+Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimension augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension.
+
+Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons la fonction de coût que \citet{taskar2005learning} se propose de minimiser :
+# ?cs 1 best '{#1}^{*}' 'x^*' 'Element issu d{\apos}un $\arg\max_x$'
+# ?s margin '\mathfrak{l}' 'Fonction de marge dans le classifieur à marge'
+# ?s structuredcost 'J' 'Fonction de coût de la classification structurée'
+\begin{eqnarray}
+\structuredcost(\classifscorefunc) &=& {1\over \nbsamples} \sum_{\datasetindex=1}^{\nbsamples} \classifscorefunc(\state_{\datasetindex},\best{\action}_{\datasetindex}) + \margin(\state_{\datasetindex},\best{\action}_{\datasetindex}) - \classifscorefunc(\state_{\datasetindex},\action_{\datasetindex})\\
+\structuredcost(\paramclassif) &=& {1\over \nbsamples} \sum_{\datasetindex=1}^{\nbsamples} \transpose{\paramclassif}\featurestatefunc(\state_{\datasetindex},\best{\action}_{\datasetindex}) + \margin(\state_{\datasetindex},\best{\action}_{\datasetindex}) - \transpose{\paramclassif}\featurestatefunc(\state_{\datasetindex},\action_{\datasetindex})\\
+\textrm{avec : }\best{\action}_{\datasetindex} &=& \arg\max_{\action \in \actionspace} \classifscorefunc(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)\\
+ &=& \arg\max_{\action \in \actionspace} \transpose{\paramclassif}\featurestatefunc(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action).
+\end{eqnarray}
+
+La fonction de marge $\margin$ est là pour donner à ce classifieur sa capacité de généralisation. En effet, on constate que si $\margin$ est uniformément nulle, alors parvenir minimiser parfaitement la fonction de coût revient à apprendre par cœur la base d'exemple, c'est à dire à probablement subir les effets du sur-apprentissage. Fixer 
+\begin{equation}
+\margin(\state_{\datasetindex},\action) = \begin{cases}
+0 &\textrm{si }\action = \action_{\datasetindex}\\
+1 &\textrm{si }\action \neq \action_{\datasetindex}
+\end{cases}
+\end{equation}
+permet d'introduire un marge assez simple : minimiser la fonction de coût apprend une fonction de score qui donne aux choix de l'expert un score supérieur aux score des autres choix. \citet{taskar2005learning} précise qu'il est possible d'adapter la marge $\margin$ en fonction de la qualité des choix alternatifs, un bon choix correspondant à une petite marge. Nous verrons qu'en pratique la marge binaire que nous venons de suggérer fonctionne assez bien.
+
+# ?s subgrad '\nabla' 'Sous gradient d{\apos}une fonction'
+Nous empruntons à \cite{ratliff2006maximum} une technique simple pour minimiser cette fonction de coût, basée sur une descente de sous gradient. Le sous gradient de la fonction de coût est :
+\begin{equation}
+\subgrad\structuredcost(\paramclassif) = \sum_{\datasetindex=1}^{N}\featurestatefunc(\state_{\datasetindex},\best{\action}_{\datasetindex}) - \featurestatefunc(\state_{\datasetindex},\action_{\datasetindex})
+\end{equation}
 *** TODO Faire l'état de l'art de l'imitation avec classifieur
 ** Cadre des \glspl{mdp} pour la prise de décision séquentielle
-#Snippet: La classification ne se soucie pas de l'objectif de l'expert. Quid si une action mal choisie fait dérailler l'agent sur une partie totalement inconnue de l'espace d'état ?
+# Snippet: La classification ne se soucie pas de l'objectif de l'expert. Quid si une action mal choisie fait dérailler l'agent sur une partie totalement inconnue de l'espace d'état ?
 *** TODO justifier le cadre, dire pourquoi on introduit ces notions
    Probabilités de transitions, fonction de récompense, fonction de valeur, politique optimale. \gls{dp}.
 
@@ -151,11 +240,11 @@ Le principe quasi-ubiquitaire en classification [fn::Les classifieurs à arbres 
 ** Premières formulation du problème 
    Mentionné pour la première fois dans \cite{russell1998learning}. La formulation informée (qui connait les probabilités de transition) du problème \cite{ng2000algorithms} n'est pas bien posée. Deux solutions sont malgré tout proposées dont une fait déjà usage de l'attribut moyen, mais pas sous ce nom. La solution informée n'est pas celle qui nous intéresse pour les mêmes raisons qui nous font préférer l'\gls{rl} au DP (voir plus haut). La solution approchée est également problématique (FIXME:préciser pourquoi exactement).
 
-#Rem Olivier: Quand on fait des critiques purs
+# Rem Olivier: Quand on fait des critiques purs
    Détail important : dans l'\gls{rl}, on cherche le point fixe d'un opérateur attractif, il existe une solution et elle est unique. Dans l'\gls{irl} la solution n'est pas unique et il existe des solutions dégénérées. Résoudre le problème de l'\gls{irl} risque donc de s'avérer plus complexe que de résoudre le problème de l'\gls{rl}.
 
 ** Méthodes nécessitant la résolution répétée d'un MDP
-#Rem olivier:  En gros, on trouve une récompense et on regarde, par optimisation, si le mu de la politique pour R est proche de celui de la politique de l'expert. Ça nécessite de résoudre l'\gls{rl} et de connaître la politique de l'expert partout. 
+# Rem olivier:  En gros, on trouve une récompense et on regarde, par optimisation, si le mu de la politique pour R est proche de celui de la politique de l'expert. Ça nécessite de résoudre l'\gls{rl} et de connaître la politique de l'expert partout. 
    \cite{abbeel2004apprenticeship} propose \gls{pirl}, un algorithme qui sert de base à beaucoup d'autres solutions par la suite. L'idée est, par itérations successives sur la récompense, de rapprocher l'attribut moyen de l'agent et celui de l'expert. Pour une certaine notion de distance entre attributs moyens.  Cette approche fondatrice impose cependant des contraintes assez fortes :
    - il faut de manière répétée résoudre un MDP
    - il faut de manière répétée estimer l'attribut moyen d'une politique arbitraire et de la politique experte
@@ -166,7 +255,7 @@ Le principe quasi-ubiquitaire en classification [fn::Les classifieurs à arbres 
 
    La technique proposée dans \cite{neu2007apprenticeship} (\gls{pm}) est plus robuste que celles décrites jusqu'à présent aux changements d'échelles des attributs ou au bruit dans les attributs. Elle souffre des même types de contraintes que \gls{pirl} ; comme \gls{pirl}, elle raisonne sur des politiques et non sur des récompenses.
 
- #Rem olivier: Puis faut la dynamique
+ # Rem olivier: Puis faut la dynamique
    Basé sur la théorie des jeux, l'algorithme \gls{mwal} de \cite{syed2008game} tombe sur un os[fn::Os à \gls{mwal}, humour.]. Plus rapide à l'exécution que \gls{pirl} et capable de gérer la non optimalité de l'expert, il exige cependant énormément de connaissances à priori sur le problème : il faut que le vecteur de paramètres de l'approximation de la récompense soit positif. Il souffre des mêmes soucis de résolution répétée du MDP et d'estimation de l'attribut moyen que \gls{pirl}. Ce papier mentionne les problèmes liés aux raisonnements sur des politiques mixées et non des récompenses, sans pour autant les résoudre explicitement.
 
    Ce travail est étendu dans \cite{syed2008apprenticeship}, en formulant la résolution du MDP comme un programme linéaire, on peut trouver une politique stationnaire, sans \gls{mixing} dans \gls{pirl} et \gls{mwal}. En formulant l'\gls{irl} comme un programme linéaire également, les auteurs trouvent \gls{lpal}, qui retourne un politique (non une récompense). La formulation de ce programme linéaire met en jeu des grandeurs qui correspondent à l'attribut moyen de politiques optimales pour des récompenses arbitraires.
@@ -193,7 +282,7 @@ Le principe quasi-ubiquitaire en classification [fn::Les classifieurs à arbres 
    \gls{relent} fait sauter la plupart des contraintes qui nous préoccupent (argumentaire à rapprocher de \gls{maxent}) \cite{boularias2011relative}. Il suffit d'avoir des échantillons experts et des échantillons aléatoires. On est dans le cadre définit avant de commencer l'état de l'art, et non plus dans le cadre mal défini des approches qui on suivi \gls{pirl}.
 
 * \gls{lstdmu} 
-#<<hier:lstdmu>>
+# <<hier:lstdmu>>
 ** Principe 
   On rappelle que l'attribut moyen est une grandeur centrale en renforcement (dit en [[Attribut moyen]]). Les algorithmes qui l'utilisent ne présupposent pas de moyen de le calculer. La méthode de base consiste à faire jouer un simulateur et faire une estimation de Monte-Carlo.
 
@@ -227,7 +316,7 @@ Le principe quasi-ubiquitaire en classification [fn::Les classifieurs à arbres 
 ** Description de l'algorithme 
 ** Validation sur les problèmes jouets 
 * Cascading 
-#<<hier:cascading>>
+# <<hier:cascading>>
 ** Description 
 *** Description 
 *** Différences de concept avec SCIRL 
@@ -244,5 +333,4 @@ Le principe quasi-ubiquitaire en classification [fn::Les classifieurs à arbres 
 \bibliographystyle{plainnat}
 \bibliography{Biblio}
 * Glossaire 
-#\printglossary[type=\acronymtype] 
 \printglossaries

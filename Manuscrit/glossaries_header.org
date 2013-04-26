@@ -1,3 +1,4 @@
+#+LATEX_HEADER: \usepackage{tikz}
 
 #+latex_header:\def\E{\operatornamewithlimits{%
 #+latex_header:\mathchoice{\vcenter{\hbox{\huge \ensuremath{\mathbb{E}}}}}

@@ -16,11 +16,11 @@ tokens = (
 )
 
 def t_ORG_SHEBANG_s(t):
-    r'\#\?s'
+    r'\#\s\?s'
     lexer.begin('FORC')
     return t
 def t_ORG_SHEBANG_cs(t):
-    r'\#\?cs'
+    r'\#\s\?cs'
     lexer.begin('FORC')
     return t
 def t_ORG_TEXT(t):
