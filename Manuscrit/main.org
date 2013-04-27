@@ -35,6 +35,10 @@
 #+LaTeX_header:\newacronym{lstd}{LSTD}{\emph{Least Square Tenporal Differences}}
 #+LaTeX_header:\newacronym{scirl}{SCIRL}{\emph{Structured Classification for Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{cascading}{CSI}{\emph{Cascaded Supervised learning for Inverse reinforcement learning}}
+#+LaTeX_header:\newacronym{cnn}{CNN}{\emph{Convolutional Neural Network}}
+#+LaTeX_header:\newacronym{svm}{SVM}{\emph{Support Vector Machine} (Etonnament bien "traduit" en français par Séparateur à Vaste Marge)}
+#+LaTeX_header:\newacronym{gmm}{GMM}{\emph{Gaussian Mixture Model}}
+#+LaTeX_header:\newacronym{alvinn}{ALVINN}{\emph{Autonomous Land Vehicle In a Neural Network}}
 
 #+LaTeX_header:\newangl{batch}{batch}{Par paquet}
 #+LaTeX_header:\newangl{offpolicy}{off-policy}{Hors ligne}
@@ -59,7 +63,7 @@
 # Goal:Introduire uniquement le formalisme nécessaire à l'imitation par classification.
 # Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense
 # Requires:Agent artificiel, environnement, tâche
-# Ensures: État, action, politique, classifieur, erreur de classification, politique de l'expert, traces sa, généralisation
+# Ensures: État, action, politique, classifieur, erreur de classification, politique de l'expert, traces sa, généralisation, attributs, classif structurée de taskar
 # ?s policy '\pi' 'Une politique'
 # ?s statespace '\mathcal{S}' 'Espace d{\apos}état'
 # ?s actionspace '\mathcal{A}' 'Espace d{\apos}action'
@@ -123,7 +127,7 @@ Illustrons ce propos par l'étude d'une approche de classification qui utilise u
 
 # ?s classifscorefunc 'q' 'Fonction de score pour la classification'
 # ?s reals '\mathbb{R}' 'Le corps des réels'
-Le principe quasi-ubiquitaire en classification[fn::Les classifieurs à arbres de décision formant un contre-exemple notable \citep{safavian1991survey}.] de la fonction de score est le suivant : à chaque couple état-action une fonction $\classifscorefunc$ associe un score. Pour associer une action à un état, le classifieur passe simplement en revue toutes les actions (on voit donc l'intérêt d'un petit espace d'action) et choisi celle qui associée à cet état obtient le score le plus haut :
+Le principe quasi-ubiquitaire en classification[fn::Les classifieurs à arbres de décision formant un contre-exemple notable \citep{safavian1991survey}.] de la fonction de score est le suivant : à chaque couple état-action une fonction $\classifscorefunc$ associe un score. Pour associer une action à un état, le classifieur passe simplement en revue toutes les actions (on voit donc l'intérêt d'un petit espace d'action) et choisit celle qui associée à cet état obtient le score le plus haut :
 \begin{eqnarray}
 \classifscorefunc &\in& \twosetsfunctions{\statespace \times \actionspace}{\reals},\\
 \forall \state, \classifpolicy(\state) &=& \arg\max_{\action \in \actionspace} \classifscorefunc(\state,\action).
@@ -150,7 +154,7 @@ Si l'on dispose d'une fonction d'attribut $\featurestatefunc \in \twosetsfunctio
 \end{equation}
 avec $\kronecker{i}{j}$ le symbole de Kronecker.
 
-Définir une fonction d'attributs sur l'espace d'état est extrêmement problème-dépendant, néanmoins dans les cas les plus sympathiques deux techniques simples donnent de bons résultats. Dans le cas d'un espace d'état fini de taille raisonnable, il est possible de définir une fonction d'attribut binaire en associant un unique indice à chaque état. Le vecteur d'attribut d'un état est nul partout sauf en l'indice associé à l'état :
+Le choix d'une bonne fonction d'attributs sur l'espace d'état est extrêmement problème-dépendant, néanmoins dans les cas les plus sympathiques deux techniques simples donnent de bons résultats. Dans le cas d'un espace d'état fini de taille raisonnable, il est possible de définir une fonction d'attribut binaire en associant un unique indice à chaque état. Le vecteur d'attribut d'un état est nul partout sauf en l'indice associé à l'état :
 \begin{equation}
 \featurestatefunc(\state) = \begin{pmatrix}
 \kronecker{\state}{\state_1}\\
@@ -165,7 +169,7 @@ Un avantage de ce schéma est qu'il permet une représentation exacte de la fonc
 # ?s gaussiancenter 'm' 'Centre d{\apos}une gaussienne'
 # ?s gaussianvar '\sigma' 'Variance d{\apos}une gaussienne'
 # ?cs 3 gaussian '\mathfrak{G}^{#1}_{#2}(#3)' '\mathfrak{G}^{m}_{\sigma}' 'Fonction gaussienne de centre $m$ et de variance $\sigma$'
-# ?cs 2 component '{#1}^{#2}' 'X^i' 'Composante $i$ du vecteur $X$'
+# ?cs 2 component '{#1}^{#2}' 'X^j' 'Composante $j$ du vecteur $X$'
 # ?s dimindex 'j' 'Entier indexant les dimensions d{\apos}un espace'
 # ?s dimindexbis 'k' 'Entier indexant les dimensions d{\apos}un espace'
 Pour les espaces continus, une paramétrisation usuelle consiste à paver l'espace de gaussiennes. L'on assigne un nombre $\gaussperdim{\dimindex}$ à chacune des dimensions $0 < \dimindex \leq \dimstate$ de l'espace d'état et l'on construit un maillage de $\dimpsi = \prod_{\dimindex=1}^{\dimstate}\gaussperdim{\dimindex}$ points $m_{\dimindexbis}, 0<\dimindexbis\leq\dimpsi$ répartis à équidistance dans l'espace qui seront les centres des $\dimpsi$ composantes gaussiennes de la fonction d'attribut. La variance pour une dimension $\dimindex$ peut être choisie par exemple comme 
@@ -186,7 +190,7 @@ on obtient finalement la fonction d'attribut suivante :
 \end{equation}
 Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimension augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension.
 
-Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons la fonction de coût que \citet{taskar2005learning} se propose de minimiser :
+Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons la fonction de coût que \citet{taskar2005learning} se propose de minimiser (l'expression est modifiée :
 # ?cs 1 best '{#1}^{*}' 'x^*' 'Element issu d{\apos}un $\arg\max_x$'
 # ?s margin '\mathfrak{l}' 'Fonction de marge dans le classifieur à marge'
 # ?s structuredcost 'J' 'Fonction de coût de la classification structurée'
@@ -197,7 +201,7 @@ Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de
  &=& \arg\max_{\action \in \actionspace} \transpose{\paramclassif}\featurestatefunc(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action).
 \end{eqnarray}
 
-La fonction de marge $\margin$ est là pour donner à ce classifieur sa capacité de généralisation. En effet, on constate que si $\margin$ est uniformément nulle, alors parvenir minimiser parfaitement la fonction de coût revient à apprendre par cœur la base d'exemple, c'est à dire à probablement subir les effets du sur-apprentissage. Fixer 
+La fonction de marge $\margin$ est là pour donner à ce classifieur sa capacité de généralisation. En effet, on constate que si $\margin$ est uniformément nulle, alors parvenir à minimiser parfaitement la fonction de coût revient à apprendre par cœur la base d'exemple, c'est à dire à probablement subir les effets du sur-apprentissage. Fixer 
 \begin{equation}
 \margin(\state_{\datasetindex},\action) = \begin{cases}
 0 &\textrm{si }\action = \action_{\datasetindex}\\
@@ -211,7 +215,45 @@ Nous empruntons à \cite{ratliff2006maximum} une technique simple pour minimiser
 \begin{equation}
 \subgrad\structuredcost(\paramclassif) = \sum_{\datasetindex=1}^{N}\featurestatefunc(\state_{\datasetindex},\best{\action}_{\datasetindex}) - \featurestatefunc(\state_{\datasetindex},\action_{\datasetindex})
 \end{equation}
-*** TODO Faire l'état de l'art de l'imitation avec classifieur
+
+Nous avons présenté cette technique de classification plus en détail à des fins d'illustration de l'importance du choix des attributs, et également car nous la retrouverons plus loin dans le manuscrit lorsque nous nous intéresserons aux techniques d'\gls{irl}.
+
+Il existe bien d'autres moyen de faire de la classification, comme par exemple les \gls{svm}.
+*** \gls{svm}
+# Goal: Faire une description rapide des MCSVM et de leurs avantages.
+# Goal: Introduire la notion de noyau, de kenel-trick et faire le lien avec les attributs (poil au cul)
+# Requires: attribut, classification
+# Ensures noyau, kernel-trick, SVM
+
+Nous aurons également à faire avec des \gls{svm} dans la suite du manuscrit. Une description exhaustive des techniques d'apprentissage supervisé propices à l'imitation dépasserait le cadre de cette thèse. \citet{hastie2005elements,vapnik1998statistical} sont des ouvrages de référence. Nous allons voir comment ces techniques ont été appliquées en pratique à l'apprentissage supervisé de la politique de l'expert.
+*** Imitation par apprentissage supervisé de la politique
+# Goal:Faire l'état de l'art des techniques d'imitation par apprentissage supervisé
+# Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense (bis)
+# Requires:Classifieur, attributs, classif de taskar, (boosting?)
+# Ensures: Boosting, ratliff2007imitation, 
+Apprendre la politique de l'expert de manière supervisée à l'aide d'une base d'exemples peut s'avérer efficace, comme le démontrent plusieurs approches. Dans \citep{ratliff2007imitation}, les auteurs utilisent le classifieur à marge décrit plus haut
+# checkref
+# ?s featurestateactionhypothesisspace '\mathcal{H}_{\Phi}' 'Espace d{\apos}hypothèse où choisir une nouvelle composante pour l{\apos}attribut état action'
+# ?cs 2 scalarprod '\left\langle\left.{#1}\right | {#2}\right\rangle' '\langle x|y\rangle' 'Produit scalaire de $x$ et $y$'
+pour apprendre une politique experte sur un problème de locomotion quadrupède et sur un problème de manipulation d'objets. Le choix des attributs est simplifié grâce à une technique de \gls{boosting} similaire à \cite{friedman2001greedy,mason1999functional} : on choisit dans un espace d'hypothèse la fonction qui, ajoutée comme composante supplémentaire de la fonction d'attribut, aiderait le mieux à minimiser la fonction de coût. Mathématiquement, on choisit la fonction dont le produit scalaire avec le gradient de la fonction de coût est minimal : la nouvelle composante $\featurestateactionfunc_{\dimphi +1}$ est choisie dans l'espace d'hypothèse $\featurestateactionhypothesisspace$ selon 
+\begin{equation}
+\featurestateactionfunc_{\dimphi +1} = \arg\max_{\featurestateactionfunc\in \featurestateactionhypothesisspace} \scalarprod{\featurestateactionfunc}{-\subgrad \structuredcost}.
+\end{equation}
+
+Le boosting permet de déplacer de manière intelligente le problème du choix des attributs, sans le régler totalement. Il reste en effet à construire l'espace d'hypothèse $\featurestateactionhypothesisspace$ où choisir les nouveaux attributs. Un espace trop simple ne permettrait pas de minimiser efficacement la fonction de coût, tandis qu'un espace trop centré sur les données permettrait de la minimiser totalement, mais sans doute au prix d'un sur-apprentissage aux conséquences fâcheuses. C'est donc cet espace qui doit être calibré et construit afin de donner au classifieur ses capacités de généralisation. \citet{ratliff2007imitation} proposent d'utiliser un réseau de neurones.
+
+Plus brutale, l'approche de \citet{lecun2006off} utilise un \gls{cnn} à 6 couches pour apprendre une association directe entre une image (stéréo) d'entrée et un angle de braquage (la tâche à apprendre est la conduite d'un véhicule en terrain libre). Le problème de la généralisation est résolu en exigeant une base d'entraînement couvrant au maximum l'espace d'état. Les auteurs ne cachent pas la difficulté de réunir une telle base qui doit réunir des conditions de terrain et d'illumination variées tout en exigeant un comportement extrêmement cohérent et prédictible de la part de l'opérateur humain et ce sur un grand nombre de trajectoires (il faut réunir près d'une centaine de milliers d'échantillons). En contrepartie de ces efforts, la technique proposée est robuste et ne nécessite aucun travail d'ingénierie au niveau des attributs, puisque la politique apprise associe directement la sortie du capteur à la consigne de l'actuateur du robot. Bien que cela soit moins problématique aujourd'hui avec l'augmentation de puissance des équipements embarqués, elle semble également plus rapide (dans l'exploitation, non dans l'apprentissage) que l'état de l'art de l'époque. Elle améliore les résultats notamment par rapport à \gls{alvinn} \citep{pomerleau1993knowledge} en ceci que la résolution des caméras peut être augmentée sans trop grande explosion du réseau grâce à l'usage de la convolution et non d'un réseau complètement connecté, et que la tâche apprise est plus difficile, il s'agit de conduire en terrain libre et non de suivre une route.
+
+La classification par arbre de décision a été appliquée à l'apprentissage d'un plan de vol dans \citep{sammut1992learning}. L'application est impressionnante, piloter un avion, même en simulation, n'est pas une mince affaire. Les facteurs limitants sont cependant les mêmes que pour l'approche précédente : un grand nombre d'échantillons est requis (du même ordre de grandeur, de l'ordre de la centaine de milliers) et un comportement cohérent est exigé de l'expert humain (à un point tel que les démonstrations de deux experts ne peuvent être mélangées en une seule base d'entraînement). De plus, le système apprend un plan de vol fixe et relativement simple et ne saurait réagir à l'imprévu pour lequel on ne pourrait d'ailleurs l'entraîner par imitation supervisée sans généralisation puisqu'on ne pourrait épuiser la liste des situations dans lesquelles un pilote pourrait être amené à se trouver.
+
+Afin de minimiser le nombre d'échantillons nécessaires à l'apprentissage supervisé de la politique experte, l'idée de demander ces échantillons de manière interactive a été proposée. Un exemple d'une telle approche est décrit en \citep{chernova2007confidence}. Des \gls{gmm} sont appris à partir d'une base de données experte de départ, puis l'agent applique la politique apprise tout en demandant à l'expert, lorsque l'incertitude est trop grande, de lui fournir un échantillon supplémentaire. Cette approche permet de limiter la redondance de la base d'entraînement et de guider l'échantillonnage vers les zones intéressantes de l'espace d'état, ce qui en plus de limiter la taille de la base d'entraînement règle aussi le problème de la généralisation : quand l'agent ne sait pas généraliser, il demande à l'expert.
+
+Cette dernière approche fait apparaître une idée que l'on retrouve dans plusieurs contributions \citep{saunders2006teaching,bentivegna2004learning,bain2000framework} et qui consiste à compenser les faiblesses de l'apprentissage supervisé de la politique et à profiter de ses forces en l'intégrant dans un cadre plus étoffé. L'agent dans ce cadre ne se contente pas d'apprendre (en généralisant plus ou moins bien) la politique de l'expert à partir d'une base d'exemple inerte, mais il profite d'interactions avec l'expert et l'environnement pour parfaire son apprentissage ou découvrir les zones de l'espace d'état où il a besoin de plus d'information (apprendre à apprendre). Les actions peuvent également être regroupées en séquences afin de pousser l'horizon vers le moyen ou long terme plutôt que de rester dans le choix de l'action immédiate. On retrouve aussi la décomposition du problème en une hiérarchie de problèmes plus simples sur lesquels une politique locale est apprise de manière supervisée. Ces approches sont performantes et font un usage intelligent des algorithmes d'apprentissage supervisé qu'elles emploient, mais décalent dans la mise en place du cadre qu'elles définissent les problèmes intrinsèquement liés à l'usage de ces algorithmes. Il est en effet nécessaire d'adapter à chaque problème (quand cela est possible) la mise en place des techniques décrites, il n'y a pas encore de cadre général pouvant être appliqué avec un effort minimal à une grande classe de problèmes.
+
+*** Imitation par d'autres formes d'apprentissage
+**** Historique : les approches de Computational approaches to motor learning by imitation
+**** Combler les manques, les approches qui n'apprennent pas une action mais autre chose A survey of robot learning from demonstration
+**** Citer les deux surveys     
 ** Cadre des \glspl{mdp} pour la prise de décision séquentielle
 # Snippet: La classification ne se soucie pas de l'objectif de l'expert. Quid si une action mal choisie fait dérailler l'agent sur une partie totalement inconnue de l'espace d'état ?
 *** TODO justifier le cadre, dire pourquoi on introduit ces notions
@@ -297,6 +339,7 @@ Nous empruntons à \cite{ratliff2006maximum} une technique simple pour minimiser
    En utilisant \gls{pirl} avec LSPI et \gls{lstdmu}$\mu$, on peut porter PIRL en mode /batch/ avec une perte de performance minimale, et que l'on peut mitiger en fonction de la quantité de données non expertes disponibles. Cela évite d'avoir à se servir d'un simulateur, qui n'est pas toujours disponible. En le modifiant pour qu'il sorte une récompense et non une politique on peut corriger les "erreurs de jeunesse" des algorithmes dans la lignée de \gls{pirl}. Ça reste non idéal cependant.
    
 * \gls{scirl}
+# snippet: tiré de ratliff2009learning, l'extrait suivant est exactement ce que SCIRL fait : Unfortunately, such a system is inherently myopic. This form of imitation learning assumes that all information necessary to make a decision at the current state can be easily encoded into a single vector of features that enables prediction with a relatively simple, learned function. However, this is often particularly difficult because the features must encode information regarding the future long-term consequences of taking an action. Under this framework, much of the work that we would like learning to handle is pushed onto the engineer in the form of feature extraction.
 ** Liens entre classification et \gls{rl}
   La classification peut-être utilisée pour faire de l'imitation (fait mentionné en sous-section \ref{hier:nonari}). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un \gls{mdp} (équation présentée en [[Cadre des \glspl{mdp} pour la prise de décision séquentielle]]) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
 
@@ -311,6 +354,7 @@ Nous empruntons à \cite{ratliff2006maximum} une technique simple pour minimiser
 ** Mise en relief de l'influence des routines 
 ** Conclusion 
    SCIRL règle quelques problèmes des premiers algorithmes d'IRL et a de meilleures performances que \gls{maxent}. Il est théoriquement simple à expliquer et résout bien le problème de l'\gls{irl} tel qu'on l'a formulé. Il peut fonctionner avec uniquement des données de l'expert, ce qui ouvre la porte à des applications réelles.
+
 * SCIRLBoost 
 ** Problème de la définition des fonctions de base  
 ** Description de l'algorithme 
