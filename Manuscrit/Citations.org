@@ -1,0 +1,9 @@
+
+#+TITLE:Citations qui pourraient être utiles car elles justifient notre approche
+
+* bain2000framework
+En parlant de (Shiraz & Sammut, 1997)
+Shiraz tested the system by asking several subjects to building autopilots for the same flight plan as defined by Sammut et al (1992). The subjects were able to construct rules “manually” for most of the flight. However, some subjects found it was easier, in particularly difficult parts of the flight, to simply take over control and provide examples of the appropriate actions. That is, many stages of the flight are sufficiently simple that control rules can be easily verbalised, however, actions performed in other stages, especially landing, are much more difficult to describe and so teaching by example becomes easier.
+-> Verbaliser le but n'est pas facile
+* ratliff2009learning
+Unfortunately, such a system is inherently myopic. This form of imitation learning assumes that all information necessary to make a decision at the current state can be easily encoded into a single vector of features that enables prediction with a relatively simple, learned function. However, this is often particularly difficult because the features must encode information regarding the future long-term consequences of taking an action. Under this framework, much of the work that we would like learning to handle is pushed onto the engineer in the form of feature extraction.

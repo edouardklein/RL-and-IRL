@@ -1,0 +1,57 @@
+#+TITLE: File de papiers à lire et résumer, ou pas.
+
+* b
+S. Schaal, A.Ijspeert, and A. Billard. The Neuroscience of Social Interaction, chapter Computational approaches to motor learning by imitation, pages 199–218. 1431. Oxford University Press, 2004.
+Ce que j'en sais snas l'avoir lu (saunders2006learning):
+Overview et catégorisation
+i) direct policy learning - where supervised learning is used to learn a control policy directly.
+ii) learning policies from demonstrated trajectories - this assumes that the task goal is known and uses sample trajectories to learn a control policy
+iii) model based policy learning - where a predictive model of the control problem is constructed.
+
+* b
+J. Saunders, C. L. Nehaniv, and K. Dautenhahn. An experimental comparison of imitation paradigms used in social robotics. In Proc. IEEE Robot and Human Interactive Communication (ROMAN ’04), pages 691–696. IEEE Press, September 2004.
+
+(saunders2006learning) Devrait parler des limites du direct policy learning
+
+* b
+A. Billard and K. Dautenhahn. Experiments in learning by imitation - grounding and use of communication in robotic agents. Adaptive Behaviour Journal, 7(3/4), 1999.
+
+(saunders2006learning) Exemple de direct policy learning
+
+* b
+G. Hayes and J. Demiris. A robot controller using learning by imitation. In Proc. Int. Symp. Intelligent Robotic Systems, Grenoble, pages 198–204, 1994.
+(saunders2006learning) Exemple de direct policy learning
+
+* b
+M. van Lent and J. E. Laird. Learning procedural knowledge through observation. In K-CAP 2001: Proc. Int. Conf. Knowledge Capture, 2001.
+(saunders2006learning) Pareil que learning to fly, mais avec goal transition information
+
+* b
+R. Dillmann. Teaching and learning of robot tasks via observation of human performance. Robotics and Autonomous Systems, 47:109–116, 2004.
+(saunders2006learning) blipblop
+
+* b
+M. Dorigo and M. Colombetti. Robot Shaping: an experiment in behavior engineering. MIT Press, 1998.
+(saunders2006learning) Décomposition des tâches
+* b
+A. Alissandrakis, C. L. Nehaniv, K. Dautenhahn, and J. Saunders. An approach for programming robots by demonstration: Generalization across different initial configurations of manipulated objects. In 6th IEEE Int. Symp. Computational Intelligence in Robotics and Automation (CIRA’05), pages 61–66. IEEE, 2005
+(saunders2006learning) Apprentissag de primitives et non d'action
+* b 
+D. C. Bentivegna and C. G. Atkeson. A framework for learning from observation using primitives. In Proc. RoboCup Int. Symp., Japan, 2002.
+(saunders2006learning) Apprentissage de primitives et non d'actions, air hockey
+* b
+Michie, D., & Camacho, R. (1994). Building symbolic representations of intuitive real-time skill from performance data. In K. Furukawa, D. Michie, & S. Muggleton (Eds.), Machine Intelligence 13. (pp. 385-418). Oxford: The Clarendon Press, OUP. 
+(bain2000framework) behavioral cloning on a certain domain, le résultat peut paraître "mindless"
+* b
+Sammut, C., Hurst, S., Kedzier, D., & Michie, D. (1992). Learning to fly. In D. Sleeman & P. Edwards (Ed.), Proceedings of the Ninth International Conference on Machine Learning, Aberdeen: Morgan Kaufmann.
+(bain2000framework) LEARNING TO FLY (J'ai déjà un § là dessus, normalement, voir quel papier utiliser), behavioral cloning sur un certain domaine
+* b
+Urbanˇciˇc, T., & Bratko, I. (1994). Reconstructing human skill with machine learning. In A. Cohn (Ed.), Proceedings of the 11th European Conference on Artificial Intelligence, John Wiley & Sons.
+(bain2000framework) Behavioral cloning sur un certain domaine, peut faire apparaitre les problèmes du béhavioral cloning à la papy.
+* b 
+Arentz, D. (1994) The Effect of Disturbances in Behavioural Cloning. Com- puter Engineering Thesis, School of Computer Science and Engineering, University of New South Wales.
+(bain2000framework) fait apparaître les problèmes du behavioural cloning
+* Keywords
+
+direct policy learning 
+behavioral cloning
