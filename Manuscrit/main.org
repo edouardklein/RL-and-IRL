@@ -70,7 +70,7 @@
 # ?s policy '\pi' 'Une politique'
 # ?s statespace '\mathcal{S}' 'Espace d{\apos}état'
 # ?s actionspace '\mathcal{A}' 'Espace d{\apos}action'
-# ?cs 2 twosetsfunctions '{#2}^{#1}' 'B^A' 'Ensemble des applications de $A$ dans $B$.'
+# ?cs 2 twosetsfunctions '{#2}^{#1}' 'B^A' 'Ensemble des applications de $A$ dans $B$'
 *** Formalisme
    D'un point de vue mathématique, un agent, qu'il soit artificiel ou humain, qu'il s'agisse de l'expert qu'il soit cours d'apprentissage ou même qu'il agisse de manière aléatoire (utile pour l'exploration), implémente une politique. Une politique $\policy$ est formellement définie comme une application d'un espace d'état vers un espace d'action :
 \begin{equation}
@@ -105,7 +105,7 @@
 # ?cs 1 classiferror '\epsilon_C^{#1}' '\epsilon_C^{\spacedistrib}' 'Erreur théorique de classification sur la distribution $\spacedistrib$'
 # ?cs 1 indicatorfunc '\mathds{1}(#1)' '\mathds{1}' 'Fonction indicatrice'
 # ?cs 3 weightedexpectation '\E_{#1 \sim #2} \left[ #3\right]' '\E_{x \sim \rho} \left[ f(x)\right]' 'Espérance de $f(x)$ pour $x$ tiré selon $\rho$'
-La classification est un problème plus subtil que celui de naïvement apprendre par cœur la base d'entraînement. Ce que nous cherchons à optimiser n'est pas la performance sur la base d'entraînement fournie, mais la performance sur l'espace d'état en général. Plus précisément, certains états nous intéressent plus que d'autres. Pour une justification intuitive, il suffit de penser aux jeux de plateau, où bien agir dans les quelques états qui apparaissent souvent en début de partie est beaucoup plus intéressant que bien agir dans un état bizarre que l'on ne rencontrera peut-être jamais ; d'où par exemple le travail sur les ouvertures aux échecs. Pour mesurer l'importance accordée à un état, l'on définit une fonction de poids qui somme à un : $\spacedistrib \in \twosetsfunctions{\statespace}{[0,1]}$ telle que $\int_{\statespace} \spacedistrib(s) ds = 1$ ou $\sum_{\state \in \statespace} \spacedistrib(\state) = 1$ selon que l'on se trouve en cas fini ou continu. La mesure de l'erreur d'une politique de classification se basant uniquement sur la base d'entraînement :
+La classification est un problème plus subtil que celui de naïvement apprendre par cœur la base d'entraînement. Ce que nous cherchons à optimiser n'est pas la performance sur la base d'entraînement fournie, mais la performance sur l'espace d'état en général. Plus précisément, certains états nous intéressent plus que d'autres. Pour une justification intuitive, il suffit de penser aux jeux de plateau, où bien agir dans les quelques états qui apparaissent souvent en début de partie est beaucoup plus intéressant que bien agir dans un état bizarre que l'on ne rencontrera peut-être jamais ; d'où par exemple le travail sur les ouvertures aux échecs. Pour mesurer l'importance accordée à un état, l'on définit une fonction de poids qui somme à un : $\spacedistrib \in \twosetsfunctions{\statespace}{[0,1]}$ telle que $\int_{\statespace} \spacedistrib(s) ds = 1$ ou $\sum_{\state \in \statespace} \spacedistrib(\state) = 1$ selon que l'on se trouve en cas continu ou fini. La mesure de l'erreur d'une politique de classification se basant uniquement sur la base d'entraînement :
 \begin{equation}
 \empiricalclassiferror = {1\over \nbsamples}\sum_{(\state_{\datasetindex},\action_{\datasetindex}) \in \satrace{\expertpolicy}} \indicatorfunc{\classifpolicy(\state_{\datasetindex}) \neq \action_{\datasetindex}}
 \end{equation}
@@ -168,13 +168,14 @@ Le choix d'une bonne fonction d'attributs sur l'espace d'état est extrêmement 
 Un avantage de ce schéma est qu'il permet une représentation exacte de la fonction de score. En effet le produit $q(\state,\action) = \transpose{\paramclassif}\featurestateactionfunc(\state,\action)$ revient à isoler la composante de $\paramclassif$ correspondant à l'unique indice associé au couple $(\state, \action)$. Les deux gros désavantages sont l'incapacité de ce schéma de passer à l'échelle et l'absence totale de structure : l'on aura beau disposer d'énormément d'information sur les "voisins" d'un élément de l'espace, tant que l'on aura pas vu précisément cet élément dans la base d'exemple, c'est la valeur par défaut de la coordonnée correspondante dans $\paramclassif$ qui sera utilisée.
 
 # ?cs 1 gaussperdim 'g_{#1}' 'g_i' 'Nombre de gaussiennes pour la dimension $i$ dans un vecteur d{\apos}attribut basé sur un réseau de gaussiennes'
-# ?s dimstate 'd_{\mathcal{S}}' 'Dimension de l{\apos}esapce d{\apos}état'
+# ?s dimstate 'd_{\mathcal{S}}' 'Dimension de l{\apos}espace d{\apos}état'
 # ?s gaussiancenter 'm' 'Centre d{\apos}une gaussienne'
 # ?s gaussianvar '\sigma' 'Variance d{\apos}une gaussienne'
 # ?cs 3 gaussian '\mathfrak{G}^{#1}_{#2}(#3)' '\mathfrak{G}^{m}_{\sigma}' 'Fonction gaussienne de centre $m$ et de variance $\sigma$'
 # ?cs 2 component '{#1}^{#2}' 'X^j' 'Composante $j$ du vecteur $X$'
 # ?s dimindex 'j' 'Entier indexant les dimensions d{\apos}un espace'
 # ?s dimindexbis 'k' 'Entier indexant les dimensions d{\apos}un espace'
+# FIXME: Vérifier sigma et G lorsque j'écrirai le code permettant de dessiner les features
 Pour les espaces continus, une paramétrisation usuelle consiste à paver l'espace de gaussiennes. L'on assigne un nombre $\gaussperdim{\dimindex}$ à chacune des dimensions $0 < \dimindex \leq \dimstate$ de l'espace d'état et l'on construit un maillage de $\dimpsi = \prod_{\dimindex=1}^{\dimstate}\gaussperdim{\dimindex}$ points $m_{\dimindexbis}, 0<\dimindexbis\leq\dimpsi$ répartis à équidistance dans l'espace qui seront les centres des $\dimpsi$ composantes gaussiennes de la fonction d'attribut. La variance pour une dimension $\dimindex$ peut être choisie par exemple comme 
 \begin{equation}
 \gaussianvar^{\dimindex} = { \max(\component{\state}{\dimindex})-\min(\component{\state}{\dimindex})\over 2 \gaussperdim{\dimindex}}.
@@ -193,7 +194,8 @@ on obtient finalement la fonction d'attribut suivante :
 \end{equation}
 Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimension augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension.
 
-Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons la fonction de coût que \citet{taskar2005learning} se propose de minimiser (l'expression est modifiée :
+Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons la fonction de coût que \citet{taskar2005learning} se propose de minimiser (l'expression est modifiée pour coller à la formulation de \cite{ratliff2007imitation}, cela s'avère plus pratique pour la minimisation) :
+# FIXME se mettre exactement au clair sur les différents papiers de ratliff
 # ?cs 1 best '{#1}^{*}' 'x^*' 'Element issu d{\apos}un $\arg\max_x$'
 # ?s margin '\mathfrak{l}' 'Fonction de marge dans le classifieur à marge'
 # ?s structuredcost 'J' 'Fonction de coût de la classification structurée'
@@ -223,12 +225,13 @@ Nous avons présenté cette technique de classification plus en détail à des f
 
 Il existe bien d'autres moyen de faire de la classification, comme par exemple les \gls{svm}.
 *** \gls{svm}
+# FIXME: Ecrire la sous partie sur les SVMs
 # Goal: Faire une description rapide des MCSVM et de leurs avantages.
 # Goal: Introduire la notion de noyau, de kenel-trick et faire le lien avec les attributs (poil au cul)
 # Requires: attribut, classification
 # Ensures noyau, kernel-trick, SVM
 
-Nous aurons également à faire avec des \gls{svm} dans la suite du manuscrit. Une description exhaustive des techniques d'apprentissage supervisé propices à l'imitation dépasserait le cadre de cette thèse. \citet{hastie2005elements,vapnik1998statistical} sont des ouvrages de référence. Nous allons voir comment ces techniques ont été appliquées en pratique à l'apprentissage supervisé de la politique de l'expert.
+Nous aurons également à faire avec des \gls{svm} dans la suite du manuscrit. Bien d'autres techniques de classification existent, une description exhaustive des techniques d'apprentissage supervisé propices à l'imitation dépasserait le cadre de cette thèse. \citet{hastie2005elements,vapnik1998statistical} sont des ouvrages de référence. Nous allons voir comment ces techniques ont été appliquées en pratique à l'apprentissage supervisé de la politique de l'expert.
 *** Imitation par apprentissage supervisé de la politique
 # Goal:Faire l'état de l'art des techniques d'imitation par apprentissage supervisé
 # Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense (bis)
@@ -255,13 +258,13 @@ L'apprentissage direct de la politique experte est parfois intégré à dans un 
 
 La classification par arbre de décision a été appliquée à l'apprentissage d'un plan de vol dans \citep{sammut1992learning}. L'application est impressionnante, piloter un avion, même en simulation, n'est pas une mince affaire puisqu'il fut en temps réel prendre en compte un grand nombre de facteurs pour décider d'une action parmi un éventail assez large. Les facteurs limitants de l'apprentissage automatique sont les mêmes que pour l'approche précédente : un grand nombre d'échantillons est requis (du même ordre de grandeur, de l'ordre de la centaine de milliers) et un comportement cohérent est exigé de l'expert humain (à un point tel que les démonstrations de deux experts ne peuvent être mélangées en une seule base d'entraînement). De plus, l'aspect automatique de l'approche reste limité à l'apprentissage d'une politique par phase de vol. La détection de la phase de vol courante et donc le choix de la politique de contrôle à appliquer est effectué par des règles d'origine humaine. Pour chaque phase, la politique apprise n'est robuste qu'à de petites variations dans les états rencontrés.
 
-De fait, cette approche a été le point de départ de nombreuses améliorations. Le travail présenté par \citet{stirling1995churps} (appelé \gls{churps}) consiste a déduire un contrôleur à partir d'une description du modèle d'évolution du système et du but à atteindre. Pour automatiser la création de ces descriptions, tâche réclamant un travail difficile car nécessitant de décrire des mécanismes précis à l'aide d'un langage contraignant, \citet{bain2000framework} proposent d'utiliser les données de l'expert. Les règles complexes ainsi apprises étant ajoutées à l'espace d'action, il est possible d'apprendre de manière automatique un classifieur plus concis que celui de \citet{sammut1992learning}, et nécessitant moins de données expertes. L'architecture proposée utilise la logique du premier ordre et donc le raisonnement symbolique. Cela permet d'introduire explicitement des connaissances expertes dans le système. Ces connaissances peuvent être acquises semi-automatiquement : les prédicats sont bâtis à la main et les paramètres sont appris grâce aux données de vol comme le proposent \citet{srinivasan1998inductive}. La sémantique des symboles (ici, virage, altitude, trajectoire de vol, etc.) est très liée au problème concerné. Retrouver la puissance des techniques d'apprentissage symbolique sur un autre problème nécessite d'effectuer de nouveau le difficile travail de définition des symboles et prédicats. Un autre élément gênant est la difficulté d'exprimer la tâche à accomplir en utilisant un langage symbolique. Dans une approche hybride symbolique/automatique, \citet{shiraz1997combining} proposent à l'expert soit de décrire la tâche symboliquement, soit d'en démontrer l'exécution. Les phases les plus délicates (par exemple l'atterrissage) n'ont pu être décrites et ont été démontrées. La facilité d'exploitation des règles symbolique rentre en conflit avec la difficulté qu'il y a à les définir, à l'inverse la relative facilité de génération d'une base d'exemple se heurte à la difficulté qu'il y a à généraliser à partir de celle-ci.
+De fait, cette approche a été le point de départ de nombreuses améliorations. Le travail présenté par \citet{stirling1995churps} (appelé \gls{churps}) consiste a déduire un contrôleur à partir d'une description du modèle d'évolution du système et du but à atteindre. Pour automatiser la création de ces descriptions, tâche réclamant un travail difficile car nécessitant de décrire des mécanismes précis à l'aide d'un langage contraignant, \citet{bain2000framework} proposent d'utiliser les données de l'expert. Les règles complexes ainsi apprises étant ajoutées à l'espace d'action, il est possible d'apprendre de manière automatique un classifieur plus concis que celui de \citet{sammut1992learning}, et nécessitant moins de données expertes. L'architecture proposée utilise la logique du premier ordre et donc le raisonnement symbolique. Cela permet d'introduire explicitement des connaissances expertes dans le système. Ces connaissances peuvent être acquises semi-automatiquement : les prédicats sont bâtis à la main et les paramètres sont appris grâce aux données de vol comme le proposent \citet{srinivasan1998inductive}. La sémantique des symboles (ici, virage, altitude, trajectoire de vol, etc.) est très liée au problème concerné. Retrouver la puissance des techniques d'apprentissage symbolique sur un autre problème nécessite d'effectuer de nouveau le difficile travail de définition des symboles et prédicats. Un autre élément gênant est la difficulté d'exprimer la tâche à accomplir en utilisant un langage symbolique. Dans une approche hybride symbolique/automatique, \citet{shiraz1997combining} proposent à l'expert soit de décrire la tâche symboliquement, soit d'en démontrer l'exécution. Les phases les plus délicates (par exemple l'atterrissage) n'ont pu être décrites et ont été démontrées. La facilité d'exploitation des règles symboliques rentre en conflit avec la difficulté qu'il y a à les définir, à l'inverse la relative facilité de génération d'une base d'exemple se heurte à la difficulté qu'il y a à généraliser à partir de celle-ci.
 
-Une autre approche utilise les notions de hiérarchie et de but, mais de manière quelque peu différente. Plutôt que d'utiliser la logique des prédicats, ce sont les principes de programmation impérative qui se voient assistés par l'apprentissage supervisé. Dans \cite{saunders2006teaching}, ce sont les \gls{knn} qui sont utilisés pour l'apprentissage supervisé d'une politique. Les attributs sont construits à la main à partir des valeurs de sortie des capteurs du robot, et portent une sémantique forte et explicite (distance, angle), donc pratique pour l'exploitation par un opérateur humain. Les problèmes de généralisation de l'apprentissage supervisé sont contournés par l'intégration dans un cadre beaucoup plus riche : l'opérateur humain peut élargir l'espace d'action à volonté, soit en définissant une séquence d'actions qui seront exécutées en série de manière déterministe, soit en proposant des exemples du comportement souhaité en précisant ou non un état-but correspondant à la situation dans laquelle on souhaite voir le robot une fois la politique exécutée. Ces exemples servent alors à l'apprentissage d'une politique de manière supervisée, cette politique est ajoutée en tant qu'action et son exécution pourra être déclenchée dans le cadre d'une autre politique, de niveau d'abstraction plus grand. Cette hiérarchisation des comportements permet de limiter l'effort humain, d'optimiser l'utilisation des exemples et de rapidement mettre en place des comportements complexes par la création de nouveaux niveau d'abstraction. 
+Une autre approche utilise les notions de hiérarchie et de but, mais de manière quelque peu différente. Plutôt que d'utiliser la logique des prédicats, ce sont les principes de programmation impérative qui se voient assistés par l'apprentissage supervisé. Dans \cite{saunders2006teaching}, ce sont les \gls{knn} qui sont utilisés pour l'apprentissage supervisé d'une politique. Les attributs sont construits à la main à partir des valeurs de sortie des capteurs du robot, et portent une sémantique forte et explicite (distance, angle), donc pratique pour l'exploitation par un opérateur humain. Les problèmes de généralisation de l'apprentissage supervisé sont contournés par l'intégration dans un cadre beaucoup plus riche : l'opérateur humain peut élargir l'espace d'action à volonté, soit en définissant une séquence d'actions qui seront exécutées en série de manière déterministe, soit en proposant des exemples du comportement souhaité en précisant ou non un état-but correspondant à la situation dans laquelle on souhaite voir le robot une fois la politique exécutée. Ces exemples servent alors à l'apprentissage d'une politique de manière supervisée, cette politique est ajoutée en tant qu'action et son exécution pourra être déclenchée dans le cadre d'une autre politique, de niveau d'abstraction plus grand. Cette hiérarchisation des comportements permet de limiter l'effort humain, d'optimiser l'utilisation des exemples et de rapidement mettre en place des comportements complexes par la création de nouveaux niveaux d'abstraction. 
 
 L'apprentissage supervisé est dans les approches que nous venons de citer utilisé comme sous routine d'un système beaucoup plus large, dans lequel l'expertise humaine explicite reste le moyen central permettant la généralisation des comportements.
 
-
+Le principal problème de l'apprentissage direct de la politique de manière supervisé est, pour reprendre le terme de \citep{ratliff2009learning}, sa myopie. Pour compenser le fait que l'on travaille au niveau d'abstraction le plus bas, celui du choix immédiat d'une action en fonction des informations contenues dans un état transitoire, les approches que nous venons de détailler font apparaître en filigrane la notion de but : l'expert n'agit en effet pas à tâtons mais dirige le système en fonction de critères qu'il paraît difficile d'exprimer au niveau d'une simple politique réactive. On se repose donc sur une formulation plus ou moins explicite (dans le choix des attributs, dans la définition de la base d'exemple, dans l'introduction de règles logiques ou dans la définition d'une hiérarchie) de ce but, mais toujours d'origine humaine. Nous allons voir qu'il est possible de formaliser cette notion de but tout en continuant de travailler avec une politique et des échantillons semblables à ceux auxquels nous nous sommes habitués. Nous verrons par la suite que le but de l'expert, formalisé de cette manière, peut alors être automatiquement déduit d'une base d'échantillons inerte. 
 # Méthode de regroupement des actions : on apprend plus une politique en la copiant mais on essaie de comprendre comment fonctionne l'expert.
 # ?? Moultes autres approches, labyrinthiques, exemples ultra rapide, se référer à blip et blop pour un survey
 # ^(saunders2006teaching) citation [22] semble en proposer un survey. (saunders2006teaching) en propose lui-même un bon
@@ -274,7 +277,6 @@ L'apprentissage supervisé est dans les approches que nous venons de citer utili
 # (argall2009survey) T. Inamura, M. Inaba, H. Inoue, Acquisition of probabilistic behavior decision model based on the interactive teaching method, in: Proceedings of the Ninth International Conference on Advanced Robotics, ICAR’99, 1999.
 # En fait toute la section 4.1 de argall2009survey mériterait d'être explorée ici, mais c'est long et chiant et il se fait tard.
 # Faudrait aussi se faner schaal et son gros survey, mais c'est vraiment mal écrit, et je pense pas que je jeu en vaille la chandelle. Il faudrait penser à le citer, cependant.
-# FIXME: normalement ce paragraphe est complètement explosé en plusieurs autres
 # Ya bentivegna2004learning qui sert à rien mais qu'on peut rajouter si ya besoin de parler pour ne rien dire (problème dépendant)
 # ya coates2008learning qui est impressionnant mais qui rentre dans aucune case
 # ya  konidaris2011cst que je sais pas où foutre
@@ -284,15 +286,73 @@ L'apprentissage supervisé est dans les approches que nous venons de citer utili
 # J'ai l'impression de m'embarquer dans un labyrinthe sans fin, avec toujours plus de papiers à résumer. Il est impossible d'être exhaustif en si peu de temps.
 # FIXME Citer les deux surveys 
 
-# Paragrapge de transition : Les sytèmes qui facilitent la vie aux humains en utilisant le supervisé en sous routine ont en filigrane la notion de but. S'il était possible de formaliser cette notion afin d'en faire profiter l'apprentissage automatique, on serait les rois du pétrole
 ** Cadre des \glspl{mdp} pour la prise de décision séquentielle
 # Snippet: La classification ne se soucie pas de l'objectif de l'expert. Quid si une action mal choisie fait dérailler l'agent sur une partie totalement inconnue de l'espace d'état ?
-*** TODO justifier le cadre, dire pourquoi on introduit ces notions
-   Probabilités de transitions, fonction de récompense, fonction de valeur, politique optimale. \gls{dp}.
+# Goal: introduire les notions de l'AR qui sont nécessaires à la définition des notions d'ARI
+# Requires:
+# Ensures: trajectoire, probabilités de transition, trace sas, récompense, trace sars, trace sarsa, fonction de valeur, fonction de qualité, politique gloutonne, politique optimale, itération de la politique, itération de la valeur, dynamic programming, RL, LSPI
+Pour comprendre ce but de l'expert qu'il nous importe de connaître, ce n'est pas au niveau du choix état, action que décrit la politique qu'il faut regarder, mais à un niveau d'abstraction plus grand : la dynamique que la politique de l'expert impose au système. La notion qui nous manque pour entamer le raisonnement est celle de l'effet d'une action. Nous ne nous sommes préoccupés que du choix de l'action en fonction de l'état courant sans nous soucier de ce que ce choix allait imposer comme contraintes sur le prochain état que l'agent va rencontrer. Afin de pouvoir considérer la politique de l'expert non plus comme un ensemble décousu d'associations état-action, mais comme un outil capable de produire des séquences d'actions porteuses de sens au point de vue d'un critère long terme, nous formalisons la notion de dynamique temporelle.
 
-   Approximation de la fonction de valeur, \gls{rl}. L'\gls{rl} permettant d'apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le \gls{dp}, comme la possibilité de s'adapter à un milieu changeant pour certains algorithmes ou de manière plus générale l'absence de besoin de connaître les probabilités de transition.
+# ?s timeindex 't' 'Indice temporel'
+# ?s timehorizon 'T' 'Horizon temporel'
+# ?s naturals '\mathbb{N}' 'Entiers naturels'
+L'agent (qu'il s'agisse de l'expert ou d'un agent artificiel que l'on entraîne) au manettes du système contrôle celui-ci non pas ponctuellement de temps à autres (sauf dans le cas d'un expert à qui l'on demande son avis de manière interactive comme nous venons de le voir plus haut) mais de manière cohérente sur un laps de temps durant lequel il devra opérer des actions de contrôle les unes après les autres. Il est donc naturel d'indexer ces actions et les états traversés par un indice temporel $\timeindex \in \llbracket 0;\timehorizon\rrbracket, \timehorizon\in\naturals \cup \{\infty\}$. Il est possible de prendre en charge une vision continue du temps avec quelques subtilités dont nous ne soucions pas ici, cette formalisation discrète étant suffisamment puissante pour les cas que nous souhaitons traiter. Elle n'impose par exemple pas de pas d'échantillonnage constant, il s'agit ici d'ordonner les états et actions par ordre de causalité, ce qui incidemment correspond[fn::à moins que /Doctor Who/ et /Retour vers le futur/ ne soient des documentaires.] à un indice temporel croissant, non pas de transcrire avec quelque fidélité les problèmes de l'échantillonnage temporel. Qui plus est cette formulation correspond à la réalité du contrôle numérique, intrinsèquement discret.
 
-   Pour appliquer l'\gls{rl} au monde réel, il est nécessaire d'exploiter efficacement les échantillons. Les échantillons sont très faciles à obtenir si on dispose d'un simulateur, et sont les seules données accessible sur certains systèmes. Pouvoir les exploiter en \gls{batch} et \gls{offpolicy} permet de contrôler beaucoup de types de systèmes différents (qui peut le plus peut le moins). \gls{lspi} \cite{lagoudakis2003least}.
+# ?s transprobfunc 'p' 'Probabilités de transition'
+# ?cs 3 transprobfunceval 'p\left(#3|#1,#2\right)' 'p(s\prime|s,a)' 'Probabilité qu{\apos}un agent transite en $s\prime$ après avoir choisi l{\apos}action $a$ dans l{\apos}état $s$'
+Pour prendre en compte les imperfections de la modélisation ou plus simplement parfois la nature réellement stochastique du problème, les effets d'une action sont décrits par une loi de probabilité, qui informée d'un état $\state_{\timeindex}$ et d'une action $\action_{\timeindex}$ prédit vers quel état $\state_{\timeindex+1}$ le système va transiter. On note cela :
+\begin{equation}
+\state_{\timeindex}\sim \transprobfunceval{\state_{\timeindex}}{\action_{\timeindex}}{\cdot}, \transprobfunc \in \twosetsfunctions{\statespace \times \actionspace \times \statespace}{[0;1]}.
+\end{equation}
+
+La répétition du cycle consistant à choisir une action puis à transiter vers un nouvel état où l'agent choisit une action qui le fera transiter vers un nouvel état etc. forme une trajectoire.
+
+# ?s rewardfunc 'R' 'Fonction de récompense'
+# ?cs 1 staterewardfunceval 'R\left(#1\right)' 'R(s)' 'Récompense en l{\apos}état $s$'
+Dans les approches vues précédemment, le but était défini comme des valeurs spécifiques que doivent prendre certaines composantes de l'état (par exemple pour le pilotage, une certaine altitude). Il est au premier abord assez naturel de définir une consigne comme cela. Pour peu que l'espace d'état soit construit d'une manière qui permet l'analyse sémantique, l'opérateur humain n'a pas trop de mal à exprimer ce qu'il souhaite que la machine fasse en définissant quels sont les espaces désirables et ceux qu'il faut éviter. Charge à la machine de trouver comment se placer dans les états désirables en évitant les états problématiques. Nous formalisons cela sous la forme d'une fonction de récompense. Il s'agit d'un jugement local de l'intérêt qu'il y a à se trouver en un certain état :
+\begin{equation}
+\rewardfunc \in \twosetsfunctions{\statespace}{\reals}.
+\end{equation}
+Nous verrons par la suite qu'il est possible, sans que cela importe réellement, de définir la récompense sur les états seuls comme nous le faisons pour l'instant, ou sur des couple état-action, ou même sur des transitions état-action-état.
+
+# ?cs 3 valueeval 'V^{#1}_{#2}\left({#3}\right)' 'V^{\pi}_R(s)' 'Valeur de l{\apos}état $s$ pour la récompense $R$ lorsqu{\apos}on suit la politique $\pi$'
+Il faut maintenant que ce critère local donne lieu à un comportement globalement intéressant. Comment, à l'échelle d'une politique choisissant une action pour un état, parvenir à un contrôle tenant compte de la dynamique complète du système ? Il faut qu'une politique $\policy$ soit jugée dans son ensemble sur la trajectoire qu'elle impose à l'agent. Mathématiquement nous souhaitons optimiser la valeur de la politique :
+\begin{eqnarray}
+\label{eq:Vdefsum}
+\valueeval{\policy}{\rewardfunc}{\state_{0}}&=&\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\staterewardfunceval{\state_{\timeindex}}\\
+\textrm{avec }\forall \timeindex \in \llbracket 1;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot}.
+\end{eqnarray}
+# ?s discount '\gamma' 'Facteur d{\apos}amortissement'
+Comme l'horizon $\timehorizon$ est potentiellement infini, pour s'assurer de la convergence de la somme, le facteur d'amortissement $\discount \in [0;1[$ est introduit.
+
+# ?s mdpbis '\mathcal{M}' 'Un \gls{mdp}'
+L'ensemble de l'espace d'état $\statespace$, de l'espace d'action $\actionspace$, des probabilités de transitions $\transprobfunc$, de la fonction de récompense $\rewardfunc$ et du facteur d'amortissement $\discount$ forment un \gls{mdp} $\mdpbis$ \citep{puterman1994markov}
+\begin{equation}
+\mdpbis = \left\{\statespace, \actionspace, \transprobfunc, \rewardfunc, \discount\right\}
+\end{equation}
+dans lequel le problème de la prise de décision séquentielle pour le contrôle optimal peut être formulé.
+
+# ?cs 1 optimalpolicy '\pi^*_{#1}''\pi^*_R' 'Une politique optimale pour la fonction de récompense $R$'
+Nous recherchons une politique optimale $\optimalpolicy{\rewardfunc}$ telle qu'en tout état sa valeur soit supérieure ou égale à celle de tout autre politique $\pi$ :
+\begin{equation}
+\forall \state, \valueeval{\optimalpolicy{\rewardfunc}}{\rewardfunc}{\state} \geq \valueeval{\policy}{\rewardfunc}{\state}.
+\end{equation}
+Pour résoudre ce problème, intéressons nous de plus près à l'expression de la valeur d'une politique, dont la définition qu'on en a donné $\eqref{eq:Vdefsum}$ peut être transformée en une expression récursive :
+\begin{equation}
+\valueeval{\policy}{\rewardfunc}{\state} = \staterewardfunceval{\state} + \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\policy(\state)}{\state'} \valueeval{\policy}{\rewardfunc}{\state'}.
+\end{equation}
+# ?cs 3 bellmanevalopeval 'B^{#1}_{#2}{#3}' 'B^{\pi}_{R}' 'Opérateur d{\apos}évaluation de Bellman'
+C'est l'équation d'évaluation de \citet{bellman2003dynamic} qui est à l'origine de l'opérateur d'évaluation de Bellman :
+\begin{eqnarray}
+\bellmanevalopeval{\policy}{\rewardfunc}{} &\in& \twosetsfunctions{\twosetsfunctions{\statespace}{\reals}}{\twosetsfunctions{\statespace}{\reals}}\\
+\forall V \in \twosetsfunctions{\statespace}{\reals}, \bellmanevalopeval{\policy}{\rewardfunc}{V} &=& R + \discount \sum_{\cdot\in \statespace}\transprobfunceval{\state}{\policy(\state)}{\cdot} V. 
+\end{eqnarray}
+
+# Optimisation de Q locale => optimisation de V globale
+
+# Probabilités de transitions, fonction de récompense, fonction de valeur, po- litique optimale. Programmation Dynamique (PD).
+# Approximation de la fonction de valeur, AR. L’AR permettant d’apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le PD, comme la possibilité de s’adapter à un milieu changeant pour certains algorithmes ou de manière plus générale l’absence de besoin de connaître les probabilités de transition.
+# Pour appliquer l’AR au monde réel, il est nécessaire d’exploiter efficacement les échantillons. Les échantillons sont très faciles à obtenir si on dispose d’un simulateur, et sont les seules données accessible sur certains systèmes. Pouvoir les exploiter en batch et off-policy permet de contrôler beaucoup de types de systèmes différents (qui peut le plus peut le moins). Least Square Policy Iteration (LSPI) Lagoudakis and Parr [2003].
 ** Définition de l'\gls{irl} 
 *** Définition du problème 
    Cette section pose les notations qu'on utilisera dans tous le manuscrit, on ne cite pas l'état de l'art tout de suite (puisque les notions et notations entrent parfois en conflit, notamment en ce qui concerne l'attribut moyen) sauf Russell cela est reporté au chapitre d'après. Il s'agit de donner les acteurs et de préciser le problème que l'on résout, on ne rentre pas dans la description des problèmes qu'on va rencontrer tout de suite. C'est une section assez courte mais plutôt dense.
