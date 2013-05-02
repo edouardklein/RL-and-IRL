@@ -52,13 +52,22 @@
 
 * TAF :noexport:
 ** TODO Articuler les parties problème jouets
+** Trucs à ajouter je ne sais où
+*** Contre exemple politique, tache
+    Je peux décrire une politique sur un espace d'état, mais pas la récompense, exemple. le mettre au début de 2.3.1 ou ailleurs.
+*** Echiquier et changement d'espace d'état
+    Avec la tour : on peut optimiser de manière différente
+    Avec le fou : on peut optimiser mieux si on a pas le même espace d'état
 * Axe de recherche 
 ** Contrôle optimal 
 ** Trouver la consigne à partir du contrôle 
-*** Intérêt intrinsèque 
+*** Intérêt intrinsèque
+# <<hier:intrinseque>> 
     Approches économiques, biologiques ou psychologiques.
 *** Imitation 
+# <<hier:general>>
     Cadre général de  l'imitation, mentionner ici les approches sans formalisme \gls{mdp}, si il y en a qu'il est pertinent de mentionner.
+    Citer les revues : \cite{argall2009survey,schaal2003computational}, expliquer le cadre large, le problème de l'observabilité de l'expert et de l'adéquation expert/agent (mentionner le changement d'espace d'état?).
 ** Annonce du plan 
 * Formalisme mathématique, notations				       
 ** Imitation non \gls{irl} 
@@ -86,7 +95,7 @@
 
 *** Classification
 # ?s expertpolicy '\pi^E' 'Politique de l{\apos}expert'
-   Il est possible de voir le problème de l'imitation comme celui de la recherche d'une politique correspondant point par point (ou au mieux en fonction des contraintes en mémoire et en temps de l'agent) à celle de l'expert. Il est en effet évident que si deux politiques sont égales alors elles accomplissent la même tâche avec le même degré d'efficacité. Même lorsque la politique de l'expert (notée $\expertpolicy$) est intégralement connue cette formulation n'est pas forcément dénuée de sens, l'on peut en effet souhaiter remplacer l'expert par un agent moins coûteux mais donc probablement plus limité. Apprendre par cœur (ou apprendre au mieux avec quelques erreurs) la politique de l'expert est alors sensé.
+   Il est possible de voir le problème de l'imitation comme celui de la recherche d'une politique correspondant point par point (ou au mieux en fonction des contraintes en mémoire et en temps de l'agent) à celle de l'expert. Il est en effet évident que si deux politiques sont identiques alors elles accomplissent la même tâche avec le même degré d'efficacité. Même lorsque la politique de l'expert (notée $\expertpolicy$) est intégralement connue cette formulation n'est pas forcément dénuée de sens, l'on peut en effet souhaiter remplacer l'expert par un agent moins coûteux mais donc probablement plus limité. Apprendre par cœur (ou apprendre au mieux avec quelques erreurs) la politique de l'expert est alors sensé.
 
    Bien souvent cependant il est impossible de connaître intégralement la politique de l'expert, ne fut-ce que parce que l'espace d'état est trop grand. Il faut alors se contenter d'exemples sur un certain nombre $\nbsamples$ d'états :
 # ?cs 1 satrace 'D_{sa}^{#1}' 'D_{sa}^{\policy}' 'Trace de type $s,a$ obtenue en suivant la politique $\policy$'
@@ -137,7 +146,7 @@ Le principe quasi-ubiquitaire en classification[fn::Les classifieurs à arbres d
 \end{eqnarray}
 Apprendre une bonne fonction de score permet donc de résoudre le problème de classification. L'approche proposée dans \citep{taskar2005learning} prend le parti d'une fonction de score paramétrée linéairement. Il va de soi que rien ne garantit qu'une fonction de score linéaire sur l'espace d'état-action soit en mesure de donner un bon classifieur, dès lors le recours à une fonction d'attribut choisie avec soin est indispensable :
 # ?s paramclassif '\omega' 'Vecteur de paramètres pour la classification'
-# ?cs 1 transpose '#1^T' 'X^T' 'Transposée de la matrice ou du vecteur $X$'
+# ?cs 1 transpose '{#1}^{T}' 'X^T' 'Transposée de la matrice ou du vecteur $X$'
 \begin{equation}
 q(\state,\action) = \transpose{\paramclassif}\featurestateactionfunc(\state,\action)
 \end{equation}
@@ -230,9 +239,12 @@ Il existe bien d'autres moyen de faire de la classification, comme par exemple l
 # Goal: Introduire la notion de noyau, de kenel-trick et faire le lien avec les attributs (poil au cul)
 # Requires: attribut, classification
 # Ensures noyau, kernel-trick, SVM
-
+- Citer la généralisation de Yann.
+- Parler du kernel-trick, faire le lien avec les attributs.
+- Illustration mountain car : montrer les attributs choisis automatiquement par l'implémentation de la SVM choisie
 Nous aurons également à faire avec des \gls{svm} dans la suite du manuscrit. Bien d'autres techniques de classification existent, une description exhaustive des techniques d'apprentissage supervisé propices à l'imitation dépasserait le cadre de cette thèse. \citet{hastie2005elements,vapnik1998statistical} sont des ouvrages de référence. Nous allons voir comment ces techniques ont été appliquées en pratique à l'apprentissage supervisé de la politique de l'expert.
 *** Imitation par apprentissage supervisé de la politique
+# <<hier:myopie>>
 # Goal:Faire l'état de l'art des techniques d'imitation par apprentissage supervisé
 # Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense (bis)
 # Requires:Classifieur, attributs, classif de taskar, (boosting?)
@@ -302,24 +314,33 @@ L'agent (qu'il s'agisse de l'expert ou d'un agent artificiel que l'on entraîne)
 # ?cs 3 transprobfunceval 'p\left(#3|#1,#2\right)' 'p(s\prime|s,a)' 'Probabilité qu{\apos}un agent transite en $s\prime$ après avoir choisi l{\apos}action $a$ dans l{\apos}état $s$'
 Pour prendre en compte les imperfections de la modélisation ou plus simplement parfois la nature réellement stochastique du problème, les effets d'une action sont décrits par une loi de probabilité, qui informée d'un état $\state_{\timeindex}$ et d'une action $\action_{\timeindex}$ prédit vers quel état $\state_{\timeindex+1}$ le système va transiter. On note cela :
 \begin{equation}
-\state_{\timeindex}\sim \transprobfunceval{\state_{\timeindex}}{\action_{\timeindex}}{\cdot}, \transprobfunc \in \twosetsfunctions{\statespace \times \actionspace \times \statespace}{[0;1]}.
+\state_{\timeindex+1}\sim \transprobfunceval{\state_{\timeindex}}{\action_{\timeindex}}{\cdot}, \transprobfunc \in \twosetsfunctions{\statespace \times \actionspace \times \statespace}{[0;1]}.
 \end{equation}
 
-La répétition du cycle consistant à choisir une action puis à transiter vers un nouvel état où l'agent choisit une action qui le fera transiter vers un nouvel état etc. forme une trajectoire.
-
+# ?cs 1 transprobmat 'P^{#1}' 'P^{\pi}' 'Matrice des probabilités de transition induites par la politique $\policy$'
+# ?cs 3 matrixbyterm '\left({#1}\right)^{#2}_{#3}' '\left(f(i,j)\right)^{i}_{j}' 'Matrice dont l{\apos}élément ligne $i$, colonne $j$ est $f(i,j)$'
+# ?cs 1 stationarydistrib '\rho^{#1}' '\rho^\pi' 'Distribution stationnaire induite par la politique $\pi$'
+La répétition du cycle consistant à choisir une action puis à transiter vers un nouvel état où l'agent choisit une action qui le fera transiter vers un nouvel état etc. forme une trajectoire. Les probabilités de transitions contraintes par une politique $\policy$ peuvent être représentées par une matrice de taille $\card{\statespace}\times\card{\statespace}$ :
+\begin{equation}
+\transprobmat{\policy} = \matrixbyterm{\transprobfunceval{\state}{\policy(\state)}{\state'}}{\state}{\state'}.
+\end{equation}
+Un agent de politique $\policy$ va visiter certains états plus que d'autres, cela est quantifié par la distribution stationnaire $\stationarydistrib{\policy}$ définie telle que :
+\begin{equation}
+\transpose{\stationarydistrib{\policy}} \transprobmat{\policy} = \transpose{\stationarydistrib{\policy}}
+\end{equation}
 # ?s rewardfunc 'R' 'Fonction de récompense'
 # ?cs 1 staterewardfunceval 'R\left(#1\right)' 'R(s)' 'Récompense en l{\apos}état $s$'
-Dans les approches vues précédemment, le but était défini comme des valeurs spécifiques que doivent prendre certaines composantes de l'état (par exemple pour le pilotage, une certaine altitude). Il est au premier abord assez naturel de définir une consigne comme cela. Pour peu que l'espace d'état soit construit d'une manière qui permet l'analyse sémantique, l'opérateur humain n'a pas trop de mal à exprimer ce qu'il souhaite que la machine fasse en définissant quels sont les espaces désirables et ceux qu'il faut éviter. Charge à la machine de trouver comment se placer dans les états désirables en évitant les états problématiques. Nous formalisons cela sous la forme d'une fonction de récompense. Il s'agit d'un jugement local de l'intérêt qu'il y a à se trouver en un certain état :
+Dans les approches vues précédemment, le but était défini comme des valeurs spécifiques que doivent prendre certaines composantes de l'état (par exemple pour le pilotage, une certaine altitude). Il est au premier abord assez naturel de définir une consigne comme cela. Pour peu que l'espace d'état soit construit d'une manière qui permet l'analyse sémantique, l'opérateur humain n'a pas trop de mal à exprimer ce qu'il souhaite que la machine fasse en définissant quels sont les états désirables et ceux qu'il faut éviter. Charge à la machine de trouver comment se placer dans les états désirables en évitant les états problématiques. Nous formalisons cela sous la forme d'une fonction de récompense. Il s'agit d'un jugement local de l'intérêt qu'il y a à se trouver en un certain état :
 \begin{equation}
 \rewardfunc \in \twosetsfunctions{\statespace}{\reals}.
 \end{equation}
 Nous verrons par la suite qu'il est possible, sans que cela importe réellement, de définir la récompense sur les états seuls comme nous le faisons pour l'instant, ou sur des couple état-action, ou même sur des transitions état-action-état.
 
-# ?cs 3 valueeval 'V^{#1}_{#2}\left({#3}\right)' 'V^{\pi}_R(s)' 'Valeur de l{\apos}état $s$ pour la récompense $R$ lorsqu{\apos}on suit la politique $\pi$'
+# ?cs 2 rlvalue 'V^{#1}_{#2}' 'V^{\pi}_R' 'Fonction de valeur pour la récompense $R$ lorsqu{\apos}on suit la politique $\pi$'
 Il faut maintenant que ce critère local donne lieu à un comportement globalement intéressant. Comment, à l'échelle d'une politique choisissant une action pour un état, parvenir à un contrôle tenant compte de la dynamique complète du système ? Il faut qu'une politique $\policy$ soit jugée dans son ensemble sur la trajectoire qu'elle impose à l'agent. Mathématiquement nous souhaitons optimiser la valeur de la politique :
 \begin{eqnarray}
 \label{eq:Vdefsum}
-\valueeval{\policy}{\rewardfunc}{\state_{0}}&=&\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\staterewardfunceval{\state_{\timeindex}}\\
+\rlvalue{\policy}{\rewardfunc}(\state_{0})&=&\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\staterewardfunceval{\state_{\timeindex}}\\
 \textrm{avec }\forall \timeindex \in \llbracket 1;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot}.
 \end{eqnarray}
 # ?s discount '\gamma' 'Facteur d{\apos}amortissement'
@@ -335,11 +356,12 @@ dans lequel le problème de la prise de décision séquentielle pour le contrôl
 # ?cs 1 optimalpolicy '\pi^*_{#1}''\pi^*_R' 'Une politique optimale pour la fonction de récompense $R$'
 Nous recherchons une politique optimale $\optimalpolicy{\rewardfunc}$ telle qu'en tout état sa valeur soit supérieure ou égale à celle de tout autre politique $\pi$ :
 \begin{equation}
-\forall \state, \valueeval{\optimalpolicy{\rewardfunc}}{\rewardfunc}{\state} \geq \valueeval{\policy}{\rewardfunc}{\state}.
+\forall \state, \rlvalue{\optimalpolicy{\rewardfunc}}{\rewardfunc}(\state) \geq \rlvalue{\policy}{\rewardfunc}(\state).
 \end{equation}
 Pour résoudre ce problème, intéressons nous de plus près à l'expression de la valeur d'une politique, dont la définition qu'on en a donné $\eqref{eq:Vdefsum}$ peut être transformée en une expression récursive :
 \begin{equation}
-\valueeval{\policy}{\rewardfunc}{\state} = \staterewardfunceval{\state} + \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\policy(\state)}{\state'} \valueeval{\policy}{\rewardfunc}{\state'}.
+\label{eq:BellmanEval}
+\rlvalue{\policy}{\rewardfunc}(\state) = \staterewardfunceval{\state} + \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\policy(\state)}{\state'} \rlvalue{\policy}{\rewardfunc}(\state').
 \end{equation}
 # ?cs 3 bellmanevalopeval 'B^{#1}_{#2}{#3}' 'B^{\pi}_{R}' 'Opérateur d{\apos}évaluation de Bellman'
 C'est l'équation d'évaluation de \citet{bellman2003dynamic} qui est à l'origine de l'opérateur d'évaluation de Bellman :
@@ -348,23 +370,125 @@ C'est l'équation d'évaluation de \citet{bellman2003dynamic} qui est à l'origi
 \forall V \in \twosetsfunctions{\statespace}{\reals}, \bellmanevalopeval{\policy}{\rewardfunc}{V} &=& R + \discount \sum_{\cdot\in \statespace}\transprobfunceval{\state}{\policy(\state)}{\cdot} V. 
 \end{eqnarray}
 
-# Optimisation de Q locale => optimisation de V globale
+Cette opérateur est contractant, par conséquence il possède un point fixe, qui est unique. L'équation de définition de ce point fixe :
+\begin{equation}
+V = \bellmanevalopeval{\policy}{\rewardfunc}{V}
+\end{equation}
+est exactement la même que l'équation d'évaluation de Bellman \eqref{eq:BellmanEval}. L'unique point fixe de l'opérateur $\bellmanevalopeval{\policy}{\rewardfunc}{}$ est donc la fonction de valeur de la politique : $\rlvalue{\policy}{\rewardfunc}$. La famille d'algorithmes dits d'itération de la valeur appliquent d'ailleurs de manière répétée l'opérateur d'évaluation de Bellman (ou une version approchée de cet opérateur) à une valeur de départ pour obtenir la valeur d'une politique.
 
+# ?cs 2 quality 'Q^{#1}_{#2}' 'Q^{\pi}_{R}' 'Fonction de qualité de la politique $\pi$ pour la récompense $R$'
+Dans l'équation de Bellman \eqref{eq:BellmanEval}, l'action qui fait passer de $\state$ à $\state'$ est explicitement donnée comme étant $\policy(\state)$. Les actions suivantes sont également choisies par la politique $\policy$ comme l'indique le terme $\rlvalue{{\color{red}\policy}}{\rewardfunc}$. Imaginons maintenant que connaissant la valeur d'une politique $\policy$, nous soyons chargé pour l'état $\state$ de choisir la meilleur action $\action$, qui peut être différente de $\policy(\state)$, mais qu'ensuite la politique $\policy$ reprenne le contrôle. C'est le degré de liberté décrit par la fonction de qualité $\quality{\policy}{\rewardfunc}$ :
+\begin{eqnarray}
+\quality{\policy}{\rewardfunc} &\in& \twosetsfunctions{\statespace \times \actionspace}{\reals}\\
+\quality{\policy}{\rewardfunc}(\state,\action) &=& \staterewardfunceval{\state} + \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\action}{\state'} \rlvalue{\policy}{\rewardfunc}(\state').
+\end{eqnarray}
+Notre meilleur choix consisterait à maximiser la fonction de qualité, c'est à dire à rendre le contrôle à $\policy$ dans l'état $\state'$ dans lequel sa valeur est maximale. En effectuant ce choix sur chacun des états de $\statespace$, l'on définit une politique gloutonne :
+\begin{equation}
+greedy(\policy): \state\rightarrow \arg\max_{\action\in\actionspace}\quality{\policy}{\rewardfunc}(\state,\action). 
+\end{equation}
+# ?cs 2 bellmanoptopeval 'B^{*}_{#1}{#2}' 'B^{*}_{R}' 'Opérateur d{\apos}optimalité de Bellman'
+Cette agglomération de choix localement optimisés permet un optimisation beaucoup plus générale. La politique gloutonne que nous venons de définir est le meilleur choix pour un problème d'optimisation plus large :
+\begin{equation}
+greedy(\policy) = \max_{\policy'}\bellmanevalopeval{\policy'}{\rewardfunc}{\rlvalue{\policy}{\rewardfunc}}.
+\end{equation}
+L'opérateur associé :
+\begin{equation}
+\bellmanoptopeval{\rewardfunc}{V} = \max_{\policy}\bellmanevalopeval{\policy}{\rewardfunc}{V}
+\end{equation}
+est l'opérateur d'optimalité de Bellman. Contractant lui aussi, il admet donc un unique point fixe qui se trouve être la fonction de valeur optimale $\rlvalue{\optimalpolicy{\rewardfunc}}{\rewardfunc}$. Toute politique gloutonne vis à vis de la politique associée est également une politique optimale. Ainsi :
+\begin{eqnarray}
+\optimalpolicy{\rewardfunc} &\in& greedy(\optimalpolicy{\rewardfunc})\\
+\forall \state \in \statespace, \optimalpolicy{\rewardfunc}(\state) &\in& \arg\max_{\action\in \actionspace}\quality{\optimalpolicy{\rewardfunc}}{\rewardfunc}(\state,\action).
+\end{eqnarray}
+Les algorithmes d'itération de la politique appliquent de manière répétée l'opérateur d'optimalité de Bellman (ou une version approchée) à une politique de départ afin d'accéder à la politique optimale.
+
+Il est intéressant de noter que grâce à la fonction de valeur, l'optimisation "myope" à l'échelle du choix d'une action pour un état mène à une optimisation à l'échelle de l'espace d'état complet, au niveau de la politique. Grâce à la prise en compte des probabilités de transitions, la fonction de valeur fait le lien entre le court et le long terme.
+
+Lorsque les probabilités de transitions sont connues sur un espace d'état fini, on peut de manière exacte résoudre le problème du contrôle optimal grâce à la \gls{dp} \citep{bertsekas2001dynamic}. Les choses se corsent lorsque ces probabilités de transition sont inconnues ou que les algorithmes de \gls{dp} deviennent non tractables. Il faut alors avoir recours à l'\gls{rl} \citep{sutton1998reinforcement}. L'\gls{rl} permet, par interactions répétées avec le système, d'apprendre à contrôler celui-ci. Les probabilités de transition étant souvent difficiles à exprimer, nous allons porter notre attention sur l'\gls{rl} plus particulièrement que sur la \gls{dp}.
+
+# ?s paramrl '\xi' 'Vecteur de paramètres pour l{\apos}AR'
+# ?cs 1 appr '\hat{#1}' '\hat X' 'Approximation de $X$ à partir de données'
+Un schéma classique en \gls{rl} est celui de l'approximation linéaire de la fonction de valeur[fn::On utilise parfois le terme de fonction de valeur indistinctement pour la fonction de valeur et la fonction de qualité]. On réduit alors le problème du contrôle optimal au choix du vecteur de paramètres $\paramrl$ donnant la meilleure approximation de la fonction de qualité optimale :
+\begin{equation}
+\appr{\quality{\optimalpolicy{\rewardfunc}}{\rewardfunc}}(\state,\action) = \transpose{\paramrl}\featurestateactionfunc(\state, \action).
+\end{equation}
+Comme pour la classification, le choix de l'espace $\featurestateactionspace$ n'est pas anodin car de son choix va en grande partie dépendre la qualité du contrôle.
+
+Pour apprendre le vecteur de paramètres $\paramrl$, l'algorithme \gls{lspi} de \citet{lagoudakis2003least} n'a besoin que d'une base de données inertes. Il ne s'agit pas exactement d'une base $\satrace{}$ comme la classification en utilise, mais d'une base à peine plus contraignante à réunir, qui contient l'état suivant l'action (afin d'obtenir de l'information sur la dynamique du système) et le signal de récompense (afin d'obtenir de l'information sur la qualité du contrôle) :
+# ?cs 1 sasrtrace 'D_{sasr}^{#1}' 'D_{sasr}^{\rewardfunc}' 'Trace de type $s,a,s\prime,r$'
+\begin{equation}
+\sasrtrace{\rewardfunc} = \{(\state_{\datasetindex},\action_{\datasetindex}, \state'_{\datasetindex}, r_{\datasetindex} = \rewardfunc(\state_{\datasetindex})) | \datasetindex \in \llbracket 0;\nbsamples-1\rrbracket\}.
+\end{equation}
+
+Les échantillons de $\sasrtrace{\rewardfunc}$ n'ont pas besoin de se suivre, on peut avoir $\state_{\datasetindex+1} \neq \state'_{\datasetindex}$. Il n'y a pas non plus en théorie de contrainte sur $\action_{\datasetindex}$, mais cet algorithme est parfois de convergence capricieuse, et il importe que la base d'échantillons qui lui est fournie soit représentative de la dynamique du \gls{mdp} pour chaque action. Une technique pratique et de réunir plusieurs trajectoires d'une politique aléatoire, en la faisant démarrer de différents états.
+
+Nous voilà donc armés pour résoudre (de manière approchée) le problème du contrôle optimal, pour peu que l'on dispose d'une description de la tâche à accomplir sous la forme d'une fonction de récompense $\rewardfunc$ et d'échantillons représentatifs du problème.
 # Probabilités de transitions, fonction de récompense, fonction de valeur, po- litique optimale. Programmation Dynamique (PD).
 # Approximation de la fonction de valeur, AR. L’AR permettant d’apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le PD, comme la possibilité de s’adapter à un milieu changeant pour certains algorithmes ou de manière plus générale l’absence de besoin de connaître les probabilités de transition.
 # Pour appliquer l’AR au monde réel, il est nécessaire d’exploiter efficacement les échantillons. Les échantillons sont très faciles à obtenir si on dispose d’un simulateur, et sont les seules données accessible sur certains systèmes. Pouvoir les exploiter en batch et off-policy permet de contrôler beaucoup de types de systèmes différents (qui peut le plus peut le moins). Least Square Policy Iteration (LSPI) Lagoudakis and Parr [2003].
 ** Définition de l'\gls{irl} 
 *** Définition du problème 
-   Cette section pose les notations qu'on utilisera dans tous le manuscrit, on ne cite pas l'état de l'art tout de suite (puisque les notions et notations entrent parfois en conflit, notamment en ce qui concerne l'attribut moyen) sauf Russell cela est reporté au chapitre d'après. Il s'agit de donner les acteurs et de préciser le problème que l'on résout, on ne rentre pas dans la description des problèmes qu'on va rencontrer tout de suite. C'est une section assez courte mais plutôt dense.
+La question qui se pose maintenant est de savoir dans quelle mesure il est possible d'automatiquement déduire d'une trace du comportement de l'expert une description de son but sous la forme d'une fonction de récompense. Cette méthode d'imitation a été suggérée pour la première fois par \citet{russell1998learning}. L'état de l'art sera traité au chapitre suivant, nous nous attelons ici à trouver une formulation mathématique saine du problème et à introduire les notions nécessaires à l'analyse des méthodes existantes et à l'introduction des nouvelles approches que nous proposons.
 
-   Dans le cadre de l'\gls{rl}, trouver la consigne à partir du contrôle devient l'\gls{irl}. Il s'agit de retrouver la fonction de récompense à partir d'une politique optimale.
+Outre l'intérêt intrinsèque de la découverte des motivations de l'expert (\ref{hier-intrinseque}), apprendre une fonction de récompense correspondant au comportement de l'expert permet de soigner les méthodes d'imitation de leur "myopie" (\ref{hier-myopie}), en guidant l'agent vers une imitation non pas du /comment/, comme le fait l'imitation directe de la politique, mais du /quoi/.
 
-   Nuances importantes : le MDP est un modèle qui a des limites. Il faut que les états soient markoviens, il faut en pratique que l'espace d'action ne soit pas trop large, on suppose que l'expert agit de manière optimale pour une récompense sur ce MDP. Il faut donc que l'expert agisse effectivement de manière optimale (un humain peut faire des erreurs) et que la fonction de récompense existe (au sens philosophique, en math il y en a au moins toujours une), et soit exprimable sur l'espace d'état etc. Le problème qu'on étudie est bien celui de trouver la fonction de récompense (qui existe) d'un expert (qui est vraiment optimal).
+# ?s expertreward 'R^E' 'Récompense inconnue optimisée par l{\apos}expert'
+Dans le formalisme des \gls{mdp} introduit plus tôt, l'expression du problème de l'\gls{irl} est de prime abord simple : l'on suppose que la politique de l'expert $\expertpolicy$ est une politique optimale pour une certaine fonction de récompense $\expertreward$ qu'il s'agit de trouver.
+Les choses se corsent malheureusement extrêmement rapidement. Tout d'abord, cette formulation n'est pas un problème mathématique bien posé au sens d'\citet{hadamard1902problemes} : il existe en effet de multiples solutions, dont l'une est dégénérée, la récompense uniformément nulle. Tous les comportements (donc celui de l'expert) ont la même valeur ($0$) pour cette récompense, donc tous sont optimaux. En inversant, la politique de l'expert est optimale pour la récompense nulle, qui est donc solution du problème.
 
+Plus subtilement, utiliser formalisme des \gls{mdp} présuppose que certaines conditions sont réunies, notamment en ce qui concerne les espaces d'état et d'action. Il faut être en mesure de définir un espace d'état markovien, afin qu'un agent puisse prendre sa décision quant à l'action en se basant uniquement sur les informations de l'état. Il faut également être en mesure d'obtenir une trace de l'expert (le problème se pose déjà pour l'imitation directe de la politique, nous le mentionnons brièvement en \ref{hier-general}). La tâche à accomplir doit pouvoir se mettre sous la forme d'une fonction de l'espace d'état (ce n'est pas parce qu'on peut décrire une politique sur un espace d'état que l'on peut y décrire la tâche à accomplir). L'espace d'action doit rester discret et de faible cardinal si l'on veut que l'immense majorité des approches d'\gls{irl} y restent tractables. Enfin, il faut que l'expert soit effectivement optimal, l'introduction d'erreurs dans la démonstration pouvant poser problème.
+
+# ?s expertdistribution '\rho^E' 'Distribution stationnaire de l{\apos}expert'
+Ces conditions, dont la réunion n'est certes pas triviale, ne vont cependant pas nous préoccuper. Nous nous attelons à trouver de nouvelles solutions aux problème formulé par \citet{russell1998learning}. Pour mesurer notre succès, nous envisageons deux mesures de la qualité de la récompense $\appr{\rewardfunc}$ trouvée par un algorithme d'\gls{irl}. L'une est objective ($\expertdistribution$ est la distribution stationnaire de l'expert) :
+\begin{equation}
+\weightedexpectation{\state}{\expertdistribution}{\rlvalue{\expertpolicy}{\expertreward}(\state) - \rlvalue{\optimalpolicy{\appr{\rewardfunc}}}{\expertreward}(\state)},
+\end{equation}
+l'autre est calculable :
+\begin{equation}
+\weightedexpectation{\state}{\spacedistrib}{\rlvalue{\optimalpolicy{\appr{\rewardfunc}}}{\appr{\rewardfunc}}(\state) - \rlvalue{\expertpolicy}{\appr{\rewardfunc}}(\state)}.
+\end{equation}
+
+Ces deux critères sont positifs ou au mieux nuls, il s'agit de les minimiser. Le terme de gauche est une fonction de valeur optimale (puisque $\expertpolicy$ est optimale pour $\expertreward$ et que $\optimalpolicy{\appr{\rewardfunc}}$ est optimale pour $\appr{\rewardfunc}$). Ces deux critères sont donc liés à l'optimalité de la valeur de droite et tendront vers $0$ quand, pour le premier la politique apprise en optimisant la récompense $\appr{\rewardfunc}$ sera optimale pour la récompense inconnue $\expertreward$ et quand pour le second la récompense $\appr{\rewardfunc}$ est telle qu'elle admet la politique expert comme politique optimale.
+
+Le premier critère est celui qui nous intéresse vraiment. Il juge le comportement issu de l'optimisation par un algorithme d'\gls{rl} ou de \gls{dp} de la récompense $\appr{\rewardfunc}$ à l'aune de la description de la tâche confiée à l'expert, à savoir $\expertreward$. Cela permet dans les cas où plusieurs bonnes solutions existent de ne pas pénaliser un agent qui aurait fait un choix différent de celui de l'expert si cela importe peu. Il s'agit donc d'une mesure plus fine que l'erreur de classification $\classiferror{\expertdistribution}$, qui sanctionne toute divergence d'opinion avec l'expert. Lors du test d'algorithmes de \gls{irl} sur des problèmes jouets où la récompense $\expertreward$ nous est connue, nous étudierons ce critère ou un critère équivalent. Sur de vrais problèmes, en revanche, il est impossible de l'estimer : il faut résoudre le problème de l'\gls{irl} pour savoir si on a bien résolu le problème de l'\gls{irl}.
+
+Le second critère a le gros défaut d'être optimisé par la récompense nulle. Nous verrons cependant en analysant les différentes approches d'\gls{irl} les mécanismes mis en place afin d'éviter les solutions dégénérées. Il a le gros avantage de pouvoir être estimé puisqu'à l'inverse de $\expertreward$, la fonction de récompense $\appr{\rewardfunc}$ est connue. Un algorithme comme \gls{lstd} \citep{bradtke1996linear,boyan2002technical} peut fournir une approximation \gls{offpolicy} d'une fonction de valeur.
 *** Attribut moyen 
-    L'approximation linéaire de la fonction de récompense induit (par le biais de la fonction de valeur) l'apparition de l'attribut moyen. C'est, comme nous allons le voir au chapitre suivant, une notion centrale en renforcement inverse. C'est un fonction vectorielle qui porte la structure temporelle du MDP contraint par la politique (bref de la chaine de Markov sous-jacente) (illustrer graphiquement sur le \gls{gridworld}, par exemple).
+# ?s paramirl '\theta' 'Vecteur de paramètres pour l{\apos}ARI'
+    Le fonction de récompense étant l'objet recherché celle-ci sera, pour ne pas bouder une méthode éprouvée, approximée par un schéma linéaire :
+    \begin{eqnarray}
+    \appr{\rewardfunc}(\state) &=& \transpose{\paramirl}\featurestatefunc(\state)\\
+    \textrm{ou } \appr{\rewardfunc}(\state,\action) &=& \transpose{\paramirl}\featurestateactionfunc(\state,\action).
+    \end{eqnarray}
+Là encore, le choix des attributs est important. Il faut qu'ils permettent à la fonction de récompense de décrire la tâche effectuée par l'expert.
 
-    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelle que soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
+# ?cs 1 rlmu '\mu^{#1}' '\mu^{\pi}' 'Attribut moyen de la politique $\pi$'
+Dans le contexte de l'approximation linéaire de la fonction de récompense, l'expression de la fonction de valeur d'une politique $\policy$ fait apparaître un terme $\rlmu{\policy}$ dont le prochain chapitre révèlera l'importance :
+\begin{eqnarray}
+\label{eq:mudef}
+\textrm{avec }\forall \timeindex \in \llbracket 1;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
+\rlvalue{\policy}{\appr{\rewardfunc}}(\state_{0})&=&\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\appr{\rewardfunc}(\state_{\timeindex})\\
+&=&\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\transpose{\paramirl}\featurestatefunc(\state_{\timeindex})\\
+&=&\transpose{\paramirl}\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})\\
+&=&\transpose{\paramirl}\rlmu{\policy}(\state_0)
+\end{eqnarray}
+
+Ce terme, l'attribut moyen d'une politique, est une fonction vectorielle qui porte la structure temporelle du MDP contraint par la politique. C'est, que l'on me pardonne l'oxymore, une trace du futur qui est liée à la distribution qu'occupera l'agent à partir d'un certain état. La présence du facteur d'amortissement $\discount$ dans l'expression empêche l'identification complète à une distribution, ce qui est heureux car sans cela l'expression tendrait vers la distribution stationnaire quel que soit l'état de départ, à moins que l'horizon $\timehorizon$ ne soit fini.
+
+De la même manière que la fonction de qualité donne à la fonction de valeur un degré de liberté supplémentaire, il est possible de donner une action en argument à l'attribut moyen avec le même effet :
+\begin{eqnarray}
+\textrm{avec }\forall \timeindex \in \llbracket 1;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
+\rlmu{\policy}(\state_{0})&=&\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})\\
+\textrm{avec }\forall \timeindex \in \llbracket 2;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
+\textrm{et }\state_{1} &\sim& \transprobfunceval{\state_{0}}{\action}{\cdot},\\
+\rlmu{\policy}(\state_{0},\action)&=&\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex}).
+\end{eqnarray}
+Si la récompense est définie sur les couples état-action plutôt que sur les états seuls, alors l'expression de l'attribut moyen devient simplement :
+\begin{equation}
+\rlmu{\policy}(\state_{0})=\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\featurestateactionfunc\left(\state_{\timeindex},\policy(\state_{\timeindex})\right).
+\end{equation}
+# illustration mountain car : la forme en escargot est caractéristique elle correspond à des va-et-vient dont l'apogée est de plus en plus haute.
+#    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelle que soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
 * État de l'art et problématique
 ** Fonction de récompense 
 
@@ -432,6 +556,8 @@ C'est l'équation d'évaluation de \citet{bellman2003dynamic} qui est à l'origi
    
 * \gls{scirl}
 # snippet: tiré de ratliff2009learning, l'extrait suivant est exactement ce que SCIRL fait : Unfortunately, such a system is inherently myopic. This form of imitation learning assumes that all information necessary to make a decision at the current state can be easily encoded into a single vector of features that enables prediction with a relatively simple, learned function. However, this is often particularly difficult because the features must encode information regarding the future long-term consequences of taking an action. Under this framework, much of the work that we would like learning to handle is pushed onto the engineer in the form of feature extraction.
+
+# snippet : copier du papier nips le truc qui explique qu'une récompense nule implique une erreur de classif de batard.
 ** Liens entre classification et \gls{rl}
   La classification peut-être utilisée pour faire de l'imitation (fait mentionné en sous-section \ref{hier:nonari}). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un \gls{mdp} (équation présentée en [[Cadre des \glspl{mdp} pour la prise de décision séquentielle]]) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
 
