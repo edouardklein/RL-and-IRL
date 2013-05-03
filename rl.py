@@ -46,7 +46,7 @@ def lspi( data, s_dim=1, a_dim=1, A = [0], phi=None, phi_dim=1, epsilon=0.01, it
         omega = omega_dash
         policy = greedy_policy( omega, phi, A )
         nb_iterations+=1
-        print "LSPI, iter :"+str(nb_iterations)+", diff : "+str(diff)
+        print("LSPI, iter :"+str(nb_iterations)+", diff : "+str(diff))
         if nb_iterations > iterations_max or diff < epsilon:
             cont = False
     sa_dash = hstack([s_dash,policy(s_dash)])

@@ -42,13 +42,14 @@
 #+LaTeX_header:\newacronym{alvinn}{ALVINN}{\emph{Autonomous Land Vehicle In a Neural Network}}
 #+LaTeX_header:\newacronym{churps}{CHURPs}{\emph{Compressed Heuristic Universal Reaction Planners}}
 #+LaTeX_header:\newacronym{knn}{$k$-NN}{$k$ \emph{Nearest Neighboors}}
-
+** Anglicismes
 #+LaTeX_header:\newangl{batch}{batch}{Par paquet}
 #+LaTeX_header:\newangl{offpolicy}{off-policy}{Hors ligne}
 #+LaTeX_header:\newangl{gridworld}{gridworld}{Echiquier, damier}
 #+LaTeX_header:\newangl{rewardshaping}{reward shaping}{Transformation de la récompense ne changeant pas les politiques optimales}
 #+LaTeX_header:\newangl{mixing}{mixing}{Mixante}
 #+LaTeX_header:\newangl{boosting}{boosting}{Ajout de nouveaux attributs}
+#+LaTeX_header:\newangl{mountaincar}{mountain-car}{Problème jouet où une voiture doit sortir d'un creux}
 
 * TAF :noexport:
 ** TODO Articuler les parties problème jouets
@@ -199,9 +200,73 @@ on obtient finalement la fonction d'attribut suivante :
 \gaussian{\gaussiancenter_{1}}{\sigma}{s}\\
 \vdots\\
 \gaussian{\gaussiancenter_{\dimpsi}}{\sigma}{s}\\
+1
 \end{pmatrix}.
 \end{equation}
-Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimension augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension.
+Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimension augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension. Une composante constante est ajoutée. Une illustration de ce type d'attributs sur l'espace d'état du \gls{mountaincar} est présentée \ref{fig:mountain_car_psi}.
+\begin{figure}
+\begin{tikzpicture}[scale=2]
+%\draw [help lines] (0,0) grid (6,-6);
+\node at (0,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x0}};
+\node at (0,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x0}};
+\node at (0,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x0}};
+\node at (0,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x0}};
+\node at (0,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x0}};
+\node at (0,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x0}};
+\node at (0,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x0}};
+
+\node at (1,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x1}};
+\node at (1,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x1}};
+\node at (1,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x1}};
+\node at (1,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x1}};
+\node at (1,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x1}};
+\node at (1,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x1}};
+\node at (1,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x1}};
+
+\node at (2,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x2}};
+\node at (2,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x2}};
+\node at (2,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x2}};
+\node at (2,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x2}};
+\node at (2,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x2}};
+\node at (2,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x2}};
+\node at (2,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x2}};
+
+\node at (3,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x3}};
+\node at (3,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x3}};
+\node at (3,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x3}};
+\node at (3,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x3}};
+\node at (3,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x3}};
+\node at (3,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x3}};
+\node at (3,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x3}};
+
+\node at (4,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x4}};
+\node at (4,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x4}};
+\node at (4,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x4}};
+\node at (4,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x4}};
+\node at (4,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x4}};
+\node at (4,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x4}};
+\node at (4,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x4}};
+
+\node at (5,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x5}};
+\node at (5,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x5}};
+\node at (5,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x5}};
+\node at (5,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x5}};
+\node at (5,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x5}};
+\node at (5,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x5}};
+\node at (5,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x5}};
+
+\node at (6,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x6}};
+\node at (6,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x6}};
+\node at (6,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x6}};
+\node at (6,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x6}};
+\node at (6,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x6}};
+\node at (6,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x6}};
+\node at (6,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x6}};
+\end{tikzpicture}
+\caption{Attributs gaussiens sur le problème du \gls{mountaincar}. L'espace d'état est pavé de $7\times 7 = 49$ gaussiennes dont les centres sont répartis à équidistance. Les variances sont les mêmes pour toutes les gaussiennes et dépendent de la plage de valeur sur une dimension. Toute fonction aux variations raisonnables peut être approximée de manière correcte par une somme pondérée de ces gaussiennes.}
+\label{fig:mountain_car_psi}
+\end{figure}
+
 
 Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons la fonction de coût que \citet{taskar2005learning} se propose de minimiser (l'expression est modifiée pour coller à la formulation de \cite{ratliff2007imitation}, cela s'avère plus pratique pour la minimisation) :
 # FIXME se mettre exactement au clair sur les différents papiers de ratliff
@@ -487,7 +552,75 @@ Si la récompense est définie sur les couples état-action plutôt que sur les 
 \begin{equation}
 \rlmu{\policy}(\state_{0})=\sum\limits_{\timeindex = 0}^{\timehorizon} \discount^{\timeindex}\featurestateactionfunc\left(\state_{\timeindex},\policy(\state_{\timeindex})\right).
 \end{equation}
-# illustration mountain car : la forme en escargot est caractéristique elle correspond à des va-et-vient dont l'apogée est de plus en plus haute.
+
+# ?s expertmu '\mu^E' 'Attribut moyen de l{\apos}expert'
+L'attribut moyen donne une idée des états que traversera l'agent. Il contient donc des informations sur la dynamique induite par sa politique. Cela va avoir un impact important sur la qualité des diverses approximations linéaires dont nous avons parlé si l'attribut moyen est utilisé en tant qu'attribut tout court. La présence de la dynamique du \gls{mdp} dans l'attribut moyen est illustrée \ref{fig:mountain_car_mu}.
+
+\begin{figure}
+\begin{tikzpicture}[scale=2]
+%\draw [help lines] (0,0) grid (6,-6);
+\node at (0,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_42}};
+\node at (0,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_35}};
+\node at (0,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_28}};
+\node at (0,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_21}};
+\node at (0,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_14}};
+\node at (0,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_7}};
+\node at (0,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_0}};
+
+\node at (1,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_43}};
+\node at (1,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_36}};
+\node at (1,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_29}};
+\node at (1,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_22}};
+\node at (1,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_15}};
+\node at (1,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_8}};
+\node at (1,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_1}};
+
+\node at (2,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_44}};
+\node at (2,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_37}};
+\node at (2,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_30}};
+\node at (2,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_23}};
+\node at (2,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_16}};
+\node at (2,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_9}};
+\node at (2,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_2}};
+
+\node at (3,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_45}};
+\node at (3,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_38}};
+\node at (3,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_31}};
+\node at (3,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_24}};
+\node at (3,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_17}};
+\node at (3,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_10}};
+\node at (3,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_3}};
+									      
+\node at (4,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_46}};
+\node at (4,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_39}};
+\node at (4,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_32}};
+\node at (4,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_25}};
+\node at (4,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_18}};
+\node at (4,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_11}};
+\node at (4,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_4}};
+									      
+\node at (5,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_47}};
+\node at (5,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_40}};
+\node at (5,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_33}};
+\node at (5,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_26}};
+\node at (5,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_19}};
+\node at (5,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_12}};
+\node at (5,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_5}};
+
+\node at (6,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_48}};
+\node at (6,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_41}};
+\node at (6,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_34}};
+\node at (6,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_27}};
+\node at (6,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_20}};
+\node at (6,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_13}};
+\node at (6,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_6}};
+
+\end{tikzpicture}
+\caption{\`A comparer à \ref{fig:mountain_car_psi}, l'attribut moyen (ici celui de l'expert sur le \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen. Comme un vecteur de dimension $\dimpsi=50$ est difficile à représenter, c'est ici la projection $\transpose{\expertmu} \featurestatefunc(\cdot)$ qui est dessinée, évaluée en chacun des centres des gaussiennes de l'attribut $\featurestatefunc$.}
+\label{fig:mountain_car_mu}
+\end{figure}
+
+# snippet illustration mountain car : la forme en escargot est caractéristique elle correspond à des va-et-vient dont l'apogée est de plus en plus haute.
 #    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelle que soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
 * État de l'art et problématique
 ** Fonction de récompense 

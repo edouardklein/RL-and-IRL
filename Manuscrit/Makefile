@@ -1,7 +1,11 @@
 org2pdf=python3 ForC_parser.py $1.org > tmp.org && emacs -batch --visit tmp.org --funcall org-export-as-latex --script ~/.emacs && pdflatex tmp.tex && bibtex tmp && makeglossaries tmp && pdflatex tmp.tex && pdflatex tmp.tex  && mv tmp.pdf main.pdf
 
+org2pdftest=emacs -batch --visit $1.org --funcall org-export-as-latex --script ~/.emacs && pdflatex $1.tex
 #FIXME: Faire planter bibtex en cas de warning
 #FIXME: Faire planter ForC en cas d'erreur de lexage ou parsage
+test:
+	$(call org2pdftest,"test")
+
 show: main.pdf
 	open main.pdf
 

@@ -35,7 +35,8 @@ def zip_stack(*args):
     shape = args[0].shape
     nargs = len(args)
     args = [m.reshape(-1) for m in args]
-    return array(zip(*args)).reshape(shape+(nargs,))
+    new_array = array([t for t in zip(*args)])
+    return new_array.reshape(shape+(nargs,))
 
 def f_geq(a,b):
     r"Float inequality, return True if $a\geq b-\epsilon$"
