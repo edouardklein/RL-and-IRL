@@ -1,7 +1,14 @@
 #+TITLE:Plan
 * Options and headers :noexport:
+** tikz
+#+LATEX_HEADER:\usepackage{tikz} 
+#+LATEX_HEADER:\usetikzlibrary{shapes.arrows}
+#+LATEX_HEADER:\usetikzlibrary{calc}
+#+LATEX_HEADER:\usetikzlibrary{decorations.pathreplacing}
+#+LATEX_HEADER:\tikzset{for this and nested ones/.style={#1,every picture/.style={#1}}}
+** Misc.
 #+OPTIONS: tags:0
-# (setq org-export-latex-hyperref-format "\\ref{%s}")
+# (setq org-export-latex-hyperref-format "\\autoref{%s}")
 #+LaTeX_CLASS: article 
 #+LaTeX_CLASS_OPTIONS: [frenchb]
 
@@ -22,9 +29,9 @@
 #+LaTeX_header:\newglossary[angl]{anglicisme}{aot}{atn}{Anglicismes}
 #+LaTeX_header:\newcommand{\newangl}[3]{\newglossaryentry{#1}{type=anglicisme,name={\emph{#2}},description={#3}}}
 #+LaTeX_header:\makeglossaries
-
+  
 ** Acronymes
-#+LaTeX_header:\newacronym{mdp}{PDM}{Processus Décisionnel de Markov}
+#+LaTeX_header:\newacronym{mdp}{PDM}{Processus D{é}cisionnel de Markov}
 #+LaTeX_header:\newacronym{irl}{ARI}{Apprentissage par Renforcement Inverse}
 #+LaTeX_header:\newacronym{dp}{PD}{Programmation Dynamique}
 #+LaTeX_header:\newacronym{rl}{AR}{Apprentissage par Renforcement}
@@ -64,12 +71,16 @@
 * TAF :noexport:
 ** TODO Articuler les parties problème jouets
 ** Nettoyage
-*** TODO Virer barres à droite graphes psi et mu, utiliser même échelle pour tout le monde (échelle monomodale, d'ailleurs)
-*** TODO trouver un moyen de mettre automatiquement les noms (section, equation, etc.) devant les refs (autoref?)
+*** DONE Virer barres à droite graphes psi et mu, utiliser même échelle pour tout le monde (échelle monomodale, d'ailleurs)
+    CLOSED: [2013-05-28 Mar 11:22]
+*** DONE trouver un moyen de mettre automatiquement les noms (section, equation, etc.) devant les refs (autoref?)
+    CLOSED: [2013-05-27 Lun 19:02]
 *** TODO Introduire le mountain-car de belle manière
-*** TODO virer l'extension glossaire de la table des matières
+*** DONE virer l'extension glossaire de la table des matières
+    CLOSED: [2013-05-27 Lun 19:02]
 *** TODO Mettre sous forme ODF et envoyer à JCK
-*** TODO Mettre les labels sous forme # <<>>
+*** DONE Mettre les labels sous forme # <<>>
+    CLOSED: [2013-05-27 Lun 19:02]
 ** Trucs à ajouter je ne sais où
 *** Contre exemple politique, tache
     Je peux décrire une politique sur un espace d'état, mais pas la récompense, exemple. le mettre au début de 2.3.1 ou ailleurs.
@@ -77,6 +88,24 @@
     Avec la tour : on peut optimiser de manière différente
     Avec le fou : on peut optimiser mieux si on a pas le même espace d'état
 * Axe de recherche 
+# Mountain car stuff
+#+begin_latex
+\newsavebox\tuture
+\begin{lrbox}{\tuture}
+   \begin{tikzpicture}
+    \fill[yellow] (0,0) -- (1.2,0) -- (1.2,.5) -- (0,.5) --cycle;
+    \draw[black] (0,0) -- (1.2,0) -- (1.2,.5) -- (0,.5) --cycle;
+    \node[shape=circle,draw=black,fill=green,scale=1] at (0.3,0) {};
+    \node[shape=circle,draw=black,fill=green,scale=1] at (.9,0) {};
+    \node[red] (carMark) at (.6,.2) {\bf x};
+  \end{tikzpicture}
+\end{lrbox}
+\newcommand{\speedarrow}[1]{
+  \begin{tikzpicture}
+    \node [single arrow,fill=blue!50,minimum height=#1,single arrow head indent=3] at(0,0) {};
+  \end{tikzpicture}
+}
+#+end_latex
 ** Contrôle optimal 
 ** Trouver la consigne à partir du contrôle 
 *** Intérêt intrinsèque
@@ -88,9 +117,17 @@
     Citer les revues : \cite{argall2009survey,schaal2003computational}, expliquer le cadre large, le problème de l'observabilité de l'expert et de l'adéquation expert/agent (mentionner le changement d'espace d'état?).
 ** Annonce du plan 
 # <<hier:annonceplan>>   
+*** Problème du mountaincar
+\begin{figure}
+\begin{tikzpicture}[for this and nested ones={scale=.4},transform shape]
+\input{Figures/Mountain_car_state_space.tex}
+\end{tikzpicture} 
+\caption{L'espace d'état du mountaincar}
+\label{fig:mcstatespace}
+\end{figure}
 * Formalisme mathématique, notations
   Il est maintenant temps de formaliser ce que nous venons de voir et d'introduire les notions qui serviront les explications à suivre.
-** Imitation non \gls{irl} 
+** Imitation non \glsentrytext{irl} 
 # <<hier:nonari>>
 # Goal:Introduire uniquement le formalisme nécessaire à l'imitation par classification.
 # Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense
@@ -153,7 +190,7 @@ Généralement pour la classification, la distribution $\spacedistrib$ où l'on 
 Il est possible de rendre les choses plus intéressantes en choisissant une autre distribution $\spacedistrib$ sur laquelle il nous importe d'optimiser la classification. On peut, comme on l'a vu intuitivement favoriser les états de départ. Il est possible de tenter d'estimer à partir d'une base d'exemple la vraie distribution des états qui seront soumis au contrôle de l'agent (qui peut être différente de la distribution à laquelle l'expert est confronté). On peut également pour certains environnements accorder plus d'importance à certains états critiques où une erreur aurait des conséquences fâcheuses.
 
 *** Attributs
-\label{hier:attributs}
+# <<hier:attributs>>
 # ?s featurestateactionspace '\Phi' 'Espace d{\apos}attributs état-action'
 # ?s featurestateactionfunc '\phi' 'Fonction d{\apos}attributs état-action'
 # ?s dimphi 'd_{\phi}' 'Dimension de l{\apos}espace d{\apos}attributs état-action'
@@ -226,65 +263,65 @@ on obtient finalement la fonction d'attribut suivante après l'ajout d'une compo
 1
 \end{pmatrix}.
 \end{equation}
-Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états topologiquement proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimensions augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension. Une illustration de ce type d'attributs sur l'espace d'état bidimensionnel du \gls{mountaincar} (décrit en \ref{hier-annonceplan}) est présentée \ref{fig:mountain_car_psi}.
+Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états topologiquement proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimensions augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension. Une illustration de ce type d'attributs sur l'espace d'état bidimensionnel du \gls{mountaincar} (décrit en \autoref{hier-annonceplan}) est présentée \autoref{fig:mountain_car_psi}.
 \begin{figure}
-\begin{tikzpicture}[scale=2]
+\begin{tikzpicture}[scale=1.75]
 %\draw [help lines] (0,0) grid (6,-6);
-\node at (0,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x0}};
-\node at (0,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x0}};
-\node at (0,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x0}};
-\node at (0,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x0}};
-\node at (0,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x0}};
-\node at (0,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x0}};
-\node at (0,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x0}};
-
-\node at (1,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x1}};
-\node at (1,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x1}};
-\node at (1,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x1}};
-\node at (1,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x1}};
-\node at (1,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x1}};
-\node at (1,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x1}};
-\node at (1,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x1}};
-
-\node at (2,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x2}};
-\node at (2,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x2}};
-\node at (2,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x2}};
-\node at (2,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x2}};
-\node at (2,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x2}};
-\node at (2,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x2}};
-\node at (2,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x2}};
-
-\node at (3,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x3}};
-\node at (3,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x3}};
-\node at (3,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x3}};
-\node at (3,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x3}};
-\node at (3,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x3}};
-\node at (3,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x3}};
-\node at (3,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x3}};
-
-\node at (4,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x4}};
-\node at (4,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x4}};
-\node at (4,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x4}};
-\node at (4,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x4}};
-\node at (4,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x4}};
-\node at (4,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x4}};
-\node at (4,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x4}};
-
-\node at (5,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x5}};
-\node at (5,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x5}};
-\node at (5,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x5}};
-\node at (5,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x5}};
-\node at (5,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x5}};
-\node at (5,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x5}};
-\node at (5,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x5}};
-
-\node at (6,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_6x6}};
-\node at (6,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_5x6}};
-\node at (6,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_4x6}};
-\node at (6,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_3x6}};
-\node at (6,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_2x6}};
-\node at (6,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_1x6}};
-\node at (6,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_psi_0x6}};
+\node at (0,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_6x0}};
+\node at (0,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_5x0}};
+\node at (0,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_4x0}};
+\node at (0,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_3x0}};
+\node at (0,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_2x0}};
+\node at (0,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x0}};
+\node at (0,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x0}};
+					  
+\node at (1,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_6x1}};
+\node at (1,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_5x1}};
+\node at (1,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_4x1}};
+\node at (1,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_3x1}};
+\node at (1,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_2x1}};
+\node at (1,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x1}};
+\node at (1,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x1}};
+					  
+\node at (2,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_6x2}};
+\node at (2,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_5x2}};
+\node at (2,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_4x2}};
+\node at (2,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_3x2}};
+\node at (2,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_2x2}};
+\node at (2,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x2}};
+\node at (2,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x2}};
+					  
+\node at (3,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_6x3}};
+\node at (3,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_5x3}};
+\node at (3,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_4x3}};
+\node at (3,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_3x3}};
+\node at (3,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_2x3}};
+\node at (3,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x3}};
+\node at (3,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x3}};
+					  
+\node at (4,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_6x4}};
+\node at (4,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_5x4}};
+\node at (4,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_4x4}};
+\node at (4,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_3x4}};
+\node at (4,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_2x4}};
+\node at (4,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x4}};
+\node at (4,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x4}};
+					  
+\node at (5,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_6x5}};
+\node at (5,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_5x5}};
+\node at (5,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_4x5}};
+\node at (5,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_3x5}};
+\node at (5,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_2x5}};
+\node at (5,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x5}};
+\node at (5,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x5}};
+					  
+\node at (6,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_6x6}};
+\node at (6,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_5x6}};
+\node at (6,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_4x6}};
+\node at (6,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_3x6}};
+\node at (6,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_2x6}};
+\node at (6,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x6}};
+\node at (6,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x6}};
 \end{tikzpicture}
 \caption{Attributs gaussiens sur le problème du \gls{mountaincar}. L'espace d'état est pavé de $7\times 7 = 49$ gaussiennes dont les centres sont répartis à équidistance. Les variances sont les mêmes pour toutes les gaussiennes et dépendent de la plage de valeur sur une dimension. Toute fonction aux variations raisonnables peut être approximée de manière correcte par une somme pondérée de ces gaussiennes.}
 \label{fig:mountain_car_psi}
@@ -332,7 +369,7 @@ il est donc possible de résoudre le problème d'optimisation original en effect
 Nous avons présenté cette technique de classification plus en détail à des fins d'illustration de l'importance du choix des attributs, et également car nous la retrouverons plus loin dans le manuscrit lorsque nous nous intéresserons aux techniques d'\gls{irl}.
 
 Il existe bien d'autres moyen de faire de la classification, comme par exemple les \gls{svm}.
-*** \gls{svm}
+*** \glsentrytext{svm}
 # FIXME: Ecrire la sous partie sur les SVMs
 # Goal: Faire une description rapide des MCSVM et de leurs avantages.
 # Goal: Introduire la notion de noyau, de kenel-trick et faire le lien avec les attributs (poil au cul)
@@ -398,7 +435,8 @@ Le principal problème de l'apprentissage direct de la politique de manière sup
 # FIXME Citer les deux surveys 
 
 
-** Cadre des \glspl{mdp} pour la prise de décision séquentielle
+** Cadre des \glsentrytext{mdp} pour la prise de décision séquentielle
+# <<hier:cadre>>
 # Snippet: La classification ne se soucie pas de l'objectif de l'expert. Quid si une action mal choisie fait dérailler l'agent sur une partie totalement inconnue de l'espace d'état ?
 # Goal: introduire les notions de l'AR qui sont nécessaires à la définition des notions d'ARI
 # Requires:
@@ -453,7 +491,7 @@ Il faut maintenant que ce critère local donne lieu à un comportement globaleme
 # ?s discount '\gamma' 'Facteur d{\apos}amortissement'
 Comme l'horizon temporel est infini, pour s'assurer de la convergence de la somme, le facteur d'amortissement $\discount \in [0;1[$ est introduit. Une conséquence est la diminution d'attrait des récompenses loin dans le futur au profit de récompenses accessibles plus rapidement. Cela permet de récompenser l'agent qui effectue rapidement sa tâche.
 
-La fonction de valeur, et un peu plus loin la fonction de qualité (\eqref{eq:qualityref}) sont paramétrées par la fonction de récompense $\rewardfunc$ car par la suite nous serons amenés à étudier la valeur selon une certaine récompense d'une politique qui est optimale pour une autre récompense.
+La fonction de valeur, et un peu plus loin la fonction de qualité (\autoref{eq:qualityref}) sont paramétrées par la fonction de récompense $\rewardfunc$ car par la suite nous serons amenés à étudier la valeur selon une certaine récompense d'une politique qui est optimale pour une autre récompense.
 
 # ?s mdpbis '\mathcal{M}' 'Un \gls{mdp}'
 L'ensemble de l'espace d'état $\statespace$, de l'espace d'action $\actionspace$, des probabilités de transitions $\transprobfunc$, de la fonction de récompense $\rewardfunc$ et du facteur d'amortissement $\discount$ forment un \gls{mdp} $\mdpbis$ \citep{puterman1994markov}
@@ -468,7 +506,7 @@ Nous recherchons une politique optimale $\optimalpolicy{\rewardfunc}$ telle qu'e
 \forall \state, \rlvalue{\optimalpolicy{\rewardfunc}}{\rewardfunc}(\state) \geq \rlvalue{\policy}{\rewardfunc}(\state).
 \label{eq:optimalite}
 \end{equation}
-Pour résoudre ce problème, intéressons nous de plus près à l'expression de la valeur d'une politique, dont la définition qu'on en a donné $\eqref{eq:Vdefsum}$ peut être transformée en une expression récursive (grâce à la propriété de Markov) :
+Pour résoudre ce problème, intéressons nous de plus près à l'expression de la valeur d'une politique, dont la définition qu'on en a donné $\autoref{eq:Vdefsum}$ peut être transformée en une expression récursive (grâce à la propriété de Markov) :
 \begin{equation}
 \label{eq:BellmanEval}
 \rlvalue{\policy}{\rewardfunc}(\state) = \staterewardfunceval{\state} + \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\policy(\state)}{\state'} \rlvalue{\policy}{\rewardfunc}(\state').
@@ -484,10 +522,10 @@ Cette opérateur est contractant, par conséquence il possède un point fixe, qu
 \begin{equation}
 V = \bellmanevalopeval{\policy}{\rewardfunc}{V}
 \end{equation}
-est exactement la même que l'équation d'évaluation de Bellman \eqref{eq:BellmanEval}. L'unique point fixe de l'opérateur $\bellmanevalopeval{\policy}{\rewardfunc}{}$ est donc la fonction de valeur de la politique : $\rlvalue{\policy}{\rewardfunc}$. La famille d'algorithmes dits d'itération de la politique appliquent d'ailleurs de manière répétée l'opérateur d'évaluation de Bellman (ou une version approchée de cet opérateur) à une valeur de départ pour obtenir la valeur d'une politique.
+est exactement la même que l'équation d'évaluation de Bellman \autoref{eq:BellmanEval}. L'unique point fixe de l'opérateur $\bellmanevalopeval{\policy}{\rewardfunc}{}$ est donc la fonction de valeur de la politique : $\rlvalue{\policy}{\rewardfunc}$. La famille d'algorithmes dits d'itération de la politique appliquent d'ailleurs de manière répétée l'opérateur d'évaluation de Bellman (ou une version approchée de cet opérateur) à une valeur de départ pour obtenir la valeur d'une politique.
 
 # ?cs 2 quality 'Q^{#1}_{#2}' 'Q^{\pi}_{R}' 'Fonction de qualité de la politique $\pi$ pour la récompense $R$'
-Dans l'équation de Bellman \eqref{eq:BellmanEval}, l'action qui fait passer de $\state$ à $\state'$ est explicitement donnée comme étant $\policy(\state)$. Les actions suivantes sont également choisies par la politique $\policy$ comme l'indique le terme $\rlvalue{{\color{red}\policy}}{\rewardfunc}$. Imaginons maintenant que connaissant la valeur d'une politique $\policy$, nous soyons chargé pour l'état $\state$ de choisir la meilleur action $\action$, qui peut être différente de $\policy(\state)$, mais qu'ensuite la politique $\policy$ reprenne le contrôle. C'est le degré de liberté décrit par la fonction de qualité $\quality{\policy}{\rewardfunc}$ :
+Dans l'équation de Bellman \autoref{eq:BellmanEval}, l'action qui fait passer de $\state$ à $\state'$ est explicitement donnée comme étant $\policy(\state)$. Les actions suivantes sont également choisies par la politique $\policy$ comme l'indique le terme $\rlvalue{{\color{red}\policy}}{\rewardfunc}$. Imaginons maintenant que connaissant la valeur d'une politique $\policy$, nous soyons chargé pour l'état $\state$ de choisir la meilleur action $\action$, qui peut être différente de $\policy(\state)$, mais qu'ensuite la politique $\policy$ reprenne le contrôle. C'est le degré de liberté décrit par la fonction de qualité $\quality{\policy}{\rewardfunc}$ :
 \begin{eqnarray}
 \label{eq:qualitydef}
 \quality{\policy}{\rewardfunc} &\in& \twosetsfunctions{\statespace \times \actionspace}{\reals}\\
@@ -537,21 +575,21 @@ Les échantillons de $\sasrtrace{\rewardfunc}$ n'ont pas besoin de se suivre, on
 # Probabilités de transitions, fonction de récompense, fonction de valeur, po- litique optimale. Programmation Dynamique (PD).
 # Approximation de la fonction de valeur, AR. L’AR permettant d’apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le PD, comme la possibilité de s’adapter à un milieu changeant pour certains algorithmes ou de manière plus générale l’absence de besoin de connaître les probabilités de transition.
 # Pour appliquer l’AR au monde réel, il est nécessaire d’exploiter efficacement les échantillons. Les échantillons sont très faciles à obtenir si on dispose d’un simulateur, et sont les seules données accessible sur certains systèmes. Pouvoir les exploiter en batch et off-policy permet de contrôler beaucoup de types de systèmes différents (qui peut le plus peut le moins). Least Square Policy Iteration (LSPI) Lagoudakis and Parr [2003].
-** Définition de l'\gls{irl} 
+** Définition de l'\glsentrytext{irl} 
 Nous voilà donc armés pour résoudre (de manière approchée) le problème du contrôle optimal, pour peu que l'on dispose d'une description de la tâche à accomplir sous la forme d'une fonction de récompense $\rewardfunc$ et d'échantillons représentatifs du problème.
 
 *** Définition du problème 
-\label{hier:problemdef}
+# <<hier:problemdef>>
 
 La question qui se pose maintenant est de savoir dans quelle mesure il est possible d'automatiquement déduire d'une trace du comportement de l'expert une description de son but sous la forme d'une fonction de récompense. Cette méthode d'imitation a été suggérée pour la première fois par \citet{russell1998learning}. L'état de l'art sera traité au chapitre suivant, nous nous attelons ici à trouver une formulation mathématique saine du problème et à introduire les notions nécessaires à l'analyse des méthodes existantes et à l'introduction des nouvelles approches que nous proposons.
 
-Outre l'intérêt intrinsèque de la découverte des motivations de l'expert (\ref{hier-intrinseque}), apprendre une fonction de récompense correspondant au comportement de l'expert permet de soigner les méthodes d'imitation de leur "myopie" (\ref{hier-myopie}), en guidant l'agent vers une imitation non pas du /comment/, comme le fait l'imitation directe de la politique, mais du /quoi/.
+Outre l'intérêt intrinsèque de la découverte des motivations de l'expert (\autoref{hier-intrinseque}), apprendre une fonction de récompense correspondant au comportement de l'expert permet de soigner les méthodes d'imitation de leur "myopie" (\autoref{hier-myopie}), en guidant l'agent vers une imitation non pas du /comment/, comme le fait l'imitation directe de la politique, mais du /quoi/.
 
 # ?s expertreward 'R^E' 'Récompense inconnue optimisée par l{\apos}expert'
 Dans le formalisme des \gls{mdp} introduit plus tôt, l'expression du problème de l'\gls{irl} est de prime abord simple : l'on suppose que la politique de l'expert $\expertpolicy$ est une politique optimale pour une certaine fonction de récompense $\expertreward$ qu'il s'agit de trouver.
 Les choses se corsent malheureusement extrêmement rapidement. Tout d'abord, cette formulation n'est pas un problème mathématique bien posé au sens d'\citet{hadamard1902problemes} : il existe en effet de multiples solutions, dont l'une est dégénérée, la récompense uniformément nulle. Tous les comportements (donc celui de l'expert) ont la même valeur ($0$) pour cette récompense, donc tous sont optimaux. En inversant, la politique de l'expert est optimale pour la récompense nulle, qui est donc solution du problème.
 
-Plus subtilement, utiliser le formalisme des \gls{mdp} présuppose que certaines conditions sont réunies, notamment en ce qui concerne les espaces d'état et d'action. Il faut être en mesure de définir un espace d'état markovien, afin qu'un agent puisse prendre sa décision quant à l'action en se basant uniquement sur les informations de l'état. Il faut également être en mesure d'obtenir une trace de l'expert (le problème se pose déjà pour l'imitation directe de la politique, nous le mentionnons brièvement en \ref{hier-general}). La tâche à accomplir doit pouvoir se mettre sous la forme d'une fonction de l'espace d'état (ce n'est pas parce que l'on peut décrire une politique sur un espace d'état que l'on peut y décrire la tâche à accomplir). L'espace d'action doit rester discret et de faible cardinal si l'on veut que l'immense majorité des approches d'\gls{irl} y restent tractables. Enfin, il faut que l'expert soit effectivement optimal, l'introduction d'erreurs dans la démonstration pouvant poser problème.
+Plus subtilement, utiliser le formalisme des \gls{mdp} présuppose que certaines conditions sont réunies, notamment en ce qui concerne les espaces d'état et d'action. Il faut être en mesure de définir un espace d'état markovien, afin qu'un agent puisse prendre sa décision quant à l'action en se basant uniquement sur les informations de l'état. Il faut également être en mesure d'obtenir une trace de l'expert (le problème se pose déjà pour l'imitation directe de la politique, nous le mentionnons brièvement en \autoref{hier-general}). La tâche à accomplir doit pouvoir se mettre sous la forme d'une fonction de l'espace d'état (ce n'est pas parce que l'on peut décrire une politique sur un espace d'état que l'on peut y décrire la tâche à accomplir). L'espace d'action doit rester discret et de faible cardinal si l'on veut que l'immense majorité des approches d'\gls{irl} y restent tractables. Enfin, il faut que l'expert soit effectivement optimal, l'introduction d'erreurs dans la démonstration pouvant poser problème.
 
 # ?s expertdistrib '\rho^E' 'Distribution stationnaire de l{\apos}expert'
 Ces conditions, dont la réunion n'est certes pas triviale, ne vont cependant pas nous préoccuper. Nous nous attelons à trouver de nouvelles solutions au problème formulé par \citet{russell1998learning}. Pour mesurer notre succès, nous envisageons deux mesures de la qualité de la récompense $\appr{\rewardfunc}$ trouvée par un algorithme d'\gls{irl}. L'une est objective :
@@ -565,7 +603,7 @@ l'autre est estimable :
 
 Ces deux critères sont positifs ou au mieux nuls, il s'agit de les minimiser. Les deux termes de gauche sont des fonctions de valeur optimales (puisque $\expertpolicy$ est optimale pour $\expertreward$ et que $\optimalpolicy{\appr{\rewardfunc}}$ est optimale pour $\appr{\rewardfunc}$). Ces deux critères sont donc liés à l'optimalité des valeurs de droite et tendront vers $0$ quand, pour le premier la politique apprise en optimisant la récompense $\appr{\rewardfunc}$ sera optimale pour la récompense inconnue $\expertreward$ et quand pour le second la récompense $\appr{\rewardfunc}$ est telle qu'elle admet la politique expert comme politique optimale.
 
-La distribution en jeu $\spacedistrib$ est également importante. La distribution selon laquelle les données de l'expert sont tirées ($\expertdistrib$) est celle considérée par défaut, comme c'est le cas pour les méthodes supervisées (voir explication en \ref{hier-classification}). L'\gls{irl} présente cependant sur les méthodes supervisées l'avantage de pouvoir bien mieux généraliser aux parties de l'espace d'état sur lesquels l'expert n'a pas fourni de démonstrations, il peut donc être intéressant d'évaluer la qualité du contrôle non pas sur la distribution correspondant aux démonstrations de l'expert, mais justement sur une distribution plus large (telle que $\spacedistrib\subset\expertdistrib$).
+La distribution en jeu $\spacedistrib$ est également importante. La distribution selon laquelle les données de l'expert sont tirées ($\expertdistrib$) est celle considérée par défaut, comme c'est le cas pour les méthodes supervisées (voir explication en \autoref{hier-classification}). L'\gls{irl} présente cependant sur les méthodes supervisées l'avantage de pouvoir bien mieux généraliser aux parties de l'espace d'état sur lesquels l'expert n'a pas fourni de démonstrations, il peut donc être intéressant d'évaluer la qualité du contrôle non pas sur la distribution correspondant aux démonstrations de l'expert, mais justement sur une distribution plus large (telle que $\spacedistrib\subset\expertdistrib$).
 
 Le premier critère est celui qui nous intéresse vraiment. Il juge le comportement issu de l'optimisation par un algorithme d'\gls{rl} ou de \gls{dp} de la récompense $\appr{\rewardfunc}$ à l'aune de la description de la tâche confiée à l'expert, à savoir $\expertreward$. Cela permet dans les cas où plusieurs bonnes solutions existent de ne pas pénaliser un agent qui aurait fait un choix différent de celui de l'expert si cela importe peu. Il s'agit donc d'une mesure plus fine que l'erreur de classification $\classiferror{\expertdistrib}$, qui sanctionne toute divergence d'opinion avec l'expert. Lors du test d'algorithmes de \gls{irl} sur des problèmes jouets où la récompense $\expertreward$ nous est connue, nous étudierons ce critère ou un critère équivalent. Sur de vrais problèmes, en revanche, il est impossible de l'estimer : il faut résoudre le problème de l'\gls{irl} pour savoir si on a bien résolu le problème de l'\gls{irl}.
 
@@ -606,12 +644,12 @@ Si la récompense est définie sur les couples état-action plutôt que sur les 
 \end{equation}
 
 # ?s expertmu '\mu^E' 'Attribut moyen de l{\apos}expert'
-L'attribut moyen donne une idée des états que traversera l'agent. Il contient donc des informations sur la dynamique induite par sa politique. Cela va avoir un impact important sur la qualité des diverses approximations linéaires dont nous avons parlé si l'attribut moyen est utilisé en tant qu'attribut tout court. La présence de la dynamique du \gls{mdp} dans l'attribut moyen est illustrée \ref{fig:mountain_car_mu}.
+L'attribut moyen donne une idée des états que traversera l'agent. Il contient donc des informations sur la dynamique induite par sa politique. Cela va avoir un impact important sur la qualité des diverses approximations linéaires dont nous avons parlé si l'attribut moyen est utilisé en tant qu'attribut tout court. La présence de la dynamique du \gls{mdp} dans l'attribut moyen est illustrée \autoref{fig:mountain_car_mu}.
 
 # snippet illustration mountain car : la forme en escargot est caractéristique elle correspond à des va-et-vient dont l'apogée est de plus en plus haute.
 #    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelle que soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
 # ?cs 2 norm '\left|\left|{#2}\right|\right|_{#1}' '||\cdot||_x' 'Norme $x$' 
-Une propriété immédiate de l'attribut moyen est exploitée par une classe d'algorithme d'\gls{irl} (que nous décrirons plus en détail en \ref{hier:repetee}). Cette propriété découle directement de la définition de l'attribut moyen :
+Une propriété immédiate de l'attribut moyen est exploitée par une classe d'algorithme d'\gls{irl} (que nous décrirons plus en détail en \autoref{hier-repetee}). Cette propriété découle directement de la définition de l'attribut moyen :
 \begin{proposition}
 \label{thm:closemuclosev}
 Soit $\policy_1$ et $\policy_2$ deux politiques sur un même \gls{mdp}, dont les attributs moyens respectifs $\rlmu{\policy_1}$ et $\rlmu{\policy_2}$ sont proches (pour une certaine norme $\norm{x}{\cdot}$) :
@@ -624,7 +662,7 @@ Alors quelque soit la récompense $\rewardfunc_{\paramirl} = \transpose{\paramir
 \end{equation}
 \end{proposition}
 \begin{proof}
-D'après \eqref{eq:vthetamu} : 
+D'après \autoref{eq:vthetamu} : 
 \begin{eqnarray}
 \norm{x}{\rlvalue{\policy_1}{\rewardfunc_{\paramirl}}-\rlvalue{\policy_2}{\rewardfunc_{\paramirl}}} &=& \norm{x}{\transpose{\paramirl}\rlmu{\policy_1}-\transpose{\paramirl}\rlmu{\policy_1}}\\
 &=& \norm{x}{\transpose{\paramirl}(\rlmu{\policy_1}-\rlmu{\policy_1})}.\\
@@ -638,74 +676,73 @@ En utilisant l'inégalité de Cauchy-Schwartz, on conclut :
 Ce résultat est assez intuitif, si deux politiques induisent les mêmes trajectoires, elles auront même valeur. L'imitation telle que résolue par l'apprentissage supervisé donne ce type de résultats. Il est intéressant de noter que dans certains cas la réciproque est fausse FIXME:illustrer ça. Il est donc théoriquement possible de résoudre le problème de l'\gls{irl} en s'éloignant des solutions que l'apprentissage supervisé peut proposer. Il est en effet possible d'imaginer qu'un algorithme d'\gls{irl} renvoie une récompense qui, une fois optimisée, donnera une politique d'attribut moyen différent de celui de la politique de l'expert, mais de valeur semblable.
 
 \begin{figure}
-\begin{tikzpicture}[scale=2]
+\begin{tikzpicture}[scale=1.75]
 %\draw [help lines] (0,0) grid (6,-6);
-\node at (0,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_42}};
-\node at (0,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_35}};
-\node at (0,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_28}};
-\node at (0,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_21}};
-\node at (0,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_14}};
-\node at (0,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_7}};
-\node at (0,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_0}};
-
-\node at (1,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_43}};
-\node at (1,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_36}};
-\node at (1,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_29}};
-\node at (1,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_22}};
-\node at (1,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_15}};
-\node at (1,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_8}};
-\node at (1,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_1}};
-
-\node at (2,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_44}};
-\node at (2,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_37}};
-\node at (2,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_30}};
-\node at (2,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_23}};
-\node at (2,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_16}};
-\node at (2,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_9}};
-\node at (2,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_2}};
-
-\node at (3,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_45}};
-\node at (3,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_38}};
-\node at (3,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_31}};
-\node at (3,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_24}};
-\node at (3,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_17}};
-\node at (3,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_10}};
-\node at (3,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_3}};
-									      
-\node at (4,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_46}};
-\node at (4,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_39}};
-\node at (4,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_32}};
-\node at (4,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_25}};
-\node at (4,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_18}};
-\node at (4,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_11}};
-\node at (4,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_4}};
-									      
-\node at (5,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_47}};
-\node at (5,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_40}};
-\node at (5,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_33}};
-\node at (5,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_26}};
-\node at (5,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_19}};
-\node at (5,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_12}};
-\node at (5,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_5}};
-
-\node at (6,-0) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_48}};
-\node at (6,-1) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_41}};
-\node at (6,-2) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_34}};
-\node at (6,-3) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_27}};
-\node at (6,-4) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_20}};
-\node at (6,-5) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_13}};
-\node at (6,-6) {\includegraphics[width=.20\textwidth]{Figures/Mountain_car_mu_6}};
+\node at (0,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_42}};
+\node at (0,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_35}};
+\node at (0,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_28}};
+\node at (0,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_21}};
+\node at (0,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_14}};
+\node at (0,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_7}};
+\node at (0,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0}};
+					 
+\node at (1,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_43}};
+\node at (1,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_36}};
+\node at (1,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_29}};
+\node at (1,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_22}};
+\node at (1,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_15}};
+\node at (1,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_8}};
+\node at (1,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1}};
+					 
+\node at (2,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_44}};
+\node at (2,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_37}};
+\node at (2,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_30}};
+\node at (2,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_23}};
+\node at (2,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_16}};
+\node at (2,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_9}};
+\node at (2,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2}};
+					 
+\node at (3,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_45}};
+\node at (3,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_38}};
+\node at (3,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_31}};
+\node at (3,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_24}};
+\node at (3,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_17}};
+\node at (3,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_10}};
+\node at (3,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3}};
+					 
+\node at (4,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_46}};
+\node at (4,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_39}};
+\node at (4,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_32}};
+\node at (4,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_25}};
+\node at (4,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_18}};
+\node at (4,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_11}};
+\node at (4,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4}};
+				
+\node at (5,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_47}};
+\node at (5,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_40}};
+\node at (5,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_33}};
+\node at (5,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_26}};
+\node at (5,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_19}};
+\node at (5,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_12}};
+\node at (5,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5}};
+					
+\node at (6,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_48}};
+\node at (6,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_41}};
+\node at (6,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_34}};
+\node at (6,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_27}};
+\node at (6,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_20}};
+\node at (6,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_13}};
+\node at (6,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6}};
 
 \end{tikzpicture}
-\caption{\`A comparer à \ref{fig:mountain_car_psi}, l'attribut moyen (ici celui de l'expert sur le \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen. Comme un vecteur de dimension $\dimpsi=50$ est difficile à représenter, c'est ici la projection $\transpose{ \featurestatefunc(\cdot)}\expertmu$ qui est illustrée, évaluée en chacun des centres des gaussiennes de l'attribut $\featurestatefunc$.}
+\caption{\`A comparer à \autoref{fig:mountain_car_psi}, l'attribut moyen (ici celui de l'expert sur le \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen. Comme un vecteur de dimension $\dimpsi=50$ est difficile à représenter, c'est ici la projection $\transpose{ \featurestatefunc(\cdot)}\expertmu$ qui est illustrée, évaluée en chacun des centres des gaussiennes de l'attribut $\featurestatefunc$.}
 \label{fig:mountain_car_mu}
 \end{figure}
-
 
 * État de l'art et problématique
   Avant d'analyser les approches existantes d'\gls{irl}, intéressons nous plus en détail à la définition précise de la fonction de récompense, dont nous avons mentionné plus haut qu'il était possible de la définir sur l'espace d'état, sur l'espace d'état-action ou même sur l'espace d'état-action-état, mais sans nous montrer plus spécifiques. Nous verrons ensuite quelles transformations il est possible d'y appliquer sans changer les politiques optimales, une technique connue sous le nom de \gls{rewardshaping}. 
 ** Fonction de récompense 
-\label{hier:recompense}
+# <<hier:recompense>>
  
    Une fonction de récompense sur les états seuls quantifie de manière locale la désirabilité d'un état. Ce sont les fonctions de valeur et de qualité qui vont propager ce signal d'après la dynamique et vont faire intervenir les actions dans l'expression de la qualité du contrôle. Une récompense sur l'espace état-action pose dès le niveau local un jugement sur la pertinence d'une action dans un certain état. Dans notre exemple du \gls{mountaincar}, cela permettrait par exemple de décrire que les actions actives (droite et gauche, par opposition au neutre) consomment du carburant et donc ont une récompense associée négative pour tenir compte de cette consommation et la minimiser, tout en accomplissant la tâche. Nous allons voir que la différence entre ces deux manières de voir la récompense peut être comblée formellement au prix d'une augmentation de l'espace d'état. Dès lors nous ne ferons pas par la suite de différence entre les récompenses sur les états ou sur les couples état-action, et utiliserons la formulation la plus pratique pour l'exposition de l'algorithme d'\gls{irl} concerné. Pour poursuivre avec notre exemple du \gls{mountaincar}, la méthode proposée revient à introduire dans l'état la jauge de carburant et de conserver une récompense sur les état seuls. On obtient le même contrôle optimal qu'avec la récompense écologique sur l'espace d'état-action.
 
@@ -755,7 +792,7 @@ la démonstration de ce résultat se déroule assez simplement (on ne note pas l
 
 Nous savons maintenant formellement que l'imprécision que nous avons laissé flotter sur la définition de la fonction de récompense n'a pas de conséquence sur l'objet que l'on cherche lorsqu'on résout le problème de l'\gls{irl}. Armé d'un bon espace d'état il n'importe pas que l'algorithme concerné recherche la solution dans $\twosetsfunctions{\statespace}{\reals}$,  $\twosetsfunctions{\statespace\times \actionspace}{\reals}$ ou  $\twosetsfunctions{\statespace\times \actionspace \times \statespace}{\reals}$.
 
-L'étude de la relation entre la condition d'optimalité d'une politique (comme celle de l'expert) et la fonction de récompense associée (que l'on cherche à connaître) nous amène à découvrir d'autres propriétés importantes pour l'analyse du problème de l'\gls{irl}. Nous nous intéressons particulièrement aux transformations qu'il est possible d'appliquer à la récompense sans perturber la relation d'ordre existant entre les valeurs des différentes politiques (relation d'ordre sur laquelle est basée la notion d'optimalité \eqref{eq:optimalite}). Nous ne souhaitons pas voir ces transformations en mesure de minimiser la fonction objectif d'un algorithme d'\gls{irl}. En effet, cela signifierait que l'on modifie la récompense sans modifier le sens qu'elle porte et donc qu'en réalité l'on ne résout pas le problème de l'\gls{irl} mais une formulation dégénérée de celui-ci.
+L'étude de la relation entre la condition d'optimalité d'une politique (comme celle de l'expert) et la fonction de récompense associée (que l'on cherche à connaître) nous amène à découvrir d'autres propriétés importantes pour l'analyse du problème de l'\gls{irl}. Nous nous intéressons particulièrement aux transformations qu'il est possible d'appliquer à la récompense sans perturber la relation d'ordre existant entre les valeurs des différentes politiques (relation d'ordre sur laquelle est basée la notion d'optimalité \autoref{eq:optimalite}). Nous ne souhaitons pas voir ces transformations en mesure de minimiser la fonction objectif d'un algorithme d'\gls{irl}. En effet, cela signifierait que l'on modifie la récompense sans modifier le sens qu'elle porte et donc qu'en réalité l'on ne résout pas le problème de l'\gls{irl} mais une formulation dégénérée de celui-ci.
 
 Un résultat immédiat, qui découle du fait que la condition d'optimalité d'une politique est basée sur une relation d'ordre sur les valeurs, qui sont par définition linéaires vis-à-vis de la récompense, est qu'il est possible d'appliquer n'importe quelle transformation affine de coefficient strictement positif à une récompense sans en changer la signification. Ainsi notamment nous pourrons normaliser une récompense sans perte de généralité.
 
@@ -764,7 +801,7 @@ L'étude des transformations n'ayant pas d'impact sur les politiques optimales a
 \label{eq:rewardshaping}
 \rewardfunc'(\state,\action,\state_{+1}) = \discount\rewardfunc_{\statespace}(s_{+1}) -  \rewardfunc_{\statespace}(s),
 \end{equation}
-où $\rewardfunc_{\statespace}$ est définie sur l'espace d'état. Cette condition est nécessaire dans le sens que toute fonction de récompense définie de la sorte peut être ajoutée à une fonction de récompense de $\twosetsfunctions{\statespace \times \actionspace \times \statespace}{\reals}$ sans en changer les politiques optimales. Elle est suffisante en ceci qu'une fonction de récompense $\rewardfunc'$ pourra être ajoutée à une autre si il existe une fonction $\rewardfunc_{\statespace}$ qui permette de l'écrire sous la forme donnée en \eqref{eq:rewardshaping}. Si une telle fonction n'existe pas, il est possible que les probabilités de transitions soient telles que la modification de la fonction de récompense entraînera une modification des politiques optimales.
+où $\rewardfunc_{\statespace}$ est définie sur l'espace d'état. Cette condition est nécessaire dans le sens que toute fonction de récompense définie de la sorte peut être ajoutée à une fonction de récompense de $\twosetsfunctions{\statespace \times \actionspace \times \statespace}{\reals}$ sans en changer les politiques optimales. Elle est suffisante en ceci qu'une fonction de récompense $\rewardfunc'$ pourra être ajoutée à une autre si il existe une fonction $\rewardfunc_{\statespace}$ qui permette de l'écrire sous la forme donnée en \autoref{eq:rewardshaping}. Si une telle fonction n'existe pas, il est possible que les probabilités de transitions soient telles que la modification de la fonction de récompense entraînera une modification des politiques optimales.
 
 
 Maintenant que nous disposons d'une meilleure compréhension de l'objet que nous cherchons, voyons comment les approches existantes mènent cette recherche.
@@ -775,25 +812,25 @@ Maintenant que nous disposons d'une meilleure compréhension de l'objet que nous
 
    On retrouve dans ce travail plusieurs éléments communs aux approches ultérieures. Il y a le constat primordial que contrairement à ce qui se passe pour l'\gls{rl} où l'on cherche le point fixe d'un opérateur contractant (quand on estime une fonction de valeur) et qui donc existe et est unique, l'on a ici affaire à un problème mal posé, et il convient d'introduire des contraintes supplémentaires afin d'éviter les solutions dégénérées. Le choix et la justification de ces contraintes est un bon moyen de différencier les approches existantes. Il y a le schéma presque ubiquitaire de l'approximation linéaire de la fonction de récompense, qui entraîne l'apparition de l'attribut moyen. Enfin on retrouve la nécessité pour l'algorithme d'\gls{irl} de résoudre le problème de l'\gls{rl} de manière répétée.
 
-** Méthodes nécessitant la résolution répétée d'un \gls{mdp}
-\label{hier:repetee}
+** Méthodes nécessitant la résolution répétée d'un \glsentrytext{mdp}
+# <<hier:repetee>>
    Cette nécessité est lourde de conséquence quant à l'usage pratique d'un algorithme d'\gls{irl}. La résolution du problème de l'\gls{rl} nécessite en effet soit beaucoup de données pour sa résolution \gls{offpolicy}, soit l'accès à un simulateur ou au système réel pour sa résolution \gls{onpolicy}.
 
-   \citet{abbeel2004apprenticeship} proposent l'algorithme \gls{pirl} dans un travail séminal dont la structure va être reprise (plus ou moins consciemment) par plusieurs autres approches. La récompense est paramétrée linéairement, de fait la notion d'attribut moyen apparaît assez logiquement (\eqref{eq:mudef}). Elle obtient même une place centrale dans cette approche itérative de l'\gls{irl}. L'idée est, à chaque itération, d'apprendre la politique optimale pour la fonction de récompense courante (via un algorithme d'\gls{rl}). L'attribut moyen de cette politique est alors évalué. La fonction de coût que minimise l'approche joue sur une définition de la proximité entre l'attribut moyen de cette politique et l'attribut moyen de la politique de l'expert. A chaque itération cette proximité est évaluée, et le vecteur de paramètre $\paramirl$ de la récompense change dans une direction qui va minimiser cette distance. La justification est que deux politiques d'attribut moyen semblable auront une valeur semblable pour toute récompense, y compris donc la récompense inconnue optimisée par l'expert (\ref{thm:closemuclosev}). Le seul bémol de cette logique est que la réciproque peut être fausse, deux attributs extrêmement différents peuvent mener à la même valeur FIXME:schéma Gridworld. Plusieurs autres approches sont basées sur le même schéma itératif. Certaines le sont explicitement, d'autre se défendent d'utiliser la même logique, mais la revue proposée par \citet{neu2009training} démontre que mathématiquement, ces approches sont bien semblables au travail de \citet{abbeel2004apprenticeship}. 
+   \citet{abbeel2004apprenticeship} proposent l'algorithme \gls{pirl} dans un travail séminal dont la structure va être reprise (plus ou moins consciemment) par plusieurs autres approches. La récompense est paramétrée linéairement, de fait la notion d'attribut moyen apparaît assez logiquement (\autoref{eq:mudef}). Elle obtient même une place centrale dans cette approche itérative de l'\gls{irl}. L'idée est, à chaque itération, d'apprendre la politique optimale pour la fonction de récompense courante (via un algorithme d'\gls{rl}). L'attribut moyen de cette politique est alors évalué. La fonction de coût que minimise l'approche joue sur une définition de la proximité entre l'attribut moyen de cette politique et l'attribut moyen de la politique de l'expert. A chaque itération cette proximité est évaluée, et le vecteur de paramètre $\paramirl$ de la récompense change dans une direction qui va minimiser cette distance. La justification est que deux politiques d'attribut moyen semblable auront une valeur semblable pour toute récompense, y compris donc la récompense inconnue optimisée par l'expert (\autoref{thm:closemuclosev}). Le seul bémol de cette logique est que la réciproque peut être fausse, deux attributs extrêmement différents peuvent mener à la même valeur FIXME:schéma Gridworld. Plusieurs autres approches sont basées sur le même schéma itératif. Certaines le sont explicitement, d'autre se défendent d'utiliser la même logique, mais la revue proposée par \citet{neu2009training} démontre que mathématiquement, ces approches sont bien semblables au travail de \citet{abbeel2004apprenticeship}. 
 
 \gls{pirl} est intrinsèquement un algorithme d'imitation plus que d'\gls{irl}, en ce sens que la sortie est une politique stochastique (plus précisément un $\beta$-\gls{mixing} de politiques déterministes) et non une fonction de récompense. Il est cependant facile de le "convertir" en extrayant la meilleure fonction de récompense, celle liée à la plus petite distance entre attribut moyen de la politique optimale et attribut moyen de l'expert. L'on perd en peut en pureté théorique ce que l'on gagne en simplicité d'utilisation.
 
-   La technique proposée dans \cite{neu2007apprenticeship} (\gls{pm}) repose sur une réduction des désaccords entre la politique de l'expert et la politique à l'itération courante, via une recherche dans l'espace des paramètres $\paramirl$ de la récompense. Le lien unissant récompense et politique, qui est lié à la résolution d'un \gls{mdp}, est ici caractérisé par des outils d'analyse fonctionnelle afin d'extraire une solution analytique du problème qui soit également calculable. Cette contribution présente une plus grand robustesse aux changements d'échelle des attributs. L'on a vu en \ref{hier:recompense} que l'ensemble des politiques optimales est stable par dilatation de la récompense, et donc par extension par dilatation des attributs. Cette plus grande robustesse est donc signe d'une formulation plus saine de l'\gls{irl}. Le bruit dans les attributs est également mieux géré. Le raisonnement porte toujours malheureusement sur une sortie sous forme de politique et non de récompense.
+   La technique proposée dans \cite{neu2007apprenticeship} (\gls{pm}) repose sur une réduction des désaccords entre la politique de l'expert et la politique à l'itération courante, via une recherche dans l'espace des paramètres $\paramirl$ de la récompense. Le lien unissant récompense et politique, qui est lié à la résolution d'un \gls{mdp}, est ici caractérisé par des outils d'analyse fonctionnelle afin d'extraire une solution analytique du problème qui soit également calculable. Cette contribution présente une plus grand robustesse aux changements d'échelle des attributs. L'on a vu en \autoref{hier-recompense} que l'ensemble des politiques optimales est stable par dilatation de la récompense, et donc par extension par dilatation des attributs. Cette plus grande robustesse est donc signe d'une formulation plus saine de l'\gls{irl}. Le bruit dans les attributs est également mieux géré. Le raisonnement porte toujours malheureusement sur une sortie sous forme de politique et non de récompense.
 
-   Basé sur la théorie des jeux dans un contexte où l'agent définit une politique qui doit être meilleure que celle de l'expert pour une récompense choisie par l'adversaire, l'algorithme \gls{mwal} de \cite{syed2008game} tombe sur un os[fn::Os à \gls{mwal}.]. L'inclusion de savoir \emph{a priori} quant à la contribution positive ou néfaste de certains attributs à la réalisation de la tâche donne un algorithme d'\gls{irl} dont le résultat peut s'avérer meilleur que l'expert ou, encore plus paradoxal, qui peut fonctionner même en l'absence d'expert (sic). En contrepartie de la nécessité de disposer de ces connaissances \emph{a priori}, il est plus rapide à l'exécution que \gls{pirl} et capable de gérer la non optimalité de l'expert. Il exige malheureusement de connaître la dynamique du \gls{mdp}. La définition de l'\gls{irl} comme un problème distinct de l'imitation y gagne en clarté car cette contribution mentionne explicitement les problèmes liés aux raisonnements sur des politiques mixées et non des récompenses, sans pour autant les résoudre. Les auteurs rendent aussi explicites les difficultés soulevées en \ref{hier:problemdef} quant à la définition des espaces d'état et d'action, notamment le respect de la propriété de Markov.
+   Basé sur la théorie des jeux dans un contexte où l'agent définit une politique qui doit être meilleure que celle de l'expert pour une récompense choisie par l'adversaire, l'algorithme \gls{mwal} de \cite{syed2008game} tombe sur un os[fn::Os à \gls{mwal}.]. L'inclusion de savoir \emph{a priori} quant à la contribution positive ou néfaste de certains attributs à la réalisation de la tâche donne un algorithme d'\gls{irl} dont le résultat peut s'avérer meilleur que l'expert ou, encore plus paradoxal, qui peut fonctionner même en l'absence d'expert (sic). En contrepartie de la nécessité de disposer de ces connaissances \emph{a priori}, il est plus rapide à l'exécution que \gls{pirl} et capable de gérer la non optimalité de l'expert. Il exige malheureusement de connaître la dynamique du \gls{mdp}. La définition de l'\gls{irl} comme un problème distinct de l'imitation y gagne en clarté car cette contribution mentionne explicitement les problèmes liés aux raisonnements sur des politiques mixées et non des récompenses, sans pour autant les résoudre. Les auteurs rendent aussi explicites les difficultés soulevées en \autoref{hier-problemdef} quant à la définition des espaces d'état et d'action, notamment le respect de la propriété de Markov.
 
    Ce travail est étendu dans \cite{syed2008apprenticeship} qui, en formulant la résolution du MDP comme un programme linéaire, assainissent la formulation de \gls{pirl} et \gls{mwal} en leur permettant de raisonner sur une politique stationnaire et sans \gls{mixing}. En formulant l'\gls{irl} comme un programme linéaire également, les auteurs proposent \gls{lpal}, qui retourne un politique (non une récompense). La formulation de ce programme linéaire met en jeu des grandeurs qui correspondent à l'attribut moyen de politiques optimales pour des récompenses arbitraires, la structure itérative est donc toujours présente.
 
-   L'approche de classification à marge structurée décrite en \ref{hier:attributs} et utilisée en \citep{ratliff2007imitation} pour l'imitation supervisée apparaît également dans \citep{ratliff2006maximum}. Plutôt que d'associer une action à un état comme dans l'approche supervisée, l'algorithme \gls{mmp} proposé associe une fonction de récompense à un \gls{mdp}. Bien que les auteurs s'en défendent, cette formulation est compatible avec la structure familière des autres algorithmes d'\gls{irl} de cette période, comme le démontrent \citet{neu2009training}. La philosophie à la base de l'approche reste cependant différente, et bien que les applications envisagées sont variées et non triviales (voir \citep{ratliff2009learning}, où elles sont toutes réunies et la méthode de boosting proposée en \cite{ratliff2007boosting} expliquée plus en profondeur), d'autres problèmes apparaissent comme la nécessité de résoudre de multiples \glspl{mdp} de manière tractable, et de formuler le problème du contrôle non pas comme un \gls{mdp}, mais comme de multiples \glspl{mdp} "compatibles" entre eux.
+   L'approche de classification à marge structurée décrite en \autoref{hier:attributs} et utilisée en \citep{ratliff2007imitation} pour l'imitation supervisée apparaît également dans \citep{ratliff2006maximum}. Plutôt que d'associer une action à un état comme dans l'approche supervisée, l'algorithme \gls{mmp} proposé associe une fonction de récompense à un \gls{mdp}. Bien que les auteurs s'en défendent, cette formulation est compatible avec la structure familière des autres algorithmes d'\gls{irl} de cette période, comme le démontrent \citet{neu2009training}. La philosophie à la base de l'approche reste cependant différente, et bien que les applications envisagées sont variées et non triviales (voir \citep{ratliff2009learning}, où elles sont toutes réunies et la méthode de boosting proposée en \cite{ratliff2007boosting} expliquée plus en profondeur), d'autres problèmes apparaissent comme la nécessité de résoudre de multiples \gls{mdp} de manière tractable, et de formuler le problème du contrôle non pas comme un \gls{mdp}, mais comme de multiples \gls{mdp} "compatibles" entre eux.
 
    La formulation probabiliste de \gls{maxent} de \cite{ziebart2008maximum} est intéressante car elle formule un critère (l'entropie) pour choisir entre deux politiques qui jusqu'à présent étaient équivalentes (même valeur ou même attribut moyen). Structurellement, cependant, les différences restent minces avec toujours présentes la résolution répétée d'un MDP et l'estimation de l'attribut moyen de politiques arbitraire.
 
-   Curieusement semblables à une approche non officiellement \gls{irl} et plus ancienne, \cite{chajewska2001learning}, les travaux de  \cite{ramachandran2007bayesian} posent l'\gls{irl} comme un problème d'inférence bayésienne où l'on cherche la récompense la plus vraisemblable au vu de la démonstration de l'expert. Il en résulte une formulation plutôt saine de l'\gls{irl} permettant par exemple d'incorporer de la connaissance \emph{a priori} sans que cela soit pour autant nécessaire, ou de qualifier le niveau de confiance dans la démonstration de l'expert, qui peut alors être sous-optimal. Des arguments similaires à ceux développés pour \gls{maxent} permettent de lever les ambiguïtés induites par le fait que l'\gls{irl} est un problème mal posé. Ces travaux sont étendus par \cite{lopes2009active} qui en extrayant une information d'incertitude proposent un schéma d'échantillonnage interactif selon la même logique, et avec les mêmes avantages que ceux développés par \citet{chernova2007confidence} pour l'approche supervisée (voir \ref{hier-myopie}). Bien que cette approche diffère des autres approches dans l'exposition du raisonnement, elle reste très similaire dans l'implémentation, puisque'il faut toujours calculer des politiques optimales et obtenir des échantillons de cette politique (pour calculer des postérieurs bayésiens et non plus des attributs moyens). 
+   Curieusement semblables à une approche non officiellement \gls{irl} et plus ancienne, \cite{chajewska2001learning}, les travaux de  \cite{ramachandran2007bayesian} posent l'\gls{irl} comme un problème d'inférence bayésienne où l'on cherche la récompense la plus vraisemblable au vu de la démonstration de l'expert. Il en résulte une formulation plutôt saine de l'\gls{irl} permettant par exemple d'incorporer de la connaissance \emph{a priori} sans que cela soit pour autant nécessaire, ou de qualifier le niveau de confiance dans la démonstration de l'expert, qui peut alors être sous-optimal. Des arguments similaires à ceux développés pour \gls{maxent} permettent de lever les ambiguïtés induites par le fait que l'\gls{irl} est un problème mal posé. Ces travaux sont étendus par \cite{lopes2009active} qui en extrayant une information d'incertitude proposent un schéma d'échantillonnage interactif selon la même logique, et avec les mêmes avantages que ceux développés par \citet{chernova2007confidence} pour l'approche supervisée (voir \autoref{hier-myopie}). Bien que cette approche diffère des autres approches dans l'exposition du raisonnement, elle reste très similaire dans l'implémentation, puisque'il faut toujours calculer des politiques optimales et obtenir des échantillons de cette politique (pour calculer des postérieurs bayésiens et non plus des attributs moyens). 
 
    Signalons finalement les travaux de \cite{jin2010gaussian}, qui par l'usage des \gls{gp} plutôt que d'un schéma linéaire pour l'approximation de la récompense, ainsi que par l'usage d'algorithmes d'\gls{rl} mettant les \gls{gp} en jeu \citep{rasmussen2004gaussian,deisenroth2009gaussian} permet de ne plus avoir à concevoir des attributs pour appliquer le schéma itératif classique de l'\gls{irl}, se basant sur les échantillons comme points supports.
 
@@ -802,7 +839,7 @@ Maintenant que nous disposons d'une meilleure compréhension de l'objet que nous
    Outre les applications variées développées au fur et à mesure par \citet{ratliff2009learning}, il est intéressant de constater l'efficacité des algorithmes de cette veine que \citet{abbeel2010autonomous} ont démontrée par le contrôle d'un hélicoptère radiocommandé en vol acrobatique. L'\gls{irl} ne joue cependant qu'un petit rôle dans cette expérience, où la contribution principale est l'apprentissage du modèle dynamique de l'hélicoptère. Ce modèle est ensuite utilisé pour la résolution du problème de l'\gls{rl}, et donc également de manière répétée lors de la résolution de l'\gls{irl}.
 
 
-** Méthodes ne nécessitant pas la résolution répétée d'un MDP 
+** Méthodes ne nécessitant pas la résolution répétée d'un \glsentrytext{mdp} 
    Les problèmes intrinsèquement liés à la structure itérative des premiers algorithmes d'\gls{irl} étant identifiés, un regain de créativité a permis l'émergence d'approches beaucoup plus hétérogènes ces dernières années.
 
    Un schéma itératif (mais sans lien évident avec le schéma itératif classique de la section précédente) permet à \cite{levine2010feature} d'effectuer de la sélection d'attribut tout en apprenant la récompense, à l'aide d'une méthode semblable dans sa justification au \gls{boosting} opéré dans \citep{ratliff2007boosting}. La méthode de \citet{levine2010feature} semble cependant plus générique, et l'idée qu'un récompense "simple" est préférable y est enracinée. La tractabilité malheureusement n'est pas au rendez-vous.
@@ -819,7 +856,7 @@ Maintenant que nous disposons d'une meilleure compréhension de l'objet que nous
 
    Ces nouvelles approches abandonnent la structure itérative classique, se évitant ainsi les problèmes qu'elle implique. Elles profitent des avancées dans la définition du problème pour se concentrer sur de meilleures méthodes de résolution. L'avancée la plus prometteuse est de ne plus avoir à résoudre le problème de l'\gls{rl} de manière répétée, ce qui d'un point de vue technique rendait l'algorithme lent et gourmand en données, et d'un point de vue théorique faisait apparaître des termes d'erreur mal maîtrisés.
 
-* \gls{lstdmu} 
+* \glsentrytext{lstdmu} 
 # <<hier:lstdmu>>
 ** Principe 
   On rappelle que l'attribut moyen est une grandeur centrale en renforcement (dit en [[Attribut moyen]]). Les algorithmes qui l'utilisent ne présupposent pas de moyen de le calculer. La méthode de base consiste à faire jouer un simulateur et faire une estimation de Monte-Carlo.
@@ -834,14 +871,14 @@ Maintenant que nous disposons d'une meilleure compréhension de l'objet que nous
 # rem olivier : Faire la liste des expériences en disant ce qu'elles montrent. C'est nécessaire pour trouver une structure cohérente aux parties expérimentales dans les 3 chapitres de contribution.
    En utilisant \gls{pirl} avec LSPI et \gls{lstdmu}$\mu$, on peut porter PIRL en mode /batch/ avec une perte de performance minimale, et que l'on peut mitiger en fonction de la quantité de données non expertes disponibles. Cela évite d'avoir à se servir d'un simulateur, qui n'est pas toujours disponible. En le modifiant pour qu'il sorte une récompense et non une politique on peut corriger les "erreurs de jeunesse" des algorithmes dans la lignée de \gls{pirl}. Ça reste non idéal cependant.
    
-* \gls{scirl}
+* \glsentrytext{scirl}
 # snippet: tiré de ratliff2009learning, l'extrait suivant est exactement ce que SCIRL fait : Unfortunately, such a system is inherently myopic. This form of imitation learning assumes that all information necessary to make a decision at the current state can be easily encoded into a single vector of features that enables prediction with a relatively simple, learned function. However, this is often particularly difficult because the features must encode information regarding the future long-term consequences of taking an action. Under this framework, much of the work that we would like learning to handle is pushed onto the engineer in the form of feature extraction.
 
 # snippet : copier du papier nips le truc qui explique qu'une récompense nule implique une erreur de classif de batard.
-** Liens entre classification et \gls{rl}
-  La classification peut-être utilisée pour faire de l'imitation (fait mentionné en sous-section \ref{hier:nonari}). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un \gls{mdp} (équation présentée en [[Cadre des \glspl{mdp} pour la prise de décision séquentielle]]) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
+** Liens entre classification et \glsentrytext{rl}
+  La classification peut-être utilisée pour faire de l'imitation (fait mentionné en sous-section \autoref{hier-nonari}). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un \gls{mdp} (équation présentée en \autoref{hier-cadre}) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
 
-  \gls{scirl} et \gls{cascading} (décrit en \ref{hier:cascading}) utilisent cette similarité pour introduire la structure du MDP dans (ou à la suite de) une méthode de classification. On espère ainsi pouvoir faire de l'\gls{irl} (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
+  \gls{scirl} et \gls{cascading} (décrit en \autoref{hier-cascading}) utilisent cette similarité pour introduire la structure du MDP dans (ou à la suite de) une méthode de classification. On espère ainsi pouvoir faire de l'\gls{irl} (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
 
   Si l'on utilise un classifieur où cette fonction de score/qualité est approximée par un schéma linéaire, alors on retombe sur l'attribut moyen. Il faut encore approximer celui-ci, mais cela est courant dans la littérature, et surtout c'est précisément le problème résolu par \gls{lstdmu} (en [[hier:lstdmu]]). 
 
@@ -857,15 +894,15 @@ Maintenant que nous disposons d'une meilleure compréhension de l'objet que nous
 ** Problème de la définition des fonctions de base  
 ** Description de l'algorithme 
 ** Validation sur les problèmes jouets 
-* Cascading 
+* \glsentrytext{cascading} 
 # <<hier:cascading>>
 ** Description 
 *** Description 
-*** Différences de concept avec SCIRL 
+*** Différences de concept avec \glsentrytext{scirl} 
 ** Validation théorique 
 ** Validation pratique rapide (problèmes jouets) 
 ** Mise en relief de l'influence des routines 
-** Comparaison pratique rapide de SCIRL et Cascading 
+** Comparaison pratique rapide de \glsentrytext{scirl} et \glsentrytext{cascading} 
 ** Conclusion 
    Cascading a des performances similaires à SCIRL et est encore plus flexible, puisque des méthodes supervisées non paramétriques (ou à détermination automatique de paramètres) peuvent être employées, ce qui en plus de résoudre les problèmes structurels de PIRL, résout les problèmes plus fondamentaux de l'approximation linéaire de la fonction de valeur ou du choix des attributs.
 * (Validation expérimentale) 
