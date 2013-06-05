@@ -1,8 +1,8 @@
    \node (plotCenter) at (-2,-2.4){};
    \node [scale=1,anchor=south] at (plotCenter.center){\includegraphics{Figures/Mountain_car_Expert_traj_length.pdf}};
-   \node[red] (plotMark) at ($(plotCenter.center) + (0.59,8)$) {\huge \bf x};
+   \node[red] (plotMark) at ($(plotCenter.center) + (0.46,8.23)$) {};
    \draw [thick,red,dotted](plotMark.center) -- ++(0,-6.6);
-   \draw [thick,red,dotted](plotMark.center) -- ++(3,0);
+   \draw [thick,red,dotted](plotMark.center) -- ++(2.85,0);
    
    \node (mcSW) at (4,-1){};
   %Mountain car
@@ -22,7 +22,7 @@
 
 
  \draw [thick,red,dotted]($(tuture.center)+(0,-0.15)$) -- ++(0,-6.5);
- \draw [red,<->]($(mcSW.center)+(10,-0.6)$) -- ++(0,-1) -- ($(plotMark.center)+(0,-8.2)$) -- ++(0,1);
+ \draw [red,<->]($(mcSW.center)+(10,-0.6)$) -- ++(0,-1) -- ($(plotMark.center)+(0,-8.43)$) -- ++(0,1);
  \draw [thick,red,decorate,decoration=brace,rotate=55] ($(speedArrow)+(-.7,0.2)$) -- ++(1.4,0);
  
  \draw [red,<->]($(speedArrow.center)+(-.7,0.2)$)  -- ($(plotMark.center)+(3.5,0)$);

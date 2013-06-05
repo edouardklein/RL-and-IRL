@@ -184,7 +184,6 @@ for i in range(0,7):
 
 # <codecell>
 
-#FIXME:foutre la légende à part sur les deux graphes (la même pour tous les plots, d'ailleurs)
 k = 0
 for states in zip_stack(mountain_car_mu_position,mountain_car_mu_speed):
     for s in states:
@@ -212,6 +211,52 @@ for states in zip_stack(mountain_car_mu_position,mountain_car_mu_speed):
         #plot(s[0],s[1],marker='o',color='pink')
         savefig("Mountain_car_mu_{k}.pdf".format(k=k),bbox_inches='tight')
         k+=1
+
+# <codecell>
+
+pos = linspace(-1.2,0.6,30)
+speed = linspace(-0.07,0.07,30)
+pos,speed = meshgrid(pos,speed)
+states=zip_stack(pos,speed)
+dic_mu_E = {}
+for s in states.reshape(-1,2):
+    data_MC = []
+    reward = 0
+    state = s
+    while reward == 0:
+        action = mountain_car_manual_policy(state)
+        next_state = mountain_car_next_state(state, action)
+        reward = mountain_car_reward(hstack([state, action, next_state]))
+        data_MC.append(hstack([state, action, next_state, reward]))
+        state=next_state
+    data_MC = array(data_MC)
+    GAMMAS = range(0,len(data_MC))
+    GAMMAS = array([el for el in map( lambda x: pow(GAMMA,x), GAMMAS)])
+    state_action = data_MC[0,:3]
+    state = data_MC[0,:2]
+    action = data_MC[0,2]
+    mu = None
+    if len(data_MC) > 1:
+        mu = dot( GAMMAS,squeeze(mountain_car_psi(data_MC[:,:2])))
+    else:
+        mu = squeeze(mountain_car_psi(squeeze(data_MC[:,:2])))
+    dic_mu_E[str(s)] = mu
+
+# <codecell>
+
+dic_mu_E
+f_mu = lambda s:dic_mu_E[str(s)]
+vf_mu = non_scalar_vectorize(f_mu,(2,),(50,1)) 
+Z = squeeze(vf_mu(states.reshape(-1,2)))
+for i in range(0,7):
+    for j in range(0,7):
+        k = j+i*7
+        figure(figsize=(1,1))
+        axis('off')
+        contourf(pos,speed,Z[:,k].reshape(pos.shape),levels=linspace(min(Z.reshape(-1)),max(Z.reshape(-1)),51),
+                    cmap=my_cmap)
+        savefig("Mountain_car_mu_{i}x{j}.pdf".format(i=i,j=j),bbox_inches='tight')
+    
 
 # <codecell>
 
@@ -271,5 +316,34 @@ plt.ax.xaxis.set_major_locator(majorLocator)
 plt.ax.xaxis.set_major_formatter(majorFormatter)
 plt.ax.xaxis.set_minor_locator(minorLocator)
 cb.ax.set_position([0.07, 0.12, .5, .78])
+scatter(TRAJS[:,0],TRAJS[:,1],c=TRAJS[:,2])
 savefig("Mountain_car_Expert_traj_length.pdf")
+
+# <codecell>
+
+def mountain_car_IRL_traj():
+    traj = []
+    state = mountain_car_interesting_state()
+    reward = 0
+    while reward == 0:
+        action = mountain_car_manual_policy(state)
+        next_state = mountain_car_next_state(state, action)
+        next_action = mountain_car_manual_policy(next_state)
+        reward = mountain_car_reward(hstack([state, action, next_state]))
+        traj.append(hstack([state, action, next_state, next_action, reward]))
+        state=next_state
+    return array(traj)
+TRAJS = mountain_car_IRL_traj()
+
+# <codecell>
+
+fig=figure(figsize=(5,5))
+plt = contourf(X,Y,Z6,50,cmap=my_cmap)
+plt.ax.yaxis.set_ticks_position('right')
+plt.ax.xaxis.set_major_locator(majorLocator)
+plt.ax.xaxis.set_major_formatter(majorFormatter)
+plt.ax.xaxis.set_minor_locator(minorLocator)
+scatter(TRAJS[:,0],TRAJS[:,1],c=TRAJS[:,2])
+axis([-1.2,0.6,-0.07,0.07])
+savefig("Mountain_car_Expert_traj_example.pdf")
 

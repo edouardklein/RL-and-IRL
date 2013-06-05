@@ -20,16 +20,19 @@
 #+LATEX_HEADER:    urlcolor=black
 #+LATEX_HEADER:} 
 #+LATEX_HEADER: \usepackage{natbib}
+#+LATEX_HEADER: \usepackage{subfigure}
 #+latex_header: \usepackage{stmaryrd}
 #+LaTeX_header:\usepackage[utf8]{inputenc}
 #+LaTeX_header:\usepackage[T1]{fontenc}
-#+LaTeX_header:\usepackage{babel}
+#+LaTeX_header:\usepackage[frenchb]{babel}
 #+LaTeX_header:\usepackage{amsthm}
 #+LaTeX_header:\newtheorem{proposition}{Proposition}
 #+LaTeX_header:\newglossary[angl]{anglicisme}{aot}{atn}{Anglicismes}
 #+LaTeX_header:\newcommand{\newangl}[3]{\newglossaryentry{#1}{type=anglicisme,name={\emph{#2}},description={#3}}}
 #+LaTeX_header:\makeglossaries
-  
+#+LaTeX_header:\usepackage[french,ruled,vlined,noend,linesnumbered]{algorithm2e}
+
+
 ** Acronymes
 #+LaTeX_header:\newacronym{mdp}{PDM}{Processus D{é}cisionnel de Markov}
 #+LaTeX_header:\newacronym{irl}{ARI}{Apprentissage par Renforcement Inverse}
@@ -72,15 +75,11 @@
 ** TODO Articuler les parties problème jouets
 ** Nettoyage
 *** DONE Virer barres à droite graphes psi et mu, utiliser même échelle pour tout le monde (échelle monomodale, d'ailleurs)
-    CLOSED: [2013-05-28 Mar 11:22]
 *** DONE trouver un moyen de mettre automatiquement les noms (section, equation, etc.) devant les refs (autoref?)
-    CLOSED: [2013-05-27 Lun 19:02]
 *** TODO Introduire le mountain-car de belle manière
 *** DONE virer l'extension glossaire de la table des matières
-    CLOSED: [2013-05-27 Lun 19:02]
 *** TODO Mettre sous forme ODF et envoyer à JCK
 *** DONE Mettre les labels sous forme # <<>>
-    CLOSED: [2013-05-27 Lun 19:02]
 ** Trucs à ajouter je ne sais où
 *** Contre exemple politique, tache
     Je peux décrire une politique sur un espace d'état, mais pas la récompense, exemple. le mettre au début de 2.3.1 ou ailleurs.
@@ -115,16 +114,27 @@
 # <<hier:general>>
     Cadre général de  l'imitation, mentionner ici les approches sans formalisme \gls{mdp}, si il y en a qu'il est pertinent de mentionner.
     Citer les revues : \cite{argall2009survey,schaal2003computational}, expliquer le cadre large, le problème de l'observabilité de l'expert et de l'adéquation expert/agent (mentionner le changement d'espace d'état?).
-** Annonce du plan 
-# <<hier:annonceplan>>   
-*** Problème du mountaincar
+** Problèmes jouets
+Pour accompagner les explications nous étudierons FIXME: deux ? problèmes jouets. Ces problèmes sont suffisamment simples pour qu'une interprétation des grandeurs en jeu soit possible, mais suffisamment complexes pour présenter un défi aux approches existantes.
+*** Problème du \glstext{mountaincar}
+Dans le \gls{mountaincar}, une voiture peu puissante placée dans un creux doit gravir une côte trop pentue pour être surmontée du premier coup. La solution du problème consiste à reculer, donc à s'éloigner de l'objectif, en remontant la pente opposée puis à profiter de l'élan pour gravir la pente. Le processus peut-être répété si besoin. Cette propriété contre intuitive de devoir s'éloigner de l'objectif pour pouvoir l'atteindre fait de ce problème jouet un bon test pour les algorithmes d'\gls{rl}. Il a été proposé pour la première fois par \citet{moore1990efficient} et a été popularisé lors son introduction dans le livre de \citet{sutton1998reinforcement}.
+
+La \autoref{fig:mcstatespace} décrit les variables qui représentent l'information dont dispose l'agent pour ce problème. Il y a bien sûr la position de la voiture : le point le plus à gauche a une coordonnée de $-1.2$, l'objectif, situé le plus à droite, se trouve à la coordonnée $0.6$. Le point le plus bas est à $-0.5$. La deuxième information est la vitesse de la voiture, elle peut aller de $-0.07$ à $0.07$ où un chiffre positif désigne naturellement un déplacement vers la droite et négatif vers la gauche. La vitesse est plafonnée, et si la voiture atteint l'extrémité gauche, sa vitesse est annulée et elle reste en place.
 \begin{figure}
 \begin{tikzpicture}[for this and nested ones={scale=.4},transform shape]
 \input{Figures/Mountain_car_state_space.tex}
 \end{tikzpicture} 
-\caption{L'espace d'état du mountaincar}
+\caption[Espace d'état du \glstext{mountaincar}]{L'espace d'état du \glstext{mountaincar} : la position de la voiture est représentée en abscisse et sa vitesse en ordonnée. Représenté sur la figure de gauche par des points : un exemple d'une trajectoire d'une bonne politique de contrôle où l'expert poursuit la montée de la pente opposée à l'objectif avant de la redescendre et de parvenir à gravir la pente à droite. La couleur des points indique l'action effectuée par l'expert : en bleu, il accélère vers la gauche, en rouge vers la droite. En fond, le nombre de pas de temps nécessaire à cet expert pour parvenir à l'objectif. La forme en escargot est caractéristique de ce problème comme cela est expliqué \autoref{fig:mountain_car_mu}.}
 \label{fig:mcstatespace}
 \end{figure}
+# *** \glstext{gridworld}
+# C'est le problème du \gls{gridworld} qui fut utilisé pour l'illustration des premiers algorithmes d'\gls{irl} par \citet{ng2000algorithms}, il apparaît ensuite sous différentes variantes dans d'autres contributions. Il s'agit d'un damier carré de $5$ cases de côté. L'agent peut s'y déplacer d'une case à la fois dans l'une des 4 directions cardinales. La tâche a accomplir est, partant de la case en bas à gauche, d'atteindre la case en haut à droite. Pour complexifier les choses, les actions de l'agent ont un effet stochastique : dans $70\%$ des cas, il va se déplacer dans la direction choisie, mais chacune des trois autres directions a une probabilité $0.1$ d'être celle dans laquelle l'agent bouge. Si le mouvement sélectionné fait sortir l'agent du damier, alors il restte en place.
+
+# Comme le problème est discret, il peut être résolu par \gls{dp}, ce qui permet de connaître les grandeurs de manière exacte, et donc de quantifier la qualité des approximations. Il est également intéressant de par les différents axes de symétrie. Dans l'idéal, une approche statistique devrait être capable de découvrir ces symétries à partir des données.
+
+** Annonce du plan 
+# <<hier:annonceplan>>   
+Truc que j'ai pas encore dit : le truc limitant, d'après moi, ce sont les données. Du coup j'examine les algorithmes en fonction de leur complexité en échantillons.
 * Formalisme mathématique, notations
   Il est maintenant temps de formaliser ce que nous venons de voir et d'introduire les notions qui serviront les explications à suivre.
 ** Imitation non \glsentrytext{irl} 
@@ -323,7 +333,7 @@ Contrairement à la fonction d'attribut binaire précédente, celle-ci possède 
 \node at (6,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x6}};
 \node at (6,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x6}};
 \end{tikzpicture}
-\caption{Attributs gaussiens sur le problème du \gls{mountaincar}. L'espace d'état est pavé de $7\times 7 = 49$ gaussiennes dont les centres sont répartis à équidistance. Les variances sont les mêmes pour toutes les gaussiennes et dépendent de la plage de valeur sur une dimension. Toute fonction aux variations raisonnables peut être approximée de manière correcte par une somme pondérée de ces gaussiennes.}
+\caption{Attributs gaussiens sur le problème du \gls{mountaincar}. L'espace d'état est pavé de $7\times 7 = 49$ gaussiennes dont les centres sont répartis à équidistance. Les variances sont les mêmes pour toutes les gaussiennes et dépendent de la plage de valeur sur une dimension. Toute fonction aux variations raisonnables peut être approximée de manière correcte par une somme pondérée de ces gaussiennes. Cette représentation est à comparer à la \autoref{fig:mountain_car_mu} où l'attribut moyen qui, lui, prend la dynamique temporelle du problème en compte, est présenté.}
 \label{fig:mountain_car_psi}
 \end{figure}
 
@@ -377,7 +387,7 @@ Il existe bien d'autres moyen de faire de la classification, comme par exemple l
 # Ensures noyau, kernel-trick, SVM
 - Citer la généralisation de Yann.
 - Parler du kernel-trick, faire le lien avec les attributs.
-- Illustration mountain car : montrer les attributs choisis automatiquement par l'implémentation de la SVM choisie
+- Illustration \gls{mountaincar} : montrer les attributs choisis automatiquement par l'implémentation de la SVM choisie
 Nous aurons également à faire avec des \gls{svm} dans la suite du manuscrit. Bien d'autres techniques de classification existent, une description exhaustive des techniques d'apprentissage supervisé propices à l'imitation dépasserait le cadre de cette thèse. \citet{hastie2005elements,vapnik1998statistical} sont des ouvrages de référence. Nous allons voir comment ces techniques ont été appliquées en pratique à l'apprentissage supervisé de la politique de l'expert.
 *** Imitation par apprentissage supervisé de la politique
 # <<hier:myopie>>
@@ -516,6 +526,7 @@ C'est l'équation d'évaluation de \citet{bellman2003dynamic} qui est à l'origi
 \begin{eqnarray}
 \bellmanevalopeval{\policy}{\rewardfunc}{} &\in& \twosetsfunctions{\twosetsfunctions{\statespace}{\reals}}{\twosetsfunctions{\statespace}{\reals}}\\
 \forall V \in \twosetsfunctions{\statespace}{\reals}, \bellmanevalopeval{\policy}{\rewardfunc}{V} &=& R + \discount \sum_{\cdot\in \statespace}\transprobfunceval{\state}{\policy(\state)}{\cdot} V. 
+\label{eq:bellmanevop}
 \end{eqnarray}
 
 Cette opérateur est contractant, par conséquence il possède un point fixe, qui est unique. L'équation de définition de ce point fixe :
@@ -561,6 +572,7 @@ Lorsque les probabilités de transitions sont connues sur un espace d'état fini
 Un schéma classique est celui de l'approximation linéaire de la fonction de valeur[fn::On utilise parfois le terme de "fonction de valeur"" indistinctement pour la fonction de valeur et la fonction de qualité.]. On réduit alors le problème du contrôle optimal au choix du vecteur de paramètres $\paramrl$ donnant la meilleure approximation de la fonction de qualité optimale :
 \begin{equation}
 \appr{\quality{\optimalpolicy{\rewardfunc}}{\rewardfunc}}(\state,\action) = \transpose{\paramrl}\featurestateactionfunc(\state, \action).
+\label{eq:paramrl}
 \end{equation}
 Comme pour la classification, le choix de l'espace $\featurestateactionspace$ n'est pas anodin car de son choix va en grande partie dépendre la qualité du contrôle.
 
@@ -609,10 +621,13 @@ Le premier critère est celui qui nous intéresse vraiment. Il juge le comportem
 
 Le second critère a le défaut d'être optimisé par la récompense nulle. Nous verrons cependant, en analysant les différentes approches d'\gls{irl}, les mécanismes mis en place afin d'éviter les solutions dégénérées. Il a l'avantage de pouvoir être estimé puisqu'à l'inverse de $\expertreward$, la fonction de récompense $\appr{\rewardfunc}$ est connue. Un algorithme comme \gls{lstd} \citep{bradtke1996linear,boyan2002technical} peut fournir une approximation \gls{offpolicy} d'une fonction de valeur, c'est à dire évaluer une politique arbitraire, différente de celle qui contrôle le système.
 *** Attribut moyen 
+# <<hier:attribut>>
+
 # ?s paramirl '\theta' 'Vecteur de paramètres pour l{\apos}ARI'
     Le fonction de récompense étant l'objet recherché celle-ci sera, pour ne pas bouder une méthode éprouvée, approximée par un schéma linéaire :
     \begin{equation}
     \appr{\rewardfunc}_{\paramirl}(\state) = \transpose{\paramirl}\featurestatefunc(\state)
+    \label{eq:paramirl}
     \end{equation}
 Là encore, le choix des attributs est important. Il faut qu'ils permettent à la fonction de récompense de décrire la tâche effectuée par l'expert.
 
@@ -637,6 +652,7 @@ De la même manière que la fonction de qualité donne à la fonction de valeur 
 \textrm{avec }\forall \timeindex \in \llbracket 2;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
 \textrm{et }\state_{1} &\sim& \transprobfunceval{\state_{0}}{\action}{\cdot},\\
 \rlmu{\policy}(\state,\action)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})}{\state_0 = \state}.
+\label{eq:mudefsum}
 \end{eqnarray}
 Si la récompense est définie sur les couples état-action plutôt que sur les états seuls, alors l'expression de l'attribut moyen devient simplement :
 \begin{equation}
@@ -644,7 +660,7 @@ Si la récompense est définie sur les couples état-action plutôt que sur les 
 \end{equation}
 
 # ?s expertmu '\mu^E' 'Attribut moyen de l{\apos}expert'
-L'attribut moyen donne une idée des états que traversera l'agent. Il contient donc des informations sur la dynamique induite par sa politique. Cela va avoir un impact important sur la qualité des diverses approximations linéaires dont nous avons parlé si l'attribut moyen est utilisé en tant qu'attribut tout court. La présence de la dynamique du \gls{mdp} dans l'attribut moyen est illustrée \autoref{fig:mountain_car_mu}.
+L'attribut moyen donne une idée des états que traversera l'agent. Il contient donc des informations sur la dynamique induite par sa politique. Cela va avoir un impact important sur la qualité des diverses approximations linéaires dont nous avons parlé si l'attribut moyen est utilisé en tant qu'attribut tout court, comme il le sera au \autoref{hier-scirl}. La présence de la dynamique du \gls{mdp} dans l'attribut moyen est illustrée \autoref{fig:mountain_car_mu}.
 
 # snippet illustration mountain car : la forme en escargot est caractéristique elle correspond à des va-et-vient dont l'apogée est de plus en plus haute.
 #    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelle que soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
@@ -678,64 +694,64 @@ Ce résultat est assez intuitif, si deux politiques induisent les mêmes traject
 \begin{figure}
 \begin{tikzpicture}[scale=1.75]
 %\draw [help lines] (0,0) grid (6,-6);
-\node at (0,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_42}};
-\node at (0,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_35}};
-\node at (0,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_28}};
-\node at (0,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_21}};
-\node at (0,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_14}};
-\node at (0,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_7}};
-\node at (0,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0}};
-					 
-\node at (1,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_43}};
-\node at (1,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_36}};
-\node at (1,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_29}};
-\node at (1,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_22}};
-\node at (1,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_15}};
-\node at (1,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_8}};
-\node at (1,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1}};
-					 
-\node at (2,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_44}};
-\node at (2,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_37}};
-\node at (2,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_30}};
-\node at (2,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_23}};
-\node at (2,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_16}};
-\node at (2,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_9}};
-\node at (2,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2}};
-					 
-\node at (3,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_45}};
-\node at (3,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_38}};
-\node at (3,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_31}};
-\node at (3,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_24}};
-\node at (3,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_17}};
-\node at (3,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_10}};
-\node at (3,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3}};
-					 
-\node at (4,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_46}};
-\node at (4,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_39}};
-\node at (4,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_32}};
-\node at (4,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_25}};
-\node at (4,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_18}};
-\node at (4,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_11}};
-\node at (4,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4}};
-				
-\node at (5,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_47}};
-\node at (5,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_40}};
-\node at (5,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_33}};
-\node at (5,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_26}};
-\node at (5,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_19}};
-\node at (5,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_12}};
-\node at (5,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5}};
-					
-\node at (6,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_48}};
-\node at (6,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_41}};
-\node at (6,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_34}};
-\node at (6,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_27}};
-\node at (6,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_20}};
-\node at (6,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_13}};
-\node at (6,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6}};
+\node at (0,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6x0}};
+\node at (0,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5x0}};
+\node at (0,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4x0}};
+\node at (0,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3x0}};
+\node at (0,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2x0}};
+\node at (0,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1x0}};
+\node at (0,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0x0}};
+					  
+\node at (1,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6x1}};
+\node at (1,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5x1}};
+\node at (1,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4x1}};
+\node at (1,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3x1}};
+\node at (1,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2x1}};
+\node at (1,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1x1}};
+\node at (1,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0x1}};
+					  
+\node at (2,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6x2}};
+\node at (2,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5x2}};
+\node at (2,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4x2}};
+\node at (2,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3x2}};
+\node at (2,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2x2}};
+\node at (2,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1x2}};
+\node at (2,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0x2}};
+					  
+\node at (3,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6x3}};
+\node at (3,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5x3}};
+\node at (3,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4x3}};
+\node at (3,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3x3}};
+\node at (3,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2x3}};
+\node at (3,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1x3}};
+\node at (3,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0x3}};
+					  
+\node at (4,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6x4}};
+\node at (4,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5x4}};
+\node at (4,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4x4}};
+\node at (4,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3x4}};
+\node at (4,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2x4}};
+\node at (4,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1x4}};
+\node at (4,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0x4}};
+					  
+\node at (5,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6x5}};
+\node at (5,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5x5}};
+\node at (5,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4x5}};
+\node at (5,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3x5}};
+\node at (5,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2x5}};
+\node at (5,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1x5}};
+\node at (5,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0x5}};
+					  
+\node at (6,-0) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_6x6}};
+\node at (6,-1) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_5x6}};
+\node at (6,-2) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_4x6}};
+\node at (6,-3) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_3x6}};
+\node at (6,-4) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_2x6}};
+\node at (6,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_1x6}};
+\node at (6,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0x6}};
 
 \end{tikzpicture}
-\caption{\`A comparer à \autoref{fig:mountain_car_psi}, l'attribut moyen (ici celui de l'expert sur le \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen. Comme un vecteur de dimension $\dimpsi=50$ est difficile à représenter, c'est ici la projection $\transpose{ \featurestatefunc(\cdot)}\expertmu$ qui est illustrée, évaluée en chacun des centres des gaussiennes de l'attribut $\featurestatefunc$.}
+\caption{\`A comparer à \autoref{fig:mountain_car_psi}, l'attribut moyen (ici celui de l'expert sur le \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen.}
 \label{fig:mountain_car_mu}
 \end{figure}
 
@@ -816,7 +832,33 @@ Maintenant que nous disposons d'une meilleure compréhension de l'objet que nous
 # <<hier:repetee>>
    Cette nécessité est lourde de conséquence quant à l'usage pratique d'un algorithme d'\gls{irl}. La résolution du problème de l'\gls{rl} nécessite en effet soit beaucoup de données pour sa résolution \gls{offpolicy}, soit l'accès à un simulateur ou au système réel pour sa résolution \gls{onpolicy}.
 
-   \citet{abbeel2004apprenticeship} proposent l'algorithme \gls{pirl} dans un travail séminal dont la structure va être reprise (plus ou moins consciemment) par plusieurs autres approches. La récompense est paramétrée linéairement, de fait la notion d'attribut moyen apparaît assez logiquement (\autoref{eq:mudef}). Elle obtient même une place centrale dans cette approche itérative de l'\gls{irl}. L'idée est, à chaque itération, d'apprendre la politique optimale pour la fonction de récompense courante (via un algorithme d'\gls{rl}). L'attribut moyen de cette politique est alors évalué. La fonction de coût que minimise l'approche joue sur une définition de la proximité entre l'attribut moyen de cette politique et l'attribut moyen de la politique de l'expert. A chaque itération cette proximité est évaluée, et le vecteur de paramètre $\paramirl$ de la récompense change dans une direction qui va minimiser cette distance. La justification est que deux politiques d'attribut moyen semblable auront une valeur semblable pour toute récompense, y compris donc la récompense inconnue optimisée par l'expert (\autoref{thm:closemuclosev}). Le seul bémol de cette logique est que la réciproque peut être fausse, deux attributs extrêmement différents peuvent mener à la même valeur FIXME:schéma Gridworld. Plusieurs autres approches sont basées sur le même schéma itératif. Certaines le sont explicitement, d'autre se défendent d'utiliser la même logique, mais la revue proposée par \citet{neu2009training} démontre que mathématiquement, ces approches sont bien semblables au travail de \citet{abbeel2004apprenticeship}. 
+   \citet{abbeel2004apprenticeship} proposent l'algorithme \gls{pirl} dans un travail séminal dont la structure va être reprise (plus ou moins consciemment) par plusieurs autres approches. La récompense est paramétrée linéairement, de fait la notion d'attribut moyen apparaît assez logiquement (\autoref{eq:mudef}). Elle obtient même une place centrale dans cette approche itérative de l'\gls{irl}. L'idée est, à chaque itération, d'apprendre la politique optimale pour la fonction de récompense courante (via un algorithme d'\gls{rl}). L'attribut moyen de cette politique est alors évalué. La fonction de coût que minimise l'approche joue sur une définition de la proximité entre l'attribut moyen de cette politique et l'attribut moyen de la politique de l'expert. A chaque itération cette proximité est évaluée, et le vecteur de paramètre $\paramirl$ de la récompense change dans une direction qui va minimiser cette distance. La justification est que deux politiques d'attribut moyen semblable auront une valeur semblable pour toute récompense, y compris donc la récompense inconnue optimisée par l'expert (\autoref{thm:closemuclosev}). Le seul bémol de cette logique est que la réciproque peut être fausse, deux attributs extrêmement différents peuvent mener à la même valeur FIXME:schéma Gridworld. Plusieurs autres approches sont basées sur le même schéma itératif. Certaines le sont explicitement, d'autre se défendent d'utiliser la même logique, mais la revue proposée par \citet{neu2009training} démontre que mathématiquement, ces approches sont bien semblables au travail de \citet{abbeel2004apprenticeship}. Cette structure commune est décrite \autoref{alg:repetee}.
+
+# ?s mudistance 'd' 'Distance entre deux attributs moyens'
+# ?s muupdate 'u' 'Règle de mise à jour pour les algorithme d{\apos}ARI itératifs'
+
+\begin{algorithm}
+\Entree{
+Une démonstration de la politique experte $\expertpolicy$\;
+Un critère d'arrêt $\epsilon$\;}
+\Donnees{
+Une notion de distance $\mudistance$ permettant d'évaluer la similarité de deux attributs moyens\;
+Une règle de mise à jour $\muupdate$ permettant de réduire la distance\;
+Une méthode d'évaluation de l'attribut moyen d'une politique arbitraire\;
+Une méthode de résolution d'un \gls{mdp}\;
+}
+\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl}$}
+Calculer l'attribut moyen de l'expert $\expertmu$ à partir de la démonstration\;
+Initialiser $\theta$ arbitrairement\;
+\Tq{$\mudistance(\expertmu,\appr{\rlmu{\policy}}) > \epsilon$}{
+\nllabel{alg:l:mdpsolver}$\policy \leftarrow $ Une politique (quasi) optimale pour la récompense $\appr{\rewardfunc}_{\paramirl}$\;
+\nllabel{alg:l:musolver}$\appr{\rlmu{\policy}} \leftarrow$ Une approximation de l'attribut moyen de la politique $\policy$\;
+$\theta \leftarrow \muupdate(\expertmu,\appr{\rlmu{\policy}})$\;
+}
+\Retour{$\theta$}
+\caption{Structure commune à la plupart des algorithmes d'\gls{irl}}
+\label{alg:repetee}
+\end{algorithm}
 
 \gls{pirl} est intrinsèquement un algorithme d'imitation plus que d'\gls{irl}, en ce sens que la sortie est une politique stochastique (plus précisément un $\beta$-\gls{mixing} de politiques déterministes) et non une fonction de récompense. Il est cependant facile de le "convertir" en extrayant la meilleure fonction de récompense, celle liée à la plus petite distance entre attribut moyen de la politique optimale et attribut moyen de l'expert. L'on perd en peut en pureté théorique ce que l'on gagne en simplicité d'utilisation.
 
@@ -854,25 +896,210 @@ Maintenant que nous disposons d'une meilleure compréhension de l'objet que nous
 
    Finalement, \gls{relent} de \citet{boularias2011relative} reste dans la lignée des algorithmes itératifs classiques en ceci que son argumentaire ressemble à celui qui amène \gls{maxent} et qu'il tient compte des progrès fait dans la définition du problème de l'\gls{irl} : il s'agit de trouver une récompense (non un politique), sans accès complet à la dynamique du système (mais en ayant accès à des trajectoires) et en observant la politique de l'expert (sans la connaître totalement). La méthode cependant est plus efficace, la version échantillonnée de l'algorithme est en effet capable de fonctionner en utilisant uniquement des échantillons de l'expert et des échantillons aléatoires. La résolution répétée du problème de l'\gls{rl} n'est plus nécessaire.
 
-   Ces nouvelles approches abandonnent la structure itérative classique, se évitant ainsi les problèmes qu'elle implique. Elles profitent des avancées dans la définition du problème pour se concentrer sur de meilleures méthodes de résolution. L'avancée la plus prometteuse est de ne plus avoir à résoudre le problème de l'\gls{rl} de manière répétée, ce qui d'un point de vue technique rendait l'algorithme lent et gourmand en données, et d'un point de vue théorique faisait apparaître des termes d'erreur mal maîtrisés.
+   Ces nouvelles approches abandonnent la structure itérative classique, évitant ainsi les problèmes qu'elle implique. Elles profitent des avancées dans la définition du problème pour se concentrer sur de meilleures méthodes de résolution. L'avancée la plus prometteuse est de ne plus avoir à résoudre le problème de l'\gls{rl} de manière répétée, ce qui d'un point de vue technique rendait l'algorithme lent et gourmand en données, et d'un point de vue théorique faisait apparaître des termes d'erreur mal maîtrisés.
 
-* \glsentrytext{lstdmu} 
+* Calcul de l'attribut moyen : \glsentrytext{lstdmu} 
 # <<hier:lstdmu>>
+  De par la sémantique dont il est porteur, explorée en et illustrée en \autoref{hier-attribut}, et de par le rôle qu'il tient dans les algorithmes itératifs énumérés en \autoref{hier-repetee}, l'attribut moyen est une notion centrale en \gls{irl}.
+ 
+  Malgré cela, la littérature est étrangement silencieuse quant à la manière de l'estimer. Nous verrons en \autoref{hier-lstdmuavantages} qu'une des raisons de ce silence réside sans doute dans le fait que l'estimation de l'attribut moyen n'est pas le problème principal des algorithmes d'\gls{irl} itératifs. Cela est illustré en étudiant l'impact de la première (chronologiquement) contribution de cette thèse, qui consiste précisément en une méthode d'estimation de l'attribut moyen. Cette méthode est exposée (avec ses concurrentes) en \autoref{hier-lstdmuprincipe}. La pertinence de cette méthode dans le cadre ouvert par les approches récentes de l'\gls{irl} est finalement étudiée en \autoref{hier-lstdmuonpolicy}, qui présage des défis relevés par les contributions des \autoref{hier-scirl}, \autoref{hier-cascading}.
+
 ** Principe 
-  On rappelle que l'attribut moyen est une grandeur centrale en renforcement (dit en [[Attribut moyen]]). Les algorithmes qui l'utilisent ne présupposent pas de moyen de le calculer. La méthode de base consiste à faire jouer un simulateur et faire une estimation de Monte-Carlo.
+# <<hier:lstdmuprincipe>>
 
-  L'attribut moyen est par sa définition une fonction de valeur vectorielle. \gls{lstd} peut donc être adapté pour l'approximer.
-** Avantages 
-  Les avantages que \gls{lstd} possède pour l'approximation de fonction de valeur : \gls{batch}, /offline/ et /sample-efficient/ sont transférés à l'approximation de l'attribut moyen.
+   Les approches discutées en \autoref{hier-repetee} font toutes appel, du fait de leur structure commune, à une procédure d'estimation de l'attribut moyen de l'expert ainsi que, de manière répétée, à une procédure d'estimation de l'attribut moyen d'une politique arbitraire $\policy$ :
+\begin{eqnarray}
+\rlmu{\policy} &\in& \twosetsfunctions{\statespace \times \actionspace}{(\reals^{\dimpsi})}\\
+\rlmu{\policy}(\state,\action)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})}{\state_0 = \state}\\
+\textrm{avec }\forall \timeindex \in \llbracket 2;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
+\textrm{et }\state_{1} &\sim& \transprobfunceval{\state_{0}}{\action}{\cdot}.\\
+\end{eqnarray}
 
-  On peut ainsi estimer l'attribut moyen d'une politique arbitraire sans utiliser de simulateur et sans connaître les probabilités de transition.
+# ?s muhorizon 'L' 'Longueur d{\apos}une trajectoire'
+# ?s munbtraj 'M' 'Nombre de trajectoires'
+   Quand elle est précisée, la méthode préconisée pour le calcul de l'attribut moyen est l'utilisation d'un simulateur pour obtenir les échantillons nécessaires à une estimation de Monte-Carlo comme cela est formalisé dans l'\autoref{alg:mcmu}. Cet estimateur non biaisé possède de surcroit l'avantage d'être simple à implémenter… pour peu que l'on dispose d'un simulateur.
 
-** Illustration							       
-# rem olivier : Faire la liste des expériences en disant ce qu'elles montrent. C'est nécessaire pour trouver une structure cohérente aux parties expérimentales dans les 3 chapitres de contribution.
-   En utilisant \gls{pirl} avec LSPI et \gls{lstdmu}$\mu$, on peut porter PIRL en mode /batch/ avec une perte de performance minimale, et que l'on peut mitiger en fonction de la quantité de données non expertes disponibles. Cela évite d'avoir à se servir d'un simulateur, qui n'est pas toujours disponible. En le modifiant pour qu'il sorte une récompense et non une politique on peut corriger les "erreurs de jeunesse" des algorithmes dans la lignée de \gls{pirl}. Ça reste non idéal cependant.
+   L'horizon $\muhorizon$ après lequel on tronque la trajectoire peut-être choisi en fonction du facteur d'amortissement $\discount$ : au bout d'un moment le terme $\discount^{\timeindex}$ en facteur de l'attribut devient négligeable, poursuivre le calcul de la somme n'a donc plus d'intérêt. Le nombre de trajectoire $\munbtraj$ est le fruit d'un compromis entre variance et temps de calcul.
+
+   Il est à noter que la méthode est sans biais, pour peu que le simulateur soit fidèle à la réalité. Dans le cas contraire, l'on obtient un estimateur non biaisé d'une grandeur ne correspondant pas à ce qu'on cherche. Il reste toujours la possibilité d'utiliser des données en provenance d'un système réel, mais cela implique de pouvoir placer le système dans un état arbitraire et de laisser une politique potentiellement très mauvaise aux manettes sans provoquer de casse, le tout pour un coût en temps ou ressources raisonnable.
+
+\begin{algorithm}
+\Entree{Le couple $(\state,\action)$ en lequel l'on souhaite évaluer $\rlmu{\policy}$\;}
+\Donnees{La politique $\policy$ et un simulateur du système à contrôler\;}
+\Res{\rlmu{\policy}(\state,\action)\;}
+$\satrace{\policy} \leftarrow \varnothing$\;
+\SetKwFor{nfois}{répéter}{fois}{fin répéter}
+\nfois{$\munbtraj$}{
+Simuler une trajectoire $D$ de longueur $\muhorizon$, commençant par $\state$ et $\action$, puis suivant $\policy$ par la suite\;
+$\satrace{\policy} \leftarrow \satrace{\policy}\cup D$\;
+}
+\Retour{\begin{equation*}
+{1\over \munbtraj}\sum_{\datasetindex = 1}^{\munbtraj}\sum\limits_{\timeindex = 0}^{\muhorizon-1} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})
+\end{equation*}}
+\caption{Estimation de $\rlmu{\policy}$ par une méthode de Monte-Carlo}
+\label{alg:mcmu}
+\end{algorithm}
+
+
+Si l'on compare la définition de l'attribut moyen (\autoref{eq:mudefsum}) que nous venons de rappeler à la définition de la fonction de valeur (\autoref{eq:Vdefsum}), l'on constate que les deux expressions sont quasiment identiques. La fonction de valeur est définie par l'espérance d'un cumul $\discount$-pondéré de récompenses, tandis que l'attribut moyen est l'espérance d'un cumul $\discount$-pondéré d'attributs. La sémantique des ces deux objets n'est pas la même puisque l'attribut ne porte généralement pas d'information immédiatement exploitable quant à la qualité du contrôle mais, mathématiquement, les différences sont minimes. La seule nuance entre l'attribut moyen et la fonction de valeur est la dimension. La fonction de valeur travaille sur une récompense réelle tandis ce qui est sommé dans l'attribut moyen est une grandeur vectorielle (de dimension $\dimpsi$).
+
+Si l'on considère l'attribut moyen composante par composante, alors cette dissimilitude s'estompe. La composante $\dimindex$ de l'attribut moyen est exactement le même objet que la fonction de valeur pour la récompense donnée par la $\dimindex$-ième composante de l'attribut $\featurestatefunc$ :
+\begin{equation}
+\component{(\rlmu{\policy})}{\dimindex} = \rlvalue{\policy}{\component{\featurestatefunc}{\dimindex}}.
+\end{equation}
+Sachant cela, il paraît naturel, pour calculer l'attribut moyen d'une politique, d'adapter les techniques existantes permettant de calculer la valeur de cette politique. Nous n'aurons comme nous allons le voir même pas à utiliser la décomposition en composante comme nous venons de le faire, le fait que l'expression soit vectorielle plutôt que scalaire ne posant pas de problèmes insurmontables.
+
    
+Dans le cas idyllique où l'espace d'état est discret de faible cardinal et la matrice des probabilités de transition $\transprobmat{\policy}$ induites par la politique $\policy$ est connue, un algorithme d'évaluation de la politique tiré de la \gls{dp} convient tout à fait à l'estimation de l'attribut moyen. Par application répétée de l'opérateur d'évaluation de Bellman $\bellmanevalopeval{\policy}{\component{\featurestatefunc}{\dimindex}}{}$ (\autoref{eq:bellmanevop}), l'on peut arbitrairement se rapprocher de la valeur exacte de l'attribut moyen, comme l'explicite l'\autoref{alg:dpmu}.
+
+# FIXME: epsilon n'est pas dans le glossaire
+# FIXME: Delta non plus
+
+\begin{algorithm}
+\Entree{La matrice $\transprobmat{\policy}$ des probabilités de transition $\transprobfunceval{\state}{\policy(\state)}{\state'}$\;
+La fonction d'attribut $\featurestatefunc$\;
+Un critère d'arrêt $\epsilon$\;} 
+\Res{Une approximation à $\epsilon$ près de $\rlmu{\policy}$\;}
+Choisir $\mu$ arbitrairement dans $\twosetsfunctions{\statespace}{(\reals^{\dimpsi})}$\;
+\Tq{$\Delta > \epsilon$}{
+$\Delta \leftarrow 0$\;
+\PourCh{$\state \in \statespace$}{
+$\mu' \leftarrow \mu(\state)$\;
+$\mu(\state)\leftarrow \featurestatefunc(s) + \discount\sum\limits_{\state'\in \statespace}\transprobfunceval{s}{\policy(s)}{\state'} \mu(s')$\;
+$\Delta \leftarrow \max(\norm{2}{\mu'-\mu(\state)},\Delta)$\;
+}
+}
+\caption{Estimation de $\rlmu{\policy}$ par une méthode de \gls{dp}}
+\label{alg:dpmu}
+\end{algorithm}
+
+Maintenant que le principe d'estimer l'attribut moyen par une méthode de calcul de la fonction de valeur est établi, voyons comment il est possible d'adapter non plus un algorithme de \gls{dp} mais un algorithme d'\gls{rl}. La \gls{dp} suppose connues les probabilités de transition. Cela est en général difficile à réaliser sur les systèmes réels, notamment les systèmes robotiques. Le passage à un algorithme d'\gls{rl} permettrait d'apprendre l'attribut moyen au travers d'interactions avec le système réel, en minimisant le travail d'ingénierie.
+
+Un algorithme d'estimation de la fonction de valeur particulièrement approprié est \gls{lstd} de \citet{bradtke1996linear}. Dans sa variante proposée par \citet{lagoudakis2003least}, \gls{lstd}-$Q$, il permet d'estimer la fonction de qualité d'une politique de manière \gls{batch} et \gls{offpolicy}. Cela signifie que le fonctionnement de l'algorithme est complètement découplé de la commande du système. \gls{lstd}-$Q$ peut en effet fonctionner à partir de données recueillies une fois pour toutes (c'est l'aspect \gls{batch}, ou /par lots/) par une politique qui n'est pas celle que l'on évalue (c'est l'aspect \gls{offpolicy}).
+
+Cet algorithme, comme beaucoup d'autres en \gls{rl} repose sur une approximation linéaire de la fonction de qualité (\autoref{eq:paramrl}). Il nous va donc falloir utiliser un schéma d'approximation linéaire pour estimer l'attribut moyen qui lui même est issu de la définition d'un schéma d'approximation linéaire pour la récompense[fn::Yo dawg, I heard you like linear approximation schemes...] (\autoref{eq:mudef}). Pour éviter les conflits de notations, on suppose ici que la récompense est approximée selon le schéma de l'\autoref{eq:paramirl} :
+\begin{equation}
+\appr{\rewardfunc}_{\paramirl}(\state) = \transpose{\paramirl}\featurestatefunc(\state).
+\end{equation}
+# ?s paramlstdmu '\zeta' 'Matrice de paramètres pour LSTD-$\mu$'
+L'attribut moyen est donc l'espérance du cumul $\discount$-pondéré de l'attribut $\featurestatefunc$. Nous allons l'approximer dans un espace d'hypothèse généré par un autre attribut : $\featurestateactionfunc$ :
+\begin{equation}
+%\appr{\rlmu{\policy}}_{\paramlstdmu}(\state,\action) = \transpose{\paramlstdmu}\featurestateactionfunc(\state,\action).
+\hat{\mu}^\pi_{\zeta}(\state,\action) = \transpose{\paramlstdmu}\featurestateactionfunc(\state,\action).
+\label{eq:paramlstdmu}
+\end{equation}
+
+Ceci posé, l'adaptation de l'algorithme est relativement simple, le calcul de la matrice de paramètres $\paramlstdmu$ est décrit \autoref{alg:lstdmu}. La principale différence avec \gls{lstd}-$Q$ réside dans la dimension du vecteur de paramètres. Pour \gls{lstd}-$Q$, il s'agit d'un vecteur de dimension $\dimphi\times 1$, tandis que pour \gls{lstdmu}, il s'agit d'une matrice de taille $\dimphi \times \dimpsi$. Pour l'évaluation de $\hat\mu^{\pi}_\zeta$ en un couple $(\state,\action)$, il suffit d'utiliser l'\autoref{eq:paramlstdmu}.
+
+# ?s reg '\lambda' 'Coefficient de régularisation lors d{\apos}une inversion de matrice'
+
+\begin{algorithm}
+\Entree{Un base de données $\sasrtrace{\featurestatefunc}$\;
+Une fonction d'attribut $\featurestateactionfunc$\;
+La politique $\policy$\;
+Un paramètre de régularisation $\reg$\;}
+\Res{La matrice $\paramlstdmu$ de paramètres pour l'approximation linéaire de l'attribut moyen\;}
+$A\leftarrow 0$\tcc*{Matrice de taille $\dimphi\times\dimphi$}
+$b \leftarrow 0$\tcc*{Matrice de taille $\dimphi\times\dimpsi$}
+\PourCh{$\state,\action,\state',\featurestatefunc(\state)\in\sasrtrace{\featurestatefunc}$}{
+\nllabel{alg:lstdmu:A}$A\leftarrow A+\featurestateactionfunc(\state,\action)\transpose{\left(
+\featurestateactionfunc(\state,\action) - \discount \featurestateactionfunc(\state',\policy(\state'))
+\right)}$\;
+\nllabel{alg:lstdmu:b}$b\leftarrow b + \featurestateactionfunc(\state,\action)\transpose{\featurestatefunc(\state)}$\;
+}
+$\paramlstdmu \leftarrow (A+\reg Id)^{-1}b$\;
+\Retour{$\paramlstdmu$}
+\caption{Estimation de $\rlmu{\policy}$ par \gls{lstdmu}}
+\label{alg:lstdmu}
+\end{algorithm}
+
+
+
+** Avantages dans le cadre des approches existantes
+# <<hier:lstdmuavantages>>
+   
+   Dans le schéma itératif standard des premiers algorithmes d'\gls{irl} (\autoref{alg:repetee}), les problèmes techniques se cachent dans les étapes des \autoref{alg:l:mdpsolver} et \autoref{alg:l:musolver}, à savoir la résolution du \gls{mdp} et l'estimation de l'attribut moyen. Au delà de l'aspect computationnel, qui pose de moins en moins de problème à mesure que le temps passe et que la loi de \citet{moore1965cramming} nous offre des machines dont la puissance de calcul croit exponentiellement, le goulot d'étranglement réside dans la collecte des données nécessaire à la résolution de ces deux étapes.
+
+   Les auteurs des approches mentionnées en \autoref{hier-repetee} présupposent la disponibilité d'un simulateur. Dans bien des cas, la conception de ce simulateur représente un défi. Par exemple dans les travaux déjà mentionnés de \citet{abbeel2010autonomous}, l'apprentissage du modèle est si peu évident qu'il est l'objet principal de la contribution.
+
+# ?cs 1 sastrace 'D_{sas}^{#1}' 'D_{sas}^{\policy}' 'Trace de type $s,a,s\dash$ obtenue en suivant la politique $\pi$'
+   Dans les cas où il est impossible ou incommode de construire un tel simulateur, recueillir des données reste cependant souvent faisable. Nous nous plaçons dans le cas où l'expert peut contrôler le système, amassant ainsi une démonstration experte $\sastrace{\expertpolicy}$ tout en pouvant aller explorer d'autres zones de l'espace d'état que celles dans lesquelles il souhaite se trouver, soit que l'on perturbe sa démonstration de manière aléatoire, soit qu'il agisse volontairement de manière sous optimale dans un but d'exploration. Ces données non expertes sont recueillies dans une trace $\sastrace{\sim}$. Il s'agit là d'une structure extrêmement contrainte, mais qui correspond par exemple aux problèmes de locomotion robotique ou d'Interaction Homme-Machine où les modèles sont imparfaits et la collecte de données coûteuse.
+
+   Dans le cadre de l'\gls{rl}, l'approche de \citet{lagoudakis2003least} peut fonctionner dans avec de telles contraintes. Elle découple, comme nous l'avons dit dans la \autoref{hier-lstdmuprincipe}, la collecte de données et la résolution du \gls{mdp}. L'aspect de traitement par lot, couplé à l'aspect \gls{offpolicy}, permet de réutiliser tous les échantillons pour évaluer une politique différente de celle qui était au commandes du système lors de la collecte. L'algorithme \gls{lspi}, qui utilise $\gls{lstd}$-$Q$ dans un schéma d'itération de la politique permet donc de résoudre un \gls{mdp} à partir d'une trace $\sasrtrace{\rewardfunc}$. Comme, pour créer \gls{lstdmu}, nous nous sommes inspirés de \gls{lstd}-$Q$, les mêmes avantages sont transférés à l'estimation de l'attribut moyen. Nous pouvons donc facilement imaginer porter le schéma itératif classique de l'\gls{irl} décrit dans l'\autoref{alg:repetee} à un cadre où la collecte de données est coûteuse. C'est ce que présente l'\autoref{alg:repeteelstd}.
+
+\begin{algorithm}
+\Entree{
+Une démonstration $\sastrace{\expertpolicy}$ de la politique expert $\expertpolicy$\;
+Un critère d'arrêt $\epsilon$\;}
+\Donnees{
+Une notion de distance $\mudistance$ permettant d'évaluer la similarité de deux attributs moyens\;
+Une règle de mise à jour $\muupdate$ permettant de réduire la distance\;
+{\color{blue}Des données non-expertes $\sastrace{\sim}$}\;
+}
+\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl}$}
+Calculer l'attribut moyen de l'expert $\expertmu$ à partir de la démonstration\;
+Initialiser $\theta$ arbitrairement\;
+\Tq{$\mudistance(\expertmu,\appr{\rlmu{\policy}}) > \epsilon$}{
+{\color{blue}
+Construire la trace $\sasrtrace{\hat\rewardfunc_{\paramirl}}$ à partir de $\sastrace{\sim}$ et $\hat\rewardfunc_{\paramirl}$\;
+Construire la trace $\sasrtrace{\featurestatefunc}$ à partir de $\sastrace{\sim}$ et $\featurestatefunc$\;
+$\policy \leftarrow LSPI(\sasrtrace{\hat\rewardfunc_{\paramirl}})$\;
+$\appr{\rlmu{\policy}} \leftarrow LSTD\mu(\sasrtrace{\featurestatefunc})$\;}
+$\theta \leftarrow \muupdate(\expertmu,\appr{\rlmu{\policy}})$\;
+}
+\Retour{$\theta$}
+
+\caption{Instanciation du schéma itératif de l'\gls{irl} avec des méthodes \gls{lstd} (en bleu les changements par rapport à l'\autoref{alg:repetee})}
+\label{alg:repeteelstd}
+\end{algorithm}
+
+L'estimation de l'attribut moyen par \gls{lstdmu} est bien sûr imparfaite. Une erreur trop grande empêcherait l'algorithme d'\gls{irl} de converger. Dans le schéma de l'\autoref{alg:repeteelstd}, les sources d'erreurs principales sont l'estimation de l'attribut moyen par \gls{lstdmu} et la résolution du \gls{mdp} par \gls{lspi}. Les erreurs introduites par ces deux routines dépendent de la qualité et de la quantité des données contenues dans la trace $\sastrace{\sim}$ de données non expertes. Si le comportement et les limites de \gls{lspi} sont plutôt bien connues, il n'en est pas de même pour \gls{lstdmu}. Il existe des analyses en échantillons finis de \gls{lstd} et \gls{lspi} : \citep{lazaric2010finiteLSTD,lazaric2010finiteLSPI}, mais elles ne se transfèrent pas de manière évidente à \gls{lstdmu}.
+
+Intuitivement cependant, on peut argumenter que le schéma d'itération de la politique qu'est \gls{lspi}, qui implique donc l'évaluation répétée de politiques arbitraires, sera plus problématique qu'une simple évaluation de la politique (même sur plusieurs composantes) comme \gls{lstdmu}. Une expérience permet de confirmer empiriquement cette intuition (elle fut pour la première fois présentée dans notre article \citep{klein2011batch}). Le schéma proposé dans l'\autoref{alg:repeteelstd} (avec $\mudistance$ et $\muupdate$ choisis conformément aux travaux de \citet{abbeel2004apprenticeship}) est comparé à un autre schéma qui, toutes choses étant égales par ailleurs, fait appel à un oracle pour l'estimation de $\appr{\rlmu{\policy}}$. Le problème jouet (le pendule inverse FIXME:expliquer ou refaire exp sur mountain car) sur lequel ces deux approches sont testées permettant de définir un simulateur, l'oracle est un estimateur de Monte-Carlo tel que décrit par l'\autoref{alg:mcmu} dont les paramètres $\muhorizon$ et $\munbtraj$ sont réglés de manière à obtenir une variance négligeable.
+
+La comparaison des deux approches va porter sur leur comportement en fonction de la taille de la trace non experte $\sastrace{\sim}$. Le résultat de l'expérience est donné \autoref{fig:lstdmuexp}. On constate que la taille de $\sastrace{\sim}$ est bien le facteur déterminant de la qualité de l'imitation. On constate surtout que les deux approches manifestent le même comportement. Cela signifie que quelle qu'ait pu être l'erreur introduite par l'utilisation de \gls{lstdmu}, elle est gommée par les besoins de \gls{lspi} en données. Quand ce dernier dispose de suffisamment de données pour résoudre le \gls{mdp} suffisamment bien pour que l'algorithme d'\gls{irl} converge vers une bonne solution, \gls{lstdmu} possède suffisamment d'information pour fournir une estimation de l'attribut moyen qui pour l'usage qui en est fait est aussi bonne que celle de l'oracle.
+
+\begin{figure}
+\centering
+\subfigure[Moyenne et écart-type sur 100 expériences]{
+\centering
+\includegraphics[width=.8\linewidth]{Figures/LSTDMU_stat.pdf}
+}
+\subfigure[Une seule expérience]{
+  \centering
+  \includegraphics[width=.8\linewidth]{Figures/LSTDMU_once.pdf}
+}
+\caption{Comparaison de deux approches itératives de l'\gls{irl} sur le problème du pendule inversé. L'une est décrite \autoref{alg:repeteelstd} (LSTD sur les courbes), l'autres est identique sauf en ce qui concerne l'estimation de l'attribut moyen, qui est faite par un oracle (MC sur les courbes). On constate que les deux approches ont le même comportement. Dès lors que la quantité de données aléatoire est suffisante pour que \gls{lspi} résolve le \gls{mdp} correctement, l'algorithme d'\gls{irl} converge vers une bonne solution. Cela démontre empiriquement que les erreurs introduites par la résolution répétée du \gls{mdp} sont plus importantes que celles liées à l'estimation de l'attribut moyen par notre algorithme \gls{lstdmu}.}
+\label{fig:lstdmuexp}
+\end{figure}
+
+
+Le goulot d'étranglement des approches itératives est donc bien la résolution répétée du \gls{mdp}, il importe de faire sauter cette contrainte si l'on souhaite pouvoir utiliser l'\gls{irl} sur des problèmes complexes sans avoir à déployer des trésors d'ingénierie.
+
+Un algorithme de ce tonneau là est l'approche de \citet{boularias2011relative}, \gls{relent}, qui peut fonctionner dans le même cadre contraint que celui que nous venons de décrire, à savoir dans le cadre où les seules données dont on dispose sont une trace de l'expert $\sastrace{\expertpolicy}$ et une trace non experte $\sastrace{\sim}$. Il serait cependant souhaitable d'aller encore plus loin et de pouvoir résoudre le problème de l'\gls{irl} armé uniquement de données expertes. Ce sont en effet les données les plus faciles à rassembler.
+
+** \glstext{onpolicy} : \glstext{lstdmu} ou Monte-Carlo ?
+# <<hier:lstdmuonpolicy>>
+
+   Comme nous le verrons aux \autoref{hier-scirl} et \autoref{hier-cascading}, il est possible de résoudre le problème de l'\gls{irl} en utilisant uniquement des données expertes. Plus particulièrement, l'approche présentée au \autoref{hier-scirl} a besoin pour fonctionner de connaitre l'attribut moyen de l'expert en certains points de l'espace d'état-action. L'on ne se placera pas dans le cas de la \autoref{hier-lstdmuavantages}, où le but est d'estimer l'attribut moyen d'une politique arbitraire à l'aide de données échantillonnées par une autre politique. Il s'agira de faire une estimation \gls{onpolicy}, c'est à dire où la politique ayant servi à l'échantillonnage est la même que celle dont on cherche l'attribut moyen. Il n'y aura pas non plus de résolution de \gls{mdp}, l'erreur d'estimation de l'attribut moyen devient donc à nouveau un potentiel point problématique.
+
+   Pour minimiser cette erreur d'estimation de l'attribut moyen, l'on peut se poser la question du choix de la méthode. Si l'on dispose des probabilités de transitions, l'\autoref{alg:dpmu} est tout indiqué. S'il est possible d'utiliser un simulateur, c'est la méthode décrite \autoref{alg:mcmu} qui sera employée. Si l'on fonctionne dans le cadre contraint à une base données experte et une base non experte, alors \gls{lstdmu} est à notre connaissance la seule méthode capable de fonctionner en exploitant uniquement les deux bases. Le but des approches présentées plus loin dans ce manuscrit étant de fonctionner dans un cadre où la collecte de données est très difficile, nous allons étudier le cas où seules les données de l'expert sont disponibles.
+
+   Comme nous le préciserons au prochain chapitre, ce que nous souhaitons estimer, étant donnée une base d'entraînement $\sastrace{\expertpolicy}$, est l'attribut moyen évalué en chacun des états présents dans la base, pour toute action de l'espace d'action $\actionspace$, à savoir l'ensemble 
+\begin{equation}
+\{\expertmu(\state, \action)|\exists\datasetindex,\state =\state_{\datasetindex}\textrm{ et }\state_{\datasetindex},a_{\datasetindex},\state'_{\datasetindex}\in\sastrace{\expertpolicy},\forall a\in \actionspace\}.
+\end{equation}
+
+# ?s spaceindex 'm' 'Entier indexant un ensemble'
+Dans certains \gls{mdp}, il peut arriver que \gls{lstdmu} soit l'approche idéale pour cette approximation. Il faut que les attributs utilisés pour l'approximation de l'attribut moyen (dénotés $\featurestateactionfunc$ dans l'\autoref{alg:lstdmu}) aient une cohérence spatiale, c'est à dire que $\featurestateactionfunc(\state_1,\action)$ soit proche de $\featurestateactionfunc(\state_2,\action)$ si $\state_1$ et $\state_2$ sont proches, et que pour tout couple $(\state,\action)$ où une estimation de l'attribut moyen est nécessaire, l'expert ait également fourni des échantillons $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ pour toutes les actions $\action_{\spaceindex} \neq \action$, avec $\state_{\spaceindex}$ proche de $\state$. Dans ce cas, les échantillons $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ permettent à \gls{lstdmu} d'inférer une valeur acceptable pour $\appr{\rlmu{\expertpolicy}}(\state, \action_{\spaceindex}\neq \action)$. L'on peut s'en convaincre en remarquant que les mises à jour des \autoref{alg:lstdmu:A} et \autoref{alg:lstdmu:b} de l'\autoref{alg:lstdmu} sont proches pour $(\state,\action_{\spaceindex},\state')$ (qui n'est pas dans les données) et pour $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ qui lui s'y trouve, pour peu que la fonction d'attribut $\featurestateactionfunc$ ait une cohérence spatiale et que la dynamique du système ne soit pas trop irrégulière. Le pendule inversé est un exemple de ce type de \gls{mdp}, l'expert reste dans une zone restreinte près du point d'équilibre, les attributs standards (un maillage de gaussiennes) possède la propriété de cohérence spatiale nécessaire et l'expert emploie dans cette petite zone les trois actions qui composent l'espace d'état.
+
+Dans les autres cas, il faudra avoir recours à une méthode /ad-hoc/ que nous expliciterons et justifierons au prochain chapitre.
+
 * \glsentrytext{scirl}
+# <<hier:scirl>>  
+
 # snippet: tiré de ratliff2009learning, l'extrait suivant est exactement ce que SCIRL fait : Unfortunately, such a system is inherently myopic. This form of imitation learning assumes that all information necessary to make a decision at the current state can be easily encoded into a single vector of features that enables prediction with a relatively simple, learned function. However, this is often particularly difficult because the features must encode information regarding the future long-term consequences of taking an action. Under this framework, much of the work that we would like learning to handle is pushed onto the engineer in the form of feature extraction.
+--> On a vu que les approches existantes restent limitées parla résolution du MDP, mais que dès que ce problème est réglé elles peuvent tourner. Si on a pas assez de données pour résoudre le MDP, alors si on a besoin d'estimer mu, on a des stratégies. Etudions maintenant cet algo qui n'a pas besoin de résoudre le MDP.
 
 # snippet : copier du papier nips le truc qui explique qu'une récompense nule implique une erreur de classif de batard.
 ** Liens entre classification et \glsentrytext{rl}
