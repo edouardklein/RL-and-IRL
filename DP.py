@@ -18,19 +18,20 @@ def weighted_choice(choices):
 #end of code from StackOverflow
 class MDP:
     def __init__(self, P, R):
-        print "MDP OK3"
+        print("MDP OK3")
         self.cardSA,self.cardS = P.shape
-        self.cardA = self.cardSA/self.cardS
+        assert self.cardSA%self.cardS == 0, "P's shape is not good"
+        self.cardA = int(self.cardSA/self.cardS)
         self.gamma=0.9
         self.P = P
         assert all(f_eq(self.P.sum(axis=1), 1)), "Probability matrix unproperly conditionned"
         self.R = R
         #self.A = range(0,self.cardA)
-        print "Shape of P "+str(P.shape)
-        print "Shape of R "+str(R.shape)
-        print "Card of S "+str(self.cardS)
-        print "Card of A "+str(self.cardA)
-        print "Card of SA "+str(self.cardSA)
+        print("Shape of P "+str(P.shape))
+        print("Shape of R "+str(R.shape))
+        print("Card of S "+str(self.cardS))
+        print("Card of A "+str(self.cardA))
+        print("Card of SA "+str(self.cardSA))
         
 
     def optimal_policy(self):
@@ -50,7 +51,7 @@ class MDP:
             assert allclose(V, dot(Pi,self.R) + self.gamma*dot(dot(Pi,self.P),V)), "Bellman equation"
             Q = self.R + self.gamma*dot( self.P,V)
             Pi = self.Q2Pi( Q )
-            print "Iteration "+str(T)+", "+str(sum(Pi!=oldPi))+"\tactions changed."
+            print("Iteration "+str(T)+", "+str(sum(Pi!=oldPi))+"\tactions changed.")
             T+=1
             if( all( Pi == oldPi ) ):
                 break

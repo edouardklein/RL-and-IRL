@@ -143,7 +143,7 @@ Truc que j'ai pas encore dit : le truc limitant, d'après moi, ce sont les donn�
 # Goal:Ce serait bien qu'on ressente le besoin des notions du \gls{mdp}, notamment la récompense
 # Requires:Agent artificiel, environnement, tâche
 # Ensures: État, action, politique, classifieur, erreur de classification, politique de l'expert, traces sa, généralisation, attributs, classif structurée de taskar
-L'\gls{irl} est un moyen d'obtenir une description de la tâche en observant un expert réaliser cette tâche, et donc une méthode intéressante pour imiter cet expert. L'on a vu qu'obtenir une description de la tâche présentait un intérêt intrinsèque, différent de l'imitation, mais la majorité des applications de l'\gls{irl} relevant de l'imitation, c'est cet angle que nous allons principalement explorer. Intéressons nous tout d'abord à l'imitation au sens large, commençant par les méthodes ne mettant pas l'\gls{irl} en jeu.
+L'\gls{irl} est un moyen d'obtenir une description de la tâche en observant un expert réaliser cette tâche et donc une méthode intéressante pour imiter cet expert. Nous avons pu voir qu'obtenir une description de la tâche présentait un intérêt intrinsèque, différent de l'imitation, mais la majorité des applications de l'\gls{irl} relevant de l'imitation, c'est cet angle que nous allons principalement explorer. Intéressons nous tout d'abord à l'imitation au sens large, commençant par les méthodes ne mettant pas l'\gls{irl} en jeu.
 # ?s policy '\pi' 'Une politique'
 # ?s statespace '\mathcal{S}' 'Espace d{\apos}état'
 # ?s actionspace '\mathcal{A}' 'Espace d{\apos}action'
@@ -159,15 +159,15 @@ L'\gls{irl} est un moyen d'obtenir une description de la tâche en observant un 
 # Exemple: could use an exemple (pendule ?)
 # snippet: La notion d'agent artificiel déborde sur l'espace d'état, qui n'est lui même du coup pas directement lié à l'environnement. Un agent, ce n'est pas seulement une politique, mais aussi la définition de l'espace d'état et d'action, qui ne sont qu'une vue (plus ou moins bonne selon l'ingénierie) de la réalité
    
-   Les espaces d'état et d'action ne sont généralement pas des espaces vectoriels complets, mais des parties d'espaces vectoriels : la plage de valeurs que peut prendre une composante est rarement illimitée. Il s'agit même parfois de parties finies. C'est dans les problèmes qui nous préoccupent quasiment toujours le cas pour l'espace d'action. Nous considérons par défaut qu'il s'agit d'un ensemble fini de faible cardinal.
+   Les espaces d'état et d'action ne sont généralement pas des espaces vectoriels complets, mais des parties d'espaces vectoriels : la plage de valeurs que peut prendre une composante est rarement illimitée. Il s'agit même parfois de parties finies. C'est dans les problèmes qui nous préoccupent quasiment toujours le cas pour l'espace d'action. Nous considérons par défaut qu'il s'agit d'un ensemble fini de faible cardinal. La plupart des notations que nous utiliserons supposent un espace d'état également fini, mais l'usage d'attributs judicieusement choisis (\autoref{hier-attributs}) permet dans la plupart des cas l'extension au cas continu.
 
 *** Classification
 # <<hier:classification>>    
 
 # ?s expertpolicy '\pi^E' 'Politique de l{\apos}expert'
-   Il est possible de voir le problème de l'imitation comme celui de la recherche d'une politique correspondant pour chaque état (ou au mieux en fonction des contraintes en mémoire et en temps de l'agent) à celle de l'expert. Il est en effet évident que si deux politiques sont identiques alors elles accomplissent la même tâche avec le même degré d'efficacité. Même lorsque la politique de l'expert (notée $\expertpolicy$) est intégralement connue cette formulation n'est pas forcément dénuée de sens, l'on peut en effet souhaiter remplacer l'expert par un agent moins coûteux mais donc probablement plus limité. Apprendre par cœur (ou apprendre au mieux avec quelques erreurs) la politique de l'expert est alors sensé.
+   Il est possible de voir le problème de l'imitation comme celui de la recherche d'une politique correspondant pour chaque état (ou au mieux en fonction des contraintes en mémoire et en temps de l'agent) à celle de l'expert. Il est en effet évident que si deux politiques sont identiques alors elles accomplissent la même tâche avec le même degré d'efficacité. Même lorsque la politique de l'expert (notée $\expertpolicy$) est intégralement connue, cette formulation n'est pas forcément dénuée de sens, il peut être en effet souhaitable de remplacer l'expert par un agent moins coûteux mais donc probablement plus limité. Apprendre par cœur (ou apprendre au mieux avec quelques erreurs) la politique de l'expert est alors sensé.
 
-   Bien souvent cependant il est impossible de connaître intégralement la politique de l'expert, ne fut-ce que parce que l'espace d'état est trop grand. Il faut alors se contenter d'exemples sur un certain nombre $\nbsamples$ d'états :
+   Bien souvent, cependant, il est impossible de connaître intégralement la politique de l'expert, ne fut-ce que parce que l'espace d'état est trop grand. Il faut alors se contenter d'exemples sur un certain nombre $\nbsamples$ d'états :
 # ?cs 1 satrace 'D_{sa}^{#1}' 'D_{sa}^{\policy}' 'Trace de type $s,a$ obtenue en suivant la politique $\policy$'
 # ?s nbsamples 'N' 'Nombre d{\apos}exemples dans une trace'
 # ?s action 'a' 'Une action'
@@ -184,7 +184,7 @@ L'\gls{irl} est un moyen d'obtenir une description de la tâche en observant un 
 # ?cs 1 classiferror '\epsilon_C^{#1}' '\epsilon_C^{\spacedistrib}' 'Erreur théorique de classification sur la distribution $\spacedistrib$'
 # ?cs 1 indicatorfunc '\mathds{1}(#1)' '\mathds{1}' 'Fonction indicatrice'
 # ?cs 2 expectationknowing '\E \left[\left. #1\right|#2\right]' '\E \left[\left. f(x)\right| x \sim \rho \right]' 'Espérance de $f(x)$ pour $x$ tiré selon $\rho$'
-La classification est un problème plus subtil que celui de naïvement apprendre par cœur la base d'entraînement. Ce que nous cherchons à optimiser n'est pas la performance sur la base d'entraînement fournie, mais la performance sur l'espace d'état en général. Plus précisément, certains états nous intéressent plus que d'autres. Pour une justification intuitive, il suffit de penser aux jeux de plateau, où bien agir dans les quelques états qui apparaissent souvent en début de partie est beaucoup plus intéressant que bien agir dans un état improbable que l'on ne rencontrera peut-être jamais ; d'où par exemple le travail sur les ouvertures aux échecs. Pour mesurer l'importance accordée à un état, l'on définit une fonction de poids homogène à une densité de probabilité[fn::Pour éviter la pédanterie mathématique, nous allons identifier loi de probabilité et densité de probabilité, ce qui nous amènera à écrire des choses comme $s\sim\rho$, même si $\rho$ est défini comme une densité et non comme une loi.] et qui donc somme à un : $\spacedistrib \in \twosetsfunctions{\statespace}{[0,1]}$ telle que $\sum_{\state \in \statespace} \spacedistrib(\state) = 1$. La mesure de l'erreur d'une politique de classification $\classifpolicy$ se basant uniquement sur la base d'entraînement (avec $\indicatorfunc$ la fonction indicatrice) :
+La classification est un problème plus subtil que celui de naïvement apprendre par cœur la base d'entraînement. Ce que nous cherchons à optimiser n'est pas la performance sur la base d'entraînement fournie, mais la performance sur l'espace d'état en général. Plus précisément, certains états nous intéressent plus que d'autres. Pour une justification intuitive, il suffit de penser aux jeux de plateau, où bien agir dans les quelques états qui apparaissent souvent en début de partie est beaucoup plus intéressant que bien agir dans un état improbable que l'on ne rencontrera peut-être jamais (d'où par exemple le travail sur les ouvertures aux échecs). Pour mesurer l'importance accordée à un état, l'on définit une fonction de poids homogène à une densité de probabilité[fn::Par abus de notation, nous allons identifier loi de probabilité et densité de probabilité, ce qui nous amènera à écrire des choses comme $s\sim\rho$, même si $\rho$ est défini comme une densité et non comme une loi.] et qui donc somme à un : $\spacedistrib \in \twosetsfunctions{\statespace}{[0,1]}$ telle que $\sum_{\state \in \statespace} \spacedistrib(\state) = 1$. La mesure de l'erreur d'une politique de classification $\classifpolicy$ se basant uniquement sur la base d'entraînement (avec $\indicatorfunc$ la fonction indicatrice) :
 \begin{equation}
 \empiricalclassiferror = {1\over \nbsamples}\sum_{(\state_{\datasetindex},\action_{\datasetindex}) \in \satrace{\expertpolicy}} \indicatorfunc{\classifpolicy(\state_{\datasetindex}) \neq \action_{\datasetindex}}
 \end{equation}
@@ -195,7 +195,7 @@ est potentiellement différente de celle que l'on cherche réellement à optimis
 \end{eqnarray}
 Les problèmes de sur-apprentissage apparaissent lorsque l'on minimise l'erreur empirique au détriment de l'erreur de classification $\classiferror{\spacedistrib}$. Une des difficultés étant malheureusement que l'on ne peut qu'estimer $\classiferror{\spacedistrib}$.
 
-Généralement pour la classification, la distribution $\spacedistrib$ où l'on cherche à minimiser l'erreur de classification est la même que celle selon laquelle on échantillonne les données. Il y a alors "juste" à résoudre les différences entre l'erreur empirique et l'erreur théorique puis à minimiser cette dernière.
+Généralement pour la classification, la distribution $\spacedistrib$ pour laquelle on cherche à minimiser l'erreur de classification est la même que celle selon laquelle on échantillonne les données. Il y a alors "juste" à résoudre les différences entre l'erreur empirique et l'erreur théorique puis à minimiser cette dernière.
 
 Il est possible de rendre les choses plus intéressantes en choisissant une autre distribution $\spacedistrib$ sur laquelle il nous importe d'optimiser la classification. On peut, comme on l'a vu intuitivement favoriser les états de départ. Il est possible de tenter d'estimer à partir d'une base d'exemple la vraie distribution des états qui seront soumis au contrôle de l'agent (qui peut être différente de la distribution à laquelle l'expert est confronté). On peut également pour certains environnements accorder plus d'importance à certains états critiques où une erreur aurait des conséquences fâcheuses.
 
@@ -216,6 +216,7 @@ Le principe quasi-ubiquitaire en classification[fn::Les arbres de décision form
 \begin{eqnarray}
 \classifscorefunc &\in& \twosetsfunctions{\statespace \times \actionspace}{\reals},\\
 \forall \state, \classifpolicy(\state) &=& \arg\max_{\action \in \actionspace} \classifscorefunc(\state,\action).
+\label{eq:classifscore}
 \end{eqnarray}
 Apprendre une bonne fonction de score permet donc de résoudre le problème de classification. L'approche proposée dans \citep{taskar2005learning} prend le parti d'une fonction de score paramétrée linéairement. Il va de soi que rien ne garantit qu'une fonction de score linéaire sur l'espace d'état-action soit en mesure de donner un bon classifieur (c'est-à-dire offrant une faible erreur de classification), une condition nécessaire est le recours à une fonction d'attribut choisie avec soin :
 # ?s paramclassif '\omega' 'Vecteur de paramètres pour la classification'
@@ -228,7 +229,7 @@ Ce que nous cherchons maintenant est donc un bon vecteur de paramètres $\paramc
 # ?s featurestatefunc '\psi' 'Fonction d{\apos}attribut sur l{\apos}espace d{\apos}état'
 # ?s dimpsi 'd_{\psi}' 'Dimension de l{\apos}espace d{\apos}attributs sur l{\apos}espace d{\apos}état'
 # ?cs 1 card '\left|#1\right|' '|A|' 'Cardinal de l{\apos}ensemble A'
-Si l'on dispose d'une fonction d'attribut $\featurestatefunc \in \twosetsfunctions{\statespace}{\reals^{\dimpsi}}$ sur l'espace d'état, une technique classique pour obtenir une fonction d'attribut sur l'espace d'état-action consiste à distribuer la représentation sur les différentes actions. D'un vecteur de dimension $\dimpsi$, l'on passe à un vecteur de dimension $\dimphi = \card{A}\dimpsi$ (où $\card{\cdot}$ dénote le cardinal d'un ensemble) en définissant :
+Si l'on dispose d'une fonction d'attribut $\featurestatefunc \in \twosetsfunctions{\statespace}{(\reals^{\dimpsi})}$ sur l'espace d'état, une technique classique pour obtenir une fonction d'attribut sur l'espace d'état-action consiste à distribuer la représentation sur les différentes actions. D'un vecteur de dimension $\dimpsi$, l'on passe à un vecteur de dimension $\dimphi = \card{A}\dimpsi$ (où $\card{\cdot}$ dénote le cardinal d'un ensemble) en définissant :
 \begin{equation}
 \featurestateactionfunc(\state,\action) = \begin{pmatrix}
 \indicatorfunc{\action=\action_1}\featurestatefunc(\state)\\
@@ -256,13 +257,14 @@ Un avantage de ce schéma est qu'il permet une représentation exacte de la fonc
 # ?s dimindex 'j' 'Entier indexant les dimensions d{\apos}un espace'
 # ?s dimindexbis 'k' 'Entier indexant les dimensions d{\apos}un espace'
 # FIXME: Vérifier sigma et G lorsque j'écrirai le code permettant de dessiner les features
-Pour les espaces continus, une paramétrisation usuelle consiste à paver l'espace de gaussiennes. L'on assigne un nombre $\gaussperdim{\dimindex}$ à chacune des dimensions $0 < \dimindex \leq \dimstate$ de l'espace d'état et l'on construit un maillage de $\dimpsi = \prod_{\dimindex=1}^{\dimstate}\gaussperdim{\dimindex}$ points $m_{\dimindexbis}, 0<\dimindexbis\leq\dimpsi$ répartis à équidistance dans l'espace qui seront les centres des $\dimpsi$ composantes gaussiennes de la fonction d'attribut. La variance pour une dimension $\dimindex$ peut être choisie par exemple comme (avec $\component{\state}{\dimindex}$ la $\dimindex$-ième composante de $\state$) :
+Pour les espaces continus, une paramétrisation usuelle consiste à paver l'espace de fonctions à base radiale, telles les gaussiennes. L'on assigne un nombre $\gaussperdim{\dimindex}$ à chacune des dimensions $0 < \dimindex \leq \dimstate$ de l'espace d'état et l'on construit un maillage de $\dimpsi = \prod_{\dimindex=1}^{\dimstate}\gaussperdim{\dimindex}$ points $m_{\dimindexbis}, 0<\dimindexbis\leq\dimpsi$ répartis à équidistance dans l'espace qui seront les centres des $\dimpsi$ composantes gaussiennes de la fonction d'attribut. La variance pour une dimension $\dimindex$ peut être choisie par exemple comme (avec $\component{\state}{\dimindex}$ la $\dimindex$-ième composante de $\state$) :
 \begin{equation}
 \gaussianvar^{\dimindex} = { \max(\component{\state}{\dimindex})-\min(\component{\state}{\dimindex})\over 2 \gaussperdim{\dimindex}}.
 \end{equation}
 En notant :
 \begin{equation}
-\gaussian{\gaussiancenter}{\gaussianvar}{s} = \exp\left(-\sum_{\dimindex=1}^{\dimstate}{(\component{s}{\dimindex}-\component{\gaussiancenter}{\dimindex})^2\over 2(\component{\gaussianvar}{\dimindex}})^2\right),
+\gaussian{\gaussiancenter}{\gaussianvar}{s} = \exp\left(-\sum_{\dimindex=1}^{\dimstate}{(\component{s}{\dimindex}-\component{\gaussiancenter}{\dimindex})^2\over
+2(\component{\gaussianvar}{\dimindex})^2}\right),
 \end{equation}
 on obtient finalement la fonction d'attribut suivante après l'ajout d'une composante constante :
 \begin{equation}
@@ -338,19 +340,19 @@ Contrairement à la fonction d'attribut binaire précédente, celle-ci possède 
 \end{figure}
 
 # ?s slack '\zeta' 'Variable d{\apos}ajustement'
-Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons le problème \citet{taskar2005learning} se proposent de résoudre. Il s'agit d'un problème d'optimisation convexe sous contraintes :
+Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons le problème que \citet{taskar2005learning} se proposent de résoudre. Il s'agit d'un problème d'optimisation convexe sous contraintes :
 \begin{eqnarray}
 &\min\limits_{\slack \in \reals_{+}} {1\over \nbsamples}\sum\limits_{\datasetindex=1}^{\nbsamples}\slack_{\datasetindex}\\
-&\forall \datasetindex, \classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action_{\datasetindex}) \geq \max\limits_{\action \in \actionspace}(\classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)) - \slack_{\datasetindex}.
+\textrm{tel que }&\forall \datasetindex, \classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action_{\datasetindex}) \geq \max\limits_{\action \in \actionspace}(\classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)) - \slack_{\datasetindex}.
 \end{eqnarray}
-La fonction objectif cherche naturellement à réduire les variables d'ajustement $\slack_{\datasetindex}$ tandis que les contraintes sont telles que le score associé par la fonction de score $\classifscorefunc_{\paramclassif}$ à un couple $(\state_{\datasetindex}, \action_{\datasetindex})$ correspondant à une décision experte est supérieur ou égal au meilleur score. Et non pas juste supérieur au score seul, mais supérieur d'une certaine marge $\margin(\state_{\datasetindex},\action)$ qui donne à ce classifieur sa capacité de généralisation. En effet, l'on constate que si $\margin$ est uniformément nulle, alors parvenir à minimiser parfaitement la fonction de coût revient à apprendre par cœur la base d'exemple, c'est à dire à probablement subir les effets du sur-apprentissage. Fixer 
+La fonction objectif cherche naturellement à réduire les variables d'ajustement $\slack_{\datasetindex}$ tandis que les contraintes sont telles que le score associé par la fonction de score $\classifscorefunc_{\paramclassif}$ à un couple $(\state_{\datasetindex}, \action_{\datasetindex})$ correspondant à une décision experte est supérieur ou égal au meilleur score. Non seulement supérieur au score seul, mais supérieur d'une certaine marge $\margin(\state_{\datasetindex},\action)$ qui donne à ce classifieur sa capacité de généralisation. En effet, l'on constate que si $\margin$ est uniformément nulle, alors parvenir à minimiser parfaitement la fonction de coût revient à apprendre par cœur la base d'exemple, c'est à dire à probablement subir les effets du sur-apprentissage. Fixer 
 \begin{equation}
 \margin(\state_{\datasetindex},\action) = \begin{cases}
 0 &\textrm{si }\action = \action_{\datasetindex}\\
 1 &\textrm{si }\action \neq \action_{\datasetindex}
 \end{cases}
 \end{equation}
-permet de donner aux choix de l'expert un score strictement supérieur aux scores des autres choix. \citet{taskar2005learning} précisent qu'il est possible d'adapter la marge $\margin$ en fonction de la qualité des choix alternatifs, un bon choix correspondant à une petite marge. Nous verrons qu'en pratique la marge binaire que nous venons de suggérer fonctionne assez bien.
+permet de donner aux choix de l'expert un score strictement supérieur aux scores des autres choix. \citet{taskar2005learning} précisent qu'il est possible d'adapter la marge $\margin$ en fonction de la qualité des choix alternatifs, un bon choix correspondant à une petite marge. Nous verrons qu'en pratique la marge binaire que nous venons de suggérer fonctionne assez bien pour les problèmes qui nous intéressent.
 
 Résoudre ce problème n'est pas évident en l'état, il est possible d'en obtenir une formulation plus simple (qui revient à celle employée dans \citep{ratliff2007imitation}) en constatant que lorsque les variables d'ajustement sont minimisées, elles sont égales aux violations des contraintes :
 \begin{equation}
@@ -380,15 +382,26 @@ Nous avons présenté cette technique de classification plus en détail à des f
 
 Il existe bien d'autres moyen de faire de la classification, comme par exemple les \gls{svm}.
 *** \glsentrytext{svm}
-# FIXME: Ecrire la sous partie sur les SVMs
+    Une \gls{svm} est un séparateur linéaire. Plus précisément, une \gls{svm} va chercher, dans l'espace $\statespace$, un hyperplan tel que d'un côté de l'hyperplan se trouvent tous les états qui dans la base d'exemple sont associés à une certaine action $\action_1$, et que de l'autre côté se trouvent les états associés à l'autre action $\action_2$. Les choses se complexifient bien sûr quand il y a plus de deux actions (voir \citep{guermeur2012generic} pour un modèle générique correspondant à ce cas, appelé cas multi-classe) mais pour simplifier l'exposition nous nous cantonerons au cas bi-classe. La notion de marge intervient pour donner à la \gls{svm} sa capacité de généralisation. L'hyperplan doit non seulement séparer les exemples en deux classes, mais il doit le faire d'une manière maximise la distance entre l'hyperplan et les exemples, c'est cela qu'on appelle la marge.
+
+# ?s kernel 'k' 'Noyau pour une SVM'
+    C'est un vœu pieu de croire que l'espace $\statespace$ est construit d'une manière qui permette à un hyperplan de séparer les exemples (on parle de base linéairement séparable quand cela se produit). Une construction linéaire n'a bien souvent pas un pouvoir de représentation assez grand pour cela. Le classifieur à fonction de score paramétrée linéairement que nous avons décrit précédemment compense cela par une projection dans un espace d'attributs. Les \gls{svm} utilisent une technique similaire, appelée l'astuce du noyau \citep{aizerman1964theoretical,boser1992training}. L'idée est de remplacer les produits scalaires $\scalarprod{\state}{\state'}$ qui apparaissent par un produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}$ dans l'espace d'attributs, dans l'espoir que les données soient linéairement séparables dans l'espace d'attributs. Plutôt que de définir explicitement cet attribut $\featurestatefunc$ et de calculer le produit scalaire associé, un noyau $\kernel$ est défini. Pour peu que $\kernel$ satisfassent certaines conditions[fn::\`A savoir être continu, symétrique et semi-defini positif.], alors il existe une fonction $\featurestatefunc$ telle que :
+\begin{equation}
+\kernel(\state,\state') = \scalarprod{\featurestatefunc(\state)}{\featurestatefunc{\state'}}.
+\end{equation} 
+
+Un noyau populaire, le noyau gaussien :
+\begin{equation}
+\kernel(\state,\state')=\exp\left(- \frac{\|\state - \state'\|^2}{2 \sigma^2}\right),
+\end{equation}
+permet de manipuler le produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc{\state'}}$ où l’espace d'attributs défini par $\featurestatefunc$ est de dimension infinie.
+
+Les \gls{svm} sont très populaires et plusieurs implémentations existent. Il est donc facile de les mettre en œuvre, ce sont des des méthodes qui fonctionnent assez bien avec un réglage de paramètres minimal.
 # Goal: Faire une description rapide des MCSVM et de leurs avantages.
 # Goal: Introduire la notion de noyau, de kenel-trick et faire le lien avec les attributs (poil au cul)
 # Requires: attribut, classification
 # Ensures noyau, kernel-trick, SVM
-- Citer la généralisation de Yann.
-- Parler du kernel-trick, faire le lien avec les attributs.
-- Illustration \gls{mountaincar} : montrer les attributs choisis automatiquement par l'implémentation de la SVM choisie
-Nous aurons également à faire avec des \gls{svm} dans la suite du manuscrit. Bien d'autres techniques de classification existent, une description exhaustive des techniques d'apprentissage supervisé propices à l'imitation dépasserait le cadre de cette thèse. \citet{hastie2005elements,vapnik1998statistical} sont des ouvrages de référence. Nous allons voir comment ces techniques ont été appliquées en pratique à l'apprentissage supervisé de la politique de l'expert.
+
 *** Imitation par apprentissage supervisé de la politique
 # <<hier:myopie>>
 # Goal:Faire l'état de l'art des techniques d'imitation par apprentissage supervisé
@@ -454,7 +467,7 @@ Le principal problème de l'apprentissage direct de la politique de manière sup
 Pour comprendre ce but de l'expert qu'il nous importe de connaître, ce n'est pas au niveau du choix état-action que décrit la politique qu'il faut regarder, mais à un niveau d'abstraction plus grand : la dynamique que la politique de l'expert impose au système. La notion qui nous manque pour entamer le raisonnement est celle de l'effet d'une action. Nous ne nous sommes préoccupés que du choix de l'action en fonction de l'état courant sans nous soucier de ce que ce choix allait imposer comme contraintes sur le prochain état que l'agent va rencontrer. Afin de pouvoir considérer la politique de l'expert non plus comme un ensemble décousu d'associations état-action, mais comme un outil capable de produire des séquences d'actions porteuses de sens au point de vue d'un critère long terme, nous formalisons la notion de dynamique temporelle.
 
 # ?s timeindex 't' 'Indice temporel'
-# ?s timehorizon 'T' 'Horizon temporel'
+# ?s timehorizon '\infty' 'Horizon temporel'
 # ?s naturals '\mathbb{N}' 'Entiers naturels'
 L'agent (qu'il s'agisse de l'expert ou d'un agent artificiel que l'on entraîne) au manettes du système contrôle celui-ci non pas ponctuellement de temps à autres mais de manière cohérente sur un laps de temps durant lequel il devra opérer des actions de contrôle les unes après les autres. Il est donc naturel d'indexer ces actions et les états traversés par un indice temporel $\timeindex \in \llbracket 0;\infty\rrbracket$. Il est possible de prendre en charge une vision continue du temps avec quelques subtilités dont nous ne soucions pas ici, cette formalisation discrète étant suffisamment puissante pour les cas que nous souhaitons traiter. Elle n'impose par exemple pas de pas d'échantillonnage constant, il s'agit ici d'ordonner les états et actions par ordre de causalité, ce qui incidemment correspond[fn::\`A moins que /Doctor Who/ et /Retour vers le futur/ ne soient des documentaires.] à un indice temporel croissant, non pas de transcrire avec quelque fidélité les problèmes de l'échantillonnage temporel. Qui plus est cette formulation correspond à la réalité du contrôle numérique, intrinsèquement discret.
 
@@ -496,7 +509,7 @@ Il faut maintenant que ce critère local donne lieu à un comportement globaleme
 \begin{eqnarray}
 \label{eq:Vdefsum}
 \rlvalue{\policy}{\rewardfunc}(\state)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\staterewardfunceval{\state_{\timeindex}}}{\state_0 = s}\\
-\textrm{avec }\forall \timeindex \in \llbracket 1;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot}.
+\textrm{avec }\forall \timeindex \in \llbracket 1;\infty\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot}.
 \end{eqnarray}
 # ?s discount '\gamma' 'Facteur d{\apos}amortissement'
 Comme l'horizon temporel est infini, pour s'assurer de la convergence de la somme, le facteur d'amortissement $\discount \in [0;1[$ est introduit. Une conséquence est la diminution d'attrait des récompenses loin dans le futur au profit de récompenses accessibles plus rapidement. Cela permet de récompenser l'agent qui effectue rapidement sa tâche.
@@ -560,6 +573,7 @@ est l'opérateur d'optimalité de Bellman. Contractant lui aussi, il admet donc 
 \begin{eqnarray}
 \optimalpolicy{\rewardfunc} &\in& \greedy{\optimalpolicy{\rewardfunc}}\\
 \forall \state \in \statespace, \optimalpolicy{\rewardfunc}(\state) &\in& \arg\max_{\action\in \actionspace}\quality{\optimalpolicy{\rewardfunc}}{\rewardfunc}(\state,\action).
+\label{eq:rlargmax}
 \end{eqnarray}
 Les algorithmes d'itération de la valeur \citep{bertsekas2001dynamic,sutton1998reinforcement} appliquent de manière répétée l'opérateur d'optimalité de Bellman (ou une version approchée) à une politique de départ afin d'accéder à la politique optimale.
 
@@ -635,7 +649,7 @@ Là encore, le choix des attributs est important. Il faut qu'ils permettent à l
 Dans le contexte de l'approximation linéaire de la fonction de récompense, l'expression de la fonction de valeur d'une politique $\policy$ fait apparaître un terme que nous appellerons $\rlmu{\policy}$ dont le prochain chapitre révèlera l'importance :
 \begin{eqnarray}
 \label{eq:mudef}
-\textrm{avec }\forall \timeindex \in \llbracket 1;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
+\textrm{avec }\forall \timeindex \in \llbracket 1;\infty\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
 \rlvalue{\policy}{\appr{\rewardfunc}}(\state)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\appr{\rewardfunc}(\state_{\timeindex})}{\state_0=s}\\
 &=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\transpose{\paramirl}\featurestatefunc(\state_{\timeindex})}{\state_0=s}\\
 &=&\transpose{\paramirl}\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})}{\state_0=s}\\
@@ -647,9 +661,9 @@ Ce terme, l'attribut moyen d'une politique, est une fonction vectorielle qui por
 
 De la même manière que la fonction de qualité donne à la fonction de valeur un degré de liberté supplémentaire, il est possible de donner une action en argument à l'attribut moyen avec le même effet :
 \begin{eqnarray}
-\textrm{avec }\forall \timeindex \in \llbracket 1;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
+\textrm{avec }\forall \timeindex \in \llbracket 1;\infty\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
 \rlmu{\policy}(\state)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})}{\state_0 = \state}\\
-\textrm{avec }\forall \timeindex \in \llbracket 2;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
+\textrm{avec }\forall \timeindex \in \llbracket 2;\infty\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
 \textrm{et }\state_{1} &\sim& \transprobfunceval{\state_{0}}{\action}{\cdot},\\
 \rlmu{\policy}(\state,\action)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})}{\state_0 = \state}.
 \label{eq:mudefsum}
@@ -882,6 +896,7 @@ $\theta \leftarrow \muupdate(\expertmu,\appr{\rlmu{\policy}})$\;
 
 
 ** Méthodes ne nécessitant pas la résolution répétée d'un \glsentrytext{mdp} 
+# <<hier:nouveauxalgos>>
    Les problèmes intrinsèquement liés à la structure itérative des premiers algorithmes d'\gls{irl} étant identifiés, un regain de créativité a permis l'émergence d'approches beaucoup plus hétérogènes ces dernières années.
 
    Un schéma itératif (mais sans lien évident avec le schéma itératif classique de la section précédente) permet à \cite{levine2010feature} d'effectuer de la sélection d'attribut tout en apprenant la récompense, à l'aide d'une méthode semblable dans sa justification au \gls{boosting} opéré dans \citep{ratliff2007boosting}. La méthode de \citet{levine2010feature} semble cependant plus générique, et l'idée qu'un récompense "simple" est préférable y est enracinée. La tractabilité malheureusement n'est pas au rendez-vous.
@@ -907,11 +922,11 @@ $\theta \leftarrow \muupdate(\expertmu,\appr{\rlmu{\policy}})$\;
 ** Principe 
 # <<hier:lstdmuprincipe>>
 
-   Les approches discutées en \autoref{hier-repetee} font toutes appel, du fait de leur structure commune, à une procédure d'estimation de l'attribut moyen de l'expert ainsi que, de manière répétée, à une procédure d'estimation de l'attribut moyen d'une politique arbitraire $\policy$ :
+   Les approches discutées en \autoref{hier-repetee} font toutes appel, du fait de leur structure commune (\autoref{alg:repetee}), à une procédure d'estimation de l'attribut moyen de l'expert ainsi que, de manière répétée, à une procédure d'estimation de l'attribut moyen d'une politique arbitraire $\policy$ :
 \begin{eqnarray}
 \rlmu{\policy} &\in& \twosetsfunctions{\statespace \times \actionspace}{(\reals^{\dimpsi})}\\
 \rlmu{\policy}(\state,\action)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})}{\state_0 = \state}\\
-\textrm{avec }\forall \timeindex \in \llbracket 2;T\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
+\textrm{avec }\forall \timeindex \in \llbracket 2;\infty\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\policy(\state_{\timeindex-1})}{\cdot},\\
 \textrm{et }\state_{1} &\sim& \transprobfunceval{\state_{0}}{\action}{\cdot}.\\
 \end{eqnarray}
 
@@ -919,9 +934,9 @@ $\theta \leftarrow \muupdate(\expertmu,\appr{\rlmu{\policy}})$\;
 # ?s munbtraj 'M' 'Nombre de trajectoires'
    Quand elle est précisée, la méthode préconisée pour le calcul de l'attribut moyen est l'utilisation d'un simulateur pour obtenir les échantillons nécessaires à une estimation de Monte-Carlo comme cela est formalisé dans l'\autoref{alg:mcmu}. Cet estimateur non biaisé possède de surcroit l'avantage d'être simple à implémenter… pour peu que l'on dispose d'un simulateur.
 
-   L'horizon $\muhorizon$ après lequel on tronque la trajectoire peut-être choisi en fonction du facteur d'amortissement $\discount$ : au bout d'un moment le terme $\discount^{\timeindex}$ en facteur de l'attribut devient négligeable, poursuivre le calcul de la somme n'a donc plus d'intérêt. Le nombre de trajectoire $\munbtraj$ est le fruit d'un compromis entre variance et temps de calcul.
+   L'horizon $\muhorizon$ après lequel on tronque la trajectoire peut-être choisi en fonction du facteur d'amortissement $\discount$ : au bout d'un moment le terme $\discount^{\timeindex}$ en facteur de l'attribut devient négligeable, poursuivre le calcul de la somme n'a donc plus d'intérêt. Le nombre de trajectoires $\munbtraj$ est le fruit d'un compromis entre variance et temps de calcul.
 
-   Il est à noter que la méthode est sans biais, pour peu que le simulateur soit fidèle à la réalité. Dans le cas contraire, l'on obtient un estimateur non biaisé d'une grandeur ne correspondant pas à ce qu'on cherche. Il reste toujours la possibilité d'utiliser des données en provenance d'un système réel, mais cela implique de pouvoir placer le système dans un état arbitraire et de laisser une politique potentiellement très mauvaise aux manettes sans provoquer de casse, le tout pour un coût en temps ou ressources raisonnable.
+   Il est à noter que la méthode est sans biais, pour peu que le simulateur soit fidèle à la réalité. Dans le cas contraire, l'on obtient un estimateur non biaisé d'une grandeur ne correspondant pas à ce que l'on cherche. Il reste toujours la possibilité d'utiliser des données en provenance d'un système réel, mais cela implique de pouvoir placer le système dans un état arbitraire et de laisser une politique potentiellement très mauvaise aux manettes sans provoquer de casse, le tout pour un coût en temps ou ressources raisonnable.
 
 \begin{algorithm}
 \Entree{Le couple $(\state,\action)$ en lequel l'on souhaite évaluer $\rlmu{\policy}$\;}
@@ -946,6 +961,7 @@ Si l'on compare la définition de l'attribut moyen (\autoref{eq:mudefsum}) que n
 Si l'on considère l'attribut moyen composante par composante, alors cette dissimilitude s'estompe. La composante $\dimindex$ de l'attribut moyen est exactement le même objet que la fonction de valeur pour la récompense donnée par la $\dimindex$-ième composante de l'attribut $\featurestatefunc$ :
 \begin{equation}
 \component{(\rlmu{\policy})}{\dimindex} = \rlvalue{\policy}{\component{\featurestatefunc}{\dimindex}}.
+\label{eq:muvaleurvec}
 \end{equation}
 Sachant cela, il paraît naturel, pour calculer l'attribut moyen d'une politique, d'adapter les techniques existantes permettant de calculer la valeur de cette politique. Nous n'aurons comme nous allons le voir même pas à utiliser la décomposition en composante comme nous venons de le faire, le fait que l'expression soit vectorielle plutôt que scalaire ne posant pas de problèmes insurmontables.
 
@@ -1002,10 +1018,10 @@ Un paramètre de régularisation $\reg$\;}
 $A\leftarrow 0$\tcc*{Matrice de taille $\dimphi\times\dimphi$}
 $b \leftarrow 0$\tcc*{Matrice de taille $\dimphi\times\dimpsi$}
 \PourCh{$\state,\action,\state',\featurestatefunc(\state)\in\sasrtrace{\featurestatefunc}$}{
-\nllabel{alg:lstdmu:A}$A\leftarrow A+\featurestateactionfunc(\state,\action)\transpose{\left(
+$A\leftarrow A+\featurestateactionfunc(\state,\action)\transpose{\left(
 \featurestateactionfunc(\state,\action) - \discount \featurestateactionfunc(\state',\policy(\state'))
-\right)}$\;
-\nllabel{alg:lstdmu:b}$b\leftarrow b + \featurestateactionfunc(\state,\action)\transpose{\featurestatefunc(\state)}$\;
+\right)}$\nllabel{alg:lstdmu:A}\;
+$b\leftarrow b + \featurestateactionfunc(\state,\action)\transpose{\featurestatefunc(\state)}$\nllabel{alg:lstdmu:b}\;
 }
 $\paramlstdmu \leftarrow (A+\reg Id)^{-1}b$\;
 \Retour{$\paramlstdmu$}
@@ -1033,7 +1049,7 @@ Une démonstration $\sastrace{\expertpolicy}$ de la politique expert $\expertpol
 Un critère d'arrêt $\epsilon$\;}
 \Donnees{
 Une notion de distance $\mudistance$ permettant d'évaluer la similarité de deux attributs moyens\;
-Une règle de mise à jour $\muupdate$ permettant de réduire la distance\;
+Une règle de mise à jour $\muupdate$ permettant de réduire cette distance\;
 {\color{blue}Des données non-expertes $\sastrace{\sim}$}\;
 }
 \Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl}$}
@@ -1091,31 +1107,187 @@ Un algorithme de ce tonneau là est l'approche de \citet{boularias2011relative},
 \end{equation}
 
 # ?s spaceindex 'm' 'Entier indexant un ensemble'
-Dans certains \gls{mdp}, il peut arriver que \gls{lstdmu} soit l'approche idéale pour cette approximation. Il faut que les attributs utilisés pour l'approximation de l'attribut moyen (dénotés $\featurestateactionfunc$ dans l'\autoref{alg:lstdmu}) aient une cohérence spatiale, c'est à dire que $\featurestateactionfunc(\state_1,\action)$ soit proche de $\featurestateactionfunc(\state_2,\action)$ si $\state_1$ et $\state_2$ sont proches, et que pour tout couple $(\state,\action)$ où une estimation de l'attribut moyen est nécessaire, l'expert ait également fourni des échantillons $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ pour toutes les actions $\action_{\spaceindex} \neq \action$, avec $\state_{\spaceindex}$ proche de $\state$. Dans ce cas, les échantillons $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ permettent à \gls{lstdmu} d'inférer une valeur acceptable pour $\appr{\rlmu{\expertpolicy}}(\state, \action_{\spaceindex}\neq \action)$. L'on peut s'en convaincre en remarquant que les mises à jour des \autoref{alg:lstdmu:A} et \autoref{alg:lstdmu:b} de l'\autoref{alg:lstdmu} sont proches pour $(\state,\action_{\spaceindex},\state')$ (qui n'est pas dans les données) et pour $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ qui lui s'y trouve, pour peu que la fonction d'attribut $\featurestateactionfunc$ ait une cohérence spatiale et que la dynamique du système ne soit pas trop irrégulière. Le pendule inversé est un exemple de ce type de \gls{mdp}, l'expert reste dans une zone restreinte près du point d'équilibre, les attributs standards (un maillage de gaussiennes) possède la propriété de cohérence spatiale nécessaire et l'expert emploie dans cette petite zone les trois actions qui composent l'espace d'état.
+Dans certains \gls{mdp}, il peut arriver que \gls{lstdmu} soit l'approche idéale pour cette approximation. Il faut que les attributs utilisés pour l'approximation de l'attribut moyen (dénotés $\featurestateactionfunc$ dans l'\autoref{alg:lstdmu}) aient une cohérence spatiale, c'est à dire que $\featurestateactionfunc(\state_1,\action)$ soit proche de $\featurestateactionfunc(\state_2,\action)$ si $\state_1$ et $\state_2$ sont proches, et que pour tout couple $(\state,\action)$ où une estimation de l'attribut moyen est nécessaire, l'expert ait également fourni des échantillons $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ pour toutes les actions $\action_{\spaceindex} \neq \action$, avec $\state_{\spaceindex}$ proche de $\state$. Dans ce cas, les échantillons $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ permettent à \gls{lstdmu} d'inférer une valeur acceptable pour $\appr{\rlmu{\expertpolicy}}(\state, \action_{\spaceindex}\neq \action)$. L'on peut s'en convaincre en remarquant que les mises à jour des \autoref{alg:lstdmu:A} et \autoref{alg:lstdmu:b} de l'\autoref{alg:lstdmu} sont proches pour $(\state,\action_{\spaceindex},\state')$ (qui n'est pas dans les données) et pour $(\state_{\spaceindex},\action_{\spaceindex},\state'_{\spaceindex})$ qui lui s'y trouve, pour peu que la fonction d'attribut $\featurestateactionfunc$ ait une cohérence spatiale et que la dynamique du système ne soit pas trop irrégulière. Le pendule inversé est un exemple de ce type de \gls{mdp}, l'expert reste dans une zone restreinte près du point d'équilibre, les attributs standards (un maillage de gaussiennes) possèdent la propriété de cohérence spatiale nécessaire et l'expert emploie dans cette petite zone les trois actions qui composent l'espace d'état.
 
 Dans les autres cas, il faudra avoir recours à une méthode /ad-hoc/ que nous expliciterons et justifierons au prochain chapitre.
 
 * \glsentrytext{scirl}
 # <<hier:scirl>>  
+Comme nous venons de le découvrir, c'est bien la résolution répétée du \gls{mdp} qui rend les algorithmes d'\gls{irl} itératifs (\autoref{alg:repetee}) si gourmands en information. Il faut donc trouver un moyen de résoudre le problème de l'\gls{irl} sans avoir à résoudre de \gls{mdp}. Parmi les algorithmes les plus récents (\autoref{hier-nouveauxalgos}), la plupart ont besoin de données qui permettraient de résoudre le \gls{mdp}, et ne présentent donc pas, du point de vue de la facilité d'utilisation dans un cadre où la collecte de données est difficile, un avantage décisif sur les approches itératives.
 
-# snippet: tiré de ratliff2009learning, l'extrait suivant est exactement ce que SCIRL fait : Unfortunately, such a system is inherently myopic. This form of imitation learning assumes that all information necessary to make a decision at the current state can be easily encoded into a single vector of features that enables prediction with a relatively simple, learned function. However, this is often particularly difficult because the features must encode information regarding the future long-term consequences of taking an action. Under this framework, much of the work that we would like learning to handle is pushed onto the engineer in the form of feature extraction.
---> On a vu que les approches existantes restent limitées parla résolution du MDP, mais que dès que ce problème est réglé elles peuvent tourner. Si on a pas assez de données pour résoudre le MDP, alors si on a besoin d'estimer mu, on a des stratégies. Etudions maintenant cet algo qui n'a pas besoin de résoudre le MDP.
+Un de ces algorithmes, cependant, sort du lot puisqu'il ne nécessite pas la résolution du \gls{mdp} et peut fonctionner à l'aide de simplement deux bases d'entraînement $\sastrace{\expertpolicy}$ et $\sastrace{\sim}$ comme notre \autoref{alg:repeteelstd}. Il s'agit de \gls{relent} de \citet{boularias2011relative}. D'un point de vue du besoin en information, cet algorithme d'\gls{irl} étant à notre connaissance le plus efficace, il sera celui auquel nous comparerons les approches définies dans ce chapitre et le suivant, approches qui constituent la contribution principale de cette thèse et qui sont (à notre connaissance) les seules capables de résoudre le problème de l'\gls{irl} uniquement grâce à des données expertes.
 
-# snippet : copier du papier nips le truc qui explique qu'une récompense nule implique une erreur de classif de batard.
-** Liens entre classification et \glsentrytext{rl}
-  La classification peut-être utilisée pour faire de l'imitation (fait mentionné en sous-section \autoref{hier-nonari}). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un \gls{mdp} (équation présentée en \autoref{hier-cadre}) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
 
-  \gls{scirl} et \gls{cascading} (décrit en \autoref{hier-cascading}) utilisent cette similarité pour introduire la structure du MDP dans (ou à la suite de) une méthode de classification. On espère ainsi pouvoir faire de l'\gls{irl} (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
+** Liens entre classification et \glsentrytext{irl}
 
-  Si l'on utilise un classifieur où cette fonction de score/qualité est approximée par un schéma linéaire, alors on retombe sur l'attribut moyen. Il faut encore approximer celui-ci, mais cela est courant dans la littérature, et surtout c'est précisément le problème résolu par \gls{lstdmu} (en [[hier:lstdmu]]). 
+Les approches d'imitation supervisées (\autoref{hier-myopie}) apprennent directement la politique de l'expert et non, comme les approches d'\gls{irl}, une description succinte de la tâche sous la forme d'une fonction de récompense. L'imitation supervisée peut être vue comme moins problématique que l'\gls{irl}, disons certainement plus directe, puisque ce que ces méthodes cherchent à apprendre (la politique de l'expert) est de même nature que ce qui est présent dans les données. A l'inverse, pour les approches d'\gls{irl} il s'agit de comprendre la motivation long terme de l'expert, et ce à partir d'exemples de décisions à portée immédiate. Il faut résoudre un problème de contexte temporel entre ce qui est démontré et ce que l'on cherche.
+
+Les approches supervisées n'ont pas besoin pour fonctionner de données non expertes ou des probabilités de transition. Elles peuvent être appliquées lorsqu'on dispose uniquement de données expertes. Il est plus dur d'atteindre une telle austérité lorsque l'on résoud le problème de l'\gls{irl}, puisque l'objet recherché est plus complexe à trouver. Pourtant il existe, entre les outils développés dans le cadre de l'\gls{rl} (\autoref{hier-cadre}) et certaines approches de classification, des similitudes qui vont nous permettre de réunir les deux philosophies.
+
+Dans le cas de la classification à fonction de score, le classifieur apprend, à partir des données expertes, une fonction $\classifscorefunc$ qui permet de définir simplement la politique de classification $\classifpolicy$ par une optimisation de ce score sur les actions (\autoref{eq:classifscore}) :
+\begin{equation}
+\forall \state, \classifpolicy(\state) = \arg\max_{\action \in \actionspace} \classifscorefunc(\state,\action).
+\end{equation}
+Or la politique de l'expert, qui par hypothèse est une politique optimale, obéit à une relation du même type vis-à-vis de la fonction de qualité optimale pour la récompense inconnue $\expertreward$ dont l'expert cherche à maximiser le cumul (\autoref{eq:rlargmax}) :
+\begin{equation}
+\forall \state \in \statespace, \expertpolicy(\state) \in \arg\max_{\action\in \actionspace}\quality{\expertpolicy}{\expertreward}(\state,\action).
+\end{equation}
+La fonction de score $\classifscorefunc$ apprise par la plupart des approches d'imitation supervisée peut donc être vue comme un objet de même type qu'une fonction de qualité, dont nous avons dit en \autoref{hier-cadre} qu'elle fait le lien entre une optimisation myope, à l'échelle de la décision immédiate, et le critère à optimiser sur le long terme : le cumul des récompenses.
+
+Il est problématique que l'apprentissage supervisé ne tient pas compte de cette structure temporelle dans la résolution du problème de l'imitation. Tel qu'il est posé, le problème de classification suppose que les attributs choisis encodent l'information nécessaire à la prise de décision pour chaque état or, comme tend à le montrer ce lien entre classification et \gls{rl}, l'optimisation doit avoir lieu sur un critère long terme qui prend la dynamique du système en compte.
+
+Il est possible d'effectuer un travail d'ingénierie sur les attributs (\autoref{hier-attributs}) qui permette aux méthodes supervisées de bien généraliser, mais nous souhaitons ne pas avoir à faire appel à l'expertise humaine pour bâtir des systèmes intelligents. Il faut trouver un moyen d'informer les méthodes supervisées de la structure temporelle du problème, afin d'éviter le décalage actuel entre un problème d'optimisation mettant en jeu une fonction de score/qualité et l'exploitation directe de données concernant des décisions immédiates.
+
+L'algrithme \gls{cascading} du chapitre suivant et \gls{scirl}, que nous présentons ici, font précisément cela. Nous exposons la logique derrière \gls{scirl} dans la \autoref{hier-scirldesc}, puis en présentons une justification théorique (\autoref{hier-scirltheo}) et expérimentale (\autoref{hier-scirlexp}).
+
+
 
 ** Description 
+# <<hier:scirldesc>>
+
+# snippet: tiré de ratliff2009learning, l'extrait suivant est exactement ce que SCIRL fait : Unfortunately, such a system is inherently myopic. This form of imitation learning assumes that all information necessary to make a decision at the current state can be easily encoded into a single vector of features that enables prediction with a relatively simple, learned function. However, this is often particularly difficult because the features must encode information regarding the future long-term consequences of taking an action. Under this framework, much of the work that we would like learning to handle is pushed onto the engineer in the form of feature extraction.
+
+   L'un des résultats principaux de la \autoref{hier-cadre} est la notion de politique gloutonne, qui en optimisant à l'échelle de la décision immédiate sur la fonction de qualité parvient à optimiser le critère long terme du cumul des récompenses. Les approches de classification à fonction de score souffrent de ce que la fonction $\classifscorefunc$ ne présente pas la même structure temporelle qu'une fonctione de qualité bien qu'elle, comme nous venons juste de le découvrir, remplisse le même rôle. 
+
+   Afin de permettre aux techniques de classification d'exploiter cette structure temporelle qui leur manque, nous allons étudier comment introduire l'attribut moyen dans la fonction de score. Nous avons vu \autoref{eq:muvaleurvec} que l'attribut moyen est une fonction de valeur vectorielle, il porte donc cette structure temporelle indispensable à la réconciliation de l'optimisation locale et long terme. De plus, de par sa définition, il est naturellement présent dans la fonction de qualité $\quality{\expertpolicy}{\rewardfunc_{\paramirl}}$ pour la récompense paramétrée linéairement $\rewardfunc_{\paramirl}$ :
+\begin{eqnarray}
+\textrm{avec }\forall \timeindex \in \llbracket 2;\infty\rrbracket, \state_{\timeindex} &\sim& \transprobfunceval{\state_{\timeindex-1}}{\expertpolicy(\state_{\timeindex-1})}{\cdot},\\
+\textrm{et }\state_{1} &\sim& \transprobfunceval{\state_{0}}{\action}{\cdot},\\
+\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\rewardfunc_{\paramirl}(\state_{\timeindex})}{\state_0 = \state}\\
+\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=&\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\transpose{\paramirl}\featurestatefunc(\state_{\timeindex})}{\state_0 = \state}\\
+\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=&\transpose{\paramirl}\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex})}{\state_0 = \state}\\
+\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=&\transpose{\paramirl} \expertmu{\policy}(\state,\action).
+\label{eq:qemuparam}
+\end{eqnarray}
+
+Sachant tout cela, nous choisissons un classifieur à fonction de score dont la fonction de score $\classifscorefunc_{\paramirl}$ peut être paramétrée linéairement. Comme nous avons identifié le rôle de la fonction de score et la fonction de qualité optimale, nous offrons comme attribut pour la paramétrisation linéaire de la fonction de score l'attribut moyen de l'expert $\expertmu$ afin d'obtenir une expression identique à l'\autoref{eq:qemuparam} :
+\begin{equation}
+\classifscorefunc_{\paramirl} = \transpose{\paramirl}\expertmu.
+\end{equation}
+Ce que le classifieur apprend en réalité quand il apprend la fonction de score est le vecteur de paramètres $\paramirl$, qui paramétrise également la fonction de récompense (\autoref{eq:paramirl}). Ainsi, en résolvant de manière supervisée le problème de l'imitation, on résout du même coup le problème de l'\gls{irl}, simplement en paramétrisant la classification avec un objet porteur de la structure temporelle du \gls{mdp}. Tout cela est résumé \autoref{alg:scirlgenerique}.
+
+\begin{algorithm}
+\Entree{
+Une base d'entraînement établie par l'expert $\sastrace{\expertpolicy}$\;
+\Donnees{
+Une approximation de l'attribut moyen de l'expert $\expertmu$\;
+Un classifieur à fonction de score paramétrée linéairement\;
+}
+\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl}$}
+Paramétrer la fonction de score $\classifscorefunc_{\paramirl}$ du classifieur comme cela :
+\begin{equation}
+\classifscorefunc_{\paramirl} = \transpose{\paramirl}\expertmu\;
+\end{equation}
+Entraîner le classifieur sur la base de données $\sastrace{\expertpolicy}$\;
+}
+\Retour{$\rewardfunc_{\paramirl} = \transpose{\paramirl}\expertmu$}
+\caption{Principe générique de \gls{scirl}}
+\label{alg:scirlgenerique}
+\end{algorithm}
+
+
+Si la majorité des approches de classification peuvent être vue comme utilisant une fonction de score, celle-ci n'est pas forcément paramétrée linéairement d'une manière qui nous permette d'appliquer \gls{scirl}. Fort heureusement, nous avons étudié un classifieur se prêtant bien à cet exercice en \autoref{hier-attributs}. La classification se réduit à une descente de sous-gradient :
+\begin{eqnarray}
+\subgrad\structuredcost(\paramirl) &=& \sum_{\datasetindex=1}^{N}\expertmu(\state_{\datasetindex},\best{\action}_{\datasetindex}) - \expertmu(\state_{\datasetindex},\action_{\datasetindex}),\\
+\textrm{avec : }
+\best{\action}_{\datasetindex} &=&  \arg\max_{\action \in \actionspace} \transpose{\paramirl}\expertmu(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action).
+\end{eqnarray}
+
+Le calcul du sous-gradient $\subgrad\structuredcost(\paramirl)$ implique de pouvoir évaluer l'attribut moyen de l'expert $\expertmu$ en tout état présent dans la base d'entraînement $\sastrace{\expertpolicy}$, pour toute action. A moins de disposer d'informations supplémentaires telles une base de données non experte ou les probabilités de transition, il n'y a pas de solution immédiate à ce problème.
+
+Si les données de l'expert sont organisées en trajectoires, une adaptation de l'estimation de Monte-Carlo donnée \autoref{alg:montecarlodupauvre} permet d'obtenir une approximation de $\expertmu$ pour les couples $(\state_{\datasetindex},\action_{\datasetindex})$ présents dans la base. Il faut noter que la qualité de l'estimation risque de diminuer à mesure que l'on s'approche de la fin de la trajectoire, puisque le nombre d'échantillons participant au calcul diminue. Il est également possible d'utiliser \gls{lstdmu} pour obtenir une estimation \gls{onpolicy} de l'attribut moyen de l'expert. Un des avantages est de ne pas nécessiter de trajectoires cohérentes de la part de l'expert, de simples échantillons suffisent. Ces échantillons sont d'ailleurs mieux utilisés puisque si deux échantillons $(\state_{\spaceindex_1},\action_{\spaceindex_1},\state'_{\spaceindex_1})$ et $(\state_{\spaceindex_2},\action_{\spaceindex_2},\state'_{\spaceindex_2})$ sont présents dans la base avec $\state_{\spaceindex_1}$ proche de $\state_{\spaceindex_2}$ et $\action_{\spaceindex_1} = \action_{\spaceindex_2}$, alors pour peu que les attributs utilisés aient une cohérence spatiale, $\featurestateactionfunc_{\mu}(\state_{\spaceindex_1},\action_{\spaceindex_1})$ sera proche de $\featurestateactionfunc_{\mu}(\state_{\spaceindex_2},\action_{\spaceindex_2})$ et les mises à jour des lignes \ref{alg:lstdmu:A} et \ref{alg:lstdmu:b}  de l'\autoref{alg:lstdmu }auront un effet similaire sur le vecteur de paramètres $\paramlstdmu$. Il n'y a pas une tel synergie entre deux échantillons proches dans l'approche de l'\autoref{alg:montecarlodupauvre}.
+
+\begin{algorithm}
+\Entree{Une base de données $\sastrace{\expertpolicy}$ organisée en $\munbtraj$ trajectoires de longueurs $\muhorizon_{\spaceindex}$\;}
+\Res{Une estimation de $\expertmu$ sur chacun des points de $\{(\state, \action)|\exists\datasetindex,\state =\state_{\datasetindex}, \action = \action_{\datasetindex}\textrm{ et }\state_{\datasetindex},a_{\datasetindex},\state'_{\datasetindex}\in\sastrace{\expertpolicy}\}$.\;}
+\PourCh{trajectoire $(\state_{\timeindex},\action_{\timeindex},\state'_{\timeindex})_{\timeindex \in \llbracket 0;\muhorizon_{\spaceindex}\rrbracket} \in \sastrace{\expertpolicy}$}{
+\PourCh{couple $(\state_{\datasetindex},\action_{\datasetindex})$ de la trajectoire}{
+\begin{equation*}
+\appr{\expertmu}(\state_{\datasetindex},\action_{\datasetindex}) \leftarrow \sum\limits_{\timeindex = 0}^{\muhorizon-1-\datasetindex} \discount^{\timeindex}\featurestatefunc(\state_{\timeindex+\datasetindex})
+\end{equation*}
+}}
+\Retour{$\appr{\expertmu}$}
+\caption{Estimation de $\rlmu{\policy}$ par une méthode de Monte-Carlo sur les points présents dans la base d'entraînement}
+\label{alg:montecarlodupauvre}
+\end{algorithm}
+
+
+
+Le calcul de $\best{\action_{\datasetindex}}$ dans le sous-gradient implique, pour un état de la base d'entraînement, de connaître l'attribut moyen de l'expert pour toute action, et non juste celle choisie par l'expert. En l'absence de données, il est impossible de palier à ce problème d'une manière qui soit formellement juste. Nous pouvons en revanche employer une heuristique dont l'étude expérimentale (\autoref{hier-scirlexp}) montrera la validité.
+
+Pour introduire intuitivement l'heuristique, imaginons dans une voiture à double commande telles celles employées par les auto-écoles un expert au volant, la tâche étant de conduire. Imaginons maintenant qu'un plaisantin dans le siège passager applique un instant une force sur le volant, ou appuie brièvement et légèrement sur une des pédales. On voit qu'à l'échelle de de la tâche cette perturbation est minime et le conducteur expert a tôt fait de poursuivre tel qu'il l'aurait fait si la perturbation n'avait pas eu lieu. De la même manière, on suppose qu'une perturbation causée par une action parasite lorsqu'on doit évaluer $\expertmu(\state,\action\neq\expertpolicy(\state))$ est immédiatement absorbée par une action correctrice de l'expert, et donc que la seule conséquence de la perturbation est de faire perdre un pas de temps à l'expert. Pour cette raison, l'heuristique pose :
+\begin{equation}
+\appr{\expertmu}(\state,\action\neq \expertpolicy(\state))\leftarrow \discount \appr{\expertmu}(\state,\expertpolicy(\state))
+\label{eq:heuristiquescirl}
+\end{equation}
+
+Armé de notre méthode de classification à fonction de score linéairement paramétrée ainsi que de notre heuristique pour le calcul de l'attribut moyen de l'expert, il est maintenant possible d'instancier \gls{scirl} afin qu'il apprenne une récompense uniquement nourri de données expertes (\autoref{alg:scirlonlyexpert}).
+
+\begin{algorithm}
+\Entree{
+Une base d'entraînement établie par l'expert $\sastrace{\expertpolicy}$\;}
+\Donnees{
+Une approximation $\appr{\expertmu}$ de l'attribut moyen sur les données de la base $\sastrace{\expertpolicy}$\;
+L'extension de cette approximation à toutes les actions grâce l'heuristique de l'\autoref{eq:heuristiquescirl}\;
+}
+\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl}$}
+Initialiser $\paramirl$ arbitrairement\;
+Procéder à la descente de sous-gradient dont le sous-gradient est :
+\begin{equation*}
+\subgrad\structuredcost(\paramirl) = \sum_{\datasetindex=1}^{N}\appr{\expertmu}\left(\state_{\datasetindex},\max_{\action\in\actionspace}\transpose{\paramirl}\appr{\expertmu}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)\right) - \appr{\expertmu}(\state_{\datasetindex},\action_{\datasetindex})\;
+\end{equation*}
+\Retour{$\rewardfunc_{\paramirl} = \transpose{\paramirl}\expertmu$}
+\caption{\gls{scirl} uniquement sur des données expertes}
+\label{alg:scirlonlyexpert}
+\end{algorithm}
+
+
 ** Validation théorique 
+# <<hier:scirltheo>>
+
+-> On va montrer qu'on peut borner un des termes d'erreur discuté ref machin
+
+-> On le borne
+
+-> snippet : copier du papier nips le truc qui explique qu'une récompense nule implique une erreur de classif de batard.
+
+-> Le terme qu'on optimise tient compte de l'optimisation de la récompense, qui reste une étape difficile, mais qu'on peut traiter à part, et qui ne fait pas partie du problème que l'on résoud.
+
+-> Les termes d'erreur ne sont pas super faciles à faire baisser. Pour une idée plus précise il faut passer à la valdiation pratique.
 ** Validation pratique rapide (problèmes jouets) 
-*** TODO Donner la structure : qu'est-ce que chaque application démontre ?
+# <<hier:scirlexp>>
+-> L'heuristique n'a pas de justification théorique. On peut imaginer un pire cas où tout se casse la gueule.
+
+-> Est-ce que de manière empirique, cela fonctionne bien ?
+
+-> Sur le mountain car, si les promesses que l'on a faite ref machin (pê écrire la ref en question quelque part) tiennent, alors on devrait observer une bien meilleure généralisation que la classif simple.
+
+-> Surprise c'est le cas.
+
+-> Comment s'en sortent les autres algorithmes d'IRL ?
+
+-> RelEnt est le meilleur candidat, il ne peut pas fonctionner en données expertes seules
+
+-> Et même quand on lui donne les autres, il est moins bon.
+
+-> On peut tester sur un autre problèmes, même type de résultats.
+
+-> La leçon à tirer c'est qu'il est possible, avec peu de données, d'extraire une description de la tâche. Cette description guide ensuite l'apprentissage (résolution unique du MDP), alors que la classif ne ce soucie que d'imiter et exploite en fait peu les infos contenues dans les échantillons de l'expert.
 ** Mise en relief de l'influence des routines 
+->   Flottement: MC ou LSTDmu ?
+
+-> Osef, c'es pareil, se reporter à ref machin pour un choix éclairé, mais pour l'instant c'est kif kif bouriquot.
+
+-> D'un point de vue purement pratique, le mc, c'est moins pénible à implémenter
+
 ** Conclusion 
    SCIRL règle quelques problèmes des premiers algorithmes d'IRL et a de meilleures performances que \gls{maxent}. Il est théoriquement simple à expliquer et résout bien le problème de l'\gls{irl} tel qu'on l'a formulé. Il peut fonctionner avec uniquement des données de l'expert, ce qui ouvre la porte à des applications réelles.
+#  La classification peut-être utilisée pour faire de l'imitation (fait mentionné en sous-section \autoref{hier-nonari}). Cela à l'avantage de ne nécessiter que des données de l'expert. Mais cela ne tient pas compte de la structure du MDP. La plupart des classifieurs apprennent une fonction de score [fn::Les arbres sont une exception.]. De fait la règle de décision du classifieur et la règle de décision d'un agent optimal dans un \gls{mdp} (équation présentée en \autoref{hier-cadre}) sont similaires. On peut donc dresser un parallèle entre la fonction de score du classifieur et la fonction de qualité de l'expert.
+
+#  \gls{scirl} et \gls{cascading} (décrit en \autoref{hier-cascading}) utilisent cette similarité pour introduire la structure du MDP dans (ou à la suite de) une méthode de classification. On espère ainsi pouvoir faire de l'\gls{irl} (trouver une récompense, pas apprendre une politique par copie) tout en profitant des avantages offerts par la méthode supervisée (efficacité en termes de données, implémentations /off-the-shelf/, etc.).
+
+#  Si l'on utilise un classifieur où cette fonction de score/qualité est approximée par un schéma linéaire, alors on retombe sur l'attribut moyen. Il faut encore approximer celui-ci, mais cela est courant dans la littérature, et surtout c'est précisément le problème résolu par \gls{lstdmu} (en [[hier:lstdmu]]). 
+
 
 * SCIRLBoost 
 ** Problème de la définition des fonctions de base  
