@@ -347,3 +347,28 @@ scatter(TRAJS[:,0],TRAJS[:,1],c=TRAJS[:,2])
 axis([-1.2,0.6,-0.07,0.07])
 savefig("Mountain_car_Expert_traj_example.pdf")
 
+# <codecell>
+
+X=[10, 30, 100, 300, 700, 1000]
+CSI_data = genfromtxt("data/CSI_X_10_30_100_300_700_1000.mat")
+SCIRL_data = genfromtxt("data/SCIRL_X_10_30_100_300_700_1000.mat")
+SCIRLMC_data = genfromtxt("data/SCIRLMC_X_10_30_100_300_700_1000.mat")
+RE_data = genfromtxt("data/RE_X_10_30_100_300_700_1000.mat")
+Classif_data = genfromtxt("data/Classif_X_10_30_100_300_700_1000.mat")
+Expert_data = genfromtxt("data/Expert_X_10_30_100_300_700_1000.mat")
+rc('text', usetex=True)
+rcParams['text.usetex'] = True
+rcParams['font.family'] = 'serif'
+rcParams['legend.fontsize'] = 'medium'
+#plot(X[:4],mean(CSI_data,axis=1)[:4],"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
+plot(X[:4],mean(SCIRLMC_data,axis=1)[:4],"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
+plot(X[:4],mean(RE_data,axis=1)[:4],"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
+plot(X[:4],mean(Classif_data,axis=1)[:4],"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
+plot(X[:4],mean(Expert_data,axis=1)[:4],"p-",color='pink',mec="pink", mfc="w", lw=3, mew=3, ms=9, label="Expert")
+axis([0,310,40,250])
+legend()
+xlabel(r"Taille de la base experte")
+ylabel("Nombre de pas moyen pour atteinre le but")
+grid()
+savefig("mountain_car_scirl.pdf")
+
