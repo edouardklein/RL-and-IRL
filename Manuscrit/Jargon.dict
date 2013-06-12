@@ -1,4 +1,11 @@
 classifieur
+régresseur
+cascadée
+Welch
+Bartlett
+Student
+-valeur
+-valeurs
 actuateur
 classifieurs
 Who
@@ -6,3 +13,7 @@ Bellman
 greedy
 tractabilité
 -ième
+-pondérée
+I-
+-q
+

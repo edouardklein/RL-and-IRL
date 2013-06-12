@@ -372,3 +372,117 @@ ylabel("Nombre de pas moyen pour atteinre le but")
 grid()
 savefig("mountain_car_scirl.pdf")
 
+# <codecell>
+
+#Plotting IRL perf on the Highway
+X=array([3, 7, 10, 15, 20])
+Abcissas = X*X #N episodes of length N => N*N samples
+Y_random = []
+Y_Classif = []
+Y_RE = []
+Y_SCIRL = []
+Y_CSI = []
+Y_expert = []
+for x in X:
+    Y = genfromtxt("data/Exp14_"+str(x)+".mat")
+    Y_random.append(Y[:,0])
+    Y_Classif.append(Y[:,1])
+    Y_RE.append(Y[:,2])
+    Y_SCIRL.append(Y[:,3])
+    Y_CSI.append(Y[:,4])
+    Y_expert.append(Y[:5])
+#On va partir sur la moyenne seule
+rc('text', usetex=True)
+rcParams['text.usetex'] = True
+rcParams['font.family'] = 'serif'
+rcParams['legend.fontsize'] = 'medium'
+#plot(Abcissas,array([x for x in map(mean,Y_CSI)]),"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
+plot(Abcissas,array([x for x in map(mean,Y_SCIRL)]),"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
+plot(Abcissas,array([x for x in map(mean,Y_RE)]),"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
+plot(Abcissas,array([x for x in map(mean,Y_Classif)]),"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
+plot(Abcissas,array([x for x in map(mean,Y_random)]),"D-",color='gray',mec="gray", mfc="w", lw=3, mew=3, ms=9, label="Random")
+plot(Abcissas,ones(5)*7.7439104526748785,"p-",color='pink',mec="pink", mfc="w", lw=3, mew=3, ms=9, label="Expert")
+#axis([0,310,40,250])
+legend(bbox_to_anchor=(1, 0.85))
+xlabel(r"Taille de la base experte")
+ylabel("Valeur moyenne")
+grid()
+axis([0,410,-2.2,8])
+savefig("highway_scirl.pdf")
+
+# <codecell>
+
+X=[10, 30, 100, 300, 700, 1000]
+CSI_data = genfromtxt("data/CSI_X_10_30_100_300_700_1000.mat")
+SCIRL_data = genfromtxt("data/SCIRL_X_10_30_100_300_700_1000.mat")
+SCIRLMC_data = genfromtxt("data/SCIRLMC_X_10_30_100_300_700_1000.mat")
+RE_data = genfromtxt("data/RE_X_10_30_100_300_700_1000.mat")
+Classif_data = genfromtxt("data/Classif_X_10_30_100_300_700_1000.mat")
+Expert_data = genfromtxt("data/Expert_X_10_30_100_300_700_1000.mat")
+rc('text', usetex=True)
+rcParams['text.usetex'] = True
+rcParams['font.family'] = 'serif'
+rcParams['legend.fontsize'] = 'medium'
+plot(X[:4],mean(CSI_data,axis=1)[:4],"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
+plot(X[:4],mean(SCIRLMC_data,axis=1)[:4],"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
+plot(X[:4],mean(RE_data,axis=1)[:4],"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
+#plot(X[:4],mean(Classif_data,axis=1)[:4],"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
+plot(X[:4],mean(Expert_data,axis=1)[:4],"p-",color='pink',mec="pink", mfc="w", lw=3, mew=3, ms=9, label="Expert")
+axis([0,310,40,250])
+legend()
+xlabel(r"Taille de la base experte")
+ylabel("Nombre de pas moyen pour atteinre le but")
+grid()
+savefig("mountain_car_csi.pdf")
+
+# <codecell>
+
+#Plotting IRL perf on the Highway
+X=array([3, 7, 10, 15, 20])
+Abcissas = X*X #N episodes of length N => N*N samples
+Y_random = []
+Y_Classif = []
+Y_RE = []
+Y_SCIRL = []
+Y_CSI = []
+Y_expert = []
+for x in X:
+    Y = genfromtxt("data/Exp14_"+str(x)+".mat")
+    Y_random.append(Y[:,0])
+    Y_Classif.append(Y[:,1])
+    Y_RE.append(Y[:,2])
+    Y_SCIRL.append(Y[:,3])
+    Y_CSI.append(Y[:,4])
+    Y_expert.append(Y[:5])
+#On va partir sur la moyenne seule
+rc('text', usetex=True)
+rcParams['text.usetex'] = True
+rcParams['font.family'] = 'serif'
+rcParams['legend.fontsize'] = 'medium'
+plot(Abcissas,array([x for x in map(mean,Y_CSI)]),"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
+plot(Abcissas,array([x for x in map(mean,Y_SCIRL)]),"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
+plot(Abcissas,array([x for x in map(mean,Y_RE)]),"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
+#plot(Abcissas,array([x for x in map(mean,Y_Classif)]),"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
+plot(Abcissas,array([x for x in map(mean,Y_random)]),"D-",color='gray',mec="gray", mfc="w", lw=3, mew=3, ms=9, label="Random")
+plot(Abcissas,ones(5)*7.7439104526748785,"p-",color='pink',mec="pink", mfc="w", lw=3, mew=3, ms=9, label="Expert")
+#axis([0,310,40,250])
+legend(bbox_to_anchor=(1, 0.85))
+xlabel(r"Taille de la base experte")
+ylabel("Valeur moyenne")
+grid()
+axis([0,410,-2.2,8])
+savefig("highway_csi1.pdf")
+
+# <codecell>
+
+plot(Abcissas[-4:],array([x for x in map(mean,Y_CSI)])[-4:],"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
+plot(Abcissas[-4:],array([x for x in map(mean,Y_SCIRL)])[-4:],"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
+plot(Abcissas[-4:],array([x for x in map(mean,Y_RE)])[-4:],"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
+#axis([0,310,40,250])
+legend(loc='lower right')
+xlabel(r"Taille de la base experte")
+ylabel("Valeur moyenne")
+grid()
+axis([40,410,6,7.7])
+savefig("highway_csi2.pdf")
+

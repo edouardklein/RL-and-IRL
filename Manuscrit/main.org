@@ -2,6 +2,7 @@
 \listoffigures
 \listoftables
 \listofalgorithmes
+\listoftheorems
 \printglossaries
 * Options and headers :noexport:
 ** tikz
@@ -16,6 +17,7 @@
 #+LaTeX_CLASS: article 
 #+LaTeX_CLASS_OPTIONS: [frenchb]
 
+#+LaTeX_HEADER:\renewcommand{\theoremautorefname}{théorème}
 #+LATEX_HEADER:\hypersetup{ % config hyperref pour virer les box/color affreux...
 #+LATEX_HEADER:    colorlinks,%
 #+LATEX_HEADER:    citecolor=black,%
@@ -25,13 +27,16 @@
 #+LATEX_HEADER:} 
 #+LATEX_HEADER: \usepackage{natbib}
 #+LATEX_HEADER: \usepackage{subfigure}
+#+LATEX_HEADER: \usepackage{booktabs}
 #+latex_header: \usepackage{stmaryrd}
 #+LaTeX_header:\usepackage[utf8]{inputenc}
 #+LaTeX_header:\usepackage[T1]{fontenc}
 #+LaTeX_header:\usepackage[frenchb]{babel}
 #+LaTeX_header:\usepackage{amsthm}
+#+LaTeX_header:\usepackage{thmtools}
 #+LaTeX_header:\newtheorem{proposition}{Proposition}
 #+LaTeX_header:\newtheorem{theorem}{Théorème}
+#+LaTeX_header:\newtheorem{corollary}{Corollaire}
 #+LaTeX_header:\newglossary[angl]{anglicisme}{aot}{atn}{Anglicismes}
 #+LaTeX_header:\newcommand{\newangl}[3]{\newglossaryentry{#1}{type=anglicisme,name={\emph{#2}},description={#3}}}
 #+LaTeX_header:\makeglossaries
@@ -40,6 +45,8 @@
 #+LaTeX_header:\newcommand{\listofalgorithmes}{\tocfile{\listalgorithmcfname}{loa}}
 #+LaTeX_header:\DeclareMathOperator{\diag}{diag}
 #+LaTeX_header:\DeclareMathOperator{\sgn}{sign}
+#+LaTeX_header:% scientific notation, 1\e{9} will print as 1x10^9
+#+LaTeX_header:\providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
 
 ** Acronymes
 #+LaTeX_header:\newacronym{mdp}{PDM}{Processus D{é}cisionnel de Markov}
@@ -52,7 +59,7 @@
 #+LaTeX_header:\newacronym{pm}{PM}{\emph{Policy Matching}}
 #+LaTeX_header:\newacronym{mwal}{MWAL}{\emph{Multiplicative Weights for Apprenticeship Learning}}
 #+LaTeX_header:\newacronym{maxent}{MaxEnt}{\emph{Maximum Entropy}}
-#+LaTeX_header:\newacronym{relent}{RelEnt}{\emph{Relative Entropy}}
+#+LaTeX_header:\newacronym{relent}{Rel\-Ent}{\emph{Relative Entropy}}
 #+LaTeX_header:\newacronym{lpal}{LPAL}{\emph{Linear Programming for Apprenticeship Learning}}
 #+LaTeX_header:\newacronym{birl}{BIRL}{\emph{Bayesian Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{gpirl}{GPIRL}{\emph{Gaussian Processes Inverse Reinforcement Learning}}
@@ -94,7 +101,8 @@
 *** TODO Mettre des noms raccourcis sur les tables, les figures et les algorithmes
 *** TODO Franciser l'entrée de table des matières des éléments créés avec le package glossaries
 *** TODO Remplacer eqnarray par align
-    Ca implique de virer un & sur deux.
+% Ca implique de virer un & sur deux.
+*** TODO Dans les citations remplacer "and" par "et"
 ** Trucs à ajouter je ne sais où
 *** Contre exemple politique, tache
     Je peux décrire une politique sur un espace d'état, mais pas la récompense, exemple. le mettre au début de 2.3.1 ou ailleurs.
@@ -1331,7 +1339,7 @@ Procéder à la descente de sous-gradient dont le sous-gradient est :
 # <<hier:scirltheo>>
    Lorsque nous avons posé le problème de l'\gls{irl}, nous avons discuté des critères permettant de d'évaluer la qualité de la solution. Dans l'analyse théorique de \gls{scirl}, c'est le critère de l'\autoref{eq:aricritere} qui nous intéresse. Il mesure l'optimalité de la politique de l'expert pour la récompense renvoyée par \gls{scirl}. Nous allons le borner par un terme qui dépend d'objets dont certains n'ont pas encore été introduits.
 
-# ?s ccoeff 'C_f' 'Coefficient de concentration'
+# ?s ccoeff 'C_f' 'Coefficient de concentration dans le pire des cas'
    Le premier de ces objet est le le coefficient de concentration $\ccoeff$, \citep{munos2007performance} qui mesure l'écart entre les distributions induites par deux politiques. Ici il s'agit d'un maximum qui sélectionne la politique dont la distribution est la plus "différente" possible de celle de l'expert :
 \begin{eqnarray}
   \ccoeff &=& (1-\gamma)\sum_{t\geq 0} \gamma^t c(t)\\
@@ -1365,7 +1373,6 @@ C'est l'espérance sur la distribution stationnaire de l'expert de la maximisati
 \end{equation}
 Nous avons maintenant introduit les notions nécessaires à l'expression de la borne théorique sur la qualité de la récompense fournie par \gls{scirl} :
 \begin{theorem}
-  \label{th:scirl}
   Soit $R_{\theta}$ la fonction de récompense renvoyée par l'\autoref{alg:scirlgenerique}. Soient $C_f$, $\epsilon_c$
   et $\bar{\epsilon}_Q$ les quantités définies ci-dessus. On a :
   \begin{equation}
@@ -1375,9 +1382,10 @@ Nous avons maintenant introduit les notions nécessaires à l'expression de la b
     \epsilon_c\frac{2\gamma\|R_{\theta}\|_\infty}{1-\gamma}
     \right).
   \end{equation}
+  \label{thm:scirl}
 \end{theorem}
 
-\begin{proof}[Preuve du Théorème \ref{th:scirl}]
+\begin{proof}[Preuve du \autoref{thm:scirl}]
 Nous allons décomposer le terme $V^{\pi^*_{R_{\theta}}}_{R_{\theta}}-V^{\pi_E}_{R_{\theta}}$ (qui est positif ou, au mieux, nul, puisque $\pi^*_{R_{\theta}}$ est optimale) afin de faire apparaître le résidu de Bellman $\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{V^{\pi_E}_{R_{\theta}}}(s)-V^{\pi_E}_{R_{\theta}}(s)}{s\sim\rho_E}$. On rappelle que les définitions des opérateurs d'optimalité et d'évaluation de Bellman $\bellmanoptopeval{\rewardfunc}{}$ et $\bellmanevalopeval{\pi}{\rewardfunc}{}$ sont données \autoref{eq:bellmanoptop} et \ref{eq:bellmanevop}.
   \begin{equation}
     V^{\pi^*_{R_{\theta}}}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}} =  V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\pi_E}_{R_{\theta}} +
@@ -1498,7 +1506,7 @@ Le terme le moins contrôlable de cette borne est l'erreur $\bar\epsilon_{Q}$, q
 
     Les attributs utilisés par \gls{lspi}, \gls{scirl} et \gls{relent} sont les mêmes, il s'agit d'un maillage de gaussiennes tel que décrit \autoref{eq:gaussianrbf} et illustré \autoref{fig:mountain_car_psi}.
 
-    Le classifieur dont les performances sont illustrées est une \gls{svm} à noyau gaussien dont les paramètres sont choisis automatiquement par l'implémentation utilisée. Les performances de cette technique étant très légèrement supérieures à ceux du classifieur structuré de \citet{taskar2005learning}, ce sont celles qui nous affichons ici.
+    Le classifieur dont les performances sont illustrées est une \gls{svm} à noyau gaussien dont les paramètres sont choisis automatiquement par l'implémentation utilisée[fn::http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html]. Les performances de cette technique étant très légèrement supérieures à ceux du classifieur structuré de \citet{taskar2005learning}, ce sont celles qui nous affichons ici.
 
     En ordonnée sur la \autoref{fig:scirlmountaincar}, le nombre de pas nécessaire à l'agent pour qu'il atteigne le but (plafonné à $300$), moyenné sur tout l'espace d'état. Ce critère est directement lié à la valeur de la politique pour la récompense inconnue $\expertreward$ : si l'expert touche une récompense de $1$ lorsqu'il atteint l'objectif, et que la récompense est nulle partout ailleurs, du fait de l'amortissement temporel la valeur de sa politique en un état vaut $\discount^T$ où $T$ est le nombre de pas qui le sépare de l'objectif. En conséquence, ce que nous traçons est le logarithme en base $\discount$ de la valeur moyenne de la politique.
 
@@ -1555,7 +1563,7 @@ En utilisant autant d'information que la méthode de classification, et moins qu
 * \glsentrytext{cascading} 
 # <<hier:cascading>>
 
-Les avantages présentés par \gls{scirl} découlent de l'identification de la fonction de score d'un classifieur à la fonction de qualité de l'expert. Cela permet d'introduire la dynamique du système dans une approche supervisée, combinant les avantages en terme de généralisation caractéristiques des approches d'\gls{irl} et la simplicité d'utilisation des approches sueprvisées.
+Les avantages présentés par \gls{scirl} découlent de l'identification de la fonction de score d'un classifieur à la fonction de qualité de l'expert. Cela permet d'introduire la dynamique du système dans une approche supervisée, combinant les avantages en terme de généralisation caractéristiques des approches d'\gls{irl} et la simplicité d'utilisation des approches supervisées.
 
 \gls{scirl} cependant nécessite l'emploi d'un classifieur à fonction de score linéairement paramétrée, et l'estimation de l'attribut moyen de l'expert. Il existe comme nous allons le voir dans cette section un autre moyen de profiter de la similitude entre fonction de score et fonction de qualité. Nous présentons \autoref{hier-csidesc} l'algorithme \gls{cascading}, pour lequel nous fournissons une garantie théorique (\autoref{hier-csitheo}) ainsi qu'une étude empirique permettant de comparer ses performances à celles de \gls{scirl} (\autoref{hier-csiempirique}) et de valider l'heuristique qui, là encore, permet de dépasser le cadre de l'analyse théorique en n'utilisant que des données expertes.
 ** Description 
@@ -1563,6 +1571,7 @@ Les avantages présentés par \gls{scirl} découlent de l'identification de la f
 
    Notre nouvelle approche de l'\gls{irl}, \gls{cascading}, est basée à l'instar de \gls{scirl} sur le constat (\autoref{hier-classifirl}) de similitude entre la fonction de score $\classifscorefunc$ d'un classifieur et la fonction de qualité $\quality{\expertpolicy}{\expertreward}$ de l'expert (qui par hypothèse est un agent optimal) pour la récompense inconnue $\expertreward$ que justement, nous aimerions connaître.
 
+*** Principe général
    Là où cette approche diverge de \gls{scirl}, c'est dans la manière d'introduire la dynamique du \gls{mdp} en utilisant la fonction de score $\classifscorefunc$ apprise par un classifieur. Nous n'allons pas ici utiliser une paramétrisation astucieuse de cette fonction de score. Nous allons utiliser l'équation de Bellman (\autoref{eq:qdef}) qui définit de manière récursive la fonction de qualité, et isoler la récompense :
 \begin{align}
 \quality{\expertpolicy}{\expertreward}(\state,\action) &= \expertreward(\state,\action) + \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\action}{\state'} \quality{\expertpolicy}{\expertreward}(\state',\expertpolicy(\state'))\\
@@ -1572,88 +1581,345 @@ Les avantages présentés par \gls{scirl} découlent de l'identification de la f
 # ?s Rc 'R^{C}' 'Fonction de récompense induite par la fonction de score d{\apos}un classifieur'
 En remplaçant la fonction de qualité de l'expert par son /alter-ego/ la fonction de score d'un classifieur imitant l'expert, nous définissons la "récompense du classifieur" $\Rc$ :
 \begin{equation}
-\Rc(\state,\action) = \classifscorefunc(\state,\action) - \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\action}{\state'} \classifscorefunc(\state',\expertpolicy(\state')).
+\Rc(\state,\action) = \classifscorefunc(\state,\action) - \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\action}{\state'} \classifscorefunc(\state',\classifpolicy(\state')).
+\label{eq:rc}
 \end{equation}
 
+La présence dans cette équation des probabilités de transition ne nous permet pas d'espérer évaluer directement $\Rc$, nous souhaitons en effet que \gls{cascading} fonctionne dans un cadre où les données sont difficiles à réunir.
 
-    ->Avec un trace experte on apprend un fonction de score (ie avec nimporte quel classifieur du marché)
+Supposons la disponibilité d'une base d'échantillons non experte $\sastrace{\sim}$ :
+\begin{equation}
+\sastrace{\sim} = \{\state_{\datasetindex},\action_{\datasetindex},\state'_{\datasetindex}\}_{0\leq\datasetindex\leq\nbsamples}.
+\end{equation}
+# ?s rsample '\hat{r}' 'Echantillon pour l{\apos}estimation de $R^C$'
+L'état d'arrivée $\state'_{\datasetindex}$ est tiré selon la distribution $\transprobfunceval{\state_{\datasetindex}}{\action_{\datasetindex}}{\cdot}$, dès lors il est possible d'établir une version échantillonnée de l'\autoref{eq:rc} :
+\begin{equation}
+\rsample_{\datasetindex} = q(s_{\datasetindex},a_{\datasetindex}) - \gamma q(s'_{\datasetindex},\classifpolicy(s'_{\datasetindex})).
+\end{equation}
+# ?s rctrace 'D_{sar}^{q}' 'Base d{\apos}entraînement du régresseur dans CSI'
+# ?s apprRc '\hat{R}^{C}' 'Approximation de $R^C$'
+L'idée générale de \gls{cascading} et qui lui donne le nom de /cascadée/, est de, après avoir appris la fonction de score $\classifscorefunc$ et la politique de classification $\classifpolicy$ en entraînant un classifieur sur une base de données experte $\sastrace{\expertpolicy}$, fournir à un régresseur la base de données
+\begin{equation}
+\rctrace = \{(\state_{\datasetindex},\action_{\datasetindex})\leftrightarrow\rsample_{\datasetindex}|\state_{\datasetindex},\action_{\datasetindex},\state'_{\datasetindex}\in\sastrace{\sim}\},
+\label{eq:csinormalrctrace}
+\end{equation}
+afin qu'il apprenne $\apprRc$, une approximation de la version échantillonnée de la récompense induite par la fonction de score du classifieur $\Rc$. L'\autoref{alg:csigenerique} résume cela.
 
-    ->Avec une trace quelconque on échantillonne l'équation de Bellman inversée
+\begin{algorithm}
+\Entree{
+Une base d'entraînement établie par l'expert $\sastrace{\expertpolicy}$\;
+Une base d'entraînement non experte $\sastrace{\sim}$\;
+} 
+\Donnees{
+Une méthode de classification à fonction de score\;
+Une méthode de régression\;
+}
+\Sortie{Une fonction de récompense $\apprRc$}
+Entraîner le classifieur sur la base de données experte \sastrace{\expertpolicy}, obtenant ainsi $\classifscorefunc$ et $\classifpolicy$\;
+Établir la base d'entraînement
+\begin{equation*}
+\rctrace = \{(\state_{\datasetindex},\action_{\datasetindex})\leftrightarrow\rsample_{\datasetindex} = q(s_{\datasetindex},a_{\datasetindex}) - \gamma q(s'_{\datasetindex},\classifpolicy(s'_{\datasetindex}))|\state_{\datasetindex},\action_{\datasetindex},\state'_{\datasetindex}\in\sastrace{\sim}\}\textrm{\;}
+\end{equation*}
+Entrainer le régresseur sur la base $\rctrace$, obtenant ainsi $\apprRc$\;
+\Retour{$\apprRc$}
+\caption{Principe générique de \gls{cascading}}
+\label{alg:csigenerique}
+\end{algorithm}
 
-    ->Algo général
+Grâce à l'utilisation de l'équation de Bellman, cascader deux approches supervisées permet (comme nous allons le montrer dans les deux sections qui suivent) de résoudre le problème de l'\gls{irl}. La plupart des approches de classification utilisent une fonction de score. N'importe quelle approche de régression peut être utilisée pour la seconde étape. Cette grande latitude dans le choix d'un algorithme ou d'un autre pour chacune des étapes est une force de \gls{cascading} qui peut ainsi profiter du large éventail de techniques de l'apprentissage supervisé afin de limiter l'effort de l'opérateur lorsque cela est possible, ou de permettre à celui-ci d'adapter chaque étape au problème courant lorsque cela est nécessaire.
+ 
+*** Heuristique
 
-    ->Tout cela est bien beau, mais que se passe-t-il quand on a que les données expertes. Heuristique mon cher.
+    La version générique de \gls{cascading} repose sur la disponibilité de deux bases de données, une experte et l'autre non, comme c'est par exemple aussi le cas pour \gls{relent}. Nous avons vu que \gls{scirl} peut, grâce à une heuristique, fonctionner à l'aide d'uniquement des données expertes. Il est nécessaire d'étendre cette capacité à \gls{cascading}. Voyons comment l'absence de base d'entraînement $\sastrace{\sim}$ impacte l'algorithme, et voyons surtout comment compenser ce manque.
     
-    -> L'heuristique est semblables à la justification de la plupart des algos comme par exemple la marge l de la l'irl/classif, où l'expert doit être meilleur que les autres. C'est une affirmation assez naturelle dans le domaine pour essayer d'éviter les solutions dégénérées.
+    Si l'on ne dispose que d'une base d'entraînement experte $\sastrace{\expertpolicy}$ et que l'on essaye de bâtir la base $\rctrace$ avec, nous ne disposerons que d'échantillons :
+\begin{equation}
+(s_{\datasetindex},\expertpolicy(\state_{\datasetindex})) \leftrightarrow \rsample_{\datasetindex} = q(s_{\datasetindex},\expertpolicy(\state_{\datasetindex})) - \gamma q(s'_{\datasetindex},\classifpolicy(s'_{\datasetindex})).
+\end{equation}
+Ces données, les seules dont on dispose, sont tirées selon la dynamique induite par la politique experte. Or un \gls{mdp} est plus riche que la seule chaîne de Markov induite par une politique. Particulièrement, il n'y a parmi ces échantillons aucune information concernant les couples $(\state_{\datasetindex},\action \neq \expertpolicy(\state_{\datasetindex}))$. Entraîner un régresseur sur ces seules données revient à espérer que le régresseur parviendra à généraliser à des actions qu'il n'a jamais vues. \`A moins de disposer d'information /a priori/ et de parvenir à les intégrer au régresseur, cela est probablement une mauvaise idée. Typiquement, rien n'empêche le régresseur de décider que les couples $(\state_{\datasetindex},\action \neq \expertpolicy(\state_{\datasetindex}))$ sont associés à une valeur plus grande que $\rsample_{\datasetindex}$.
 
-    ->Algo heuristique
+Pour contraindre les solutions au problème de l'\gls{irl}, dont on a vu qu'il en existait un nombre infini dont certaines dégénérées, beaucoup d'algorithmes existants (\citep{abbeel2004apprenticeship,syed2008apprenticeship,ratliff2009learning,ramachandran2007bayesian}) prennent le parti d'affirmer que le choix d'une action effectué par l'expert doit être meilleur (selon un certain critère) que les autre choix possibles, par une certaine marge. Notre heuristique adopte le même parti pris en injectant dans la base $\rctrace$ les échantillons :
+\begin{align}
+(s_{\datasetindex},\forall \action \neq\expertpolicy(\state_{\datasetindex})) \leftrightarrow \rsample_{min} = \min_{\datasetindex\in \llbracket 1;\nbsamples\rrbracket}\rsample_{\datasetindex} - 1.
+\label{eq:csiheuristique}
+\end{align}
+Cela signifie en effet que la fonction apprise par le régresseur ne doit pas fournir à un choix en désaccord avec une démonstration de l'expert une récompense supérieure ou égale à n'importe quel autre choix expert.
+
+La récapitulation de l'approche \gls{cascading} en utilisant cette heuristique est fournie \autoref{alg:csiheuristique}.
+
+\begin{algorithm}
+\Entree{
+Une base d'entraînement établie par l'expert $\sastrace{\expertpolicy}$\;
+} 
+\Donnees{
+Une méthode de classification à fonction de score\;
+Une méthode de régression\;
+}
+\Sortie{Une fonction de récompense $\apprRc$}
+Entraîner le classifieur sur la base de données experte \sastrace{\expertpolicy}, obtenant ainsi $\classifscorefunc$ et $\classifpolicy$\;
+Établir la base d'entraînement
+\begin{align*}
+\rctrace &= \{(\state_{\datasetindex},\action_{\datasetindex} = \expertpolicy(\state_{\datasetindex}))\leftrightarrow\rsample_{\datasetindex} = q(s_{\datasetindex},\expertpolicy(\state_{\datasetindex})) - \gamma q(s'_{\datasetindex},\classifpolicy(s'_{\datasetindex}))|\state_{\datasetindex},\action_{\datasetindex},\state'_{\datasetindex}\in\sastrace{\expertpolicy}\}\\
+&\cup\{(s_{\datasetindex},\forall \action \neq\expertpolicy(\state_{\datasetindex})) \leftrightarrow \rsample_{min} = \min_{\datasetindex\in \llbracket 1;\nbsamples\rrbracket}\rsample_{\datasetindex} - 1\} \textrm{\;}
+\end{align*}
+Entrainer le régresseur sur la base $\rctrace$, obtenant ainsi $\apprRc$\;
+\Retour{$\apprRc$}
+\caption{\gls{cascading} dans sa version utilisant l'heuristique}
+\label{alg:csiheuristique}
+\end{algorithm}
+
+
 ** Validation théorique 
 # <<hier:csitheo>>
-Snippet: pour les objets, le coeff de concentration est plus fin que le truc de bourrin de scirl
+   La borne que nous offrons quant aux performances de \gls{cascading} est comme celle de \gls{scirl} basée sur le critère de l'\autoref{eq:aricritere}. Nous montrons qu'en contrôlant les erreurs de chacune des deux étapes supervisées, la récompense fournie par \gls{cascading} devient telle que l'expert est optimal vis-à-vis d'elle.
 
-Recopier le théorème du papier
+   Pour exprimer cette borne, nous avons besoin de l'erreur de classification, dont la définition est toujours la même :
+\begin{equation}
+\classiferror{\expertdistrib} = \expectationknowing{ \indicatorfunc{\classifpolicy(\state) \neq \expertpolicy(\state)}}{\state\sim\expertdistrib}.
+\end{equation}
 
-Recopier la preuve du papier
+Nous utiliserons également l'erreur $\epsilon_R$ due au régresseur : 
+\begin{align}
+\epsilon_R&=\max_{\pi\in A^S}\|\epsilon_\pi^R\|_{1,\rho_E}\\
+\textrm{avec : }\epsilon^R_\pi&=R^C(\cdot,\pi(\cdot))-\hat{R}^C(\cdot,\pi(\cdot)),\\
+\textrm{et la norme $L_1$ $\rho$-pondérée : }\|f\|_{1,\rho} &= \expectationknowing{|f(x)|}{x\sim\rho}.
+\end{align}
+Ainsi que l'écart de score :
+\begin{equation}
+\Delta q = \max_{s\in S}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))=\max_{s\in S}(q(s,\classifpolicy(s))-\min_{a\in A}q(s,a)),
+\end{equation}
+que nous pouvons normaliser, puisque le choix de l'action se fait sur les valeurs comparées et non absolues des scores.
 
-Expliquer les différences avec l'analyse de scirl
+# ?cs 1 ccoeffpi 'C_{#1}' 'C_{\pi}' 'Coefficient de concentration entre une politique et la politique experte'
+Enfin, nous introduisons un coefficient de concentration plus fin que celui que nous avons utilisé pour borner la performance de \gls{scirl} :
+\begin{align}
+\ccoeffpi{\pi}&=(1-\gamma)\sum_{t\geq0}\gamma^t c_\pi(t)\\ 
+\textrm{avec : }c_{\pi}(t)&=\max_{s\in S}\frac{(\transpose{\expertdistrib}(\transprobmat{\pi})^t)(s)}{\expertdistrib(s)}
+\end{align}
 
-Dire que les termes sont plus facile à manipuler puisque tout est standard
+\begin{theorem}
+Soit $\Rc$ la récompense retournée par l'\autoref{alg:csigenerique}. Soient $\ccoeffpi{\optimalpolicy{\apprRc}}$, $\epsilon_C$ et $\epsilon_R$ les quantités définies ci-dessus. On a :
+\begin{equation}
+0\leq\expectationknowing{\rlvalue{\optimalpolicy{\apprRc}}{\apprRc}(s)-\rlvalue{\expertpolicy}{\apprRc}(s)}{s\sim\expertdistrib}\leq \frac{1}{1-\gamma}\left(\epsilon_C\Delta q +\epsilon_R(1+\ccoeffpi{\optimalpolicy{\apprRc}})\right).
+\end{equation}
+\label{thm:csi}
+\end{theorem}
 
-Corollaire intéressant
+Avant d'entamer la preuve, prenons le temps d'analyser les différences entre cette borne et celle du \autoref{thm:scirl}. Le terme $\bar\epsilon_{Q}$ n'apparaît pas plus dans cette borne que le terme $\epsilon_R$ présent ici n'apparaît pour \gls{scirl}. Il faut également se méfier de l'erreur de classification $\classiferror{\expertdistrib}$. Pour \gls{scirl}, la classification est informée de la structure temporelle du \gls{mdp} par l'utilisation de l'attribut moyen. Dans \gls{cascading}, l'introduction de la structure temporelle du \gls{mdp} n'intervient qu'après l'étape de classification, le terme d'erreur de classification $\classiferror{\expertdistrib}$ présent ici traite d'une étape "myope", tandis que celui de \gls{scirl} traite d'une approximation de la fonction de qualité de l'expert, paramétrée linéairement grâce à l'attribut moyen.
 
-** Validation pratique rapide (problèmes jouets)
+Enfin, les coefficients de concentration diffèrent légèrement. Celui présent ici est plus petit, il ne correspond pas à un pire des cas comme celui de \gls{scirl}. On peut le voir comme une mesure de la similitude entre $\expertpolicy$ et $\optimalpolicy{\apprRc}$. Si $\optimalpolicy{\apprRc} \approx \expertpolicy$ alors $\ccoeffpi{\optimalpolicy{\apprRc}}\approx 1$.
+
+\begin{proof}[Preuve du \autoref{thm:csi}]
+%The difference between $\Rc$ and $\apprRc$ is noted $\epsilon^R=\Rc-\apprRc$.
+%We also introduce the reward function $R^E\in\mathbb{R}^{S\times A}$ which will be useful in our proof, not to be confused with $R_E$ the unknown reward %function the expert optimizes:
+%\begin{equation}
+%\forall (s,a)\in S\times A, R^E(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\pi_E(s')).
+%\end{equation}
+%We no have the following vectorial equalities $
+%\Rc_a=q_a-\gamma P_aq_{\classifpolicy} ;
+%R^E_a=q_a-\gamma P_aq_{\pi_E};
+%\epsilon^R_a=\Rc_a-\apprRc_a$.
+Nous allons borner l'expression : 
+\begin{equation}
+\expectationknowing{\rlvalue{\optimalpolicy{\apprRc}}{\apprRc}(s)-\rlvalue{\expertpolicy}{\apprRc}(s)}{s\sim\rho_E}
+\end{equation}
+qui est positive ou, au mieux, nulle puisque $\optimalpolicy{\apprRc}$ est optimale. Pour cela, décomposons le terme dans l'espérance : 
+\begin{equation}
+\rlvalue{\optimalpolicy{\apprRc}}{\apprRc}-\rlvalue{\expertpolicy}{\apprRc}=
+(\rlvalue{\optimalpolicy{\apprRc}}{\apprRc}-\rlvalue{\optimalpolicy{\apprRc}}{\Rc})+
+(\rlvalue{\optimalpolicy{\apprRc}}{\Rc}-\rlvalue{\expertpolicy}{\Rc})+
+(\rlvalue{\expertpolicy}{\Rc}-\rlvalue{\expertpolicy}{\apprRc}).
+\end{equation}
+Nous allons borner ces trois termes en deux fois.
+%First, let $\pi$ be a given deterministic policy. We have, using $\epsilon^R = \Rc - \hat \Rc$:
+%$V^{\pi}_{\Rc}-V^{\pi}_{\apprRc}=V^{\pi}_{\epsilon^R}=(I-\gamma P_\pi)^{-1}\epsilon^R_{\pi}$.
+%If $\pi=\pi_E$, we have, thanks to the power series expression of $(I-\gamma P_{\pi_E})^{-1}$, the definition of $\rho_E$ and the definition of the %$\mu$-weighted $L_1$ norm, one property of which is that $\forall X, \mu^TX \leq \|X\|_{1,\mu}$:
+
+Pour toute politique $\policy$,
+\begin{align}
+  \transpose{\expertdistrib}(\rlvalue{\pi}{\Rc}-\rlvalue{\pi}{\apprRc})&=\transpose{\expertdistrib}\rlvalue{\policy}{(\Rc-\apprRc)}\\
+&= \transpose{\expertdistrib}(I-\gamma \transprobmat{\policy})^{-1} \epsilon^R_{\policy}\\
+&\leq\frac{\ccoeffpi{\policy}}{1-\gamma}\transpose{\expertdistrib}\epsilon^R_{\policy}\\
+&\leq\frac{\ccoeffpi{\policy}}{1-\gamma}\|\epsilon^R_{\policy}\|_{1,\expertdistrib}.
+\end{align}
+Le passage de la deuxième à la troisième ligne vient de la décomposition en série entière de $(I-\gamma \transprobmat{\policy})^{-1}$, et le passage à la dernière ligne est possible car l'une des propriétés de la norme $L_1$ $\rho$-pondérée est que $\forall X, \rho^TX \leq \|X\|_{1,\rho}$.
+
+Nous sommes maintenant en mesure de borner le premier et dernier terme :
+\begin{align}
+\transpose{\expertdistrib}(\rlvalue{\expertpolicy}{\Rc}-\rlvalue{\expertpolicy}{\apprRc}) &\leq \frac{\ccoeffpi{\expertpolicy}}{1-\discount}\epsilon_R\\
+ &\leq \frac{1}{1-\discount}\epsilon_R\\
+\transpose{\expertdistrib}(\rlvalue{\optimalpolicy{\apprRc}}{\apprRc}-\rlvalue{\optimalpolicy{\apprRc}}{\Rc}) &\leq\frac{\ccoeffpi{\optimalpolicy{\apprRc}}}{1-\gamma}\epsilon_R\\
+\Rightarrow \transpose{\expertdistrib}\left((\rlvalue{\expertpolicy}{\Rc}-\rlvalue{\expertpolicy}{\apprRc}) + (\rlvalue{\optimalpolicy{\apprRc}}{\apprRc}-\rlvalue{\optimalpolicy{\apprRc}}{\Rc})\right) &\leq \frac{1+\ccoeffpi{\optimalpolicy{\apprRc}}}{1-\gamma}\epsilon_R
+\label{eq:csiproof1}
+\end{align}
+Il nous reste maintenant à trouver une borne pour le deuxième terme. Dans cet objectif, nous introduisons la récompense :
+\begin{equation}
+ \bar\Rc(s,a)=q(s,a) -\gamma\sum_{s'\in \statespace}\transprobfunceval{s}{a}{s'}q(s',\expertpolicy(s')),
+\end{equation}
+ce qui nous permet de décomposer le deuxième terme en :
+\begin{equation}
+\rlvalue{\optimalpolicy{\apprRc}}{\Rc}-\rlvalue{\expertpolicy}{\Rc}=(\rlvalue{\optimalpolicy{\apprRc}}{\Rc}-V^{\classifpolicy}_{\Rc})+(V^{\classifpolicy}_{\Rc}-V^{\expertpolicy}_{\bar\Rc})+(V^{\expertpolicy}_{\bar\Rc}-\rlvalue{\expertpolicy}{\Rc}).
+\end{equation}
+En conséquence directe de leurs définitions, $\classifpolicy$ est optimale pour $\Rc$, donc :
+\begin{equation}
+\rlvalue{\optimalpolicy{\apprRc}}{\Rc}-V^{\classifpolicy}_{\Rc}\leq0,
+\end{equation}
+et conséquemment :
+\begin{equation}
+\rlvalue{\optimalpolicy{\apprRc}}{\Rc}-\rlvalue{\expertpolicy}{\Rc}\leq(\rlvalue{\classifpolicy}{\Rc}-\rlvalue{\expertpolicy}{\bar\Rc})+(\rlvalue{\expertpolicy}{\bar\Rc}-\rlvalue{\expertpolicy}{\Rc}).
+\end{equation}
+Toujours par définition, nous avons $\rlvalue{\classifpolicy}{\Rc}=q(\cdot,\classifpolicy(\cdot))$ et $\rlvalue{\expertpolicy}{\bar\Rc}=q(\cdot,\expertpolicy(\cdot))$, donc:
+\begin{align}
+\transpose{\expertdistrib}(\rlvalue{\classifpolicy}{\Rc}-\rlvalue{\expertpolicy}{\bar\Rc})&=\transpose{\expertdistrib}(q(\cdot,\classifpolicy(\cdot))-q(\cdot,\expertpolicy(\cdot)))\\
+&=\sum_{s\in S}\expertdistrib(s)(q(s,\classifpolicy(s))-q(s,\expertpolicy(s)))\indicatorfunc{\classifpolicy(s)\neq\expertpolicy(s)}\\
+&\leq\Delta q\sum_{s\in S}\expertdistrib(s)[\mathds{1}_{\{\classifpolicy(s)\neq\expertpolicy(s)\}}]\\
+&\leq \Delta q \epsilon_C.
+\end{align}
+Pour conclure, constatons que :
+\begin{align}
+\bar\Rc(\cdot,\expertpolicy(\cdot))-\Rc(\cdot,\expertpolicy(\cdot)) &=  (q(\cdot,\expertpolicy(\cdot)) -\gamma\transprobmat{\expertpolicy}q(\cdot,\expertpolicy(\cdot)))\\
+&- (\classifscorefunc(\cdot,\expertpolicy(\cdot)) - \discount\transprobmat{\expertpolicy} \classifscorefunc(\cdot,\classifpolicy(\cdot)))\\
+&= \discount\transprobmat{\expertpolicy} \classifscorefunc(\cdot,\classifpolicy(\cdot)) -  \discount\transprobmat{\expertpolicy} \classifscorefunc(\cdot,\expertpolicy(\cdot)))\\
+&=\gamma\transprobmat{\expertpolicy}( \classifscorefunc(\cdot,\classifpolicy(\cdot)) - q(\cdot,\expertpolicy(\cdot))),
+\end{align}
+ce qui nous permet de borner le dernier terme (de l'extension du deuxième terme) :
+\begin{align}
+\transpose{\expertdistrib}(\rlvalue{\expertpolicy}{\bar\Rc}-\rlvalue{\expertpolicy}{\Rc})&=\transpose{\expertdistrib}(I-\gamma \transprobmat{\expertpolicy})^{-1}(\bar\Rc(\cdot,\expertpolicy(\cdot))-\Rc(\cdot,\expertpolicy(\cdot)))\\
+&=\transpose{\expertdistrib}(I-\gamma \transprobmat{\expertpolicy})^{-1}\gamma \transprobmat{\expertpolicy}(\classifscorefunc(\cdot,\classifpolicy(\cdot)) - q(\cdot,\expertpolicy(\cdot)))\\
+&=\frac{\gamma}{1-\gamma}\transpose{\expertdistrib}(\classifscorefunc(\cdot,\classifpolicy(\cdot)) - q(\cdot,\expertpolicy(\cdot)))\\
+&\leq \frac{\gamma}{1-\gamma}\Delta q \epsilon_C.
+\end{align}
+
+Finalement la borne pour le deuxième terme est : 
+\begin{align}
+\transpose{\expertdistrib}(\rlvalue{\optimalpolicy{\apprRc}}{\Rc}-\rlvalue{\expertpolicy}{\Rc})&\leq (\Delta q +\frac{\gamma}{1-\gamma}\Delta q) \epsilon_C\\
+& \leq \frac{\Delta q}{1-\gamma}\epsilon_C.
+\label{eq:csiproof2}
+\end{align}
+En combinant les équations \ref{eq:csiproof1} et \ref{eq:csiproof2}, nous obtenons la borne du théorème.
+\end{proof}
+
+Les deux termes d'erreurs principaux présents dans cette borne, $\epsilon_C$ et $\epsilon_R$ sont conformes aux termes d'erreur usuels en apprentissage supervisé. Utiliser les nombreuses astuces et adaptations rendues possibles par l'usage d'un classifieur et d'un régresseur de l'état de l'art permet d'espérer minimiser ces deux termes. Cette borne théorique joue sur des éléments beaucoup plus standard que celle de \gls{scirl}.
+
+Cette borne est également rassurante en ce qui concerne l'apparition de solutions dégénérées : voyons ce qui se passe si les deux termes d'erreur supervisés sont annulés :
+\begin{corollary}
+  Si $\expertdistrib>0$ et le classifieur et le régresseur sont parfaits ($\epsilon_C = 0$ et $\epsilon_R = 0$), alors $\expertpolicy$ est l'\emph{unique} politique optimale pour $\hat R^C$.
+\label{thm:cor}
+\end{corollary}
+
+\begin{proof}
+  La fonction $\classifscorefunc$ est la fonction de qualité optimale pour la politique $\classifpolicy$ vis-à-vis de la récompense $R^C$, par définition (voir \autoref{eq:rc}). Si $\epsilon_C = 0$, alors $\classifpolicy = \expertpolicy$. Cela signifie que $\forall s, \expertpolicy(s)$ est le seul élément de l'ensemble $\arg\max_{a\in \actionspace}q(s,a)$. Du coup, $\classifpolicy = \expertpolicy$ est l'unique politique optimale pour $R^C$.
+  Et puisque $\epsilon_R = 0$, on a $\apprRc = \Rc$, d'où le résultat.
+\end{proof}
+
+Le problème des solutions dégénérées comme la récompense nulle étant qu'elle admet toute politique comme optimale, et donc n'apporte aucune information sur les choix de l'expert, on voit bien ici que l'on est à l'abri de ce genre de problèmes tant que l'erreur de classification et de régression restent faibles.
+
+** Validation empirique
 # <<hier:csiempirique>
--> Encore une fois, l'heuristique n'est pas prise en compte dans l'analyse
+La borne théorique donnée à la section précédente ne prend pas l'heuristique proposée \autoref{eq:csiheuristique} en compte, puisque celle-ci introduit des échantillons non conformes à l'\autoref{eq:csinormalrctrace}. Nous allons donc, comme nous l'avons fait pour \gls{scirl} \autoref{hier-scirlexp} tester empiriquement la version heuristique de \gls{cascading} afin de montrer que l'heuristique est valable.
+*** Introduction 
 
--> Il faut donc la tester empiriquement
+Nous retrouvons ici les bancs d'essais utilisés \autoref{hier-scirlexp}, le \gls{mountaincar} et le \gls{highway}. La supériorité des algorithmes d'\gls{irl} sur les méthodes supervisées ayant déjà été démontrée, nous nous concentrons ici sur les premières, et comparons \gls{scirl}, \gls{cascading} et \gls{relent}. Le critère utilisé est le même que celui des expériences précédentes, à savoir un critère donnant une idée de l'optimalité de la politique optimale pour $\apprRc$ par rapport à la récompense inconnue $\expertreward$.
 
--> On réutilise les benchmarks de scirl, puisqu'ils ont du sens, on pourra comparer à SCIRL et RelEnt, dont on ne change pas les 
-
--> On utilise l'instanciation heuristique
+L'instanciation de \gls{cascading} utilisée est celle de l'\autoref{alg:csiheuristique}. Nous préciserons dans les sous-sections le choix du classifieur et du régresseur.
 
 *** mountain car
--> Même classification que le classifieur de l'expérience sur scirl (ref et url, rajouter l'url là haut)
+Le protocole expérimental est le même que dans la \autoref{hier-expmountaincar}. Le classifieur choisi pour \gls{cascading} est le même que celui dont les performances sont illustrées \autoref{fig:csimountaincar}. Il s'agit de l'implémentation d'une SVM[fn::http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html]. Le noyau est gaussien, les paramètres par défaut sont utilisés. Nous sommes dans un cas où l'ingénierie déployée par l'opérateur est minimale. Le régresseur est du même tonneau, il s'agit d'une SVR[fn::http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html] utilisée avec ses paramètres par défaut. 
 
--> SVR pour la régression (ref et url)
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{Figures/mountain_car_csi.pdf}
+\caption{Algorithmes d'\glstext{irl} sur le \glstext{mountaincar}.}
+\label{fig:csimountaincar}
+\end{figure}
 
--> Algo complet
+Les résultats obtenus sont donnés \autoref{fig:csimountaincar}, il est clair que les deux nouveaux algorithmes d'\gls{irl} \gls{scirl} et \gls{cascading} sont plus performants que \gls{relent} (qui était déjà lui-même plus performant que l'approche supervisée). Il n'est pas clair en revanche qui de \gls{scirl} ou \gls{cascading} reçoit la palme. Pour en avoir le cœur net, nous allons procéder à un test statistique d'égalité des moyennes. Si un test d'égalité des variances de Bartlett réussit, un test de Student est réalisé, si le Bartlett échoue, c'est un test de Welch. Les $p$-valeurs sont données \autoref{tab:mountaincar}. On voit que la seule abscisse pour laquelle on peut affirmer que les moyennes sont inégales est la première, où \gls{cascading} est plus performant que $\gls{scirl}$ (et aussi que \gls{relent}). Pour les abscisses suivantes, \gls{scirl} et \gls{cascading} ont peu ou prou les mêmes performances, très proches des performances expertes.
 
--> On rappelle la constitution des données, idem que pour scirl
-
--> figure sans classif
-
--> p-valeurs
-
--> CSI est meilleur pour le premier point et se confond avec SCIRL ensuite, cf les p-valeurs
-
+\begin{table}
+\centering
+\begin{tabular}{cc}
+\toprule
+Taille de la base experte & $p$-valeur\\
+\midrule
+$ 10$ & $\mathbf{1.5e-12}$\\
+$ 30$ & $3.8e-01$\\
+$100$ & $1.3e-02$\\
+$300$ & $7.4e-01$\\
+\bottomrule
+\end{tabular}
+\caption{$p$-valeurs pour un test d'égalité des moyennes de Student ou de Welch concernant \gls{cascading} et \gls{scirl} sur le \gls{mountaincar}. Des valeurs élevées ($>1.0\e{-02}$) signifient que l'hypothèse d'égalité des moyennes ne peut être rejetées.}
+\label{tab:mountaincar}
+\end{table}
 *** Highway
--> Classification structurée, pareil que sur scirl
+Là encore, le protocole expérimental est le même que celui que nous avons suivi \autoref{hier-exphighway}. L'approche supervisée, l'\autoref{alg:taskar} armé des attributs standard définis \autoref{eq:attributsdiscrets} étant moins performante que les algorithmes d'\gls{irl}, nous ne donnons pas ses performances ici. Elle constitue la première étape de \gls{cascading}. La seconde étape, la régression, est effectuée par un régresseur aux moindres carrés (\autoref{alg:lsr}), utilisant également les attributs de l'\autoref{eq:attributsdiscrets}.
+\begin{algorithm}
+\Entree{Une base d'entraînement $\rctrace$\;
+}
+\Donnees{
+Une fonction d'attribut $\featurestateactionfunc$ sur l'espace d'état action\; 
+}
+\Sortie{Une approximation $\apprRc$}
+Initialiser la matrice $X$ de taille $\nbsamples\times \dimphi$ :
+\begin{equation}
+X = \matrixbyterm{\component{\featurestateactionfunc(\state_{\datasetindex},\action_{\datasetindex})}{\dimindex}}{\datasetindex}{\dimindex}\textrm{\;}
+\end{equation}
+Initialiser le vecteur $y$ de taille $\nbsamples\times 1$ :
+ \begin{equation}
+\component{y}{\datasetindex} = \rsample_{\datasetindex}\textrm{\;}
+\end{equation}
+Calculer le vecteur de paramètres $\beta$ :
+\begin{equation}
+\beta = (\transpose{X}X)^{-1}\transpose{X} y
+\end{equation}
+\Retour{La fonction $\transpose{\beta}\featurestateactionfunc$}
+\caption{Régresseur aux moindres carrés pour \glstext{cascading}}
+\label{alg:lsr}
+\end{algorithm}
 
--> Least square pour la régression
+Les résultats obtenus sont donnés \autoref{fig:csihighway1}. Les performances des algorithmes d'\gls{irl} étant très proches les unes des autres, nous offrons un grossissement \autoref{fig:csihighway2} qui montre que \gls{cascading} semble disposer d'un avantage sur les deux autres approches. Cela est confirmé par un test statistique d'égalité des moyennes (comme précédemment, il s'agit d'un test de Student ou de Welch selon qu'un test de Bartlett d'égalité des variances réussit ou non) dont les résultats sont fournis \autoref{tab:highway} : pour les abscisses de la \autoref{fig:csihighway2}, les performances de \gls{cascading} sont bel et bien supérieures à celles de \gls{scirl}.
 
--> Algo complet
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{Figures/highway_csi1.pdf}
+\caption{Algorithmes d'\glstext{irl} sur le \glstext{highway}.}
+\label{fig:csihighway1}
+\end{figure}
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{Figures/highway_csi2.pdf}
+\caption{Grossissement de la \autoref{fig:csihighway1}.}
+\label{fig:csihighway2}
+\end{figure}
 
--> On rappelle constit données, idem scirl
-
--> figure sans classif et zoom (utiliser librairie spy de tikz dès que j'ai le temps)
-
--> p-valeurs
-
--> On peut rien dire sur la première valeur, mais ensuite CSI est clairement au dessus
+\begin{table}
+\centering
+\begin{tabular}{cc}
+\toprule
+Taille de la base experte & $p$-valeur\\
+\midrule
+      $  9$ & $3.0e-01$\\
+      $ 49$ & $\mathbf{8.9e-03}$\\
+      $100$ & $\mathbf{1.8e-03}$\\
+      $225$ & $\mathbf{2.4e-05}$\\
+      $400$ & $\mathbf{2.0e-50}$\\
+\bottomrule
+\end{tabular}
+\caption{$p$-valeurs pour un test d'égalité des moyennes de Student ou de Welch concernant \gls{cascading} et \gls{scirl} sur le \gls{highway}. Des valeurs élevées ($>1.0\e{-02}$) signifient que l'hypothèse d'égalité des moyennes ne peut être rejetées.}
+\label{tab:highway}
+\end{table}
 
 ** Conclusion 
-   La validation théorique est plus sympa que pour scirl puisqu'on maitrise mieux les termes d'erreur.
 
-   Empiriquement Cascading a des performances similaires à SCIRL, même légèrement supérieures. Cela valide l'heuristique et la logique qui est derrière.
+   L'algorithme \gls{cascading} que nous venons de présenter est basé sur un principe commun avec \gls{scirl}, qui consiste à voir la fonction de score d'un classifieur comme une fonction de qualité optimale. L'introduction de la structure temporelle du \gls{mdp} dans l'approche diffère cependant. L'utilisation cascadée de deux approches supervisée offre en effet des garanties théoriques plus propres, avec des termes d'erreur plus faciles à maîtriser.
 
-   CSI et est encore plus flexible, puisque des méthodes supervisées non paramétriques (ou à détermination automatique de paramètres) peuvent être employées, ce qui en plus de résoudre les problèmes structurels de PIRL comme le fait déjà SCIRL, résout les problèmes plus fondamentaux de l'approximation linéaire de la fonction de valeur ou du choix des attributs.
+   La souplesse offerte par la liberté de choix des deux approches supervisées laisse à l'opérateur la possibilité d'adapter l'approche au problème qu'il cherche à résoudre. Une heuristique est offerte qui permet à \gls{cascading} de fonctionner avec une expertise humaine minimale en n'utilisant que des données expertes. Cela est démontré sur les mêmes bancs d'essais que ceux qui ont permis la validation empirique de \gls{scirl}. Les performances empiriques offertes par \gls{cascading} sont légèrement supérieures à celles de \gls{scirl}.
 
 * Rappel des contributions 
-Elles ont toutes  des garanties théoriques potables. 
+# %Elles ont toutes  des garanties théoriques potables. 
 
-Les trois contributions ont ceci de commun qu'elles peuvent fonctionner en conditions à peu de données, mais elles peuvent faire usage très facilement de savoir à priori si on en a. Donc SCIRL et CSI sont non seulement les deux seules qui semblent fonctionner de manière générique dans les situations à la con, mais pour les situations encore plus à la con on peut espérer utiliser des méthodes /ad-hoc/ pour aller encore plus loin. (Selon les sous routines qu'on choisit, on peut même utiliser des experts non optimaux : les samples optimaux sont balancés en vracs dans DE, on s'en sortira, les non optimaux dans Dsim, on pourra quand même les exploiter.)
+# %Les trois contributions ont ceci de commun qu'elles peuvent fonctionner en conditions à peu de données, mais elles peuvent faire usage très facilement de savoir à priori si on en a. Donc SCIRL et CSI sont non seulement les deux seules qui semblent fonctionner de manière générique dans les situations à la con, mais pour les situations encore plus à la con on peut espérer utiliser des méthodes /ad-hoc/ pour aller encore plus loin. (Selon les sous routines qu'on choisit, on peut même utiliser des experts non optimaux : les samples optimaux sont balancés en vracs dans DE, on s'en sortira, les non optimaux dans Dsim, on pourra quand même les exploiter.)
 * Perspectives de recherche 
 
-  Justement, on aimerait faire des trucs plus couillus
+# %  Justement, on aimerait faire des trucs plus couillus
 \bibliographystyle{plainnat}
 \bibliography{../../Biblio/Biblio}
