@@ -71,7 +71,7 @@ else:
     print("#+LaTeX_header:"+r"\usepackage[toc,savewrites,xindy,sort=def]{glossaries}")
 print("#+LaTeX_header:"+r"\newcommand{\dash}{\ensuremath{'}}")
 print("#+LaTeX_header:"+r"\newcommand{\apos}{'}")
-print("#+LaTeX_header:"+r"\newglossary[nlg]{notation}{not}{ntn}{Notation}")
+print("#+LaTeX_header:"+r"\newglossary[nlg]{notation}{not}{ntn}{Notations}")
 for line in headers.split('\n'):
     print("#+LaTeX_header:"+line)
 
