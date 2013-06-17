@@ -153,6 +153,11 @@
 *** TODO sous-gradient et pas sous gradient
 *** TODO Trouver un moyen de mettre les chapeaux et les barres au bon endroit
 *** TODO Transformer la distrib de l'expert en mettant le E en indice. Et du coup virer les parenthèses. Pareil pour nimprte quelle distrib
+*** TODO Décider de la présence du chapeau sur la récompense paramétrée par theta
+*** TODO Lorsque je cite mes papiers, les citer tous - modifier le bib.
+*** TODO Virer les <-> dans les données pour la régression
+*** TODO réécrire la partie qui commence par il est facile de voir dans la démo de SCIRL
+*** TODO Vérifier à la main toute référence à une figure.
 ** Trucs à ajouter je ne sais où
 *** Contre exemple politique, tache
     Je peux décrire une politique sur un espace d'état, mais pas la récompense, exemple. le mettre au début de 2.3.1 ou ailleurs.
@@ -604,6 +609,7 @@ Le principal problème de l'apprentissage direct de la politique de manière sup
 Pour comprendre ce but de l'expert qu'il nous importe de connaître, ce n'est pas au niveau du choix état-action que décrit la politique qu'il faut regarder, mais à un niveau d'abstraction plus grand : la dynamique que la politique de l'expert impose au système. La notion qui nous manque pour entamer le raisonnement est celle de l'effet d'une action. Nous ne nous sommes préoccupés que du choix de l'action en fonction de l'état courant sans nous soucier de ce que ce choix allait imposer comme contraintes sur le prochain état que l'agent va rencontrer. Afin de pouvoir considérer la politique de l'expert non plus comme un ensemble décousu d'associations état-action, mais comme un outil capable de produire des séquences d'actions porteuses de sens au point de vue d'un critère long terme, nous formalisons la notion de dynamique temporelle.
 
 *** Dynamique temporelle
+# <<hier:tempdyn>>
 
 # ?s timeindex 't' 'Indice temporel'
 # ?s timehorizon '\infty' 'Horizon temporel'
@@ -714,9 +720,9 @@ L'opérateur associé :
 \bellmanoptopeval{\rewardfunc}{V} = \max_{\policy}\bellmanevalopeval{\policy}{\rewardfunc}{V}
 \label{eq:bellmanoptop}
 \end{equation}
-est l'opérateur d'optimalité de Bellman. Contractant lui aussi, il admet donc un unique point fixe qui se trouve être la fonction de valeur optimale $\rlvalue{\optimalpolicy{\rewardfunc}}{\rewardfunc}$. Toute politique gloutonne vis-à-vis de la politique optimale associée est également une politique optimale. Ainsi :
+est l'opérateur d'optimalité de Bellman. Contractant lui aussi, il admet donc un unique point fixe qui se trouve être la fonction de valeur optimale $\rlvalue{\optimalpolicy{\rewardfunc}}{\rewardfunc}$. Toute politique gloutonne vis-à-vis de la politique optimale associée est également une politique optimale. Ainsi : 
 \begin{align}
-\optimalpolicy{\rewardfunc} &\in \greedy{\optimalpolicy{\rewardfunc}}\\
+\optimalpolicy{\rewardfunc} &\in \greedy{\optimalpolicy{\rewardfunc}}\label{eq:greedy01}\\
 \forall \state \in \statespace, \optimalpolicy{\rewardfunc}(\state) &\in \arg\max_{\action\in \actionspace}\quality{\optimalpolicy{\rewardfunc}}{\rewardfunc}(\state,\action).
 \label{eq:rlargmax}
 \end{align}
@@ -1023,7 +1029,7 @@ Une règle de mise à jour $\muupdate$ permettant de réduire la distance\;
 Une méthode d'évaluation de l'attribut moyen d'une politique arbitraire\;
 Une méthode de résolution d'un \gls{mdp}\;
 }
-\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl}$}
+\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\rewardfunc_{\paramirl}$}
 Calculer l'attribut moyen de l'expert $\expertmu$ à partir de la démonstration\;
 Initialiser $\theta$ arbitrairement\;
 \Tq{$\mudistance(\expertmu,\appr{\rlmu{\policy}}) > \epsilon$}{
@@ -1076,7 +1082,7 @@ $\theta \leftarrow \muupdate(\expertmu,\appr{\rlmu{\policy}})$\;
 \begin{algorithm}
 \Entree{Une base de données $\sastrace{\expertpolicy}$ organisée en $\munbtraj$ trajectoires de longueurs $\muhorizon_{\spaceindex}$\;
 Une base de données échantillonnées aléatoirement $\sastrace{\sim}$ organisée en $\munbtraj'$ trajectoires de longueurs $\muhorizon'_{\spaceindex}$\;}
-\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl} = \transpose{\paramirl}\featurestatefunc$}
+\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\rewardfunc_{\paramirl} = \transpose{\paramirl}\featurestatefunc$}
 Initialiser $\paramirl$ arbitrairement\;
 Calculer 
 \begin{equation*}
@@ -1267,7 +1273,7 @@ $\theta \leftarrow \muupdate(\expertmu,\appr{\rlmu{\policy}})$\;
 \label{alg:repeteelstd}
 \end{algorithm}
 
-L'estimation de l'attribut moyen par \gls{lstdmu} est imparfaite, comme nous l'avons étudié \autoref{hier-lstdmuerror}. Une erreur trop grande empêcherait l'algorithme d'\gls{irl} de converger. Dans le schéma de l'\autoref{alg:repeteelstd}, les sources d'erreurs principales sont l'estimation de l'attribut moyen par \gls{lstdmu} et la résolution du \gls{mdp} par \gls{lspi}. Les erreurs introduites par ces deux routines dépendent largement de la qualité et de la quantité des données contenues dans la trace $\sastrace{\sim}$ de données non expertes. Elles dépendent aussi bien sûr du choix des fonctions d'attribut $\featurestateactionfunc_R$ et \featurestateactionfunc_\mu$. 
+L'estimation de l'attribut moyen par \gls{lstdmu} est imparfaite, comme nous l'avons étudié \autoref{hier-lstdmuerror}. Une erreur trop grande empêcherait l'algorithme d'\gls{irl} de converger. Dans le schéma de l'\autoref{alg:repeteelstd}, les sources d'erreurs principales sont l'estimation de l'attribut moyen par \gls{lstdmu} et la résolution du \gls{mdp} par \gls{lspi}. Les erreurs introduites par ces deux routines dépendent largement de la qualité et de la quantité des données contenues dans la trace $\sastrace{\sim}$ de données non expertes. Elles dépendent aussi bien sûr du choix des fonctions d'attribut $\featurestateactionfunc_R$ et $\featurestateactionfunc_\mu$. 
 
 Intuitivement, on peut argumenter que le schéma d'itération de la politique qu'est \gls{lspi}, qui implique donc l'évaluation répétée de politiques arbitraires, sera plus problématique qu'une simple évaluation de la politique (même sur plusieurs composantes) comme \gls{lstdmu}. Une expérience permet de confirmer empiriquement cette intuition.
 
@@ -1304,7 +1310,7 @@ La trace non experte $\sastrace{\sim}$ provient d'une politique aléatoire mise 
 \centering
 \includegraphics[width=.45\linewidth]{Figures/LSTDMU_d.pdf}
 }
-\caption[\glstext{irl} itératif et \glstext{lstdmu} sur le pendule]{Comparaison de deux approches itératives de l'\gls{irl} sur le problème du pendule inversé. L'une est décrite \autoref{alg:repeteelstd} (LSTD sur les courbes), l'autres est identique sauf en ce qui concerne l'estimation de l'attribut moyen, qui est faite par un oracle (MC sur les courbes). On constate que les deux approches ont le même comportement. Dès lors que la quantité de données aléatoire est suffisante pour que \gls{lspi} résolve le \gls{mdp} correctement, l'algorithme d'\gls{irl} converge vers une bonne solution. Cela démontre empiriquement que les erreurs introduites par la résolution répétée du \gls{mdp} sont plus importantes que celles liées à l'estimation de l'attribut moyen par notre algorithme \gls{lstdmu}.}
+\caption[\glstext{irl} itératif et \glstext{lstdmu} sur le pendule]{Comparaison de deux approches itératives de l'\gls{irl} sur le problème du pendule inversé. L'ordonnée est le nombre de pas de temps durant lesquels la politique évaluée est en mesure de maintenir le pendule en équilibre, avec un maximum à $3000$. L'une est décrite \autoref{alg:repeteelstd} (LSTD sur les courbes), l'autre est identique sauf en ce qui concerne l'estimation de l'attribut moyen, qui est faite par un oracle (MC sur les courbes). On constate que les deux approches ont le même comportement. Dès lors que la quantité de données aléatoire est suffisante pour que \gls{lspi} résolve le \gls{mdp} correctement, l'algorithme d'\gls{irl} converge vers une bonne solution. Cela démontre empiriquement que les erreurs introduites par la résolution répétée du \gls{mdp} sont plus importantes que celles liées à l'estimation de l'attribut moyen par notre algorithme \gls{lstdmu}.}
 \label{fig:lstdmuexp}
 \end{figure}
 
@@ -1364,32 +1370,32 @@ Nous décrivons les principe général de scirl \autoref{hier-scirlprinciple}, p
 
    Afin de permettre aux techniques de classification d'exploiter cette structure temporelle qui leur manque, nous allons étudier comment introduire l'attribut moyen dans la fonction de score. Nous avons vu \autoref{eq:muvaleurvec} que l'attribut moyen est une fonction de valeur vectorielle, il porte donc cette structure temporelle indispensable à la réconciliation de l'optimisation locale et long terme. De plus, de par sa définition, il est naturellement présent dans la fonction de qualité $\quality{\expertpolicy}{\rewardfunc_{\paramirl}}$ pour la récompense paramétrée linéairement $\rewardfunc_{\paramirl}$ :
 \begin{align}
-\textrm{avec }\forall \timeindex \in \llbracket 2;\infty\rrbracket, \state_{\timeindex} &\sim \transprobfunceval{\state_{\timeindex-1}}{\expertpolicy(\state_{\timeindex-1})}{\cdot},\\
-\textrm{et }\state_{1} &\sim \transprobfunceval{\state_{0}}{\action}{\cdot},\\
-\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\rewardfunc_{\paramirl}(\state_{\timeindex})}{\state_0 = \state}\\
-\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\transpose{\paramirl}\featurestateactionfunc_{\rewardfunc}(\state_{\timeindex},\action_{\timeindex})}{\state_0 = \state,\action_0=\action}\\
-\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=\transpose{\paramirl}\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestateactionfunc_{\rewardfunc}(\state_{\timeindex},\action_{\timeindex})}{\state_0 = \state,\action_0=\action}\\
-\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=\transpose{\paramirl} \expertmu{\policy}(\state,\action).
+\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a)&=\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\rewardfunc_{\paramirl}(\state_{\timeindex},\action_{timindex})}{\state_0 = \state,a_0=a,\policy}\\
+&=\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\transpose{\paramirl}\featurestateactionfunc_{\rewardfunc}(\state_{\timeindex},\action_{\timeindex})}{\state_0 = \state,\action_0=\action,\policy}\\
+&=\transpose{\paramirl}\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestateactionfunc_{\rewardfunc}(\state_{\timeindex},\action_{\timeindex})}{\state_0 = \state,\action_0=\action,\policy}\\
+&=\transpose{\paramirl} \expertmu(\state,\action).
 \label{eq:qemuparam}
 \end{align}
 
-Sachant tout cela, nous choisissons un classifieur à fonction de score $\classifscorefunc_{\paramirl}$ qui puisse être paramétrée linéairement. Comme nous avons identifié le rôle de la fonction de score et celui de la fonction de qualité optimale, nous utilisons comme attribut pour la paramétrisation linéaire de la fonction de score l'attribut moyen de l'expert $\expertmu$ afin d'obtenir une expression identique à l'\autoref{eq:qemuparam} :
+Sachant tout cela, nous choisissons un classifieur à fonction de score $\classifscorefunc_{\paramirl}$ qui puisse être paramétrée linéairement. Comme nous avons identifié le rôle de la fonction de score et celui de la fonction de qualité optimale, nous utilisons comme attribut pour la paramétrisation linéaire de la fonction de score une approximation $\hat\expertmu$ de l'attribut moyen de l'expert $\expertmu$ afin d'obtenir une expression identique à l'\autoref{eq:qemuparam} :
 \begin{equation}
-\classifscorefunc_{\paramirl} = \transpose{\paramirl}\expertmu.
+\classifscorefunc_{\paramirl} = \transpose{\paramirl}\appr{\expertmu}.
 \end{equation}
-Ce que le classifieur apprend en réalité quand il apprend la fonction de score est le vecteur de paramètres $\paramirl$, qui est également le vecteur de paramètres de la fonction de récompense (\autoref{eq:paramirl}). Ainsi, en résolvant de manière supervisée le problème de l'imitation, on résout du même coup le problème de l'\gls{irl}, simplement en paramétrant la classification avec un objet porteur de la structure temporelle du \gls{mdp}. Tout cela est résumé \autoref{alg:scirlgenerique}.
+L'algorithme \gls{lstdmu} du \autoref{hier-lstdmu} est tout indiqué pour fournir cette estimation.
+
+Ce que le classifieur apprend en réalité quand il apprend la fonction de score est le vecteur de paramètres $\paramirl$, qui est également le vecteur de paramètres de la fonction de récompense (\autoref{eq:paramirl}). Ainsi, en résolvant de manière supervisée le problème de l'imitation, on trouve une récompense (qui est l'objet d'intérêt de l'\gls{irl}), simplement en paramétrant la classification avec un objet porteur de la structure temporelle du \gls{mdp}. Tout cela est résumé \autoref{alg:scirlgenerique}.
 
 \begin{algorithm}
 \Entree{
 Une base d'entraînement établie par l'expert $\sastrace{\expertpolicy}$\;
 \Donnees{
-Une approximation de l'attribut moyen de l'expert $\expertmu$\;
+Une approximation $\appr{\expertmu}$ de l'attribut moyen de l'expert\;
 Un classifieur à fonction de score paramétrée linéairement\;
 }
-\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl} = \transpose{\paramirl}\featurestateactionfunc_{\rewardfunc}$}
+\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\rewardfunc_{\paramirl} = \transpose{\paramirl}\featurestateactionfunc_{\rewardfunc}$}
 Paramétrer la fonction de score $\classifscorefunc_{\paramirl}$ du classifieur comme cela :
 \begin{equation}
-\classifscorefunc_{\paramirl} = \transpose{\paramirl}\expertmu\;
+\classifscorefunc_{\paramirl} = \transpose{\paramirl}\appr{\expertmu}\;
 \end{equation}
 Entraîner le classifieur sur la base de données $\sastrace{\expertpolicy}$\;
 }
@@ -1398,41 +1404,32 @@ Entraîner le classifieur sur la base de données $\sastrace{\expertpolicy}$\;
 \label{alg:scirlgenerique}
 \end{algorithm}
 
-*** Instanciation
+*** Instanciation avec heuristique
 # <<hier:scirlinstan>>
-Si la majorité des approches de classification peuvent être vue comme utilisant une fonction de score, celle-ci n'est pas forcément paramétrée linéairement d'une manière qui nous permette d'appliquer \gls{scirl}. Fort heureusement, nous avons étudié un classifieur se prêtant bien à cet exercice en \autoref{hier-attributs}. La classification se réduit à une descente de sous-gradient :
+Si la majorité des approches de classification peuvent être vue comme utilisant une fonction de score, celle-ci n'est pas forcément paramétrée linéairement d'une manière qui nous permette d'appliquer \gls{scirl}. Fort heureusement, nous avons étudié un classifieur se prêtant bien à cet exercice en \autoref{hier-attributs}, l'\autoref{alg:taskar}. La classification se réduit à une descente de sous-gradient :
 \begin{align}
-\subgrad\structuredcost(\paramirl) &= \sum_{\datasetindex=1}^{N}\expertmu(\state_{\datasetindex},\best{\action}_{\datasetindex}) - \expertmu(\state_{\datasetindex},\action_{\datasetindex}),\\
+\subgrad\structuredcost(\paramirl) &= \sum_{\datasetindex=1}^{N}\left(\appr{\expertmu}(\state_{\datasetindex},\best{\action}_{\datasetindex}) - \appr{\expertmu}(\state_{\datasetindex},\action_{\datasetindex})\right),\\
 \textrm{avec : }
-\best{\action}_{\datasetindex} &=  \arg\max_{\action \in \actionspace} \transpose{\paramirl}\expertmu(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action),
+\best{\action}_{\datasetindex} &=  \arg\max_{\action \in \actionspace} \transpose{\paramirl}\appr{\expertmu}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action),
 \end{align}
 et $\margin$ telle que définie \autoref{eq:margin}.
 
-Le calcul du sous-gradient $\subgrad\structuredcost(\paramirl)$ implique de pouvoir évaluer l'attribut moyen de l'expert $\expertmu$ en tout état présent dans la base d'entraînement $\sastrace{\expertpolicy}$, pour toute action. A moins de disposer d'informations supplémentaires, telles qu'une base de données non experte ou les probabilités de transition, il n'y a pas de solution immédiate à ce problème.
+Cette méthode de classification est aussi celle employée par \citet{ratliff2006maximum} dans leur algorithme \gls{mmp}. Une différence importante entre \gls{scirl} et \gls{mmp} est que ce dernier prend la structure temporelle du problème en compte en associant des politiques à des \gls{mdp}. Cela fonctionne mais implique de devoir résoudre ces \gls{mdp} et fait donc de \gls{mmp} une approche itérative conforme au schéma de l'\autoref{alg:repetee}. Ici ce sont les actions sont associées aux états, comme dans les approches supervisées (\autoref{hier-nonari}. La structure temporelle est amenée par l'attribut moyen.
 
-Si les données de l'expert sont organisées en trajectoires, une adaptation de l'estimation de Monte-Carlo donnée \autoref{alg:montecarlodupauvre} permet d'obtenir une approximation de $\expertmu$ pour les couples $(\state_{\datasetindex},\action_{\datasetindex})$ présents dans la base. Il faut noter que la qualité de l'estimation risque de diminuer à mesure que l'on s'approche de la fin de la trajectoire, puisque le nombre d'échantillons participant au calcul diminue. Il est également possible d'utiliser \gls{lstdmu} pour obtenir une estimation \gls{onpolicy} de l'attribut moyen de l'expert. Un des avantages est de ne pas nécessiter de trajectoires cohérentes de la part de l'expert, de simples échantillons suffisent. Ces échantillons sont d'ailleurs mieux utilisés puisque si deux échantillons $(\state_{\spaceindex_1},\action_{\spaceindex_1},\state'_{\spaceindex_1})$ et $(\state_{\spaceindex_2},\action_{\spaceindex_2},\state'_{\spaceindex_2})$ sont présents dans la base avec $\state_{\spaceindex_1}$ proche de $\state_{\spaceindex_2}$ et $\action_{\spaceindex_1} = \action_{\spaceindex_2}$, alors pour peu que les attributs utilisés aient une cohérence spatiale, $\featurestateactionfunc_{\mu}(\state_{\spaceindex_1},\action_{\spaceindex_1})$ sera proche de $\featurestateactionfunc_{\mu}(\state_{\spaceindex_2},\action_{\spaceindex_2})$ et les mises à jour des lignes \ref{alg:lstdmu:A} et \ref{alg:lstdmu:b}  de l'\autoref{alg:lstdmu} auront un effet similaire sur le vecteur de paramètres $\paramlstdmu$. Il n'y a pas une tel synergie entre deux échantillons proches dans l'approche de l'\autoref{alg:montecarlodupauvre}.
+Le calcul du sous-gradient $\subgrad\structuredcost(\paramirl)$ implique de pouvoir évaluer l'attribut moyen de l'expert $\expertmu$ en tout état présent dans la base d'entraînement $\sastrace{\expertpolicy}$, pour toute action.
 
-\begin{algorithm}
-\Entree{Une base de données $\sastrace{\expertpolicy}$ organisée en $\munbtraj$ trajectoires de longueurs $\muhorizon_{\spaceindex}$\;}
-\Res{Une estimation de $\expertmu$ sur chacun des points de $\{(\state, \action)|\exists\datasetindex,\state =\state_{\datasetindex}, \action = \action_{\datasetindex}\textrm{ et }\state_{\datasetindex},a_{\datasetindex},\state'_{\datasetindex}\in\sastrace{\expertpolicy}\}$.\;}
-\PourCh{trajectoire $(\state_{\timeindex},\action_{\timeindex},\state'_{\timeindex})_{\timeindex \in \llbracket 0;\muhorizon_{\spaceindex}\rrbracket} \in \sastrace{\expertpolicy}$}{
-\PourCh{couple $(\state_{\datasetindex},\action_{\datasetindex})$ de la trajectoire}{
-\begin{equation*}
-\appr{\expertmu}(\state_{\datasetindex},\action_{\datasetindex}) \leftarrow \sum\limits_{\timeindex = 0}^{\muhorizon-1-\datasetindex} \discount^{\timeindex}\featurestateactionfunc_{\rewardfunc}(\state_{\timeindex+\datasetindex},\action_{\timeindex+\datasetindex})
-\end{equation*}
-}}
-\Retour{$\appr{\expertmu}$}
-\caption{Estimation de $\rlmu{\policy}$ par une méthode de Monte-Carlo sur les points présents dans la base d'entraînement}
-\label{alg:montecarlodupauvre}
-\end{algorithm}
-
-
+Si les données de l'expert sont organisées en trajectoires, sur une trajectoire de longueur $L$, il est possible d'estimer $\expertmu$ sur tous les couples $(\state_i,\action_i)$ de la trajectoire grâce à une simple estimation de Monte-Carlo :
+\begin{equation}
+\appr{\expertmu}(\state_{\datasetindex},\action_{\datasetindex}) = \sum\limits_{\timeindex = 0}^{\muhorizon-1-\datasetindex} \discount^{\timeindex}\featurestateactionfunc_{\rewardfunc}(\state_{\timeindex+\datasetindex},\action_{\timeindex+\datasetindex}).
+\label{eq:montecarlodupauvre}
+\end{equation}
+Il faut noter que la qualité de l'estimation risque de diminuer à mesure que l'on s'approche de la fin de la trajectoire, puisque le nombre d'échantillons participant au calcul diminue. Cette méthode fonctionne bien sur les problèmes quasi-déterministes mais risque de poser problème sur les dynamiques plus stochastiques. Utiliser \gls{lstdmu} est la solution la plus souple. Si seules les données de l'expert sont disponibles, une version \gls{onpolicy} de l'algorithme permettra d'obtenir une estimation $\appr{\expertmu}$ sur les couples $(s_i,a_i)$ présents dans la base d'entraînement. Si des données non expertes sont également disponibles, alors \gls{lstdmu} dans sa version \gls{offpolicy} saura les exploiter.
 
 Le calcul de $\best{\action_{\datasetindex}}$ dans le sous-gradient implique, pour un état de la base d'entraînement, de connaître l'attribut moyen de l'expert pour toute action, et non juste celle choisie par l'expert. En l'absence de données, il est impossible de palier à ce problème d'une manière qui soit formellement juste. Nous pouvons en revanche employer une heuristique dont l'étude expérimentale (\autoref{hier-scirlexp}) montrera la validité.
 
 Pour introduire intuitivement l'heuristique, imaginons dans une voiture à double commande telles celles employées par les auto-écoles un expert au volant, la tâche étant de conduire. Imaginons maintenant qu'un plaisantin dans le siège passager applique un instant une force sur le volant, ou appuie brièvement et légèrement sur une des pédales. On voit qu'à l'échelle de de la tâche cette perturbation est minime et le conducteur expert a tôt fait de poursuivre tel qu'il l'aurait fait si la perturbation n'avait pas eu lieu. De la même manière, on suppose qu'une perturbation causée par une action parasite lorsqu'on doit évaluer $\expertmu(\state,\action\neq\expertpolicy(\state))$ est immédiatement absorbée par une action correctrice de l'expert, et donc que la seule conséquence de la perturbation est de faire perdre un pas de temps à l'expert. Pour cette raison, l'heuristique pose :
 \begin{equation}
-\appr{\expertmu}(\state,\action\neq \expertpolicy(\state))\leftarrow \discount \appr{\expertmu}(\state,\expertpolicy(\state))
+\appr{\expertmu}(\state_i,\action \neq \action) = \discount \appr{\expertmu}(\state_i,a_i)
 \label{eq:heuristiquescirl}
 \end{equation}
 
@@ -1445,11 +1442,11 @@ Une base d'entraînement établie par l'expert $\sastrace{\expertpolicy}$\;}
 Une approximation $\appr{\expertmu}$ de l'attribut moyen sur tous les états présents dans la base $\sastrace{\expertpolicy}$\;
 L'extension de cette approximation à toutes les actions grâce l'heuristique de l'\autoref{eq:heuristiquescirl}\;
 }
-\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\appr{\rewardfunc}_{\paramirl} = \transpose{\paramirl}\featurestateactionfunc_{\rewardfunc}$}
+\Sortie{Un vecteur de paramètres $\paramirl$ pour la récompense $\rewardfunc_{\paramirl} = \transpose{\paramirl}\featurestateactionfunc_{\rewardfunc}$}
 Initialiser $\paramirl$ arbitrairement\;
 Procéder à la descente de sous-gradient dont le sous-gradient est :
 \begin{equation*}
-\subgrad\structuredcost(\paramirl) = \sum_{\datasetindex=1}^{N}\appr{\expertmu}\left(\state_{\datasetindex},\max_{\action\in\actionspace}\transpose{\paramirl}\appr{\expertmu}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)\right) - \appr{\expertmu}(\state_{\datasetindex},\action_{\datasetindex})\;
+\subgrad\structuredcost(\paramirl) = \sum_{\datasetindex=1}^{N}\appr{\expertmu}\left(\state_{\datasetindex},\arg\max_{\action\in\actionspace}\transpose{\paramirl}\appr{\expertmu}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)\right) - \appr{\expertmu}(\state_{\datasetindex},\action_{\datasetindex})\;
 \end{equation*}
 \Retour{$\paramirl$}
 \caption{\glstext{scirl} uniquement sur des données expertes}
@@ -1458,15 +1455,19 @@ Procéder à la descente de sous-gradient dont le sous-gradient est :
 
 ** Validation théorique 
 # <<hier:scirltheo>>
-   Lorsque nous avons posé le problème de l'\gls{irl}, nous avons discuté des critères permettant de d'évaluer la qualité de la solution. Dans l'analyse théorique de \gls{scirl}, c'est le critère de l'\autoref{eq:aricritere} qui nous intéresse. Il mesure l'optimalité de la politique de l'expert pour la récompense renvoyée par \gls{scirl}. Nous allons le borner par un terme qui dépend d'objets dont certains n'ont pas encore été introduits.
+
+Maintenant que le principe de \gls{scirl} ainsi qu'une instanciation particulière utilsant l'\autoref{alg:taskar} et \gls{lstdmu} sont en place, intéressons-nous aux garanties théoriques qu'il est possible de fournir sur les performances d'imitation de \gls{scirl}.
+
+   Lorsque nous avons posé le problème de l'\gls{irl}, nous avons discuté des critères permettant d'évaluer la qualité de la solution. Dans l'analyse théorique de \gls{scirl}, c'est le critère de l'\autoref{eq:aricritere} qui nous intéresse. Il mesure l'optimalité de la politique de l'expert pour la récompense renvoyée par \gls{scirl}. Nous allons le borner par un terme qui dépend d'objets dont certains n'ont pas encore été introduits.
 
 # ?s ccoeff 'C_f' 'Coefficient de concentration dans le pire des cas'
    Le premier de ces objet est le le coefficient de concentration $\ccoeff$, \citep{munos2007performance} qui mesure l'écart entre les distributions induites par deux politiques. Ici il s'agit d'un maximum qui sélectionne la politique dont la distribution est la plus "différente" possible de celle de l'expert :
 \begin{align}
-  \ccoeff &= (1-\gamma)\sum_{t\geq 0} \gamma^t c(t)\\
+  \ccoeff &= (1-\gamma)\sum_{t\geq 0} \gamma^t c(t)\label{eq:ccoeffdef}\\
 \text{ avec } c(t) &=
-  \max_{\pi_1,\dots,\pi_t,s\in\state}\frac{(\rho_E^\top \transprobmat{\pi_1}\dots
+  \max_{\pi_1,\dots,\pi_t,s\in\statespace}\frac{(\rho_E^\top \transprobmat{\pi_1}\dots
   \transprobmat{\pi_t})(s)}{\rho_E(s)}.
+\label{eq:ctdef}
 \end{align}
 
 Nous rappelons également la définition de l'erreur de classification $\classiferror{\expertdistrib}$ (\autoref{eq:classiferror}) :
@@ -1495,123 +1496,58 @@ C'est l'espérance sur la distribution stationnaire de l'expert de la maximisati
 Nous avons maintenant introduit les notions nécessaires à l'expression de la borne théorique sur la qualité de la récompense fournie par \gls{scirl} :
 \begin{theorem}[Borne des performances de \glstext{scirl}]
   \label{thm:scirl}
-  Soit $R_{\theta}$ la fonction de récompense renvoyée par l'\autoref{alg:scirlgenerique}. Soient $C_f$, $\epsilon_c$
+  Soit $R_{\theta}$ la fonction de récompense renvoyée par l'\autoref{alg:scirlgenerique}. Soient $C_f$, $\classiferror{\expertdistrib}$
   et $\bar{\epsilon}_Q$ les quantités définies ci-dessus. On a :
   \begin{equation}
     0\leq
-    \expectationknowing{V^{\pi^*_{R_{\theta}}}_{R_{\theta}}-V^{\pi_E}_{R_{\theta}}}{s\sim\rho_E}
+    \expectationknowing{V^{\pi^*_{R_{\theta}}}_{R_{\theta}}-V^{\expertpolicy}_{R_{\theta}}}{s\sim\rho_E}
     \leq \frac{C_f}{1-\gamma}\left(\bar{\epsilon}_Q +
-    \epsilon_c\frac{2\gamma\|R_{\theta}\|_\infty}{1-\gamma}
+    \classiferror{\expertdistrib}\frac{2\gamma\|R_{\theta}\|_\infty}{1-\gamma}
     \right).
   \end{equation}
 \end{theorem}
-
-\begin{proof}[Preuve du \autoref{thm:scirl}]
-Nous allons décomposer le terme $V^{\pi^*_{R_{\theta}}}_{R_{\theta}}-V^{\pi_E}_{R_{\theta}}$ (qui est positif ou, au mieux, nul, puisque $\pi^*_{R_{\theta}}$ est optimale) afin de faire apparaître le résidu de Bellman $\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{V^{\pi_E}_{R_{\theta}}}(s)-V^{\pi_E}_{R_{\theta}}(s)}{s\sim\rho_E}$. On rappelle que les définitions des opérateurs d'optimalité et d'évaluation de Bellman $\bellmanoptopeval{\rewardfunc}{}$ et $\bellmanevalopeval{\pi}{\rewardfunc}{}$ sont données \autoref{eq:bellmanoptop} et \ref{eq:bellmanevop}.
-  \begin{equation}
-    V^{\pi^*_{R_{\theta}}}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}} =  V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\pi_E}_{R_{\theta}} +
-    {\color{blue}\bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\pi_E}_{R_{\theta}} - \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}}
-\end{equation}
-or $\bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}} V^{\pi_E}_{R_{\theta}}\leq \bellmanoptopeval{\rewardfunc_{\theta}}{}
-  V^{\pi_E}_{R_{\theta}}$, donc ${\color{blue}\bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}} V^{\pi_E}_{R_{\theta}}- \bellmanoptopeval{\rewardfunc_{\theta}}{}
-  V^{\pi_E}_{R_{\theta}}\leq 0}$, donc :
-\begin{align}
-    V^{\pi^*_{R_{\theta}}}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}} &\leq  V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\pi_E}_{R_{\theta}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}}\\
-     &\leq \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\pi_E}_{R_{\theta}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}}\\
-     &\leq \rewardfunc_{\theta}+\discount \transprobmat{\pi^*_{R_{\theta}}} V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \rewardfunc_{\theta}-\discount \transprobmat{\pi^*_{R_{\theta}}} V^{\pi_E}_{R_{\theta}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}}\\
-     &\leq \discount \transprobmat{\pi^*_{R_{\theta}}} V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  -\discount \transprobmat{\pi^*_{R_{\theta}}} V^{\pi_E}_{R_{\theta}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}}\\
-     &\leq \discount \transprobmat{\pi^*_{R_{\theta}}}\left( V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - V^{\pi_E}_{R_{\theta}}\right) + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}}.
-\end{align}
-En vertu de~\citep[Lemme~4.2]{munos2007performance},
-\begin{equation}
-  V^{\pi^*_{R_{\theta}}}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}} \leq (I-\gamma \transprobmat{\pi^*_{R_{\theta}}}P_{\pi^*})^{-1} (\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}}- V^{\pi_E}_{R_{\theta}}).
- \end{equation}
- Comme $\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}}\geq V^{\pi_E}_{R_{\theta}}$ et $(I-\gamma P_{\pi^*})^{-1} = \sum_{t\geq 0}\gamma^t (\transprobmat{\pi^*})^t$, d'après la définition du coefficient de concentration $\ccoeff$ :
-  \begin{equation}
-    0\leq\expectationknowing{V^{\pi^*_{R_{\theta}}}_{R_{\theta}}(s)-V^{\pi_E}_{R_{\theta}}(s)}{s\sim\rho_E} \leq \frac{C_f}{1-\gamma}
-    \expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{}V^{\pi_E}_{R_{\theta}}(s) - V^{\pi_E}_{R_{\theta}}(s)}{s\sim\rho_E}.
-    \label{erooesidual}
-  \end{equation}
-  Ce qui est un résultat similaire à celui de~\citep[Theoreme~4.2]{munos2007performance}. Il nous faut maintenant borner le résidu de Bellman $\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{}V^{\pi_E}_{R_{\theta}}(s) -
-  V^{\pi_E}_{R_{\theta}}(s)}{s\sim\rho_E}$, que nous décomposons en :
-  \begin{equation}
-  \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}} - V^{\pi_E}_{R_{\theta}} = \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}} - \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\pi_E}_{R_{\theta}} + \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\pi_E}_{R_{\theta}}- V^{\pi_E}_{R_{\theta}}.
-    \label{erooecomposition}
-  \end{equation}
-  Nous allons borner séparément 
-\begin{align}
-\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\pi_E}_{R_{\theta}}(s) - \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\pi_E}_{R_{\theta}}(s)}{s\sim\rho_E}\\
-\textrm{ et }\expectationknowing{\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\pi_E}_{R_{\theta}}(s) - V^{\pi_E}_{R_{\theta}}(s)}{s\sim\rho_E}.
-\end{align}
-
-  La politique de classification $\classifpolicy$ est gloutonne vis-à-vis de $\classifscorefunc_{\paramirl}=\transpose{\paramirl}\hat{\mu}^{\expertpolicy}$. Donc, pour chaque couple état-action
-  $(s,a)\in\statespace\times \actionspace$ :
-  \begin{equation}
-    \classifscorefunc_{\paramirl}(s,\classifpolicy(s))\geq
-    \classifscorefunc_{\paramirl}(s,a)
-    \Leftrightarrow
-    \quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a) \leq \quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,\classifpolicy(s)) +
-    \epsilon_Q(s,\classifpolicy(s)) - \epsilon_Q(s,a).
-  \end{equation}
-  Par définition, $\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a) = [\bellmanevalopeval{a}{\rewardfunc_{\paramirl}}{} V^{\expertpolicy}_{R_{\theta}}](s)$ et
-  $\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,\classifpolicy(s)) = [\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{} V^{\expertpolicy}_{R_{\theta}}](s)$. Donc, pour $s\in\statespace$:
-  \begin{align}
-    \forall a\in A,\; [\bellmanevalopeval{a}{\rewardfunc_{\paramirl}}{} V^{\expertpolicy}_{R_{\theta}}](s) &\leq [\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}
-    V^{\expertpolicy}_{R_{\theta}}](s) + \epsilon_Q(s,\classifpolicy(s))-\epsilon_Q(s,a)
-    \\
-    \Rightarrow [\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}](s) &\leq [\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}
-    V^{\expertpolicy}_{R_{\theta}}](s) + \max_{a\in \actionspace}\epsilon_Q(s,a)-\min_{a\in
-    \actionspace}\epsilon_Q(s,a).
-  \end{align}
-  En passant à l'espérance selon $\rho_E$ et tout en rappelant que 
-  $\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}\geq V^{\expertpolicy}_{R_{\theta}}$, le premier terme est borné :
-  \begin{equation}
-    0 \leq \expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}(s) - \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}
-    V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E} \leq \bar{\epsilon}_Q.
-    \label{eroo1}
-  \end{equation}
-  Il reste finalement à borner le terme $\expectationknowing{\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}}(s) -
-  V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}$. \`A cet effet nous introduisons $M\in\mathbb{R}^{|\statespace|\times |\statespace|}$ la matrice diagonale définie par $M = \diag (\indicatorfunc{\{\classifpolicy(s)\neq\expertpolicy(s)\}})$. Grâce à cela, l'opérateur de Bellman $\bellmanevalopeval{\classifpolicy}{\rewardfunc}{}$ peut s'écrire, pour tout $V\in\mathbb{R}^{\statespace}$:
-  \begin{equation}
-    \bellmanevalopeval{\classifpolicy}{\rewardfunc}{}V = R + \gamma M \transprobmat{\classifpolicy} V + \gamma (I-M)\transprobmat{\expertpolicy} V
-    = R + \gamma \transprobmat{\expertpolicy} V + \gamma M (\transprobmat{\classifpolicy}-\transprobmat{\expertpolicy})V.
-  \end{equation}
-  En appliquant cet opérateur à  $V^{\expertpolicy}_{R_{\theta}}$ et en utilisant le fait que $R +
-  \gamma \transprobmat{\expertpolicy} V^{\expertpolicy}_{R_{\theta}} = \bellmanevalopeval{\expertpolicy}{\rewardfunc_{\paramirl}}{} V^{\expertpolicy}_{R_{\theta}} = V^{\expertpolicy}_{R_{\theta}}$, nous obtenons :
-  \begin{align}
-    &\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}} = \gamma M
-    (\transprobmat{\classifpolicy}-\transprobmat{\expertpolicy})V^{\expertpolicy}_{R_{\theta}}
-    \\\Rightarrow &|\rho_E^\top (\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}})| = \gamma
-    |\rho_E^\top M (\transprobmat{\classifpolicy}-\transprobmat{\expertpolicy})V^{\expertpolicy}_{R_{\theta}}|.
-  \end{align}
-  Il est facile de voir que $\|(\transprobmat{\classifpolicy}-\transprobmat{\expertpolicy})V^{\expertpolicy}_{R_{\theta}}\|_\infty
-  \leq \frac{2}{1-\gamma}\|R_{\paramirl}\|_\infty$, ce qui permet de borner le dernier terme
-  \begin{equation}
-    \left|\expectationknowing{\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}}(s) - V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}\right| \leq
-    \epsilon_c \frac{2\gamma}{1-\gamma} \|R_{\paramirl}\|_\infty.
-    \label{eroo2}
-  \end{equation}
-  Injecter les bornes des équations~\eqref{eroo1}
-  et~\eqref{eroo2} dans l'équation~\eqref{erooesidual} achève la démonstration.%, which concludes the proof.
-\end{proof}
-
+La preuve, due au travail de Matthieu Geist[fn::Co-auteur des contributions concernant \gls{scirl} \citep{klein2012sctructured}.] est reportée en \autoref{hier-demo}.
 Nous avons dit \autoref{hier-problemdef} que le critère que nous venons de borner avait le défaut d'être minimisé par la récompense nulle. Le vecteur de paramètres renvoyé par \gls{scirl} étant directement appris par un classifieur, il est improbable qu'une solution dégénérée puisse apparaître car cela ferait exploser l'erreur de classification $\classiferror{\expertdistrib}$. Par exemple pour le classifieur choisi dans l'instanciation de \gls{scirl} présentée \autoref{alg:scirlonlyexpert}, la fonction de marge $\margin$ et la fonction d'attribut $\featurestateactionfunc_{\rewardfunc}$ sommée par l'attribut moyen peuvent être choisies en fonction du problème afin de minimiser l'erreur de classification.
 
 Le terme $\|R_{\paramirl}\|_\infty$ n'est pas problématique car nous savons depuis la \autoref{hier-recompense} qu'il est possible de normaliser $\paramirl$ sans perte de généralité.
 
-Le terme le moins contrôlable de cette borne est l'erreur $\bar\epsilon_{Q}$, qui dépend de la qualité de l'estimation de l'attribut moyen $\hat\expertmu$. Il n'y a pas, particulièrement dans le cas où seules les données de l'expert sont disponibles, de garanties théoriques évidentes sur ce terme d'erreur, aussi la validation empirique de l'heuristique proposée à la section précédente est elle nécessaire.
+Le terme le moins contrôlable de cette borne est l'erreur $\bar\epsilon_{Q}$, qui dépend de la qualité de l'estimation de l'attribut moyen $\hat\expertmu$. L'usage de \gls{lstdmu} permet cependant de profiter des garanties offertes \autoref{hier-lstdmuerror}.
+
+Lorsque les deux termes d'erreur sont nuls, nous découvrons un corollaire intéressant :
+\begin{corollary}[\glstext{scirl} dans le cas idéal]
+Si $\classiferror{\expertdistrib} = 0$ et $\bar\epsilon_Q = 0$, alors $\expertpolicy$ est l'unique politique optimale pour la récompense $\rewardfunc_{\paramirl}$ renvoyée par \gls{scirl}.
+\end{corollary}
+\begin{proof}
+Soit $\policy^H$ une politique optimale pour $\rewardfunc_{\paramirl}$. Comme $\policy^H$ et $\expertpolicy$ sont toutes deux optimales, alors d'après l'\autoref{eq:greedy01} :
+\begin{align}
+\policy^H &\in \greedy{\expertpolicy}\\
+\Rightarrow \forall \state \in \statespace, \policy^H(s) &= \arg\max_{\action in \actionspace}\quality{\expertpolicy}{\rewardfunc_\theta}(s,a)\\
+&=\arg\max_{\action in \actionspace}\transpose{\paramirl}\expertmu(s,a).
+\end{align}
+Comme $\bar\epsilon_Q = 0$,
+\begin{align}
+\forall \state \in \statespace, \policy^H(s) &= \arg\max_{\action in \actionspace}\classifscorefunc_{\paramirl}(s,a)\\
+&=\classifpolicy(s).
+\end{align}
+Et comme $\classiferror{\expertdistrib} = 0$,
+\begin{equation}
+\forall \state \in \statespace, \policy^H(s) = \expertpolicy(s).
+\end{equation}
+\end{proof}
+
+Une autre propriété de \gls{scirl} est d'éviter les solutions dégénérées, en effet la solution dégénérée par excellence, la récompense nulle, minimise le critère utilisé dans la borne[fn::Pour $\paramirl=0$, $\expertpolicy$ est optimale pour $\rewardfunc_{\paramirl}$, de même que n'importe quelle autre politique.] mais implique que la politique de classification $\classifpolicy$ est la politique aléatoire uniforme, atteignant erreur de classification maximale $\classiferror{\expertdistrib} = \frac{\card{\actionspace}-1}{\card{\actionspace}}$. Le classifieur cherchant à minimiser $\classiferror{\expertdistrib}$, il est peu probable que ce cas advienne.
 
 ** Validation empirique
 # <<hier:scirlexp>>
-   Si l'agent est aux manettes d'un système où la moindre déviation par rapport au contrôle optimal entraîne un échec irrécupérable, alors l'heuristique proposée \autoref{eq:heuristiquescirl} ne permet probablement pas une bonne approximation de l'attribut moyen de l'expert, puisqu'elle est intuitivement basée sur le principe que l'expert est capable de revenir sur la bonne trajectoire après qu'un mauvais choix d'action a été effectué. Incidemment, si le \gls{mdp} que l'on considère possède ne fut-ce qu'un état où un mauvais choix entraîne un échec irrécupérable, alors le coefficient de concentration $\ccoeff$ présent dans la borne théorique de la section précédente explose. Il faut donc que l'opérateur, en bâtissant la représentation du problème, soit vigilant à ce phénomène. Nous démontrons empiriquement dans cette section que les propriétés nécessaires au bon fonctionnement de \gls{scirl} ne sont pas difficiles à réunir.
+   Si l'agent est aux manettes d'un système où la moindre déviation par rapport au contrôle optimal entraîne un échec irrécupérable[fn::Par échec irrécupérable, il est entendu une déviation vers une partie de l'espace d'état qui ne communique pas ou peu avec le reste, et de fait garde l'agent prisonnier sans possibilité de sortie. L'existence d'une telle zone dont la sortie serait rigoureusement impossible violerait la condition d'ergodicité dont nous avons parlé \autoref{hier-tempdyn}.], alors l'heuristique proposée \autoref{eq:heuristiquescirl} ne permet probablement pas une bonne approximation de l'attribut moyen de l'expert, puisqu'elle est intuitivement basée sur le principe que l'expert est capable de revenir sur la bonne trajectoire après qu'un mauvais choix d'action a été effectué. Il faut donc que l'opérateur, en bâtissant la représentation du problème, soit vigilant à ce phénomène. Nous illustrons empiriquement dans cette section que les propriétés nécessaires au bon fonctionnement de \gls{scirl} ne sont pas difficiles à réunir.
 
 *** Introduction
 
-   Contrairement à la section précédente, qui étudie le critère de l'\autoref{eq:aricritere} quantifiant le degré d'optimalité de la politique experte vis-à-vis de la récompense trouvée par \gls{scirl}, nous utiliserons ici des critères semblables à celui de l'\autoref{eq:aricriterebis}, qui mesure l'optimalité de la politique optimale pour la récompense trouvée par \gls{scirl}, par rapport à la récompense inconnue optimisée par l'expert. Nous profitons en cela de ce que la récompense optimisée par l'expert nous est connue sur ces problèmes jouets.
+   Contrairement à la section précédente, qui étudie le critère de l'\autoref{eq:aricritere} quantifiant le degré d'optimalité de la politique experte vis-à-vis de la récompense trouvée par \gls{scirl}, nous utiliserons ici un oracle pouvant observer des critères semblables à celui de l'\autoref{eq:aricriterebis}, qui mesure l'optimalité de la politique optimale pour la récompense trouvée par \gls{scirl}, par rapport à la récompense inconnue optimisée par l'expert. Nous profitons en cela de ce que la récompense optimisée par l'expert nous est connue sur ces problèmes jouets.
 
-   La politique dont l'optimalité est mesurée est issue de l'optimisation d'un \gls{mdp}, puisqu'elle est optimale pour la récompense $\rewardfunc_{\paramirl}$ trouvée par \gls{scirl}. Il faut bien comprendre que cette étape de résolution d'un \gls{mdp} ne fait pas partie de \gls{scirl} et est indépendante de la résolution du problème de l'\gls{irl}. L'objet d'intérêt de l'\gls{irl} est la récompense $\rewardfunc_{\paramirl}$, nous ne l'optimisons que dans un but d'évaluation, par un procédé dont nous préciserons la nature dans la description des expériences, mais qui n'a pas de réel intérêt. Dans une approche pratique d'imitation par le biais de l'\gls{irl}, il faudra bien entendu tenir compte de la contrainte qu'est la nécessité de résoudre le \gls{mdp} une fois la récompense trouvée. Il existe de multiples manières de faire, le choix de la technique utilisée dépend énormément du contexte et rejoint le problème vaste de l'apprentissage du contrôle optimal. Nous choisissons ici d'exposer des approches efficaces de l'\gls{irl}, facilement applicables à de multiples domaines, sans nous soucier de savoir comment la récompense sera optimisée, tant cette dernière étape est dépendante du problème. Nous la voyons comme un problème parallèle à celui de l'\gls{irl} et ne nous en soucions pas.
+   La politique dont l'optimalité est mesurée est issue de l'optimisation d'un \gls{mdp}, puisqu'elle est optimale pour la récompense $\rewardfunc_{\paramirl}$ trouvée par \gls{scirl}. Il faut bien comprendre que cette étape de résolution d'un \gls{mdp} ne fait pas partie de \gls{scirl} et est indépendante de la résolution du problème de l'\gls{irl}. L'objet d'intérêt de l'\gls{irl} est la récompense $\rewardfunc_{\paramirl}$, nous ne l'optimisons que dans un but d'évaluation, par un procédé dont nous préciserons la nature dans la description des expériences, mais qui n'a pas de réel intérêt. Dans une approche pratique d'imitation par le biais de l'\gls{irl}, il faudrait bien entendu tenir compte de la contrainte qu'est la nécessité de résoudre le \gls{mdp} une fois la récompense trouvée. Il existe de multiples manières de faire[fn::En l'absence de simulateur, il faudra avoir recours à des méthodes \gls{batch} et \gls{offpolicy}.], le choix de la technique utilisée dépend énormément du contexte et rejoint le problème vaste de l'apprentissage du contrôle optimal. Nous choisissons ici d'exposer des approches efficaces de l'\gls{irl}, facilement applicables à de multiples domaines, sans nous soucier de savoir comment la récompense sera optimisée, tant cette dernière étape est dépendante du problème. Nous la voyons comme un problème parallèle à celui de l'\gls{irl}.
 
-   Nous testons \gls{scirl} dans l'instanciation proposée \autoref{alg:scirlonlyexpert}, en utilisant l'\autoref{alg:montecarlodupauvre} pour l'estimation de l'attribut moyen de l'expert sur deux problèmes jouets, le \gls{mountaincar} \autoref{hier-expmountaincar} et le \gls{highway} \autoref{hier-exphighway}. Dans les deux cas, nous le comparons d'une part, à une approche d'imitation supervisée et d'autre part à l'algorithme d'\gls{irl} existant à notre connaissance le mieux adapté à un scénario où la collecte de données est coûteuse, \gls{relent}, dont la version échantillonnée que nous utilisons est décrite \autoref{alg:relent}. La représentation choisie (attributs, \autoref{hier-attributs}, ou noyau, \autoref{hier-svm}) est toujours une représentation naturelle et simple à mettre en œuvre, n'ayant pas nécessité d'ingénierie. 
+   Nous testons \gls{scirl} dans l'instanciation proposée \autoref{alg:scirlonlyexpert}, en utilisant l'\autoref{eq:montecarlodupauvre} pour l'estimation de l'attribut moyen de l'expert sur deux problèmes jouets, le \gls{mountaincar} \autoref{hier-expmountaincar} et le \gls{highway} \autoref{hier-exphighway}. Dans les deux cas, nous le comparons d'une part à une approche d'imitation supervisée et d'autre part à l'algorithme d'\gls{irl} existant à notre connaissance le mieux adapté à un scénario où la collecte de données est coûteuse, \gls{relent}, dont la version échantillonnée que nous utilisons est décrite \autoref{alg:relent}. La représentation choisie (attributs, \autoref{hier-attributs}, ou noyau, \autoref{hier-svm}) est toujours une représentation naturelle et simple à mettre en œuvre, n'ayant pas nécessité d'ingénierie. 
    
    La capacité de généralisation des méthodes supervisées dépendant en grande partie du soin apporté à la définition de cette représentation, ces expériences devraient montrer la supériorité des méthodes d'\gls{irl} face aux méthodes supervisées en ce qui concerne la généralisation à des parties de l'espace d'état n'ayant pas été explorées par l'expert. Grâce à l'extraction de la fonction de récompense, description succincte de la tâche à effectuer, les algorithmes d'\gls{irl} sont capables de guider l'agent lorsqu'il apprend le contrôle optimal dans la zone inexplorée, tandis que les méthodes supervisées restent myopes et ne peuvent utiliser toute l'information contenue dans les échantillons de l'expert.
    
@@ -1627,9 +1563,9 @@ Le terme le moins contrôlable de cette borne est l'erreur $\bar\epsilon_{Q}$, q
 
     Les attributs utilisés par \gls{lspi}, \gls{scirl} et \gls{relent} sont les mêmes, il s'agit d'un maillage de gaussiennes tel que décrit \autoref{eq:gaussianrbf} et illustré \autoref{fig:mountain_car_psi}.
 
-    Le classifieur dont les performances sont illustrées est une \gls{svm} à noyau gaussien dont les paramètres sont choisis automatiquement par l'implémentation utilisée[fn::http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html]. Les performances de cette technique étant très légèrement supérieures à ceux du classifieur structuré de \citet{taskar2005learning} (\autoref{alg:taskar}), ce sont celles qui nous affichons ici.
+    Le classifieur dont les performances sont illustrées est une \gls{svm} à noyau gaussien dont les paramètres sont choisis automatiquement par l'implémentation utilisée[fn::\url{http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html}]. Les performances de cette technique étant très légèrement supérieures à ceux du classifieur structuré de \citet{taskar2005learning} (\autoref{alg:taskar}), ce sont celles que nous affichons ici.
 
-    En ordonnée sur la \autoref{fig:scirlmountaincar}, le nombre de pas nécessaire à l'agent pour qu'il atteigne le but (plafonné à $300$), moyenné sur tout l'espace d'état. Ce critère est directement lié à la valeur de la politique pour la récompense inconnue $\expertreward$ : si l'expert touche une récompense de $1$ lorsqu'il atteint l'objectif, et que la récompense est nulle partout ailleurs, du fait de l'amortissement temporel la valeur de sa politique en un état vaut $\discount^T$ où $T$ est le nombre de pas qui le sépare de l'objectif. En conséquence, ce que nous traçons est le logarithme en base $\discount$ de la valeur moyenne de la politique.
+    En ordonnée sur la \autoref{fig:scirlmountaincar}, nous représentons le nombre de pas nécessaire à l'agent pour qu'il atteigne le but (plafonné à $300$), lorsque l'état de départ est tiré aléatoirement dans l'espace d'état entier. Les valeurs affichées sont la moyenne et l'écart-type sur $100$ expériences. Ce critère est directement lié à la valeur de la politique pour la récompense inconnue $\expertreward$ : si l'expert touche une récompense de $1$ lorsqu'il atteint l'objectif, et que la récompense est nulle partout ailleurs, du fait de l'amortissement temporel la valeur de sa politique en un état vaut $\discount^T$ où $T$ est le nombre de pas qui le sépare de l'objectif. En conséquence, ce que nous traçons est le logarithme en base $\discount$ de la valeur moyenne de la politique.
 
 \begin{figure}
 \centering
@@ -1638,23 +1574,23 @@ Le terme le moins contrôlable de cette borne est l'erreur $\bar\epsilon_{Q}$, q
 \label{fig:scirlmountaincar}
 \end{figure}
 
-Les résultats présentés \autoref{fig:scirlmountaincar} sont conformes à ce qui était attendu, en ce sens que les deux algorithmes d'\gls{irl} sont plus performants que la méthode supervisée. On constate cependant que les performances de \gls{relent} sont beaucoup plus proches de celles de la classification qu'elles ne le sont de celles de \gls{scirl}. Ce dernier parvient dès $30$ échantillons à des performances meilleures que celles des deux autres approches quel que soit la quantité de données expertes. Quand au moins une trajectoire complète est présente dans les données, la politique issue de la récompense trouvée par \gls{scirl} est presque aussi bonne que celle de l'expert.
+Les résultats présentés \autoref{fig:scirlmountaincar} sont conformes à ce qui était espéré, en ce sens que les deux algorithmes d'\gls{irl} sont plus performants que la méthode supervisée. On constate cependant que les performances de \gls{relent} sont beaucoup plus proches de celles de la classification qu'elles ne le sont de celles de \gls{scirl}. Ce dernier parvient dès $30$ échantillons à des performances meilleures que celles des deux autres approches quel que soit la quantité de données expertes. Quand au moins une trajectoire complète est présente dans les données, la politique issue de la récompense trouvée par \gls{scirl} est presque aussi bonne que celle de l'expert.
     
-Le calcul de l'attribut moyen de l'expert pour \gls{scirl} est ici effectué avec l'\autoref{alg:montecarlodupauvre} car cette méthode donne de très légèrement meilleures performances qu'avec l'\autoref{alg:lstdmu}, pourtant ce dernier sera sans doute préférable si des données non expertes sont disponibles (comme par exemple des essais ratés d'un expert humain) car \gls{lstdmu} saura les exploiter grâce à sa version \gls{offpolicy}. 
+Le calcul de l'attribut moyen de l'expert pour \gls{scirl} est ici effectué avec l'\autoref{eq:montecarlodupauvre} car le problème est déterministe.
     
-En utilisant autant d'information que la méthode de classification, et moins que l'autre méthode d'\gls{irl}, \gls{scirl} est en mesure de trouver une récompense menant à une imitation de qualité.
+En utilisant un peu plus[fn::La classification utilise une base $\satrace{\expertpolicy}$ tandis que \gls{scirl} utilise une base $\sastrace{\expertpolicy}$ où il convient d'enregistrer l'état d'arrivée.] d'information que la méthode de classification, et moins que l'autre méthode d'\gls{irl}, \gls{scirl} est en mesure de trouver une récompense menant à une imitation de qualité.
 *** \glstext{scirl} sur le \glstext{highway}
 # <<hier:exphighway>>
 
-    Le problème du simulateur de conduite sur autoroute est défini \autoref{hier-highway}. L'espace est discret, mais très large. Les attributs choisis sont les attributs standards décrits \autoref{eq:attributsdiscrets}. La méthode supervisée de classification structurée utilisée cette fois ci (\autoref{alg:taskar}) utilise ces attributs, et ne va donc pas disposer d'information particulière sur la dynamique ou la sémantique du problème. Les démonstrations de l'expert étant fort courtes, il va falloir attendre que celui-ci explore une vaste partie de l'espace d'état avant que la classification ne parvienne à apprendre un contrôle correct. L'expert fournit une base de données $\sastrace{\expertpolicy}$ organisée sous la forme de $\nbsamples$ trajectoires de longueur $\nbsamples$, avec $\nbsamples$ prenant successivement pour valeur $3$, $7$, $10$, $15$ et $20$.
+    Le problème du simulateur de conduite sur autoroute est défini \autoref{hier-highway}. L'espace est discret, mais large. Les attributs choisis sont les attributs standards décrits \autoref{eq:attributsdiscrets}. La méthode supervisée de classification structurée utilisée cette fois ci (\autoref{alg:taskar}) utilise ces attributs, et ne va donc pas disposer d'information particulière sur la dynamique ou la sémantique du problème. Les démonstrations de l'expert étant fort courtes, il va falloir attendre que celui-ci explore une vaste partie de l'espace d'état avant que la classification ne parvienne à apprendre un contrôle correct. L'expert fournit une base de données $\sastrace{\expertpolicy}$ organisée sous la forme de $\nbsamples$ trajectoires de longueur $\nbsamples$, avec $\nbsamples$ prenant successivement pour valeur $3$, $7$, $10$, $15$ et $20$.
 
     L'expert est un agent optimal entraîné sur une récompense pénalisant les collisions ($-1$ par collision) et les sorties de route ($-0.5$ par sortie de route) mais exigeant une grande vitesse ($1$ si la vitesse est maximale). 
     
     \gls{relent} nécessite pour fonctionner une autre base de données $\sastrace{\sim}$. Celle-ci est constituée de $100$ épisodes de longueur $10$, démarrant dans un état choisi aléatoirement et suivant une politique aléatoire. Il y a cette fois-ci encore besoin d'un nombre d'échantillons d'un à deux ordres de grandeur plus grand que les démonstrations expertes.
     
-    \gls{scirl}, pour calculer l'attribut moyen de l'expert, utilise la méthode de l'\autoref{alg:montecarlodupauvre} car l'inversion de matrice nécessaire au fonctionnement de \gls{lstdmu} est prohibitive en terme de temps de calcul, tant la dimension de l'espace d'attributs états-actions est grande ($3645$). Il serait possible de régler ce problème en choisissant les attributs avec plus de soin, mais nous souhaitons montrer que \gls{scirl} est une méthode générique qui ne nécessite que peu ou pas d'ingénierie de la part de l'opérateur.
+    \gls{scirl}, pour calculer l'attribut moyen de l'expert, utilise la méthode de l'\autoref{alg:montecarlodupauvre} car l'inversion de matrice nécessaire au fonctionnement de \gls{lstdmu} est, lorsque répétée sur les $100$ expériences que nous avons menées pour obtenir l'information de variance, un petit peu longue à effectuer. Il serait possible de régler ce problème en choisissant les attributs avec plus de soin, mais nous souhaitons montrer que \gls{scirl} est une méthode générique qui ne nécessite que peu ou pas d'ingénierie de la part de l'opérateur.
     
-    L'espace d'état ayant été discrétisé, nous pouvons optimiser les récompenses trouvées par les algorithmes d'\gls{irl} avec une méthode de \gls{dp}. Le critère que nous utilisons pour comparer les différentes politiques est la moyenne sur tous les états de la valeur de la politique. Même les démonstrations les plus longues de l'expert ($400$ échantillons) n'explorent qu'une petite partie de l'espace d'état-action (de cardinal $3645$), il est donc primordial de bien généraliser pour obtenir un contrôle correct.
+    L'espace d'état étant discret, nous pouvons optimiser les récompenses trouvées par les algorithmes d'\gls{irl} avec une méthode de \gls{dp}. Le critère que nous utilisons pour comparer les différentes politiques est la moyenne sur tous les états de la valeur de la politique. Même les démonstrations les plus longues de l'expert ($400$ échantillons) n'explorent qu'une petite partie de l'espace d'état-action (de cardinal $3645$), il est donc primordial de bien généraliser pour obtenir un contrôle correct.
 
     Les résultats obtenus sont donnés \autoref{fig:scirlhighway}. Les résultats présentent bien la hiérarchie à laquelle nous nous attendions : l'algorithme supervisé ne parvient à apprendre un bon contrôle que petit à petit, à mesure que la taille de la base de données experte croît. L'ordre est le même que pour le \gls{mountaincar}, mais les performances de \gls{relent} diffèrent en ceci qu'elles sont maintenant beaucoup plus proches de celles de \gls{scirl} (qui reste malgré tout au dessus) que de la classification.
 
@@ -1663,14 +1599,14 @@ En utilisant autant d'information que la méthode de classification, et moins qu
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{Figures/highway_scirl.pdf}
-\caption[Algorithmes d'imitation sur le \glstext{highway}]{Algorithmes d'imitation sur le \glstext{highway}. En plus de la valeur de l'expert comme dans la \autoref{fig:scirlhighway}, la valeur d'une politique apprise sur une récompense aléatoire donne un point de référence de valeur minimale.}
+\caption[Algorithmes d'imitation sur le \glstext{highway}]{Algorithmes d'imitation sur le \glstext{highway}. En plus de la valeur de l'expert comme dans la \autoref{fig:scirlhighway}, la valeur d'une politique apprise sur une récompense aléatoire donne un point de référence de valeur minimale. On montre ici l'écart-type et la moyenne sur $100$ expériences.}
 \label{fig:scirlhighway}
 \end{figure}
 
 ** Conclusion
     Dans les deux expériences que nous venons de proposer, les méthodes supervisées ne peuvent qu'imiter l'expert là où sa démonstration donne des informations. La capacité de généralisation est sévèrement altérée par l'absence de savoir /a priori/ dans la définition du problème. Les algorithmes d'\gls{irl}, à l'inverse, sont capable, à partir d'une démonstration locale, d'extraire le critère global décrivant la tâche accomplie par l'expert.
 
-    \gls{scirl} en particulier a pu fonctionner à partir des mêmes données que la méthode supervisée, sans données supplémentaires comme \gls{relent} en nécessite. Il a su exploiter les informations contenues dans les transitions pour introduire la dynamique du système dans la résolution du problème de l'imitation. L'heuristique que nous avons présenté \autoref{eq:heuristiquescirl} et que la validation théorique ne permet pas facilement d'analyser a fait ses preuves. Résoudre le problème de l'\gls{irl} est grâce à \gls{scirl} plus facile que de résoudre le problème du contrôle optimal. Il faut tenir compte de cela, puisque contrairement aux méthodes supervisées qui renvoient directement une politique de contrôle, \gls{scirl} renvoie une récompense qu'il faut optimiser. Le gain en performance justifie probablement l'effort lié à la résolution du \gls{mdp}, des méthodes /ad-hoc/ permettant de traiter les problèmes qui ne manqueront pas de se poser.
+    \gls{scirl} en particulier a pu fonctionner à partir des mêmes données que la méthode supervisée, sans données supplémentaires comme \gls{relent} en nécessite. Il a su exploiter les informations contenues dans les transitions pour introduire la dynamique du système dans la résolution du problème de l'imitation. L'heuristique que nous avons présentée \autoref{eq:heuristiquescirl} et que la validation théorique ne permet pas facilement d'analyser a fait ses preuves sur des problèmes déterministes. \gls{scirl} est moins gourmand en temps de calcul et en données qu'un algorithme d'\gls{rl} comme par exemple \gls{lspi}. Il faut tenir compte de cela, puisque contrairement aux méthodes supervisées qui renvoient directement une politique de contrôle, \gls{scirl} renvoie une récompense qu'il faut optimiser, en utilisant par exemple un algorithme d'\gls{rl} auquel il faut fournir de l'information dont \gls{scirl} n'a pas besoin. Le gain en performance justifie probablement l'effort lié à la résolution du \gls{mdp}, des méthodes /ad-hoc/ permettant de traiter les problèmes qui ne manqueront pas de se poser.
    
     Les résultats théoriques et pratiques montrent que \gls{scirl} résout bien le problème de l'\gls{irl} tel que nous l'avion posé en \autoref{hier-problemdef}. Les soucis liés au choix des attributs, bien que toujours présents, sont moins problématiques que pour les approches supervisées grâce à l'utilisation de l'attribut moyen, qui prend la dynamique en compte. L'estimation de celui-ci lorsqu'uniquement des données expertes sont disponibles est rendue possible grâce à l'usage d'une heuristique qui semble bien fonctionner en pratique. Les solutions dégénérées sont évitées grâce à la structure de \gls{scirl}, qui adapte une méthode de classification. L'algorithme de l'état de l'art le plus à même de suivre \gls{scirl} sur les problèmes où peu d'information est disponible est moins performant, et nécessite plus d'information. Si cependant cette information est facilement disponible, \gls{scirl} peut en profiter grâce à l'existence de \gls{lstdmu}.
 
@@ -1807,7 +1743,7 @@ Nous utiliserons également l'erreur $\epsilon_R$ due au régresseur :
 \end{align}
 Ainsi que l'écart de score :
 \begin{equation}
-\Delta q = \max_{s\in S}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))=\max_{s\in S}(q(s,\classifpolicy(s))-\min_{a\in A}q(s,a)),
+\Delta q = \max_{s\in \statespace}(\max_{a\in A}q(s,a)-\min_{a\in A}q(s,a))=\max_{s\in S}(q(s,\classifpolicy(s))-\min_{a\in A}q(s,a)),
 \end{equation}
 que nous pouvons normaliser, puisque le choix de l'action se fait sur les valeurs comparées et non absolues des scores.
 
@@ -1834,11 +1770,11 @@ Enfin, les coefficients de concentration diffèrent légèrement. Celui présent
 %The difference between $\Rc$ and $\apprRc$ is noted $\epsilon^R=\Rc-\apprRc$.
 %We also introduce the reward function $R^E\in\mathbb{R}^{S\times A}$ which will be useful in our proof, not to be confused with $R_E$ the unknown reward %function the expert optimizes:
 %\begin{equation}
-%\forall (s,a)\in S\times A, R^E(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\pi_E(s')).
+%\forall (s,a)\in S\times A, R^E(s,a)=q(s,a) -\gamma\sum_{s'\in S}P(s'|s,a)q(s',\expertpolicy(s')).
 %\end{equation}
 %We no have the following vectorial equalities $
 %\Rc_a=q_a-\gamma P_aq_{\classifpolicy} ;
-%R^E_a=q_a-\gamma P_aq_{\pi_E};
+%R^E_a=q_a-\gamma P_aq_{\expertpolicy};
 %\epsilon^R_a=\Rc_a-\apprRc_a$.
 Nous allons borner l'expression : 
 \begin{equation}
@@ -1854,7 +1790,7 @@ qui est positive ou, au mieux, nulle puisque $\optimalpolicy{\apprRc}$ est optim
 Nous allons borner ces trois termes en deux fois.
 %First, let $\pi$ be a given deterministic policy. We have, using $\epsilon^R = \Rc - \hat \Rc$:
 %$V^{\pi}_{\Rc}-V^{\pi}_{\apprRc}=V^{\pi}_{\epsilon^R}=(I-\gamma P_\pi)^{-1}\epsilon^R_{\pi}$.
-%If $\pi=\pi_E$, we have, thanks to the power series expression of $(I-\gamma P_{\pi_E})^{-1}$, the definition of $\rho_E$ and the definition of the %$\mu$-weighted $L_1$ norm, one property of which is that $\forall X, \mu^TX \leq \|X\|_{1,\mu}$:
+%If $\pi=\expertpolicy$, we have, thanks to the power series expression of $(I-\gamma \transprobmat{\expertpolicy})^{-1}$, the definition of $\rho_E$ and the definition of the %$\mu$-weighted $L_1$ norm, one property of which is that $\forall X, \mu^TX \leq \|X\|_{1,\mu}$:
 
 Pour toute politique $\policy$,
 \begin{align}
@@ -1945,7 +1881,7 @@ Nous retrouvons ici les bancs d'essais utilisés \autoref{hier-scirlexp}, le \gl
 L'instanciation de \gls{cascading} utilisée est celle de l'\autoref{alg:csiheuristique}. Nous préciserons dans les sous-sections le choix du classifieur et du régresseur.
 
 *** mountain car
-Le protocole expérimental est le même que dans la \autoref{hier-expmountaincar}. Le classifieur choisi pour \gls{cascading} est le même que celui dont les performances sont illustrées \autoref{fig:csimountaincar}. Il s'agit de l'implémentation d'une SVM[fn::http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html]. Le noyau est gaussien, les paramètres par défaut sont utilisés. Nous sommes dans un cas où l'ingénierie déployée par l'opérateur est minimale. Le régresseur est du même tonneau, il s'agit d'une SVR[fn::http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html] utilisée avec ses paramètres par défaut. 
+Le protocole expérimental est le même que dans la \autoref{hier-expmountaincar}. Le classifieur choisi pour \gls{cascading} est le même que celui dont les performances sont illustrées \autoref{fig:csimountaincar}. Il s'agit de l'implémentation d'une SVM[fn::\url{http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html}]. Le noyau est gaussien, les paramètres par défaut sont utilisés. Nous sommes dans un cas où l'ingénierie déployée par l'opérateur est minimale. Le régresseur est du même tonneau, il s'agit d'une SVR[fn::\url{http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html}] utilisée avec ses paramètres par défaut. 
 
 \begin{figure}
 \centering
@@ -2051,6 +1987,110 @@ Taille de la base experte & $p$-valeur\\
 -> Perspectives moyen terme (thèse)
 
 -> Perspectives long terme (carrière)
+\appendix
+* Démonstrations
+# <<hier:demo>>
+
+\begin{proof}[Preuve du \autoref{thm:scirl}]
+Nous allons décomposer le terme $V^{\pi^*_{R_{\theta}}}_{R_{\theta}}-V^{\expertpolicy}_{R_{\theta}}$ (qui est positif ou, au mieux, nul, puisque $\pi^*_{R_{\theta}}$ est optimale) afin de faire apparaître le résidu de Bellman $\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{V^{\expertpolicy}_{R_{\theta}}}(s)-V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}$. On rappelle que les définitions des opérateurs d'optimalité et d'évaluation de Bellman $\bellmanoptopeval{\rewardfunc}{}$ et $\bellmanevalopeval{\pi}{\rewardfunc}{}$ sont données équations \ref{eq:bellmanoptop} et \ref{eq:bellmanevop}.
+  \begin{equation}
+    V^{\pi^*_{R_{\theta}}}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}} =  V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\expertpolicy}_{R_{\theta}} +
+    {\bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\expertpolicy}_{R_{\theta}} - \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}}
+\end{equation}
+or $\bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}} V^{\expertpolicy}_{R_{\theta}}\leq \bellmanoptopeval{\rewardfunc_{\theta}}{}
+  V^{\expertpolicy}_{R_{\theta}}$, donc ${\bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}} V^{\expertpolicy}_{R_{\theta}}- \bellmanoptopeval{\rewardfunc_{\theta}}{}
+  V^{\expertpolicy}_{R_{\theta}}\leq 0}$, donc :
+\begin{align}
+    V^{\pi^*_{R_{\theta}}}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}} &\leq  V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\expertpolicy}_{R_{\theta}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}}\\
+     &= \bellmanevalopeval{\optimalpolicy{\rewardfunc_{\paramirl}}}{\rewardfunc_{\theta}}{} V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \bellmanevalopeval{\pi^*_{R_{\theta}}}{R_{\theta}}V^{\expertpolicy}_{R_{\theta}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}}\\
+     &= \rewardfunc_{\theta}+\discount \transprobmat{\pi^*_{R_{\theta}}} V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - \rewardfunc_{\theta}-\discount \transprobmat{\pi^*_{R_{\theta}}} V^{\expertpolicy}_{R_{\theta}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}}\\
+     &= \discount \transprobmat{\pi^*_{R_{\theta}}} V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  -\discount \transprobmat{\pi^*_{R_{\theta}}} V^{\expertpolicy}_{R_{\theta}} + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}}\\
+     &= \discount \transprobmat{\pi^*_{R_{\theta}}}\left( V^{\pi^*_{R_{\theta}}}_{R_{\theta}}  - V^{\expertpolicy}_{R_{\theta}}\right) + \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}}.
+\end{align}
+En vertu de~\citep[Lemme~4.2]{munos2007performance},
+-> Dont nous donnons l'énoncé theoreme truc.
+\begin{equation}
+  V^{\pi^*_{R_{\theta}}}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}} \leq (I-\gamma \transprobmat{\pi^*_{R_{\theta}}})^{-1} (\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}- V^{\expertpolicy}_{R_{\theta}}).
+ \end{equation}
+Comme $(I-\gamma\transprobmat{\pi^*_{R_{\theta}}} )^{-1} = \sum\limits_{t\geq 0}\gamma^t (\transprobmat{\pi^*_{R_{\theta}}})^t$,
+\begin{equation}
+V^{\pi^*_{R_{\theta}}}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}} \leq \sum\limits_{t\geq 0}\gamma^t (\transprobmat{\pi^*_{R_{\theta}}})^t (\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}- V^{\expertpolicy}_{R_{\theta}}).
+\end{equation}
+
+D'après la définition de $c(t)$ (\autoref{eq:ctdef}) et du coefficient de concentration $\ccoeff$ (\autoref{eq:ccoeffdef}) :
+  \begin{align}
+    0\leq\expectationknowing{V^{\pi^*_{R_{\theta}}}_{R_{\theta}}(s)-V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E} &\leq \sum_{t\geq 0}c(t)
+    \expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{}V^{\expertpolicy}_{R_{\theta}}(s) - V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}\\
+    0\leq\expectationknowing{V^{\pi^*_{R_{\theta}}}_{R_{\theta}}(s)-V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E} &\leq \frac{C_f}{1-\gamma}
+    \expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{}V^{\expertpolicy}_{R_{\theta}}(s) - V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}\\
+    \label{erooesidual}
+  \end{align}
+  Ce résultat est similaire à celui de~\citep[Theoreme~4.2]{munos2007performance}. 
+
+  -> dont nous rappelons l'énoncé autoref machin
+
+Il nous faut maintenant borner le résidu de Bellman $\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{}V^{\expertpolicy}_{R_{\theta}}(s) -
+  V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}$, que nous décomposons en :
+  \begin{equation}
+  \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}} = \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}} + \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}}- V^{\expertpolicy}_{R_{\theta}}.
+    \label{erooecomposition}
+  \end{equation}
+  Nous allons borner séparément 
+\begin{align}
+\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}(s) - \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}\\
+\textrm{ et }\expectationknowing{\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}}(s) - V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}.
+\end{align}
+
+  La politique de classification $\classifpolicy$ est gloutonne vis-à-vis de $\classifscorefunc_{\paramirl}=\transpose{\paramirl}\hat{\mu}^{\expertpolicy}$. Donc, pour chaque couple état-action
+  $(s,a)\in\statespace\times \actionspace$ :
+  \begin{equation}
+    \classifscorefunc_{\paramirl}(s,\classifpolicy(s))\geq
+    \classifscorefunc_{\paramirl}(s,a)
+    \Leftrightarrow
+    \quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a) \leq \quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,\classifpolicy(s)) +
+    \epsilon_Q(s,\classifpolicy(s)) - \epsilon_Q(s,a).
+  \end{equation}
+  Par définition, $\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,a) = [\bellmanevalopeval{a}{\rewardfunc_{\paramirl}}{} V^{\expertpolicy}_{R_{\theta}}](s)$ et
+  $\quality{\expertpolicy}{\rewardfunc_{\paramirl}}(s,\classifpolicy(s)) = [\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{} V^{\expertpolicy}_{R_{\theta}}](s)$. Donc, pour $s\in\statespace$:
+  \begin{align}
+    \forall a\in A,\; [\bellmanevalopeval{a}{\rewardfunc_{\paramirl}}{} V^{\expertpolicy}_{R_{\theta}}](s) &\leq [\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}
+    V^{\expertpolicy}_{R_{\theta}}](s) + \epsilon_Q(s,\classifpolicy(s))-\epsilon_Q(s,a)
+    \\
+    \Rightarrow [\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}](s) &\leq [\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}
+    V^{\expertpolicy}_{R_{\theta}}](s) + \max_{a\in \actionspace}\epsilon_Q(s,a)-\min_{a\in
+    \actionspace}\epsilon_Q(s,a).
+  \end{align}
+  En passant à l'espérance selon $\rho_E$ et tout en rappelant que 
+  $\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}\geq V^{\expertpolicy}_{R_{\theta}}$, le premier terme est borné :
+  \begin{equation}
+    0 \leq \expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}}(s) - \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}
+    V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E} \leq \bar{\epsilon}_Q.
+    \label{eroo1}
+  \end{equation}
+  Il reste finalement à borner le terme $\expectationknowing{\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}}(s) -
+  V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}$. \`A cet effet nous introduisons $M\in\mathbb{R}^{|\statespace|\times |\statespace|}$ la matrice diagonale définie par $M = \diag (\indicatorfunc{\classifpolicy(s)\neq\expertpolicy(s)})$. Grâce à cela, l'opérateur de Bellman $\bellmanevalopeval{\classifpolicy}{\rewardfunc}{}$ peut s'écrire, pour tout $V\in\mathbb{R}^{\statespace}$:
+  \begin{equation}
+    \bellmanevalopeval{\classifpolicy}{\rewardfunc}{}V = R + \gamma M \transprobmat{\classifpolicy} V + \gamma (I-M)\transprobmat{\expertpolicy} V
+    = R + \gamma \transprobmat{\expertpolicy} V + \gamma M (\transprobmat{\classifpolicy}-\transprobmat{\expertpolicy})V.
+  \end{equation}
+  En appliquant cet opérateur à  $V^{\expertpolicy}_{R_{\theta}}$ et en utilisant le fait que $R +
+  \gamma \transprobmat{\expertpolicy} V^{\expertpolicy}_{R_{\theta}} = \bellmanevalopeval{\expertpolicy}{\rewardfunc_{\paramirl}}{} V^{\expertpolicy}_{R_{\theta}} = V^{\expertpolicy}_{R_{\theta}}$, nous obtenons :
+  \begin{align}
+    &\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}} = \gamma M
+    (\transprobmat{\classifpolicy}-\transprobmat{\expertpolicy})V^{\expertpolicy}_{R_{\theta}}
+    \\\Rightarrow &|\rho_E^\top (\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}})| = \gamma
+    |\rho_E^\top M (\transprobmat{\classifpolicy}-\transprobmat{\expertpolicy})V^{\expertpolicy}_{R_{\theta}}|.
+  \end{align}
+  Il est facile de voir que $\|(\transprobmat{\classifpolicy}-\transprobmat{\expertpolicy})V^{\expertpolicy}_{R_{\theta}}\|_\infty
+  \leq \frac{2}{1-\gamma}\|R_{\paramirl}\|_\infty$, ce qui permet de borner le dernier terme
+  \begin{equation}
+    \left|\expectationknowing{\bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}}(s) - V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\rho_E}\right| \leq
+    \classiferror{\expertdistrib} \frac{2\gamma}{1-\gamma} \|R_{\paramirl}\|_\infty.
+    \label{eroo2}
+  \end{equation}
+  Injecter les bornes des équations~\eqref{eroo1}
+  et~\eqref{eroo2} dans l'équation~\eqref{erooesidual} achève la démonstration.%, which concludes the proof.
+\end{proof}
 
 # %  Justement, on aimerait faire des trucs plus couillus
 \bibliographystyle{plainnat}

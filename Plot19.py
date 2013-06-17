@@ -349,31 +349,6 @@ savefig("Mountain_car_Expert_traj_example.pdf")
 
 # <codecell>
 
-X=[10, 30, 100, 300, 700, 1000]
-CSI_data = genfromtxt("data/CSI_X_10_30_100_300_700_1000.mat")
-SCIRL_data = genfromtxt("data/SCIRL_X_10_30_100_300_700_1000.mat")
-SCIRLMC_data = genfromtxt("data/SCIRLMC_X_10_30_100_300_700_1000.mat")
-RE_data = genfromtxt("data/RE_X_10_30_100_300_700_1000.mat")
-Classif_data = genfromtxt("data/Classif_X_10_30_100_300_700_1000.mat")
-Expert_data = genfromtxt("data/Expert_X_10_30_100_300_700_1000.mat")
-rc('text', usetex=True)
-rcParams['text.usetex'] = True
-rcParams['font.family'] = 'serif'
-rcParams['legend.fontsize'] = 'medium'
-#plot(X[:4],mean(CSI_data,axis=1)[:4],"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
-plot(X[:4],mean(SCIRLMC_data,axis=1)[:4],"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
-plot(X[:4],mean(RE_data,axis=1)[:4],"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
-plot(X[:4],mean(Classif_data,axis=1)[:4],"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
-plot(X[:4],mean(Expert_data,axis=1)[:4],"p-",color='pink',mec="pink", mfc="w", lw=3, mew=3, ms=9, label="Expert")
-axis([0,310,40,250])
-legend()
-xlabel(r"Taille de la base experte")
-ylabel("Nombre de pas moyen pour atteinre le but")
-grid()
-savefig("mountain_car_scirl.pdf")
-
-# <codecell>
-
 #Plotting IRL perf on the Highway
 X=array([3, 7, 10, 15, 20])
 Abcissas = X*X #N episodes of length N => N*N samples
@@ -402,6 +377,10 @@ plot(Abcissas,array([x for x in map(mean,Y_RE)]),"^-.",color='blue',mec="blue", 
 plot(Abcissas,array([x for x in map(mean,Y_Classif)]),"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
 plot(Abcissas,array([x for x in map(mean,Y_random)]),"D-",color='gray',mec="gray", mfc="w", lw=3, mew=3, ms=9, label="Random")
 plot(Abcissas,ones(5)*7.7439104526748785,"p-",color='pink',mec="pink", mfc="w", lw=3, mew=3, ms=9, label="Expert")
+errorbar(Abcissas-3,array([x for x in map(mean,Y_SCIRL)]),array([x for x in map(lambda x:sqrt(var(x)),Y_SCIRL)]),fmt=None,ecolor='orange')
+errorbar(Abcissas,array([x for x in map(mean,Y_RE)]),array([x for x in map(lambda x:sqrt(var(x)),Y_SCIRL)]),fmt=None,ecolor='blue')
+errorbar(Abcissas+3,array([x for x in map(mean,Y_Classif)]),array([x for x in map(lambda x:sqrt(var(x)),Y_SCIRL)]),fmt=None,ecolor='green')
+errorbar(Abcissas,array([x for x in map(mean,Y_random)]),array([x for x in map(lambda x:sqrt(var(x)),Y_SCIRL)]),fmt=None,ecolor='gray')
 #axis([0,310,40,250])
 legend(bbox_to_anchor=(1, 0.85))
 xlabel(r"Taille de la base experte")
@@ -409,6 +388,39 @@ ylabel("Valeur moyenne")
 grid()
 axis([0,410,-2.2,8])
 savefig("highway_scirl.pdf")
+
+# <codecell>
+
+X=[10, 30, 100, 300, 700, 1000]
+CSI_data = genfromtxt("data/CSI_X_10_30_100_300_700_1000.mat")
+SCIRL_data = genfromtxt("data/SCIRL_X_10_30_100_300_700_1000.mat")
+SCIRLMC_data = genfromtxt("data/SCIRLMC_X_10_30_100_300_700_1000.mat")
+RE_data = genfromtxt("data/RE_X_10_30_100_300_700_1000.mat")
+Classif_data = genfromtxt("data/Classif_X_10_30_100_300_700_1000.mat")
+Expert_data = genfromtxt("data/Expert_X_10_30_100_300_700_1000.mat")
+rc('text', usetex=True)
+rcParams['text.usetex'] = True
+rcParams['font.family'] = 'serif'
+rcParams['legend.fontsize'] = 'medium'
+#plot(X[:4],mean(CSI_data,axis=1)[:4],"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
+plot(X[:4],mean(SCIRLMC_data,axis=1)[:4],"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
+plot(X[:4],mean(RE_data,axis=1)[:4],"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
+plot(X[:4],mean(Classif_data,axis=1)[:4],"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
+plot(X[:4],mean(Expert_data,axis=1)[:4],"p-",color='pink',mec="pink", mfc="w", lw=3, mew=3, ms=9, label="Expert")
+errorbar(X[:4],mean(Expert_data,axis=1)[:4],sqrt(var(Expert_data,axis=1)[:4]),fmt=None,ecolor='pink')
+errorbar(array(X[:4])-3,mean(SCIRLMC_data,axis=1)[:4],sqrt(var(SCIRLMC_data,axis=1)[:4]),fmt=None,ecolor='orange')
+errorbar(X[:4],mean(RE_data,axis=1)[:4],sqrt(var(RE_data,axis=1)[:4]),fmt=None,ecolor='blue')
+errorbar(array(X[:4])+3,mean(Classif_data,axis=1)[:4],sqrt(var(Classif_data,axis=1)[:4]),fmt=None,ecolor='green')
+axis([0,310,-10,300])
+legend()
+xlabel(r"Taille de la base experte")
+ylabel("Nombre de pas moyen pour atteinre le but")
+grid()
+savefig("mountain_car_scirl.pdf")
+
+# <codecell>
+
+sqrt(var(SCIRLMC_data,axis=1)[:4])
 
 # <codecell>
 
