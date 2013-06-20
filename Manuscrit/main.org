@@ -34,7 +34,10 @@
 # (setq org-export-latex-hyperref-format "\\autoref{%s}")
 #+LaTeX_CLASS: tufte-book 
 #+LaTeX_CLASS_OPTIONS: [frenchb,a4paper,justified,notoc]
+   
+#+LATEX_HEADER: \usepackage{csquotes}
 
+#+LATEX_HEADER:\bibliography{../../Biblio/Biblio,../../Biblio/BiblioKlein.bib}
 #+LaTeX_HEADER:\renewcommand{\theoremautorefname}{théorème}
 #+LATEX_HEADER:\hypersetup{ % config hyperref pour virer les box/color affreux...
 #+LATEX_HEADER:    colorlinks,%
@@ -43,8 +46,6 @@
 #+LATEX_HEADER:    linkcolor=black,%
 #+LATEX_HEADER:    urlcolor=black
 #+LATEX_HEADER:} 
-#+LATEX_HEADER: \usepackage{natbib}
-#+LATEX_HEADER: \usepackage{bibentry}
 #+LATEX_HEADER: \usepackage{subfigure}
 #+LATEX_HEADER: \usepackage{booktabs}
 #+latex_header: \usepackage{stmaryrd}
@@ -214,9 +215,9 @@ La première contribution, l'algorithme \gls{lstdmu}, auquel le \autoref{hier-ls
 
 \begin{fullwidth}
 \begin{itemize}
-\item \bibentry{klein2011batch}
-\item \bibentry{klein2011batch1}
-\item \bibentry{klein2011batch2}
+\item \fullcite{klein2011batch}
+\item \fullcite{klein2011batch1}
+\item \fullcite{klein2011batch2}
 \end{itemize}
 \end{fullwidth}
 
@@ -224,18 +225,18 @@ Vient ensuite \gls{scirl} (\autoref{hier-scirl}), un nouvel algorithme d'\gls{ir
 
 \begin{fullwidth}
 \begin{itemize}
-\item \bibentry{klein2012structured}
-\item \bibentry{klein2012structured1}
-\item \bibentry{klein2012structured2}
-\item \bibentry{klein2012structured3}
+\item \fullcite{klein2012structured}
+\item \fullcite{klein2012structured1}
+\item \fullcite{klein2012structured2}
+\item \fullcite{klein2012structured3}
 \end{itemize}
 \end{fullwidth}
 
 Finalement nous décrivons \gls{cascading} (\autoref{hier-cascading}), il s'agit d'un autre algorithme d'\gls{irl} un peu plus souple que \gls{scirl} :
 \begin{fullwidth}
 \begin{itemize}
-\item \bibentry{klein2012cascading}
-\item \bibentry{klein2012cascading1}
+\item \fullcite{klein2012cascading}
+\item \fullcite{klein2012cascading1}
 \end{itemize}
 \end{fullwidth}
 ** Problèmes jouets
@@ -1169,7 +1170,7 @@ Nous cherchons à résoudre le problème de l'gls{irl} dans un cadre où la coll
    Les approches discutées en \autoref{hier-repetee} font toutes appel, du fait de leur structure commune (\autoref{alg:repetee}), à une procédure d'estimation de l'attribut moyen de l'expert ainsi que, de manière répétée, à une procédure d'estimation de l'attribut moyen[fn::Souvent, c'est un terme plus simple à estimer, $\expectationknowing{\mu^\pi(s)}{s\sim\rho_0}$ où $\rho_0$ est par exemple une distribution des états de départ, qu'il est nécessaire d'approximer.] d'une politique arbitraire $\policy$ :
 \begin{align}
 \rlmu{\policy} &\in \twosetsfunctions{\statespace \times \actionspace}{(\reals^{\dimx{\featurestatefunc_{R}}})}\\
-\rlmu{\policy}(\state,\action)&=\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestateactionfunc_{\rewardfunc}(\state_{\timeindex},\action_{\timeindex})}{\state_0 = \state,\action_0=\action\policy}\\
+\rlmu{\policy}(\state,\action)&=\expectationknowing{\sum\limits_{\timeindex = 0}^{\infty} \discount^{\timeindex}\featurestateactionfunc_{\rewardfunc}(\state_{\timeindex},\action_{\timeindex})}{\state_0 = \state,\action_0=\action,\policy}\\
 \end{align}
 
 # ?s muhorizon 'L' 'Longueur d{\apos}une trajectoire'
@@ -1969,7 +1970,7 @@ Taille de la base experte & $p$-valeur\\
    La souplesse offerte par la liberté de choix des deux approches supervisées laisse à l'opérateur la possibilité d'adapter l'approche au problème qu'il cherche à résoudre. Une heuristique est offerte qui permet à \gls{cascading} de fonctionner avec une expertise humaine minimale en n'utilisant que des données expertes. Cela est démontré sur les mêmes bancs d'essais que ceux qui ont permis la validation empirique de \gls{scirl}. Les performances empiriques offertes par \gls{cascading} sont légèrement supérieures à celles de \gls{scirl}. Les deux approches sont plus performantes que l'approche supervisée au prix cependant de devoir résoudre le \gls{mdp} une fois la récompense obtenue.
 
 * Rappel des contributions 
-L'un des freins à l'adoption généralisée de la robotique dans la société est le coût élevé des dispositifs automatiques. Du fait de l'augmentation exponentielle des capacités techniques du matériel, le goulot d'étranglement se situe de plus en plus au niveau du coût de conception des systèmes intelligents. Le développement d'algorithmes génériques pouvant s'adapter à une vaste gamme de problèmes est l'un des moyens pour lesquels la réduction de ces coûts de développement pourrait être réalisée.
+L'un des freins à l'adoption généralisée de la robotique dans la société est le coût élevé des dispositifs automatiques. Du fait de l'augmentation exponentielle des capacités techniques du matériel, le goulot d'étranglement se situe de plus en plus au niveau du coût de conception des systèmes intelligents. Le développement d'algorithmes génériques pouvant s'adapter à une vaste gamme de problèmes est l'un des moyens par lesquels la réduction de ces coûts de développement pourrait être réalisée.
 
 L'\gls{rl} est un cadre de travail offrant de tels algorithmes. Malheureusement, ils nécessitent pour fonctionner une description formelle de la tâche qu'ils doivent accomplir sous la forme d'une fonction de récompense. La conception d'une bonne fonction de récompense est un problème non trivial nécessitant des réglages fins de la part de l'opérateur.
 
@@ -1989,7 +1990,7 @@ Les systèmes réels sont fragiles et interagir avec est coûteux. Il est égale
 * Perspectives de recherche 
 Il serait souhaitable de renforcer l'étude empirique des algorithmes que nous avons proposés en les appliquant à d'autres problèmes. La difficulté n'est pas dans l'application des algorithmes d'\gls{irl} eux même, mais dans l'optimisation de la récompense qu'ils trouvent afin d'obtenir une politique de contrôle.
 
-Pour palier à ce problème[fn::Qui n'affecte pas les approches supervisées.], nous pourrions également tenter de développer des algorithmes d'\gls{irl} pour lesquels l'optimisation finale de la récompense est simplifiée ou contournée.
+Pour pallier ce problème[fn::Qui n'affecte pas les approches supervisées.], nous pourrions également tenter de développer des algorithmes d'\gls{irl} pour lesquels l'optimisation finale de la récompense est simplifiée ou contournée.
 
 Finalement, il faudrait intégrer l'\gls{rl} et l'\gls{irl} dans des systèmes informatiques réels aux mains d'utilisateurs non qualifiés.
 \appendix
@@ -2036,9 +2037,13 @@ D'après la définition de $c(t)$ (\autoref{eq:ctdef}) et du coefficient de conc
     \label{erooesidual}
   \end{align}
 
-Il nous faut maintenant borner le résidu de Bellman $\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{}V^{\expertpolicy}_{R_{\theta}}(s) -
-  V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\expertdistrib}$, que nous décomposons en :
-  \begin{equation}
+Il nous faut maintenant borner le résidu de Bellman 
+\begin{equation}
+\expectationknowing{\bellmanoptopeval{\rewardfunc_{\theta}}{}V^{\expertpolicy}_{R_{\theta}}(s) -
+  V^{\expertpolicy}_{R_{\theta}}(s)}{s\sim\expertdistrib},
+\end{equation}
+que nous décomposons en :
+\begin{equation}
   \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - V^{\expertpolicy}_{R_{\theta}} = \bellmanoptopeval{\rewardfunc_{\theta}}{} V^{\expertpolicy}_{R_{\theta}} - \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}} + \bellmanevalopeval{\classifpolicy}{\rewardfunc_{\paramirl}}{}V^{\expertpolicy}_{R_{\theta}}- V^{\expertpolicy}_{R_{\theta}}.
     \label{erooecomposition}
   \end{equation}
@@ -2206,5 +2211,7 @@ En combinant les équations \ref{eq:csiproof1} et \ref{eq:csiproof2}, nous obten
 \end{proof}
 
 # %  Justement, on aimerait faire des trucs plus couillus
-\bibliographystyle{myplainnat}
-\bibliography{../../Biblio/Biblio,../../Biblio/BiblioKlein.bib}
+# % \bibliographystyle{myplainnat}
+\begin{fullwidth}
+\printbibliography
+\end{fullwidth}
