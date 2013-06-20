@@ -175,10 +175,10 @@ L'esclave peut être avantageusement remplacé par un animal lorsque le travail 
 
 L'automatisation et l'industrialisation ont permis l'apparition de machines plus performantes, plus sûres et moins coûteuses que leurs équivalents biologiques lorsqu'ils existent. Certains systèmes experts parviennent même à des performances supérieures à celles d'humains qualifiés. La main-d'œuvre qualifiée est prête à accepter ces systèmes pour peu qu'on les présente comme des systèmes d'aide à la décision et non comme des remplaçants. Le coût horaire d'un expert humain étant élevé, la marge de manœuvre financière est également plus grande pour les concepteurs des systèmes automatiques. Voir par exemple l'introduction de Watson dans le domaine médical \citep{ibm2013watson,ibm2013watson2}.
 
-Le problème éthique se situe au niveau de la main-d'œuvre non qualifiée. Aujourd'hui, payer $100$ \$ par mois un travailleur chinois assemble des iPods est plus rentable que de concevoir et déployer un système robotique équivalent \citep{mail2006stark}. Les systèmes robotiques actuels ne sont pas assez versatiles et ne peuvent apprendre une tâche sans que le coût du travail d'ingénierie associé ne rende l'opération prohibitive[fn::Ou simplement légèrement moins rentable que l'exploitation humaine, le but et de maximiser les profits, après tout.]. Un moyen de précipiter l'avènement d'une société de l'abondance[fn::Le terme anglais est plus précis : /post-scarcity/.] où l'esclavage n'aurait plus de sens économique[fn::Il y a d'autres avantages \citep{russell1958praise}.] est donc d'imaginer des méthodes de conception de systèmes automatisés intelligents pouvant à peu de frais réaliser une vaste gamme de travaux[fn::A titre personnel, je me demande si une machine passant avec succès le test de Turing\citep{turing2004can} sera un jour titulaire de droits similaires à ceux qui échoient actuellement aux humains \citep{assembly1948universal}. Cela risquerait de poser problème pour l'exploitation industrielle de tels systèmes.].
+Le problème éthique se situe au niveau de la main-d'œuvre non qualifiée. Aujourd'hui, payer $100$ \$ par mois pour qu'un travailleur chinois assemble des iPods est plus rentable que de concevoir et déployer un système robotique équivalent \citep{mail2006stark}. Les systèmes robotiques actuels ne sont pas assez versatiles et ne peuvent apprendre une tâche sans que le coût du travail d'ingénierie associé ne rende l'opération prohibitive[fn::Ou simplement légèrement moins rentable que l'exploitation humaine, le but et de maximiser les profits, après tout.]. Un moyen de précipiter l'avènement d'une société de l'abondance[fn::Le terme anglais est plus précis : /post-scarcity/.] où l'esclavage n'aurait plus de sens économique[fn::Il y a d'autres avantages \citep{russell1958praise}.] est donc d'imaginer des méthodes de conception de systèmes automatisés intelligents pouvant à peu de frais réaliser une vaste gamme de travaux[fn::A titre personnel, je me demande si une machine passant avec succès le test de Turing\citep{turing2004can} sera un jour titulaire de droits similaires à ceux qui échoient actuellement aux humains \citep{assembly1948universal}. Cela risquerait de poser problème pour l'exploitation industrielle de tels systèmes.].
 
 ** Contrôle optimal 
-Le problème du contrôle optimal peut être vu comme la recherche du meilleur moyen de réaliser une tâche. L'automatique[fn::En tant que discipline.] permet la conception de systèmes intelligents qui vont dans une certaine mesure d'adapter à leur environnement. Il n'a pas fallu attendre la révolution informatique pour voir apparaître de tels systèmes. Le régulateur à boules de Watt ou le plongeur d'une chasse d'eau sont des systèmes intelligents.
+Le problème du contrôle optimal peut être vu comme la recherche du meilleur moyen de réaliser une tâche. L'automatique[fn::En tant que discipline.] permet la conception de systèmes intelligents qui vont dans une certaine mesure s'adapter à leur environnement. Il n'a pas fallu attendre la révolution informatique pour voir apparaître de tels systèmes. Le régulateur à boules de Watt ou le plongeur d'une chasse d'eau sont des systèmes intelligents.
 
 L'intelligence symbolique a fait fantasmer les auteurs de science fiction comme par exemple \citet{asimov1950robot}, mais l'optimisme qui a mené à, puis suivi les conférences de Dartmouth en 1956 était un peu prématuré. Malgré des progrès immenses dans divers champs, par exemple en traitement du langage naturel, les résultats n'ont pas été à la hauteur des attentes.
 
@@ -216,7 +216,7 @@ La première contribution, l'algorithme \gls{lstdmu}, auquel le \autoref{hier-ls
 \begin{itemize}
 \item \bibentry{klein2011batch}
 \item \bibentry{klein2011batch1}
-\bibentry{klein2011batch2}
+\item \bibentry{klein2011batch2}
 \end{itemize}
 \end{fullwidth}
 
@@ -262,14 +262,19 @@ L'expert pour ce problème est un agent entraîné avec \gls{lspi} ; il parvient
 
 Dans le \gls{mountaincar}, une voiture peu puissante placée dans un creux doit gravir une côte trop pentue pour être surmontée du premier coup. La solution du problème consiste à reculer, donc à s'éloigner de l'objectif, en remontant la pente opposée puis à profiter de l'élan pour gravir la pente. Le processus peut-être répété si besoin. Cette propriété contre intuitive de devoir s'éloigner de l'objectif pour pouvoir l'atteindre fait de ce problème jouet un bon test pour les algorithmes d'\gls{rl}. Il a été proposé pour la première fois par \citet{moore1990efficient} et a été popularisé lors son introduction dans le livre de \citet{sutton1998reinforcement}.
 
-La \autoref{fig:mcstatespace} décrit les variables qui représentent l'information dont dispose l'agent pour ce problème. Il y a bien sûr la position de la voiture : le point le plus à gauche a une coordonnée de $-1.2$, l'objectif, situé le plus à droite, se trouve à la coordonnée $0.6$. Le fond du creux est à la coordonnée $-0.5$. La deuxième information est la vitesse de la voiture, elle peut aller de $-0.07$ à $0.07$ où un chiffre positif désigne naturellement un déplacement vers la droite et négatif vers la gauche. La vitesse est plafonnée, et si la voiture atteint l'extrémité gauche, sa vitesse est annulée et elle reste en place.
+La Figure 1.2 
+# \autoref{fig:mcstatespace}
+décrit les variables qui représentent l'information dont dispose l'agent pour ce problème. Il y a bien sûr la position de la voiture : le point le plus à gauche a une coordonnée de $-1.2$, l'objectif, situé le plus à droite, se trouve à la coordonnée $0.6$. Le fond du creux est à la coordonnée $-0.5$. La deuxième information est la vitesse de la voiture, elle peut aller de $-0.07$ à $0.07$ où un chiffre positif désigne naturellement un déplacement vers la droite et négatif vers la gauche. La vitesse est plafonnée, et si la voiture atteint l'extrémité gauche, sa vitesse est annulée et elle reste en place.
 
-La trajectoire de l'expert représentée \autoref{fig:mcstatespace} débute dans le quadrant Sud-Ouest de l'espace d'état, correspondant à une position éloignée de l'objectif et une vitesse dans la direction opposée à l'objectif. La dynamique de l'expert renverse ensuite la vitesse (quadrant Nord-Ouest) rapprochant la voiture de l'objectif (quadrant Nord-Est), jusqu'à ce qu'elle l'atteigne. Dans nos études empiriques, les démonstrations de l'expert suivront ce modèle : le point de départ sera choisi aléatoirement dans le quadrant Sud-Ouest [fn::Plus précisément dans une partie du quadrant Sud-Ouest telle que l'expert n'a pas à passer dans le quadrant Sud-Est pour atteindre l'objectif.], et donc la dynamique entraînera l'exploration de ce quadrant et des deux quadrants Nord. Le quadrant Sud-Est, lui, sera ignoré par l'expert. Les algorithmes d'imitation ne disposeront donc pas d'information concernant le comportement de l'expert dans cet partie de l'espace d'état. La performance de la politique de l'agent imitant l'expert sera bien évidemment testée sur tout l'espace d'état, afin de voir comment l'agent a été capable d'extrapoler.
+La trajectoire de l'expert représentée Figure 1.2 
+# \autoref{fig:mcstatespace}
+débute dans le quadrant Sud-Ouest de l'espace d'état, correspondant à une position éloignée de l'objectif et une vitesse dans la direction opposée à l'objectif. La dynamique de l'expert renverse ensuite la vitesse (quadrant Nord-Ouest) rapprochant la voiture de l'objectif (quadrant Nord-Est), jusqu'à ce qu'elle l'atteigne. Dans nos études empiriques, les démonstrations de l'expert suivront ce modèle : le point de départ sera choisi aléatoirement dans le quadrant Sud-Ouest [fn::Plus précisément dans une partie du quadrant Sud-Ouest telle que l'expert n'a pas à passer dans le quadrant Sud-Est pour atteindre l'objectif.], et donc la dynamique entraînera l'exploration de ce quadrant et des deux quadrants Nord. Le quadrant Sud-Est, lui, sera ignoré par l'expert. Les algorithmes d'imitation ne disposeront donc pas d'information concernant le comportement de l'expert dans cet partie de l'espace d'état. La performance de la politique de l'agent imitant l'expert sera bien évidemment testée sur tout l'espace d'état, afin de voir comment l'agent a été capable d'extrapoler.
 \begin{figure*}
 \begin{tikzpicture}[for this and nested ones={scale=.6},transform shape]
 \input{Figures/Mountain_car_state_space.tex}
 \end{tikzpicture} 
-\caption[Espace d'état du \glstext{mountaincar}]{L'espace d'état du \glstext{mountaincar} : la position de la voiture est représentée en abscisse et sa vitesse en ordonnée. Représenté sur la figure de gauche par des points : un exemple d'une trajectoire d'une bonne politique de contrôle où l'expert poursuit la montée de la pente opposée à l'objectif avant de la redescendre et de parvenir à gravir la pente à droite. La couleur des points indique l'action effectuée par l'expert : en bleu, il accélère vers la gauche, en rouge vers la droite. En fond, le nombre de pas de temps nécessaire à cet expert pour parvenir à l'objectif. La forme en escargot est caractéristique de ce problème comme cela est expliqué \autoref{fig:mountain_car_mu}.}
+\caption[Espace d'état du \glstext{mountaincar}]{L'espace d'état du \glstext{mountaincar} : la position de la voiture est représentée en abscisse et sa vitesse en ordonnée. Représenté sur la figure de gauche par des points : un exemple d'une trajectoire d'une bonne politique de contrôle où l'expert poursuit la montée de la pente opposée à l'objectif avant de la redescendre et de parvenir à gravir la pente à droite. La couleur des points indique l'action effectuée par l'expert : en bleu, il accélère vers la gauche, en rouge vers la droite. En fond, le nombre de pas de temps nécessaire à cet expert pour parvenir à l'objectif. La forme en escargot est caractéristique de ce problème comme cela est expliqué Figure 2.2.}
+% \autoref{fig:mountain_car_mu}.}
 \label{fig:mcstatespace}
 \end{figure*}
 # *** \glstext{gridworld}
@@ -279,7 +284,7 @@ La trajectoire de l'expert représentée \autoref{fig:mcstatespace} débute dans
 
 *** Problème du \glstext{highway}
 # <<hier:highway>>
-Utilisé sous divers avatars comme banc d'essai de plusieurs algorithmes d'\gls{irl} (\citep{abbeel2004apprenticeship,syed2008apprenticeship}), le simulateur de conduite sur autoroute place l'agent au volant d'une voiture plus rapide que le trafic, et qui de fait doit éviter les voitures plus lentes présentes sur la route. La voiture peut choisir parmi trois voies de circulation, et peut également rouler dans les deux bas-côtés de chaque côté de la route. Il y a trois vitesses possibles (toutes plus élevées que celles des voitures à éviter), une seule autre voiture est visible, quand l'agent la dépasse une autre apparaît dans une voie choisie aléatoirement par le simulateur. \`A la vitesse maximale, l'agent ne peut éviter la voiture qui arrive si elle est située dans sur la même voie que lui. \`A chaque instant, il peut choisir de se décaler à droite ou à gauche, ou d'accélérer ou ralentir, il peut également ne rien changer.
+Utilisé sous divers avatars comme banc d'essai de plusieurs algorithmes d'\gls{irl} \citep{abbeel2004apprenticeship,syed2008apprenticeship}, le simulateur de conduite sur autoroute place l'agent au volant d'une voiture plus rapide que le trafic, et qui de fait doit éviter les voitures plus lentes présentes sur la route. La voiture peut choisir parmi trois voies de circulation, et peut également rouler dans les deux bas-côtés de chaque côté de la route. Il y a trois vitesses possibles (toutes plus élevées que celles des voitures à éviter), une seule autre voiture est visible, quand l'agent la dépasse une autre apparaît dans une voie choisie aléatoirement par le simulateur. \`A la vitesse maximale, l'agent ne peut éviter la voiture qui arrive si elle est située dans sur la même voie que lui. \`A chaque instant, il peut choisir de se décaler à droite ou à gauche, ou d'accélérer ou ralentir, il peut également ne rien changer.
 
 Ce simulateur est intéressant car beaucoup de comportements différents sont envisageables, pouvant présenter un subtil compromis entre vitesse et sécurité par exemple. Il est possible de conduire raisonnablement sans aucune collision et sans sortir de la route, à condition de ne pas aller vite. Il est également possible d'aller vite et d'éviter les collisions, à condition que l'on accepte de sortir de la route. Arriver à identifier les motivations précises d'un expert en observant sa conduite est donc un défi.
 
@@ -426,7 +431,8 @@ on obtient finalement la fonction d'attribut suivante après l'ajout d'une compo
 \end{pmatrix}.
 \label{eq:gaussianrbf}
 \end{equation}
-Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états topologiquement proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimensions augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension. Une illustration de ce type d'attributs sur l'espace d'état bidimensionnel du \gls{mountaincar} (décrit en \autoref{hier-mountaincar}) est présentée \autoref{fig:mountain_car_psi}.
+Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états topologiquement proches subiront l'influence de la même composante du vecteur de paramètre. Quand le nombre de dimensions augmente, le nombre de gaussiennes du réseau explose. Cette technique n'échappe donc pas à la malédiction de la dimension. Une illustration de ce type d'attributs sur l'espace d'état bidimensionnel du \gls{mountaincar} (décrit en \autoref{hier-mountaincar}) est présentée Figure 2.1.
+# \autoref{fig:mountain_car_psi}.
 \begin{figure*}
 \begin{tikzpicture}[scale=2.3]
 %\draw [help lines] (0,0) grid (6,-6);
@@ -486,7 +492,9 @@ Contrairement à la fonction d'attribut binaire précédente, celle-ci possède 
 \node at (6,-5) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_1x6}};
 \node at (6,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_psi_0x6}};
 \end{tikzpicture}
-\caption[Attributs gaussiens sur le problème du \glstext{mountaincar}]{Attributs gaussiens sur le problème du \gls{mountaincar}. L'espace d'état est pavé de $7\times 7 = 49$ gaussiennes dont les centres sont répartis à équidistance. Les variances sont les mêmes pour toutes les gaussiennes et dépendent de la plage de valeur sur une dimension. Toute fonction aux variations raisonnables peut être approximée de manière correcte par une somme pondérée de ces gaussiennes. Cette représentation est à comparer à la \autoref{fig:mountain_car_mu} où l'attribut moyen qui, lui, prend la dynamique temporelle du problème en compte, est présenté.}
+\caption[Attributs gaussiens sur le problème du \glstext{mountaincar}]{Attributs gaussiens sur le problème du \gls{mountaincar}. L'espace d'état est pavé de $7\times 7 = 49$ gaussiennes dont les centres sont répartis à équidistance. Les variances sont les mêmes pour toutes les gaussiennes et dépendent de la plage de valeur sur une dimension. Toute fonction aux variations raisonnables peut être approximée de manière correcte par une somme pondérée de ces gaussiennes. Cette représentation est à comparer à la Figure 2.2 
+% \autoref{fig:mountain_car_mu}
+où l'attribut moyen qui, lui, prend la dynamique temporelle du problème en compte, est présenté.}
 \label{fig:mountain_car_psi}
 \end{figure*}
 
@@ -494,7 +502,7 @@ Contrairement à la fonction d'attribut binaire précédente, celle-ci possède 
 Considérant maintenant que nous disposons d'un vecteur d'attribut permettant de continuer, examinons le problème que \citet{taskar2005learning} se proposent de résoudre. Il s'agit d'un problème d'optimisation convexe sous contraintes :
 \begin{align}
 &\min\limits_{\slack \in \reals_{+}} {1\over \nbsamples}\sum\limits_{\datasetindex=1}^{\nbsamples}\slack_{\datasetindex}\\
-\textrm{tel que }&\forall \datasetindex, \classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action_{\datasetindex}) \geq \max\limits_{\action \in \actionspace}(\classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)) - \slack_{\datasetindex}.
+\textrm{tel que }\forall \datasetindex, \classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action_{\datasetindex}) \geq &\max\limits_{\action \in \actionspace}(\classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)) - \slack_{\datasetindex}.
 \end{align}
 La fonction objectif cherche naturellement à réduire les variables d'ajustement $\slack_{\datasetindex}$ tandis que les contraintes sont telles que le score associé par la fonction de score $\classifscorefunc_{\paramclassif}$ à un couple $(\state_{\datasetindex}, \action_{\datasetindex})$ correspondant à une décision experte est supérieur ou égal au meilleur score. Non seulement supérieur au score seul, mais supérieur d'une certaine marge $\margin(\state_{\datasetindex},\action)$ qui donne à ce classifieur sa capacité de généralisation. En effet, on constate que si $\margin$ est uniformément nulle, alors parvenir à minimiser parfaitement la fonction de coût revient à apprendre par cœur la base d'exemple, c'est à dire à probablement subir les effets du sur-apprentissage. Fixer 
 \begin{equation}
@@ -561,7 +569,7 @@ Il existe bien d'autres moyen de faire de la classification, comme par exemple l
 # ?s kernel 'k' 'Noyau pour une SVM'
     C'est un vœu pieu de croire que l'espace $\statespace$ est construit d'une manière qui permette à un hyperplan de séparer les exemples (on parle de base linéairement séparable quand cela se produit). Une construction linéaire n'a bien souvent pas un pouvoir de représentation assez grand pour cela. Le classifieur à fonction de score paramétrée linéairement que nous avons décrit précédemment compense cela par une projection dans un espace d'attributs $\featurestateactionspace$. Les \gls{svm} utilisent une technique similaire, appelée l'astuce du noyau \citep{aizerman1964theoretical,boser1992training}. L'idée est de remplacer les produits scalaires $\scalarprod{\state}{\state'}$ qui apparaissent dans l'algorithme par un produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}$ dans l'espace d'attributs, dans l'espoir que les données soient linéairement séparables dans l'espace d'attributs. Plutôt que de définir explicitement cet attribut $\featurestatefunc$ et de calculer le produit scalaire associé, un noyau $\kernel$ est défini. Pour peu que $\kernel$ satisfassent certaines conditions[fn::\`A savoir être continu, symétrique et semi-défini positif.], alors il existe \citep{mercer1909functions} une fonction $\featurestatefunc$ telle que :
 \begin{equation}
-\kernel(\state,\state') = \scalarprod{\featurestatefunc(\state)}{\featurestatefunc{\state'}}.
+\kernel(\state,\state') = \scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}.
 \end{equation} 
 
 Un noyau populaire, le noyau gaussien :
@@ -763,9 +771,9 @@ Lorsque les probabilités de transitions sont connues sur un espace d'état fini
 *** Algorithmes d'\glstext{rl}
 # <<hier:algosrl>>
    
-La \gls{dp} supposant les probabilités de transition connues, si l'on connaît la valeur d'une politique, il est possible de calculer la fonction de qualité associée grâce à l'équation \autoref{eq:qdef}, et donc d'en déduite un contrôle glouton grâce à l'\autoref{eq:greedydef}.
+La \gls{dp} supposant les probabilités de transition connues, si l'on connaît la valeur d'une politique, il est possible de calculer la fonction de qualité associée grâce à l'\autoref{eq:qdef}, et donc d'en déduite un contrôle glouton grâce à l'\autoref{eq:greedydef}.
 
-Puisqu'en \gls{rl} la dynamique ne peut être connue que par interaction avec le système, on apprend directement la fonction de qualité $Q$ afin de pouvoir en déduire un contrôle glouton sans avoir à passer par l'équation \autoref{eq:qdef}.
+Puisqu'en \gls{rl} la dynamique ne peut être connue que par interaction avec le système, on apprend directement la fonction de qualité $Q$ afin de pouvoir en déduire un contrôle glouton sans avoir à passer par l'\autoref{eq:qdef}.
 
 Il existe plusieurs schémas d'\gls{rl}. Certains comme $Q$-learning \citep{watkins1989learning} ou SARSA \citep{rummery1994line} adaptent le principe d'itération de la valeur \citep{bellman2003dynamic}. Une amélioration permettant le fonctionnement hors ligne, à partir d'une base de données acquise une fois pour toutes est présentée par \citet{gordon1995stable}, c'est l'algorithme /fitted/-$Q$, que nous exposons \autoref{alg:fittedq}. Le choix du régresseur de l'étape de la \autoref{alg:fittedq:regression} étant laissé libre, /fitted/-$Q$ a donné lieu à de nombreux travaux exploitant cette liberté, citons par exemple l'utilisation de réseaux de neurones par \citet{riedmiller2005neuralQ} ou d'arbres par \citet{ernst2005tree}.
 
@@ -831,7 +839,7 @@ $\Delta \leftarrow \|\paramrl'-\paramrl\|_2$\;
 \label{alg:lspi}
 \end{algorithm}
 
-L'étape de la \autoref{alg:pi:apprq} de l'\autoref{alg:policyiteration} n'a besoin que d'une base de données recueillies une fois pour toutes. Il ne s'agit pas exactement d'une base $\satrace{\expertpolicy}$ comme la classification en utilise, mais d'une base plus contraignante à réunir, qui contient l'état suivant l'action (afin d'obtenir de l'information sur la dynamique du système) et le signal de récompense (afin d'obtenir de l'information sur la qualité du contrôle)[fn::La base $\sasrtrace{\rewardfunc}$ devant être représentative de la dynamique du \gls{mdp}, elle est généralement basée sur une base $\sastrace{\sim}$ recueillie par une politique aléatoire à laquelle on ajoute l'information de récompense. Du point de vue des notations, l'exposant n'est donc plus la politique d'échantillonnage comme par exemple dans la base $\satrace{\expertpolicy} = \{(s_i,a_i)|i\in \llbracket 1;\nbsamples\rrbracket\}$ mais la fonction de récompense $R$ telle que $r_i=R(s_i)$.] :
+Les algorithmes \ref{alg:fittedq} et \ref{alg:lspi} n'ont besoin que d'une base de données recueillies une fois pour toutes. Il ne s'agit pas exactement d'une base $\satrace{\expertpolicy}$ comme la classification en utilise, mais d'une base plus contraignante à réunir, qui contient l'état suivant l'action (afin d'obtenir de l'information sur la dynamique du système) et le signal de récompense (afin d'obtenir de l'information sur la qualité du contrôle)[fn::La base $\sasrtrace{\rewardfunc}$ devant être représentative de la dynamique du \gls{mdp}, elle est généralement basée sur une base $\sastrace{\sim}$ recueillie par une politique aléatoire à laquelle on ajoute l'information de récompense. Du point de vue des notations, l'exposant n'est donc plus la politique d'échantillonnage comme par exemple dans la base $\satrace{\expertpolicy} = \{(s_i,a_i)|i\in \llbracket 1;\nbsamples\rrbracket\}$ mais la fonction de récompense $R$ telle que $r_i=R(s_i)$.] :
 # ?cs 1 sasrtrace 'D_{sasr}^{#1}' 'D_{sasr}^{\rewardfunc}' 'Trace de type $s,a,s\prime,r$'
 \begin{equation}
 \sasrtrace{\rewardfunc} = \{(\state_{\datasetindex},\action_{\datasetindex}, \state'_{\datasetindex}, r_{\datasetindex} = \rewardfunc(\state_{\datasetindex})) | \datasetindex \in \llbracket 0;\nbsamples-1\rrbracket\}.
@@ -840,7 +848,7 @@ L'étape de la \autoref{alg:pi:apprq} de l'\autoref{alg:policyiteration} n'a bes
 
 Les échantillons de $\sasrtrace{\rewardfunc}$ n'ont pas besoin de se suivre, on peut avoir $\state_{\datasetindex+1} \neq \state'_{\datasetindex}$. Il importe que la base d'échantillons soit représentative de la dynamique du \gls{mdp} pour chaque action. Une technique pratique et de réunir plusieurs trajectoires d'une politique aléatoire, en la faisant démarrer de différents états.
 
-Le deux algorithmes /fitted/-$Q$ et \gls{lspi} sont \gls{offpolicy} et \gls{batch}. Cela signifie respectivement qu'ils peuvent utiliser des données échantillonnées une fois pour toutes et n'ont pas besoin de contrôler le système. Ils sont donc plus efficaces en échantillons que les algorithmes en ligne (mais plus coûteux en temps de calcul) et plus sûrs aussi, puisque l'on a pas à placer un agent encore non entraîné au contrôle du système.
+Les deux algorithmes /fitted/-$Q$ et \gls{lspi} sont \gls{batch} et \gls{offpolicy}. Cela signifie respectivement qu'ils peuvent utiliser des données échantillonnées une fois pour toutes et n'ont pas besoin de contrôler le système. Ils sont donc plus efficaces en échantillons que les algorithmes en ligne (mais plus coûteux en temps de calcul) et plus sûrs aussi, puisque l'on a pas à placer un agent encore non entraîné au contrôle du système.
 
 # Probabilités de transitions, fonction de récompense, fonction de valeur, po- litique optimale. Programmation Dynamique (PD).
 # Approximation de la fonction de valeur, AR. L’AR permettant d’apprendre le contrôle par interaction avec le système, il possède quelques avantages sur le PD, comme la possibilité de s’adapter à un milieu changeant pour certains algorithmes ou de manière plus générale l’absence de besoin de connaître les probabilités de transition.
@@ -912,7 +920,8 @@ De la même manière que la fonction de qualité donne à la fonction de valeur 
 \end{align}
 
 # ?s expertmu '\mu^E' 'Attribut moyen de l{\apos}expert'
-L'attribut moyen donne une idée des états que traversera l'agent. Il contient donc des informations sur la dynamique induite par sa politique. Cela va avoir un impact important sur la qualité des diverses approximations linéaires dont nous avons parlé si l'attribut moyen est utilisé en tant qu'attribut tout court, comme il le sera au \autoref{hier-scirl}. La présence de la dynamique du \gls{mdp} dans l'attribut moyen est illustrée \autoref{fig:mountain_car_mu}.
+L'attribut moyen donne une idée des états que traversera l'agent. Il contient donc des informations sur la dynamique induite par sa politique. Cela va avoir un impact important sur la qualité des diverses approximations linéaires dont nous avons parlé si l'attribut moyen est utilisé en tant qu'attribut tout court, comme il le sera au \autoref{hier-scirl}. La présence de la dynamique du \gls{mdp} dans l'attribut moyen est illustrée  Figure 2.2.
+# \autoref{fig:mountain_car_mu}.
 
 # snippet illustration mountain car : la forme en escargot est caractéristique elle correspond à des va-et-vient dont l'apogée est de plus en plus haute.
 #    Deux politiques ayant des attributs moyens similaires auront des valeurs similaires quelle que soit la récompense (exprimée dans le schéma d'approximation linéaire) considérée. En revanche, il est possible d'avoir deux attributs moyens complètement différents et d'avoir la même valeur vis à vis de la "vraie" fonction de récompense (illustration sur le \gls{gridworld}, passage en haut à gauche et passage en bas à droite).
@@ -930,7 +939,7 @@ Alors quelque soit la récompense $\rewardfunc_{\paramirl} = \transpose{\paramir
 \end{equation}
 \end{proposition}
 \begin{proof}
-D'après \autoref{eq:vthetamu} : 
+D'après l'\autoref{eq:vthetamu} : 
 \begin{align}
 \norm{2}{\rlvalue{\policy_1}{\rewardfunc_{\paramirl}}-\rlvalue{\policy_2}{\rewardfunc_{\paramirl}}} &= \norm{2}{\transpose{\paramirl}\rlmu{\policy_1}-\transpose{\paramirl}\rlmu{\policy_1}}\\
 &= \norm{2}{\transpose{\paramirl}(\rlmu{\policy_1}-\rlmu{\policy_1})}.\\
@@ -1003,7 +1012,9 @@ Ce résultat est assez intuitif, si deux politiques induisent les mêmes traject
 \node at (6,-6) {\includegraphics[width=.13\textwidth]{Figures/Mountain_car_mu_0x6}};
 
 \end{tikzpicture}
-\caption[Attribut moyen de l'expert sur le \glstext{mountaincar}]{\`A comparer à \autoref{fig:mountain_car_psi}, l'attribut moyen (ici celui de l'expert sur le \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen.}
+\caption[Attribut moyen de l'expert sur le \glstext{mountaincar}]{\`A comparer à la Figure 2.1
+%\autoref{fig:mountain_car_psi}
+, l'attribut moyen (ici celui de l'expert sur le \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen.}
 \label{fig:mountain_car_mu}
 \end{figure*}
 
@@ -1018,7 +1029,7 @@ En \gls{rl}, on utilise souvent[fn::L'algorithme SARSA utilise comme son nom l'i
 R(s,a) = \sum_{\state'\in \statespace}\transprobfunceval{s}{a}{s'}R(s,a,s').
 \end{equation}
 
-Une récompense sur les états seuls est envisageable, et permet de transférer une tâche d'un agent à l'autre sans tenir compte de l'espace d'action de chacun des agents, pour peu que tous deux aient le même espace d'état[fn::Par exemple sur un échiquier où la récompense est définie sur l'état (la case où la pièce se trouve) on peut entraîner indistinctement une tour, une reine ou un cavalier à se déplacer à l'endroit voulu bien que ces pièces ne se déplacent pas de la même manière.]. Cela est cependant problématique car il y a une perte de généralité entre une récompense sur $\statespace$ et une récompense sur $\statespace\times \actionspace$ qu'il est impossible de compenser sans changer le \gls{mdp}[fn::Par exemple sur un \gls{mdp} à deux états et deux actions : /rester/ et /changer/, il est impossible de définir une récompense sur les états seuls qui admette pour politique optimale celle consistant à toujours choisir l'action /changer/.]. De plus, les récompenses sont généralement définies sur $\statespace\times\actionspace$ dans la littérature.
+Une récompense sur les états seuls est envisageable, et permet de transférer une tâche d'un agent à l'autre sans tenir compte de l'espace d'action de chacun des agents, pour peu que tous deux aient le même espace d'état[fn::Par exemple sur un échiquier où la récompense est définie sur l'état (la case où la pièce se trouve) on peut entraîner indistinctement une tour, une reine ou un cavalier à se déplacer à l'endroit voulu bien que ces pièces ne se déplacent pas de la même manière.]. Cela est cependant problématique car il y a une perte de généralité entre une récompense sur $\statespace$ et une récompense sur $\statespace\times \actionspace$ qu'il est impossible de compenser sans changer le \gls{mdp} [fn::Par exemple sur un \gls{mdp} à deux états et deux actions : /rester/ et /changer/, il est impossible de définir une récompense sur les états seuls qui admette pour politique optimale celle consistant à toujours choisir l'action /changer/.]. De plus, les récompenses sont généralement définies sur $\statespace\times\actionspace$ dans la littérature.
 
 Pour toutes ces raisons, nous considèrerons les récompenses comme définies dans $\statespace\times\actionspace$ par défaut.
 *** \Glstext{rewardshaping}
@@ -1147,7 +1158,9 @@ où $\epsilon$ est un paramètre à régler.\;
 
 * Calcul de l'attribut moyen : \glsentrytext{lstdmu} 
 # <<hier:lstdmu>>
-  De par la sémantique dont il est porteur, illustrée \autoref{fig:mountain_car_mu}, et de par le rôle qu'il tient dans les algorithmes itératifs énumérés en \autoref{hier-repetee}, l'attribut moyen est une notion centrale en \gls{irl}.
+  De par la sémantique dont il est porteur, illustrée Figure 2.2,
+# \autoref{fig:mountain_car_mu},
+et de par le rôle qu'il tient dans les algorithmes itératifs énumérés en \autoref{hier-repetee}, l'attribut moyen est une notion centrale en \gls{irl}.
  
 Nous cherchons à résoudre le problème de l'gls{irl} dans un cadre où la collecte de données est difficile. Cela signifie qu'un simulateur n'est pas disponible. Or un simulateur est nécessaire à l'application de la méthode de Monte-Carlo (\autoref{alg:mcmu}) que les méthodes actuelles utilisent. Il nous faut donc trouver une nouvelle méthode d'approximation de l'attribut moyen, c'est la première (chronologiquement) contribution de cette thèse, parue dans \citep{klein2011batch,klein2011batch1,klein2011batch2}. Cette méthode est exposée (avec ses concurrentes) \autoref{hier-lstdmuprincipe}. La pertinence de cette méthode dans le cadre ouvert par les approches récentes de l'\gls{irl} est finalement étudiée \autoref{hier-lstdavantages}, qui présage des défis relevés par les contributions des chapitres \ref{hier-scirl} et \ref{hier-cascading}.
 ** Principe 
@@ -1219,7 +1232,7 @@ Un algorithme d'estimation de la fonction de valeur particulièrement approprié
 
 Cet algorithme, comme beaucoup d'autres en \gls{rl} repose sur une approximation linéaire de la fonction de qualité (\autoref{eq:paramrl}). Il nous va donc falloir utiliser un schéma d'approximation linéaire pour estimer l'attribut moyen qui lui même est issu de la définition d'un schéma d'approximation linéaire pour la récompense[fn::Yo dawg, I heard you like linear approximation schemes...] (\autoref{eq:mudef}). Pour éviter les conflits de notations, on suppose ici que la récompense est approximée selon le schéma de l'\autoref{eq:paramirl} :
 \begin{equation}
-\appr{\rewardfunc}_{\paramirl}(\state,\action) = \transpose{\paramirl}\featurestateactionfunc_{\rewardfunc}(\state,\action).
+\rewardfunc_{\paramirl}(\state,\action) = \transpose{\paramirl}\featurestateactionfunc_{\rewardfunc}(\state,\action).
 \end{equation}
 # ?s paramlstdmu '\zeta' 'Matrice de paramètres pour LSTD-$\mu$'
 L'attribut moyen est donc l'espérance du cumul $\discount$-pondéré de l'attribut $\featurestatefunc$. Nous allons l'approximer dans un espace d'hypothèse généré par un autre attribut : $\featurestateactionfunc_{\mu}$ :
@@ -1320,7 +1333,9 @@ Intuitivement, on peut argumenter que le schéma d'itération de la politique qu
 
 ** Validation empirique
 
-Cette expérience fut pour la première fois présentée dans notre article \citep{klein2011batch}. Le schéma en jeu est celui proposé dans l'\autoref{alg:repeteelstd} avec la notion de distance $\mudistance$ et la règle de mise à jour $\muupdate$ choisis conformément aux travaux de \citet{abbeel2004apprenticeship}, c'est-à-dire $d=FIXME mettre en env equation$ et $u=FIXME idem$. L'idée est de comparer ce schéma à un autre qui, toutes choses étant égales par ailleurs, fait appel à un oracle pour l'estimation de $\appr{\rlmu{\policy}}$. La comparaison des deux approches va porter sur leur comportement en fonction de la taille de la trace non experte $\sastrace{\sim}$. Lorsque cette trace ne contient pas assez de données, \gls{lspi} ne peut résoudre le \gls{mdp} et \gls{lstdmu} ne peut estimer correctement l'attribut moyen. Au fur et à mesure que la taille de $\sastrace{\sim}$ augmente, \gls{lspi} et \gls{lstdmu} seront de mieux en mieux à même de remplir leur mission. Si le besoin en données est le même pour \gls{lstdmu} et \gls{lspi}, la version de l'algorithme d'\gls{irl} qui profite d'un oracle pour l'attribut moyen devrait voir ses performances augmenter plus vite en fonction de la taille de $\sastrace{\sim}$ que la version utilisant \gls{lstdmu}, celui-ci étant censé introduire des erreurs significatives. Si, à l'inverse, les performances des deux versions s'avèrent similaires, cela signifie que les besoins en données de \gls{lspi} sont supérieurs à ceux de \gls{lstdmu}. Quand \gls{lspi} parvient à résoudre le \gls{mdp}, \gls{lstdmu} a déjà suffisamment d'information à sa disposition pour fournir une estimation $\hat\mu^\pi_{\paramlstdmu}$ de l'attribut moyen aussi bonne que celle de l'oracle.
+Cette expérience fut pour la première fois présentée dans notre article \citep{klein2011batch}. Le schéma en jeu est celui proposé dans l'\autoref{alg:repeteelstd} avec la notion de distance $\mudistance$ et la règle de mise à jour $\muupdate$ choisis conformément aux travaux de \citet{abbeel2004apprenticeship}.
+# c'est-à-dire $d=FIXME mettre en env equation$ et $u=FIXME idem$.
+L'idée est de comparer ce schéma à un autre qui, toutes choses étant égales par ailleurs, fait appel à un oracle pour l'estimation de $\appr{\rlmu{\policy}}$. La comparaison des deux approches va porter sur leur comportement en fonction de la taille de la trace non experte $\sastrace{\sim}$. Lorsque cette trace ne contient pas assez de données, \gls{lspi} ne peut résoudre le \gls{mdp} et \gls{lstdmu} ne peut estimer correctement l'attribut moyen. Au fur et à mesure que la taille de $\sastrace{\sim}$ augmente, \gls{lspi} et \gls{lstdmu} seront de mieux en mieux à même de remplir leur mission. Si le besoin en données est le même pour \gls{lstdmu} et \gls{lspi}, la version de l'algorithme d'\gls{irl} qui profite d'un oracle pour l'attribut moyen devrait voir ses performances augmenter plus vite en fonction de la taille de $\sastrace{\sim}$ que la version utilisant \gls{lstdmu}, celui-ci étant censé introduire des erreurs significatives. Si, à l'inverse, les performances des deux versions s'avèrent similaires, cela signifie que les besoins en données de \gls{lspi} sont supérieurs à ceux de \gls{lstdmu}. Quand \gls{lspi} parvient à résoudre le \gls{mdp}, \gls{lstdmu} a déjà suffisamment d'information à sa disposition pour fournir une estimation $\hat\mu^\pi_{\paramlstdmu}$ de l'attribut moyen aussi bonne que celle de l'oracle.
 
 Le problème jouet (le pendule inversé, \autoref{hier-pendule}) sur lequel ces deux approches sont testées permettant de définir un simulateur, l'oracle est un estimateur de Monte-Carlo tel que décrit par l'\autoref{alg:mcmu} dont les paramètres $\muhorizon$ et $\munbtraj$ sont réglés de manière à obtenir un biais et une variance négligeable.
 
@@ -1331,7 +1346,9 @@ L'expert est la politique apprise par \gls{lspi} lorsque celui-ci est entraîné
 
 La trace non experte $\sastrace{\sim}$ provient d'une politique aléatoire mise au contrôle du pendule alors qu'il se trouve dans une position proche de l'équilibre, jusqu'à ce qu'il tombe. On commence alors un nouvel épisode, jusqu'à ce que la quantité d'échantillons voulue soit atteinte. L'expert fournit $100$ échantillons (soit $10$ secondes de démonstration) dans la base $\sastrace{\expertpolicy}$. Cela est suffisant pour obtenir une bonne approximation de $\expertmu$ par Monte-Carlo. L'expérience est répétée $100$ fois afin d'obtenir des informations de variance.
 
- Le résultat de l'expérience est donné \autoref{fig:lstdmuexp}. On constate que la taille de $\sastrace{\sim}$ [fn::La bonne répartition des données dans l'espace d'état-action est également importante. Ici, grâce à l'usage d'une politique aléatoire, $\sastrace{\sim}$ est bien représentative de la dynamique.]est bien le facteur déterminant de la qualité de l'imitation. On constate surtout que les deux approches manifestent le même comportement. Cela pourrait signifier que quelle qu'ait pu être l'erreur introduite par l'utilisation de \gls{lstdmu}, elle est gommée par les besoins de \gls{lspi} en données. Quand ce dernier dispose de suffisamment de données pour résoudre le \gls{mdp} suffisamment bien pour que l'algorithme d'\gls{irl} converge vers une bonne solution, \gls{lstdmu} possède suffisamment d'information pour fournir une estimation de l'attribut moyen qui, pour l'usage qui en est fait, est aussi bonne que celle de l'oracle.
+ Le résultat de l'expérience est donné Figure 4.1
+# \autoref{fig:lstdmuexp}
+. On constate que la taille de $\sastrace{\sim}$ [fn::La bonne répartition des données dans l'espace d'état-action est également importante. Ici, grâce à l'usage d'une politique aléatoire, $\sastrace{\sim}$ est bien représentative de la dynamique.]est bien le facteur déterminant de la qualité de l'imitation. On constate surtout que les deux approches manifestent le même comportement. Cela pourrait signifier que quelle qu'ait pu être l'erreur introduite par l'utilisation de \gls{lstdmu}, elle est gommée par les besoins de \gls{lspi} en données. Quand ce dernier dispose de suffisamment de données pour résoudre le \gls{mdp} suffisamment bien pour que l'algorithme d'\gls{irl} converge vers une bonne solution, \gls{lstdmu} possède suffisamment d'information pour fournir une estimation de l'attribut moyen qui, pour l'usage qui en est fait, est aussi bonne que celle de l'oracle.
 
 \begin{figure}
 \centering
@@ -1451,7 +1468,7 @@ Si la majorité des approches de classification peuvent être vue comme utilisan
 \end{align}
 et $\margin$ telle que définie \autoref{eq:margin}.
 
-Cette méthode de classification est aussi celle employée par \citet{ratliff2006maximum} dans leur algorithme \gls{mmp}. Une différence importante entre \gls{scirl} et \gls{mmp} est que ce dernier prend la structure temporelle du problème en compte en associant des politiques à des \gls{mdp}. Cela fonctionne mais implique de devoir résoudre ces \gls{mdp} et fait donc de \gls{mmp} une approche itérative conforme au schéma de l'\autoref{alg:repetee}. Ici ce sont les actions sont associées aux états, comme dans les approches supervisées (\autoref{hier-nonari}. La structure temporelle est amenée par l'attribut moyen.
+Cette méthode de classification est aussi celle employée par \citet{ratliff2006maximum} dans leur algorithme \gls{mmp}. Une différence importante entre \gls{scirl} et \gls{mmp} est que ce dernier prend la structure temporelle du problème en compte en associant des politiques à des \gls{mdp}. Cela fonctionne mais implique de devoir résoudre ces \gls{mdp} et fait donc de \gls{mmp} une approche itérative conforme au schéma de l'\autoref{alg:repetee}. Ici ce sont les actions sont associées aux états, comme dans les approches supervisées (\autoref{hier-nonari}). La structure temporelle est amenée par l'attribut moyen.
 
 Le calcul du sous-gradient $\subgrad\structuredcost(\paramirl)$ implique de pouvoir évaluer l'attribut moyen de l'expert $\expertmu$ en tout état présent dans la base d'entraînement $\sastrace{\expertpolicy}$, pour toute action.
 
@@ -1559,12 +1576,12 @@ Si $\classiferror{\expertdistrib} = 0$ et $\bar\epsilon_Q = 0$, alors $\expertpo
 Soit $\policy^H$ une politique optimale pour $\rewardfunc_{\paramirl}$. Comme $\policy^H$ et $\expertpolicy$ sont toutes deux optimales, alors d'après l'\autoref{eq:greedy01} :
 \begin{align}
 \policy^H &\in \greedy{\expertpolicy}\\
-\Rightarrow \forall \state \in \statespace, \policy^H(s) &= \arg\max_{\action in \actionspace}\quality{\expertpolicy}{\rewardfunc_\theta}(s,a)\\
-&=\arg\max_{\action in \actionspace}\transpose{\paramirl}\expertmu(s,a).
+\Rightarrow \forall \state \in \statespace, \policy^H(s) &= \arg\max_{\action \in \actionspace}\quality{\expertpolicy}{\rewardfunc_\theta}(s,a)\\
+&=\arg\max_{\action \in \actionspace}\transpose{\paramirl}\expertmu(s,a).
 \end{align}
 Comme $\bar\epsilon_Q = 0$,
 \begin{align}
-\forall \state \in \statespace, \policy^H(s) &= \arg\max_{\action in \actionspace}\classifscorefunc_{\paramirl}(s,a)\\
+\forall \state \in \statespace, \policy^H(s) &= \arg\max_{\action \in \actionspace}\classifscorefunc_{\paramirl}(s,a)\\
 &=\classifpolicy(s).
 \end{align}
 Et comme $\classiferror{\expertdistrib} = 0$,
@@ -1573,7 +1590,7 @@ Et comme $\classiferror{\expertdistrib} = 0$,
 \end{equation}
 \end{proof}
 
-Une autre propriété de \gls{scirl} est d'éviter les solutions dégénérées, en effet la solution dégénérée par excellence, la récompense nulle, minimise le critère utilisé dans la borne[fn::Pour $\paramirl=0$, $\expertpolicy$ est optimale pour $\rewardfunc_{\paramirl}$, de même que n'importe quelle autre politique.] mais implique que la politique de classification $\classifpolicy$ est la politique aléatoire uniforme, atteignant erreur de classification maximale $\classiferror{\expertdistrib} = \frac{\card{\actionspace}-1}{\card{\actionspace}}$. Le classifieur cherchant à minimiser $\classiferror{\expertdistrib}$, il est peu probable que ce cas advienne.
+Une autre propriété de \gls{scirl} est d'éviter les solutions dégénérées, en effet la solution dégénérée par excellence, la récompense nulle, minimise le critère utilisé dans la borne[fn::Pour $\paramirl=0$, $\expertpolicy$ est optimale pour $\rewardfunc_{\paramirl}$, de même que n'importe quelle autre politique.] mais implique que la politique de classification $\classifpolicy$ est la politique aléatoire uniforme, atteignant l'erreur de classification maximale $\classiferror{\expertdistrib} = \frac{\card{\actionspace}-1}{\card{\actionspace}}$. Le classifieur cherchant à minimiser $\classiferror{\expertdistrib}$, il est peu probable que ce cas advienne.
 
 ** Validation empirique
 # <<hier:scirlexp>>
@@ -1599,11 +1616,14 @@ Une autre propriété de \gls{scirl} est d'éviter les solutions dégénérées,
     
     Cette même base $\sastrace{\sim}$ sera utilisée par \gls{lspi} pour optimiser les récompenses trouvées par \gls{scirl} et \gls{relent}.
 
-    Les attributs utilisés par \gls{lspi}, \gls{scirl} et \gls{relent} sont les mêmes, il s'agit d'un maillage de gaussiennes tel que décrit \autoref{eq:gaussianrbf} et illustré \autoref{fig:mountain_car_psi}.
+    Les attributs utilisés par \gls{lspi}, \gls{scirl} et \gls{relent} sont les mêmes, il s'agit d'un maillage de gaussiennes tel que décrit \autoref{eq:gaussianrbf} et illustré Figure 2.1.
+# \autoref{fig:mountain_car_psi}.
 
     Le classifieur dont les performances sont illustrées est une \gls{svm} à noyau gaussien dont les paramètres sont choisis automatiquement par l'implémentation utilisée[fn::[[http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html][Module SVM de Scikit-learn]]]. Les performances de cette technique étant très légèrement supérieures à ceux du classifieur structuré de \citet{taskar2005learning} (\autoref{alg:taskar}), ce sont celles que nous affichons ici.
 
-    En ordonnée sur la \autoref{fig:scirlmountaincar}, nous représentons le nombre de pas nécessaire à l'agent pour qu'il atteigne le but (plafonné à $300$), lorsque l'état de départ est tiré aléatoirement dans l'espace d'état entier. Les valeurs affichées sont la moyenne et l'écart-type sur $100$ expériences. Ce critère est directement lié à la valeur de la politique pour la récompense inconnue $\expertreward$ : si l'expert touche une récompense de $1$ lorsqu'il atteint l'objectif, et que la récompense est nulle partout ailleurs, du fait de l'amortissement temporel la valeur de sa politique en un état vaut $\discount^T$ où $T$ est le nombre de pas qui le sépare de l'objectif. En conséquence, ce que nous traçons est le logarithme en base $\discount$ de la valeur moyenne de la politique.
+    En ordonnée sur la Figure 5.1,
+# \autoref{fig:scirlmountaincar},
+ nous représentons le nombre de pas nécessaire à l'agent pour qu'il atteigne le but (plafonné à $300$), lorsque l'état de départ est tiré aléatoirement dans l'espace d'état entier. Les valeurs affichées sont la moyenne et l'écart-type sur $100$ expériences. Ce critère est directement lié à la valeur de la politique pour la récompense inconnue $\expertreward$ : si l'expert touche une récompense de $1$ lorsqu'il atteint l'objectif, et que la récompense est nulle partout ailleurs, du fait de l'amortissement temporel la valeur de sa politique en un état vaut $\discount^T$ où $T$ est le nombre de pas qui le sépare de l'objectif. En conséquence, ce que nous traçons est le logarithme en base $\discount$ de la valeur moyenne de la politique.
 
 \begin{figure}
 \centering
@@ -1612,7 +1632,9 @@ Une autre propriété de \gls{scirl} est d'éviter les solutions dégénérées,
 \label{fig:scirlmountaincar}
 \end{figure}
 
-Les résultats présentés \autoref{fig:scirlmountaincar} sont conformes à ce qui était espéré, en ce sens que les deux algorithmes d'\gls{irl} sont plus performants que la méthode supervisée. On constate cependant que les performances de \gls{relent} sont beaucoup plus proches de celles de la classification qu'elles ne le sont de celles de \gls{scirl}. Ce dernier parvient dès $30$ échantillons à des performances meilleures que celles des deux autres approches quel que soit la quantité de données expertes. Quand au moins une trajectoire complète est présente dans les données, la politique issue de la récompense trouvée par \gls{scirl} est presque aussi bonne que celle de l'expert.
+Les résultats présentés Figure 5.1
+# \autoref{fig:scirlmountaincar}
+ sont conformes à ce qui était espéré, en ce sens que les deux algorithmes d'\gls{irl} sont plus performants que la méthode supervisée. On constate cependant que les performances de \gls{relent} sont beaucoup plus proches de celles de la classification qu'elles ne le sont de celles de \gls{scirl}. Ce dernier parvient dès $30$ échantillons à des performances meilleures que celles des deux autres approches quel que soit la quantité de données expertes. Quand au moins une trajectoire complète est présente dans les données, la politique issue de la récompense trouvée par \gls{scirl} est presque aussi bonne que celle de l'expert.
     
 Le calcul de l'attribut moyen de l'expert pour \gls{scirl} est ici effectué avec l'\autoref{eq:montecarlodupauvre} car le problème est déterministe.
     
@@ -1630,14 +1652,18 @@ En utilisant un peu plus[fn::La classification utilise une base $\satrace{\exper
     
     L'espace d'état étant discret, nous pouvons optimiser les récompenses trouvées par les algorithmes d'\gls{irl} avec une méthode de \gls{dp}. Le critère que nous utilisons pour comparer les différentes politiques est la moyenne sur tous les états de la valeur de la politique. Même les démonstrations les plus longues de l'expert ($400$ échantillons) n'explorent qu'une petite partie de l'espace d'état-action (de cardinal $3645$), il est donc primordial de bien généraliser pour obtenir un contrôle correct.
 
-    Les résultats obtenus sont donnés \autoref{fig:scirlhighway}. Les résultats présentent bien la hiérarchie à laquelle nous nous attendions : l'algorithme supervisé ne parvient à apprendre un bon contrôle que petit à petit, à mesure que la taille de la base de données experte croît. L'ordre est le même que pour le \gls{mountaincar}, mais les performances de \gls{relent} diffèrent en ceci qu'elles sont maintenant beaucoup plus proches de celles de \gls{scirl} (qui reste malgré tout au dessus) que de la classification.
+    Les résultats obtenus sont donnés Figure 5.2.
+# \autoref{fig:scirlhighway}.
+Les résultats présentent bien la hiérarchie à laquelle nous nous attendions : l'algorithme supervisé ne parvient à apprendre un bon contrôle que petit à petit, à mesure que la taille de la base de données experte croît. L'ordre est le même que pour le \gls{mountaincar}, mais les performances de \gls{relent} diffèrent en ceci qu'elles sont maintenant beaucoup plus proches de celles de \gls{scirl} (qui reste malgré tout au dessus) que de la classification.
 
     Dans un domaine où les attributs (discrets) n'ont pas été en mesure de fournir à la méthode supervisée la moindre information /a priori/ sur le système (précédemment pour le \gls{mountaincar}, le noyau gaussien de la \gls{svm} possède la propriété de cohérence spatiale), les méthodes d'\gls{irl} présentent de bien meilleures capacités de généralisation.
 
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{Figures/highway_scirl.pdf}
-\caption[Algorithmes d'imitation sur le \glstext{highway}]{Algorithmes d'imitation sur le \glstext{highway}. En plus de la valeur de l'expert comme dans la \autoref{fig:scirlhighway}, la valeur d'une politique apprise sur une récompense aléatoire donne un point de référence de valeur minimale. On montre ici l'écart-type et la moyenne sur $100$ expériences.}
+\caption[Algorithmes d'imitation sur le \glstext{highway}]{Algorithmes d'imitation sur le \glstext{highway}. En plus de la valeur de l'expert comme dans la Figure 5.1,
+% \autoref{fig:scirlmountaincar},
+la valeur d'une politique apprise sur une récompense aléatoire donne un point de référence de valeur minimale. On montre ici l'écart-type et la moyenne sur $100$ expériences.}
 \label{fig:scirlhighway}
 \end{figure}
 
@@ -1763,8 +1789,8 @@ Une méthode de régression\;
 Entraîner le classifieur sur la base de données experte \sastrace{\expertpolicy}, obtenant ainsi $\classifscorefunc$ et $\classifpolicy$\;
 Établir la base d'entraînement
 \begin{align*}
-\rctrace &= \{\left(\state_{\datasetindex},\action_{\datasetindex} = \expertpolicy(\state_{\datasetindex})\right) , \rsample_{\datasetindex} = q(s_{\datasetindex},\expertpolicy(\state_{\datasetindex})) - \gamma q(s'_{\datasetindex},\classifpolicy(s'_{\datasetindex}))|\state_{\datasetindex},\action_{\datasetindex},\state'_{\datasetindex}\in\sastrace{\expertpolicy}\}\\
-&\cup\{\left(s_{\datasetindex},\forall \action \neq\expertpolicy(\state_{\datasetindex})\right) , \rsample_{min} = \min_{\datasetindex\in \llbracket 1;\nbsamples\rrbracket}\rsample_{\datasetindex} - 1\} \textrm{\;}
+\rctrace &= \left\{\left(\state_{\datasetindex},\action_{\datasetindex} = \expertpolicy(\state_{\datasetindex})\right) , \rsample_{\datasetindex} = q(s_{\datasetindex},\expertpolicy(\state_{\datasetindex})) - \gamma q(s'_{\datasetindex},\classifpolicy(s'_{\datasetindex}))|\state_{\datasetindex},\action_{\datasetindex},\state'_{\datasetindex}\in\sastrace{\expertpolicy}\right\}\\
+&\cup\left\{\left(s_{\datasetindex},\forall \action \neq\expertpolicy(\state_{\datasetindex})\right) , \rsample_{min} = \min_{\datasetindex\in \llbracket 1;\nbsamples\rrbracket}\rsample_{\datasetindex} - 1\right\} \textrm{\;}
 \end{align*}
 Entrainer le régresseur sur la base $\rctrace$, obtenant ainsi $\apprRc$\;
 \Retour{$\apprRc$}
@@ -1842,7 +1868,9 @@ Nous retrouvons ici les bancs d'essais utilisés \autoref{hier-scirlexp}, le \gl
 L'instanciation de \gls{cascading} utilisée est celle de l'\autoref{alg:csiheuristique}. Nous préciserons dans les sous-sections le choix du classifieur et du régresseur.
 
 *** \glstext{cascading} sur le mountain car
-Le protocole expérimental est le même que dans la \autoref{hier-expmountaincar}. Le classifieur choisi pour \gls{cascading} est le même que celui dont les performances sont illustrées \autoref{fig:csimountaincar}. Il s'agit de l'implémentation d'une SVM[fn::[[http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html][Module SVM de Scikit-learn]]]. Le noyau est gaussien, les paramètres par défaut sont utilisés. Nous sommes dans un cas où l'ingénierie déployée par l'opérateur est minimale. Le régresseur est choisi dans le même esprit, il s'agit d'une SVR[fn::[[http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html][Module SVR de Scikit-learn]]] utilisée avec ses paramètres par défaut. 
+Le protocole expérimental est le même que dans la \autoref{hier-expmountaincar}. Le classifieur choisi pour \gls{cascading} est le même que celui dont les performances sont illustrées Figure 6.1.
+# \autoref{fig:csimountaincar}.
+Il s'agit de l'implémentation d'une SVM[fn::[[http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html][Module SVM de Scikit-learn]]]. Le noyau est gaussien, les paramètres par défaut sont utilisés. Nous sommes dans un cas où l'ingénierie déployée par l'opérateur est minimale. Le régresseur est choisi dans le même esprit, il s'agit d'une SVR[fn::[[http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html][Module SVR de Scikit-learn]]] utilisée avec ses paramètres par défaut. 
 
 \begin{figure}
 \centering
@@ -1851,7 +1879,9 @@ Le protocole expérimental est le même que dans la \autoref{hier-expmountaincar
 \label{fig:csimountaincar}
 \end{figure}
 
-Les résultats obtenus après avoir répété $100$ fois l'expérience sont donnés \autoref{fig:csimountaincar}, il est clair que les deux nouveaux algorithmes d'\gls{irl} \gls{scirl} et \gls{cascading} sont plus performants que \gls{relent} (qui était déjà lui-même plus performant que l'approche supervisée). Il n'est pas clair en revanche qui de \gls{scirl} ou \gls{cascading} est le plus performant. Pour en avoir le cœur net, nous allons procéder à un test statistique d'égalité des moyennes. Si un test d'égalité des variances de Bartlett réussit, un test de Student est réalisé, si le Bartlett échoue, c'est un test de Welch. Les $p$-valeurs sont données \autoref{tab:mountaincar}. On voit que la seule abscisse pour laquelle on peut affirmer que les moyennes sont inégales est la première, où \gls{cascading} est plus performant que \gls{scirl} (et aussi que \gls{relent}). Pour les abscisses suivantes, \gls{scirl} et \gls{cascading} ont peu ou prou les mêmes performances, très proches des performances expertes.
+Les résultats obtenus après avoir répété $100$ fois l'expérience sont donnés Figure 6.1,
+# \autoref{fig:csimountaincar},
+il est clair que les deux nouveaux algorithmes d'\gls{irl} \gls{scirl} et \gls{cascading} sont plus performants que \gls{relent} (qui était déjà lui-même plus performant que l'approche supervisée). Il n'est pas clair en revanche qui de \gls{scirl} ou \gls{cascading} est le plus performant. Pour en avoir le cœur net, nous allons procéder à un test statistique d'égalité des moyennes. Si un test d'égalité des variances de Bartlett réussit, un test de Student est réalisé, si le Bartlett échoue, c'est un test de Welch. Les $p$-valeurs sont données \autoref{tab:mountaincar}. On voit que la seule abscisse pour laquelle on peut affirmer que les moyennes sont inégales est la première, où \gls{cascading} est plus performant que \gls{scirl} (et aussi que \gls{relent}). Pour les abscisses suivantes, \gls{scirl} et \gls{cascading} ont peu ou prou les mêmes performances, très proches des performances expertes.
 
 \begin{table}
 \centering
@@ -1894,7 +1924,13 @@ Calculer le vecteur de paramètres $\beta$ :
 \label{alg:lsr}
 \end{algorithm}
 
-Les résultats obtenus sont donnés \autoref{fig:csihighway1}. Les performances des algorithmes d'\gls{irl} étant très proches les unes des autres, nous offrons un grossissement \autoref{fig:csihighway2} qui montre que \gls{cascading} semble disposer d'un avantage sur les deux autres approches. Cela est confirmé par un test statistique d'égalité des moyennes (comme précédemment, il s'agit d'un test de Student ou de Welch selon qu'un test de Bartlett d'égalité des variances réussit ou non) dont les résultats sont fournis \autoref{tab:highway} : pour les abscisses de la \autoref{fig:csihighway2}, les performances de \gls{cascading} sont bel et bien supérieures à celles de \gls{scirl}.
+Les résultats obtenus sont donnés Figure 6.2.
+# \autoref{fig:csihighway1}.
+Les performances des algorithmes d'\gls{irl} étant très proches les unes des autres, nous offrons un grossissement Figure 6.3
+# \autoref{fig:csihighway2}
+ qui montre que \gls{cascading} semble disposer d'un avantage sur les deux autres approches. Cela est confirmé par un test statistique d'égalité des moyennes (comme précédemment, il s'agit d'un test de Student ou de Welch selon qu'un test de Bartlett d'égalité des variances réussit ou non) dont les résultats sont fournis \autoref{tab:highway} : pour les abscisses de la Figure 6.3,
+# \autoref{fig:csihighway2},
+les performances de \gls{cascading} sont bel et bien supérieures à celles de \gls{scirl}.
 
 \begin{figure}
 \centering
@@ -1905,7 +1941,7 @@ Les résultats obtenus sont donnés \autoref{fig:csihighway1}. Les performances 
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{Figures/highway_csi2.pdf}
-\caption{Grossissement de la \autoref{fig:csihighway1}.}
+\caption{Grossissement de la Figure 6.2.}%\autoref{fig:csihighway1}.}
 \label{fig:csihighway2}
 \end{figure}
 
