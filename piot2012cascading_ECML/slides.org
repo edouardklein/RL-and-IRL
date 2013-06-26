@@ -1,0 +1,370 @@
+#+LaTeX_CLASS: beamer
+
+#+LaTeX_HEADER: \usetheme[secheader]{Boadilla}
+#+LaTeX_HEADER: \usepackage{stmaryrd}
+#+LaTeX_HEADER: \usepackage{cancel}
+#+LaTeX_HEADER: \usepackage[english]{babel}
+#+LaTeX_HEADER: \setbeamercolor{title}{fg=black,bg=black!10!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{block body}{fg=black,bg=black!10!brown!30}
+#+LaTeX_HEADER: \setbeamercolor{block title}{fg=black,bg=black!30!brown!40}
+
+#+LaTeX_HEADER: \setbeamercolor{frametitle}{fg=black,bg=black!30!brown!50}
+#+LaTeX_HEADER: \beamersetaveragebackground{brown!50!black!20}
+
+#+LaTeX_HEADER: \setbeamercolor{author in head/foot}{fg=black,bg=black!30!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{title in head/foot}{fg=black,bg=black!20!brown!50}
+#+LaTeX_HEADER: \setbeamercolor{date in head/foot}{fg=black,bg=black!10!brown!50}
+
+#+LaTeX_HEADER: \setbeamercolor{section in head/foot}{fg=black,bg=black!30!brown!30}
+#+LaTeX_HEADER: \setbeamercolor{subsection in head/foot}{fg=black,bg=black!20!brown!30}
+
+#+LaTeX_HEADER: \usepackage{animate} %need the animate.sty file 
+
+#+LaTeX_HEADER: \usepackage{color}
+#+LATEX_HEADER: \renewcommand*{\CancelColor}{\color{red}}
+#+LaTeX_HEADER: \usepackage[ruled]{algorithm2e}
+#+LaTeX_HEADER:\newcommand{\classifpolicy}{\pi^C}
+#+LaTeX_HEADER:\newcommand{\classifscorefunc}{q}
+#+LaTeX_HEADER:\newcommand{\expertdistrib}{\rho_E}
+#+LaTeX_HEADER:\newcommand{\apprRc}{\hat{R}^C}
+#+LaTeX_HEADER:\newcommand{\Rc}{R^C}
+#+LaTeX_HEADER:\newcommand{\actionspace}{\mathcal{A}}
+#+LaTeX_HEADER:\newcommand{\statespace}{\mathcal{S}}
+#+LaTeX_HEADER:\newcommand{\discount}{\gamma}
+#+LaTeX_HEADER:\newcommand{\actionBis}{a}
+#+LaTeX_HEADER:\newcommand{\datasetindex}{i}
+#+LaTeX_HEADER:\newcommand{\nbsamples}{N}
+#+LaTeX_HEADER:\newcommand{\rsample}{\hat{r}}
+#+LaTeX_HEADER:\newcommand{\state}{s}
+#+LaTeX_HEADER:\newcommand{\optimalpolicy}[1]{\pi^*_{#1}}
+#+LaTeX_HEADER:\newcommand{\expertpolicy}{\pi_E}
+#+LaTeX_HEADER:\newcommand{\expertreward}{R^E}
+#+LaTeX_HEADER:\newcommand{\satrace}[1]{D^{#1}_{sa}}
+#+LaTeX_HEADER:\newcommand{\ccoeffpi}[1]{C_{#1}}
+#+LaTeX_HEADER:\newcommand{\rlvalue}[2]{V^{#1}_{#2}}
+#+LaTeX_HEADER:\newcommand{\sastrace}[1]{D^{#1}_{sas}}
+#+LaTeX_HEADER:\newcommand{\expectationknowing}[2]{\mathbf{E}\left[\left.#1\right|#2\right]}
+#+LaTeX_HEADER:\newcommand{\transprobfunceval}[3]{p\left(\left.#3\right|#1,#2\right)}
+#+LaTeX_HEADER:\newcommand{\quality}[2]{Q^{#1}_{#2}}
+
+#+LaTeX_HEADER: \include{headertikz}
+#+LaTeX_HEADER: \usetikzlibrary{decorations.pathmorphing,shapes.misc}
+
+#+BEAMER_HEADER_EXTRA:\title[CSI]{A cascaded supervised learning approach to inverse reinforcement learning}
+#+BEAMER_HEADER_EXTRA:\author[MaLIS Team]{JFPDA2013\\Edouard Klein$^{\dag\ddag}$, Bilal Piot$^{\dag\textrm{\Ankh}}$, Matthieu Geist$^\dag$ and \underline{Olivier Pietquin}$^{\dag\textrm{\Ankh}}$\\\texttt{firstname.lastname@supelec.fr}}
+#+BEAMER_HEADER_EXTRA:\institute[Supélec]{$\dag$Equipe IMS/MaLIS (Supélec), France\\$\ddag$Equipe ABC UMR 7503 (Loria-CNRS), France\\\Ankh UMI 2958 (GeorgiaTech-CNRS)}
+#+BEAMER_HEADER_EXTRA:\date{01-02 Juillet 2013}
+
+
+
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+OPTIONS: toc:nil
+#+BEAMER_FRAME_LEVEL: 3
+#+TITLE: A cascaded supervised learning approach to inverse reinforcement learning
+#+AUTHOR: Edouard Klein and and Bilal Piot and Matthieu Geist and Olivier Pietquin
+
+#+Begin_LaTeX
+\tikzstyle{state}=[circle,
+thick,
+minimum size=1.0cm,
+draw=blue!80,
+fill=blue!20]
+\tikzstyle{action}=[rectangle,thick,
+minimum size=1.0cm,
+draw=orange!80,
+fill=orange!20]
+\tikzstyle{element}=[rectangle,
+thick,
+minimum size=1.0cm,
+draw=blue!80,
+fill=blue!20]
+\tikzstyle{action}=[rectangle,thick,
+minimum size=1.0cm,
+draw=orange!80,
+fill=orange!20]
+#+end_LaTeX
+* Non-technical Abstract
+** Context
+*** Imitation: Expert
+
+**** Null					     :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_col: .4\textwidth
+    :BEAMER_env: ignoreheading
+    :END:
+     #+BEGIN_LaTeX
+     \begin{overlayarea}{\textwidth}{5cm}
+     \only<1>{\animategraphics[autoplay,loop,height=5cm]{1}{Expert00}{1}{9} }
+     \only<2>{ \animategraphics[autoplay,loop,height=5cm]{1}{Agent}{001}{014} }
+     \end{overlayarea}
+     #+END_LaTeX
+
+**** Expert 						      :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .4\textwidth
+    :END:
+     - The expert is an optimal agent in an MDP
+     - Its behavior is observed
+
+**** Apprenticeship learning				     :BMCOL:B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     Reward inference
+** Contribution
+*** Contribution 
+**** CSI 							    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :ORDERED:  t
+    :END:
+     - CSI Algorithm
+       - Vanilla classification step…
+       - …followed by a regression step that introduces the temporal structure of the MDP
+       - Only needs data from the expert (if we use the heuristics)
+       - Can use other data if available
+       - Able to use off-the-shelf components
+     - Theoretical results
+     - Experimental results
+* IRL
+** RL
+*** Quick definitions
+     #+BEGIN_LaTeX
+       \begin{columns}
+    \begin{column}{4cm}
+      \begin{block}{}
+        \begin{overlayarea}{\textwidth}{4.4cm}
+          \only<1->{\input{img/MDP4.tex}}
+        \end{overlayarea}
+      \end{block}
+    \end{column}
+    \begin{column}{4cm}
+      \begin{block}{Notions}
+        \begin{itemize}
+          \item<1-> State $s_t\in \statespace$
+          \item<1-> Action $a_t \in \actionspace$
+          \item<1-> Reward $r_t = R(s_t) \in \mathbb{R}$
+          \item<1-> Transition $(s_t,a_t,s_{t+1},r_t)\in \statespace\times \actionspace\times \statespace\times\mathbb{R}$
+     \item     $\pi: \statespace\rightarrow \actionspace$
+        \end{itemize}
+      \end{block}
+      \begin{block}<1->{Markovian criterion}
+        Past states are irrelevant
+      \end{block}
+    \end{column}
+  \end{columns}
+     #+END_LaTeX
+
+*** RL problem and solution
+**** Value function						   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     \begin{equation}
+     \label{eqn:V}
+     V^\pi_R(s_t) = E\left[\left.\sum\limits_{i}\gamma^i R(s_{t+i})\right|\pi\right]
+     \end{equation}
+**** Goal							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     #+begin_latex
+     Optimal policy $\pi^*_R = \arg\max\limits_\pi V^\pi_R$ \hfill \uncover<1>{$\pi^*_R(s) = \arg\max\limits_{a} Q^{\pi^*}_R(s,a)$}
+     #+end_latex
+** IRL
+*** IRL problem
+**** Goal							   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     Finding the reward $R$ so that the observed behavior is optimal
+**** Ill-posed 						      :B_alertblock:
+    :PROPERTIES:
+    :BEAMER_env: alertblock
+    :END:
+     The null reward $\forall s, R(s) = 0$ is a solution
+** CSI Algorithm
+*** A certain class of classifiers
+**** Score function based classifiers 				    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     - Classifier: map inputs $s\in \mathcal{S}$ to labels $a \in \mathcal{A}$
+     - Data: $\satrace{\expertpolicy} = \{(s_i,a_i)_{1\leq i \leq N}\}$
+     - Decision rule : $\pi^C\in\mathcal{A}^\mathcal{S}$
+     - Score function : $\pi^C(s) \in \arg\max\limits_{a\in\mathcal{A}}q(s,a)$
+     - Very few exceptions (/e.g./ decision trees)
+*** The idea behind CSI
+#+begin_latex
+\begin{block}<3->{We view $q$ as a quality function}
+\begin{equation}
+\Rc(\state,\actionBis) = \classifscorefunc(\state,\actionBis) - \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\actionBis}{\state'} \classifscorefunc(\state',\classifpolicy(\state'))
+\label{eq:rc}
+\end{equation}
+$\classifpolicy$ is optimal for $\Rc$ and $\classifpolicy \approx \expertpolicy$, ergo we would be happy to find $\Rc$.
+\end{block}
+#+end_latex
+**** Score function based classifiers 				    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .45
+    :END:
+     $\pi^C(s) \in \arg\max\limits_{a\in\mathcal{A}}q(s,a)$
+     
+**** Expert policy 						    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col: .45
+    :END:
+     $\pi_E(s) = \arg\max\limits_{a} Q^{\pi_E}(s,a)$
+**** Bellman Equation for the expert
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_col:1.
+    :END:
+#+begin_latex
+\vspace{-1em}
+\begin{overlayarea}{\textwidth}{3.5em}
+\only<1>{ \begin{equation}
+\quality{\expertpolicy}{\expertreward}(\state,\actionBis) = \expertreward(\state,\actionBis) + \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\actionBis}{\state'} \quality{\expertpolicy}{\expertreward}(\state',\expertpolicy(\state'))
+\end{equation}}
+\only<2->{ \begin{equation}
+\expertreward(\state,\actionBis) = \quality{\expertpolicy}{\expertreward}(\state,\actionBis) - \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\actionBis}{\state'} \quality{\expertpolicy}{\expertreward}(\state',\expertpolicy(\state'))
+\end{equation}}
+\end{overlayarea}
+#+end_latex
+
+
+*** The idea behind CSI
+#+begin_latex
+\begin{block}{After a classifier has learned a score function $q$}
+\begin{equation}
+\Rc(\state,\actionBis) = \classifscorefunc(\state,\actionBis) - \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\actionBis}{\state'} \classifscorefunc(\state',\classifpolicy(\state'))
+\label{eq:ttttot}
+\end{equation}
+\end{block}
+
+\begin{columns}
+\begin{column}{.45\textwidth}
+\begin{block}{Non expert data}
+\vspace{-1.5em}
+\begin{equation}
+\sastrace{\sim} = \{\state_{\datasetindex},\actionBis_{\datasetindex},\state'_{\datasetindex}\}_{0\leq\datasetindex\leq\nbsamples}.
+\end{equation}
+\end{block}
+\end{column}
+\begin{column}{.45\textwidth}
+
+\end{column}
+\end{columns}
+\begin{block}{Sampled version of Eq.~\ref{eq:ttttot}}
+\vspace{-.5em}
+\begin{equation}
+\rsample_{\datasetindex} = q(s_{\datasetindex},a_{\datasetindex}) - \gamma q(s'_{\datasetindex},\classifpolicy(s'_{\datasetindex})).
+\end{equation}
+\end{block}
+#+end_latex
+*** CSI Pseudo-code
+#+begin_latex
+\begin{algorithm}[H]
+    %\small
+  \caption{CSI algorithm}
+  \label{algo:cascading}
+  \emph{\textbf{Given}} a training set $\satrace{\expertpolicy}=\{(s_i,a_i=\pi_E(s_i))\}_{1\leq i \leq \nbsamples}$\\and another training set $\sastrace{\sim}=\{(s_{j},a_{j},s'_{j})\}_{1\leq j \leq \nbsamples'}$\;
+  \emph{\textbf{Train}} a score function-based classifier on $\satrace{\expertpolicy}$, obtaining decision rule $\pi^C$ and score function $q:\statespace\times \actionspace \rightarrow \mathbb R$\;
+  \emph{\textbf{Learn}} a reward function $\hat R^C$ from the dataset $\{((s_{j},a_{j}),\hat{r}_j)\}_{1\leq j \leq \nbsamples'}$, $\forall (s_j,a_j,s'_j) \in \sastrace{\sim},\hat{r}_j=q(s_{j},a_{j})-\gamma q(s'_{j},\pi_C(s'_{j}))$\;
+  \emph{\textbf{Output}} the reward function $\hat R^{C}$ \;
+\end{algorithm}
+#+end_latex
+
+*** Heuristics
+#+begin_latex
+\begin{block}{After a classifier has learned a score function $q$}
+\begin{equation}
+\Rc(\state,\actionBis) = \classifscorefunc(\state,\actionBis) - \discount \sum_{\state'\in \statespace}\transprobfunceval{\state}{\actionBis}{\state'} \classifscorefunc(\state',\classifpolicy(\state'))
+\label{eq:ttttot}
+\end{equation}
+\end{block}
+
+\begin{columns}
+\begin{column}{.45\textwidth}
+\begin{block}{Non expert data}
+\vspace{-1.5em}
+ \begin{equation}
+\xcancel{\sastrace{\sim} = \{\state_{\datasetindex},\actionBis_{\datasetindex},\state'_{\datasetindex}\}_{0\leq\datasetindex\leq\nbsamples}}
+\end{equation}
+\end{block}
+\end{column}
+\begin{column}{.45\textwidth}
+\begin{block}{Expert data}
+$\sastrace{\expertpolicy} = \{(s_i,a_i,s'_i)_{1\leq i \leq N}\}$
+\end{block}
+\end{column}
+\end{columns}
+\begin{block}{Sampled version of Eq.~\ref{eq:ttttot}}
+\vspace{-.3em}
+\begin{equation}
+\left(s_{\datasetindex},\expertpolicy(\state_{\datasetindex})\right) , \rsample_{\datasetindex} = q(s_{\datasetindex},\expertpolicy(\state_{\datasetindex})) - \gamma q(s'_{\datasetindex},\classifpolicy(s'_{\datasetindex})).
+\end{equation}
+\end{block}
+\begin{block}{Heuristics}
+\vspace{-.5em}
+\begin{equation}
+\left(s_{\datasetindex},\forall \actionBis \neq\expertpolicy(\state_{\datasetindex})\right) ,\rsample_{min} = \min_{\datasetindex\in \llbracket 1;\nbsamples\rrbracket}\rsample_{\datasetindex} - 1.
+\end{equation}
+\end{block}
+#+end_latex
+* Theoretical results
+** Analysis
+*** Error bound
+#+begin_latex
+\begin{alertblock}<1->{Theorem}
+\begin{equation}
+0\leq\expectationknowing{\rlvalue{\optimalpolicy{\apprRc}}{\apprRc}(s)-\rlvalue{\expertpolicy}{\apprRc}(s)}{s\sim\expertdistrib}\leq \frac{1}{1-\gamma}\left(\epsilon_C\Delta q +\epsilon_R(1+\ccoeffpi{\optimalpolicy{\apprRc}})\right).
+\end{equation}
+\end{alertblock}
+#+end_latex
+* Experimental results
+** Mountain car
+*** Results on the mountain car
+#+begin_latex
+\includegraphics[width=\textwidth]{Exp11}
+#+end_latex
+** Highway Driving
+*** Results on the driving problem
+**** Toto 					      :BMCOL:B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+#+begin_latex
+     \uncover<2->{
+\includegraphics[width=0.47\textwidth]{Exp14}
+     \includegraphics[width=0.47\textwidth]{Exp14_zoom}
+}
+#+end_latex
+**** Description 						    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     - Widespread benchmark
+     - Goal of the expert : avoid other cars, do not go off-road, go fast
+     - Using only data from the expert and natural features
+
+* Opening and future work
+** Future work
+*** Possible future work
+**** Real world problems
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     The difficult part is solving the MDP once the reward has been found by CSI
+*** Thank you...
+    ... for your attention
+
+# * Corrections
+# ** TODO Petits textes en bas
+# ** TODO Expliquer d'où vient mu
+# ** TODO Mettre des uncover dans le .tex
+# ** TODO Commiter le tout
+
