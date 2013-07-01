@@ -55,7 +55,7 @@ legend()
 xlabel(r"Number of samples from the expert")
 ylabel("Average length of episode")
 grid()
-savefig("Exp11.pdf")
+savefig("Exp11.pdf",transparent=True)
 
 # <codecell>
 
