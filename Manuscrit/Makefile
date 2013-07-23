@@ -9,7 +9,7 @@ test:
 show: main.pdf
 	open main.pdf
 
-main.pdf: main.org
+main.pdf: main.org titlepage.tex
 	$(call org2pdf,"main")
 
 integration: non_interactive_spellcheck count_pages

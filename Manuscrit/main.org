@@ -34,9 +34,8 @@
 # (setq org-export-latex-hyperref-format "\\autoref{%s}")
 #+LaTeX_CLASS: tufte-book 
 #+LaTeX_CLASS_OPTIONS: [frenchb,a4paper,justified,notoc]
-   
+#+LATEX_HEADER:\input{titlepage}   
 #+LATEX_HEADER: \usepackage{csquotes}
-
 #+LATEX_HEADER:\bibliography{../../Biblio/Biblio,../../Biblio/BiblioKlein.bib}
 #+LaTeX_HEADER:\renewcommand{\theoremautorefname}{théorème}
 #+LATEX_HEADER:\hypersetup{ % config hyperref pour virer les box/color affreux...
@@ -52,6 +51,7 @@
 #+LaTeX_header:\usepackage[utf8]{inputenc}
 #+LaTeX_header:\usepackage[T1]{fontenc}
 #+LaTeX_header:\usepackage[frenchb]{babel}
+#+LaTeX_header:\usepackage{tabularx}
 #+LaTeX_header:\usepackage{amsthm}
 #+LaTeX_header:\usepackage{thmtools}
 #+LaTeX_header:\renewcommand{\listtheoremname}{Liste des théorèmes et propositions} 
@@ -339,7 +339,7 @@ L'\gls{irl} est un moyen d'obtenir une description de la tâche en observant un 
 # ?s empiricalclassiferror '\epsilon_C^{emp}' 'Erreur empirique de classification'
 # ?cs 1 classiferror '\epsilon_C^{#1}' '\epsilon_C^{\spacedistrib}' 'Erreur théorique de classification sur la distribution $\spacedistrib$'
 # ?cs 1 indicatorfunc '\mathds{1}(#1)' '\mathds{1}' 'Fonction indicatrice'
-# ?cs 2 expectationknowing '\E \left[\left. #1\right|#2\right]' '\E \left[\left. f(x)\right| x \sim \rho \right]' 'Espérance de $f(x)$ pour $x$ tiré selon $\rho$'
+# ?cs 2 expectationknowing '\mathbb{E} \left[\left. #1\right|#2\right]' '\E \left[\left. f(x)\right| x \sim \rho \right]' 'Espérance de $f(x)$ pour $x$ tiré selon $\rho$'
 La classification est un problème plus subtil que celui de naïvement apprendre par cœur la base d'entraînement. Ce que nous cherchons à optimiser n'est pas la performance sur la base d'entraînement fournie, mais la performance sur l'espace d'état en général. Plus précisément, certains états nous intéressent plus que d'autres. Pour une justification intuitive, il suffit de penser aux jeux de plateau, où bien agir dans les quelques états qui apparaissent souvent en début de partie est beaucoup plus intéressant que bien agir dans un état improbable que l'on ne rencontrera peut-être jamais (d'où par exemple le travail sur les ouvertures aux échecs). Pour mesurer l'importance accordée à un état, on définit une fonction de poids homogène à une densité de probabilité[fn::Par abus de notation, nous allons identifier loi de probabilité et densité de probabilité, ce qui nous amènera à écrire des choses comme $s\sim\rho$, même si $\rho$ est défini comme une densité et non comme une loi.] et qui donc somme à un : $\spacedistrib \in \twosetsfunctions{\statespace}{[0,1]}$ telle que $\sum\limits_{\state \in \statespace} \spacedistrib(\state) = 1$. La mesure de l'erreur d'une politique de classification $\classifpolicy$ se basant uniquement sur la base d'entraînement (avec $\indicatorfunc$ la fonction indicatrice) :
 \begin{equation}
 \empiricalclassiferror = {1\over \nbsamples}\sum_{(\state_{\datasetindex},\action_{\datasetindex}) \in \satrace{\expertpolicy}} \indicatorfunc{\classifpolicy(\state_{\datasetindex}) \neq \action_{\datasetindex}}
@@ -1561,8 +1561,7 @@ Nous avons maintenant introduit les notions nécessaires à l'expression de la b
     \right).
   \end{equation}
 \end{theorem}
-La preuve, due au travail de Matthieu Geist[fn::Co-auteur des contributions concernant \gls{scirl} \citep{klein2012structured,klein2012structured1,klein2012structured2,klein2012structured3}.] est reportée en \autoref{hier-demo}.
-Nous avons dit \autoref{hier-problemdef} que le critère que nous venons de borner avait le défaut d'être minimisé par la récompense nulle. Le vecteur de paramètres renvoyé par \gls{scirl} étant directement appris par un classifieur, il est improbable qu'une solution dégénérée puisse apparaître car cela ferait exploser l'erreur de classification $\classiferror{\expertdistrib}$. Par exemple pour le classifieur choisi dans l'instanciation de \gls{scirl} présentée \autoref{alg:scirlonlyexpert}, la fonction de marge $\margin$ et la fonction d'attribut $\featurestateactionfunc_{\rewardfunc}$ sommée par l'attribut moyen peuvent être choisies en fonction du problème afin de minimiser l'erreur de classification.
+La preuve est reportée en \autoref{hier-demo}. Nous avons dit \autoref{hier-problemdef} que le critère que nous venons de borner avait le défaut d'être minimisé par la récompense nulle. Le vecteur de paramètres renvoyé par \gls{scirl} étant directement appris par un classifieur, il est improbable qu'une solution dégénérée puisse apparaître car cela ferait exploser l'erreur de classification $\classiferror{\expertdistrib}$. Par exemple pour le classifieur choisi dans l'instanciation de \gls{scirl} présentée \autoref{alg:scirlonlyexpert}, la fonction de marge $\margin$ et la fonction d'attribut $\featurestateactionfunc_{\rewardfunc}$ sommée par l'attribut moyen peuvent être choisies en fonction du problème afin de minimiser l'erreur de classification.
 
 Le terme $\|R_{\paramirl}\|_\infty$ n'est pas problématique car nous savons depuis la \autoref{hier-recompense} qu'il est possible de normaliser $\paramirl$ sans perte de généralité.
 

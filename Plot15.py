@@ -25,18 +25,18 @@ rc('text', usetex=True)
 rcParams['text.usetex'] = True
 rcParams['font.family'] = 'serif'
 rcParams['legend.fontsize'] = 'medium'
-plot(Abcissas,map(mean,Y_CSI),"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
-plot(Abcissas,map(mean,Y_SCIRL),"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
-plot(Abcissas,map(mean,Y_RE),"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
-plot(Abcissas,map(mean,Y_Classif),"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
-plot(Abcissas,map(mean,Y_random),"D-",color='gray',mec="gray", mfc="w", lw=3, mew=3, ms=9, label="Random")
+plot(Abcissas,[x for x in map(mean,Y_CSI)],"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
+plot(Abcissas,[x for x in map(mean,Y_SCIRL)],"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
+plot(Abcissas,[x for x in map(mean,Y_RE)],"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
+plot(Abcissas,[x for x in map(mean,Y_Classif)],"s:",color='green',mec="green", mfc="w", lw=3, mew=3, ms=9, label="Classification")
+plot(Abcissas,[x for x in map(mean,Y_random)],"D-",color='gray',mec="gray", mfc="w", lw=3, mew=3, ms=9, label="Random")
 #axis([0,310,40,250])
 legend(bbox_to_anchor=(1, 0.85))
 xlabel(r"Number of samples from the expert")
 ylabel("Average performance")
 grid()
 axis([0,410,-2.2,8])
-savefig("Exp14.pdf")
+savefig("Exp14.pdf",transparent=True)
 
 # <codecell>
 
@@ -53,22 +53,29 @@ print t
 
 # <codecell>
 
+import scipy
+print(scipy.version.version)
+import numpy
+print(numpy.version.version)
+
+# <codecell>
+
 def student_t(X1,X2):
     return abs((mean(X1)-mean(X2)))/sqrt(abs(pow(X1.var(),2)/len(X1)-pow(X2.var(),2)/len(X2)))
 [student_t(Y_SCIRL[i],Y_CSI[i]) for i in range(0,5)]
 
 # <codecell>
 
-plot(Abcissas[-4:],map(mean,Y_CSI)[-4:],"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
-plot(Abcissas[-4:],map(mean,Y_SCIRL)[-4:],"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
-plot(Abcissas[-4:],map(mean,Y_RE)[-4:],"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
+plot(Abcissas[-4:],[x for x in map(mean,Y_CSI)][-4:],"ro-",mec="r", mfc="w", lw=5, mew=3, ms=10, label=r"CSI")
+plot(Abcissas[-4:],[x for x in map(mean,Y_SCIRL)][-4:],"v--",color='orange',mec="orange", mfc="w", lw=3, mew=3, ms=9, label="SCIRL")
+plot(Abcissas[-4:],[x for x in map(mean,Y_RE)][-4:],"^-.",color='blue',mec="blue", mfc="w", lw=3, mew=3, ms=9, label=r"Relative Entropy")
 #axis([0,310,40,250])
 legend(loc='lower right')
 xlabel(r"Number of samples from the expert")
 ylabel("Average performance")
 grid()
 axis([40,410,6,7.7])
-savefig("Exp14_zoom.pdf")
+savefig("Exp14_zoom.pdf",transparent=True)
 
 # <codecell>
 
