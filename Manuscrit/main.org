@@ -32,7 +32,7 @@
 ** Misc.
 #+OPTIONS: tags:0
 # (setq org-export-latex-hyperref-format "\\autoref{%s}")
-#+LaTeX_CLASS: tufte-book 
+#+LaTeX_CLASS: tufte-book
 #+LaTeX_CLASS_OPTIONS: [frenchb,a4paper,justified,notoc]
 #+LATEX_HEADER:\input{titlepage}   
 #+LATEX_HEADER: \usepackage{csquotes}
@@ -522,7 +522,7 @@ Une fonction d'attribut $\featurestateactionfunc_{\classifscorefunc}$\;
 Initialiser $\paramclassif$ arbitrairement\;
 Procéder à la descente de sous-gradient dont le sous-gradient est :
 \begin{equation*}
-\subgrad\structuredcost(\paramclassif) = \sum_{\datasetindex=1}^{N}\featurestateactionfunc_{\classifscorefunc}\left(\state_{\datasetindex},\max_{\action\in\actionspace}\transpose{\paramclassif}\featurestateactionfunc(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)\right) - \featurestateactionfunc_{\classifscorefunc}(\state_{\datasetindex},\action_{\datasetindex})\;
+\subgrad\structuredcost(\paramclassif) = \sum_{\datasetindex=1}^{N}\left[\featurestateactionfunc_{\classifscorefunc}\left(\state_{\datasetindex},\max_{\action\in\actionspace}\transpose{\paramclassif}\featurestateactionfunc(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)\right) - \featurestateactionfunc_{\classifscorefunc}(\state_{\datasetindex},\action_{\datasetindex})\right]\;
 \end{equation*}
 \Retour{\begin{equation*}
 \classifpolicy : \state \rightarrow \arg\max_{\action\in\actionspace} \transpose{\paramclassif}\featurestateactionfunc_{\classifscorefunc}(\state,\action)
@@ -538,19 +538,25 @@ Il existe bien d'autres moyens de faire de la classification, comme par exemple 
 *** \glsentrytext{svm}
 # <<hier:svm>>
 
-    Une \gls{svm} est un séparateur linéaire. Plus précisément, une \gls{svm} va chercher, dans l'espace $\statespace$, un hyperplan tel que d'un côté de l'hyperplan se trouvent tous les états qui dans la base d'exemple sont associés à une certaine action $\action_1$, et que de l'autre côté se trouvent les états associés à l'autre action $\action_2$. Les choses se complexifient bien sûr quand il y a plus de deux actions (voir \citep{guermeur2012generic} pour un modèle générique correspondant à ce cas, appelé cas multi-classe) mais pour simplifier l'exposition nous nous cantonnerons au cas bi-classe. La notion de marge intervient pour donner à la \gls{svm} sa capacité de généralisation. L'hyperplan doit non seulement séparer les exemples en deux classes, mais il doit le faire d'une manière maximise la distance entre l'hyperplan et les exemples, c'est cela qu'on appelle la marge.
+    Une \gls{svm} est un séparateur linéaire. Plus précisément, une \gls{svm} va chercher, dans l'espace $\statespace$, l'hyperplan de marge maximale séparant les données : d'un côté de l'hyperplan se trouvent tous les états qui dans la base d'exemple sont associés à une certaine action $\action_1$, et de l'autre côté se trouvent les états associés à l'autre action $\action_2$. La notion de marge que nous utilisons dans cette sous-section diffère de celle utilisée dans la sous-section précédente[fn::Dans les publications anglophones, ces deux concepts différents sont tous deux appelés /margin/.].
+    - La /marge structurée/ de \citeauthor{taskar2005learning} impose une structure aux différentes actions en permettant d'établir un classement différenciant l'action choisie par l'expert des autres actions.
+    - La marge d'une SVM a une interprétation géométrique. En la maximisant, on maximise une notion de distance entre l'hyperplan séparateur et les points de données.
 
 # ?s kernel '\kappa' 'Noyau pour une SVM'
-    C'est un vœu pieu de croire que l'espace $\statespace$ est construit d'une manière qui permette à un hyperplan de séparer les exemples (on parle de base linéairement séparable quand cela se produit). Une construction linéaire n'a bien souvent pas un pouvoir de représentation assez grand pour cela. Le classifieur à fonction de score paramétrée linéairement que nous avons décrit précédemment compense cela par une projection dans un espace d'attributs $\featurestateactionspace$. Les \gls{svm} utilisent une technique similaire, appelée l'astuce du noyau \citep{aizerman1964theoretical,boser1992training}. L'idée est de remplacer les produits scalaires $\scalarprod{\state}{\state'}$ qui apparaissent dans l'algorithme par un produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}$ dans l'espace d'attributs, dans l'espoir que les données soient linéairement séparables dans l'espace d'attributs. Plutôt que de définir explicitement cet attribut $\featurestatefunc$ et de calculer le produit scalaire associé, un noyau $\kernel$ est défini. Pour peu que $\kernel$ satisfassent certaines conditions[fn::\`A savoir être continu, symétrique et semi-défini positif.], alors il existe \citep{mercer1909functions} une fonction $\featurestatefunc$ telle que :
+    C'est un vœu pieux de croire que l'espace $\statespace$ est construit d'une manière qui permette à un hyperplan de séparer les exemples (on parle de données linéairement séparables quand cela se produit). Une construction linéaire n'a bien souvent pas un pouvoir de représentation assez grand. Le classifieur à fonction de score paramétrée linéairement que nous avons décrit précédemment compense cela par une projection dans un espace d'attributs $\featurestateactionspace$. Les \gls{svm} utilisent une technique similaire, appelée l'astuce du noyau \citep{aizerman1964theoretical,boser1992training}. L'idée est de remplacer les produits scalaires $\scalarprod{\state}{\state'}_{\statespace}$ qui apparaissent dans l'algorithme par un produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}_{\Psi}$ dans l'espace d'attributs $\Psi$, dans l'espoir que les données soient linéairement séparables dans cet espace d'attributs. Plutôt que de définir explicitement cet attribut $\featurestatefunc$ et de calculer le produit scalaire associé, un noyau $\kernel$ est défini. Pour peu que $\kernel$ satisfassent certaines conditions[fn::\`A savoir être continu, symétrique et semi-défini positif.], alors il existe \citep{mercer1909functions} une fonction $\featurestatefunc$ telle que [fn::Le noyau $\kappa$ engendre un /Reproducing Kernel Hilbert Space/ (RKHS) \citep{berlinet2004reproducing}.]:
 \begin{equation}
-\kernel(\state,\state') = \scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}.
+\kernel(\state,\state') = \scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}_{\Psi}.
 \end{equation} 
 
 Un noyau populaire, le noyau gaussien :
 \begin{equation}
 \kernel(\state,\state')=\exp\left(- \frac{\|\state - \state'\|^2}{2 \sigma^2}\right),
 \end{equation}
-permet de manipuler le produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}$ où  l'espace d'attributs défini par $\featurestatefunc$ est de dimension infinie.
+permet de manipuler le produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}_\Psi$ où  l'espace d'attributs $\Psi$ engendré par $\featurestatefunc$ est de dimension infinie.
+
+Le modèle que nous venons de décrire est celui de la \gls{svm} à marge dure \citep{boser1992training}. Il est possible d'augmenter la capacité de généralisation de la \gls{svm} en introduisant des variables d'écart. On passe alors au modèle de la \gls{svm} à marge douce \citep{cortes1995support}.
+
+Les choses se complexifient bien sûr quand il y a plus de deux actions (voir \citep{guermeur2012generic} pour un modèle générique correspondant à ce cas, appelé cas multi-classe) mais pour simplifier l'exposé nous nous sommes cantonné au cas bi-classe.
 
 Les \gls{svm} sont très populaires et plusieurs implémentations existent. Il est donc facile de les mettre en œuvre, ce sont des modèles qui fonctionnent assez bien avec un réglage de méta-paramètres minimal.
 # Goal: Faire une description rapide des MCSVM et de leurs avantages.
