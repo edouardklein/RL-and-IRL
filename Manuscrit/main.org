@@ -36,7 +36,7 @@
 #+LaTeX_CLASS_OPTIONS: [frenchb,a4paper,justified,notoc]
 #+LATEX_HEADER:\input{titlepage}   
 #+LATEX_HEADER: \usepackage{csquotes}
-#+LATEX_HEADER:\bibliography{../../Biblio/Biblio,../../Biblio/BiblioKlein.bib}
+#+LATEX_HEADER:\bibliography{Biblio,BiblioKlein}
 #+LaTeX_HEADER:\renewcommand{\theoremautorefname}{théorème}
 #+LATEX_HEADER:\hypersetup{ % config hyperref pour virer les box/color affreux...
 #+LATEX_HEADER:    colorlinks,%

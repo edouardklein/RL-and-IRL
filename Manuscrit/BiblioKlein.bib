@@ -1,0 +1,147 @@
+%% This BibTeX bibliography file was created using BibDesk.
+%% http://bibdesk.sourceforge.net/
+
+
+%% Created for Edouard KLEIN at 2013-07-25 09:17:49 +0200 
+
+
+%% Saved with string encoding Unicode (UTF-8) 
+
+
+
+@inproceedings{klein2011dimentionality,
+	Abstract = {This paper deals with the Inverse Reinforcement Learning framework, whose purpose is to learn control policies from demonstrations by an expert. This method inferes from demonstrations a utility function the expert is allegedly maximizing. In this paper we map the reward space into a subset of smaller dimensionality without loss of generality for all Markov Decision Processes (MDPs). We then present three experimental results showing both the promising aspect of the application of this result to existing IRL methods and its shortcomings. We conclude with considerations on further research.},
+	Address = {Honolulu (USA)},
+	Author = {Edouard Klein and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{Proceedings of the IEEE Workshop on Machine Learning Algorithms, Systems and Applications (MLASA 2011)}},
+	Date-Added = {2013-07-25 07:17:37 +0000},
+	Date-Modified = {2013-07-25 07:17:49 +0000},
+	Month = {December},
+	Pages = {4 pages},
+	Title = {{Reducing the dimentionality of the reward space in the Inverse Reinforcement Learning problem}},
+	Url = {http://www.metz.supelec.fr//metz/personnel/geist_mat/pdfs/supelec761.pdf},
+	Year = {2011},
+	Bdsk-Url-1 = {http://www.metz.supelec.fr//metz/personnel/geist_mat/pdfs/supelec761.pdf}}
+
+@conference{geist2013around,
+	Author = {Matthieu Geist and Edouard Klein and Bilal Piot and Yann Guermeur and Olivier Pietquin},
+	Booktitle = {Reinforcement Learning and Decision Making Meetings},
+	Date-Added = {2013-06-27 14:50:36 +0000},
+	Date-Modified = {2013-06-27 14:52:02 +0000},
+	Title = {Around inverse reinforcement learning and score-based classification},
+	Year = {2013}}
+
+@article{klein2012structured1,
+	Abstract = {Cette contribution traite le probl\`eme de l'Apprentissage par Renforcement Inverse (ARI), d\'efini comme la recherche d'une fonction de r\'ecompense pour laquelle le comportement d'un expert (connu par le biais d'une d\'emonstration) est optimal. Nous introduisons SCIRL, un nouvel algorithme qui utilise la grandeur d\'enomm\'ee attribut moyen de l'expert comme la param\'etrisation d'une fonction de score pour un classifieur multi-classe. Cette approche donne une fonction de r\'ecompense pour laquelle la politique de l'expert est (nous le d\'emontrons) quasi-optimale. Contrairement {\`a} la plupart des algorithmes d'ARI existants, SCIRL n'a pas besoin de r\'esoudre le probl\`eme direct de l'Apprentissage par Renforcement. De plus, en utilisant une heuristique il est utilisable uniquement avec des trajectoires \'echantillonn\'ees par l'expert. Nous illustrons cela sur un simulateur de conduite.},
+	Author = {Edouard Klein and Bilal PIOT and Matthieu Geist and Olivier Pietquin},
+	Journal = {Revue d'Intelligence Artificielle},
+	Month = {Mai},
+	Number = {2/2013},
+	Pages = {155-170},
+	Title = {{Classification structur\'ee pour l'apprentissage par renforcement inverse}},
+	Volume = {27},
+	Year = {2013}}
+
+@inproceedings{klein2012cascading,
+	Abstract = {TBD},
+	Address = {Prague (Czech Republic)},
+	Author = {Edouard Klein and Bilal PIOT and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{Proceedings of the European Conference on Machine Learning and Principles and Practice of Knowledge Discovery in Databases (ECML/PKDD 2013)}},
+	Month = {September},
+	Title = {{A cascaded supervised learning approach to inverse reinforcement learning}},
+	Year = {2013}}
+
+@conference{klein2012cascading1,
+	Abstract = {tbd},
+	Author = {Edouard Klein and Bilal PIOT and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{Journ\'ees Francophones de Plannification, D\'ecision et Apprentissage (JFPDA)}},
+	Date-Modified = {2013-06-27 14:54:03 +0000},
+	Title = {{Apprentissage par renforcement inverse en cascadant classification et r\'egression}},
+	Year = {2013}}
+
+@inproceedings{klein2012structured,
+	Abstract = {This paper adresses the inverse reinforcement learning (IRL) problem, that is inferring a reward for which a demonstrated expert behavior is optimal. We introduce a new algorithm, SCIRL, whose principle is to use the so-called feature expectation of the expert as the parameterization of the score function of a multiclass classifier. This approach produces a reward function for which the expert policy is provably near- optimal. Contrary to most of existing IRL algorithms, SCIRL does not require solving a single time the direct RL problem. Moreover, up to the use of some heuristic, it may work with only trajectories sampled according to the expert behavior. This is illustrated on a car driving simulator.},
+	Address = {Lake Tahoe (NV, USA)},
+	Author = {Edouard Klein and Matthieu Geist and Bilal PIOT and Olivier Pietquin},
+	Booktitle = {{Advances in Neural Information Processing Systems (NIPS 2012)}},
+	Month = {December},
+	Title = {{Inverse Reinforcement Learning through Structured Classification}},
+	Url = {http://books.nips.cc/papers/files/nips25/NIPS2012_0491.pdf},
+	Year = {2012},
+	Bdsk-Url-1 = {http://books.nips.cc/papers/files/nips25/NIPS2012_0491.pdf}}
+
+@inproceedings{klein2012structured2,
+	Abstract = {Cette contribution traite du probl\`eme de l'apprentissage par imitation par le biais de l'apprentissage par renforcement inverse (ARI). Dans ce contexte, un expert accomplit une t\^ache qu'un agent artificiel doit essayer de reproduire. L'ARI part du postulat que l'expert optimise avec succ\`es une fonction d'utilit\'e ; le probl\`eme consiste {\`a} deviner cette fonction (appel\'ee r\'ecompense) {\`a} partir de traces du comportement de l'expert. Les algorithmes d'ARI existants n\'ecessitent une ou plusieurs des conditions suivantes pour fonctionner : trajectoires compl\`etes de la part de l'expert, un mod\`ele g\'en\'eratif pour les estimations de type Monte-Carlo, la connaissance des probabilit\'es de transition, la capacit\'e de r\'esoudre le probl\`eme direct (celui de l'apprentissage par ren- forcement) de mani\`ere r\'ep\'et\'ee ou l'acc\`es {\`a} la strategie compl\`ete de l'expert. Notre con- tribution consiste en un nouvel algorithme d'ARI levant l'ensemble de ces contraintes. En utilisant une m\'ethode supervis\'ee dans laquelle nous introduisons implicitement la structure du processus d\'ecisionnel de Markov (PDM) sous-jacent, nous cr\'eons un algorithme bas\'e sur une descente de sous- gradient, poss\'edant une faible complexit\'e tant en \'echantillons que calculatoire et surtout ne n\'ecessitant pas la r\'esolution du probl\`eme direct. },
+	Address = {Nancy, France},
+	Author = {Edouard Klein and Bilal PIOT and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{Actes de la Conf\'erence Francophone sur l'Apprentissage Automatique (Cap 2012)}},
+	Month = {May},
+	Pages = {1-16},
+	Title = {{Classification structur\'ee pour l'apprentissage par renforcement inverse}},
+	Url = {http://cap2012.loria.fr/pub/Papers/13.pdf},
+	Year = {2012},
+	Bdsk-Url-1 = {http://cap2012.loria.fr/pub/Papers/13.pdf}}
+
+@conference{klein2012structured3,
+	Abstract = {TBD},
+	Address = {Edinburgh (UK)},
+	Author = {Edouard Klein and Bilal PIOT and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{European Workshop on Reinforcement Learning (EWRL 2012)}},
+	Date-Modified = {2013-06-27 14:54:20 +0000},
+	Month = {June},
+	Title = {{Structured Classification for Inverse Reinforcement Learning}},
+	Url = {http://ewrl.files.wordpress.com/2011/12/ewrl2012_submission_30.pdf},
+	Year = {2012},
+	Bdsk-Url-1 = {http://ewrl.files.wordpress.com/2011/12/ewrl2012_submission_30.pdf}}
+
+@inproceedings{klein2011reducing,
+	Abstract = {This paper deals with the Inverse Reinforcement Learning framework, whose purpose is to learn control policies from demonstrations by an expert. This method inferes from demonstrations a utility function the expert is allegedly maximizing. In this paper we map the reward space into a subset of smaller dimensionality without loss of generality for all Markov Decision Processes (MDPs). We then present three experimental results showing both the promising aspect of the application of this result to existing IRL methods and its shortcomings. We conclude with considerations on further research.},
+	Address = {Honolulu (USA)},
+	Author = {Edouard Klein and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{Proceedings of the IEEE Workshop on Machine Learning Algorithms, Systems and Applications (MLASA 2011)}},
+	Month = {December},
+	Pages = {4 pages},
+	Title = {{Reducing the dimentionality of the reward space in the Inverse Reinforcement Learning problem}},
+	Url = {http://www.metz.supelec.fr//metz/personnel/geist_mat/pdfs/supelec761.pdf},
+	Year = {2011},
+	Bdsk-Url-1 = {http://www.metz.supelec.fr//metz/personnel/geist_mat/pdfs/supelec761.pdf}}
+
+@incollection{klein2011batch,
+	Abstract = {This paper addresses the problem of apprenticeship learning, that is learning control policies from demonstration by an expert. An efficient framework for it is inverse reinforcement learning (IRL). Based on the assumption that the expert maximizes a utility function, IRL aims at learning the underlying reward from example trajectories. Many IRL algorithms assume that the reward function is linearly parameterized and rely on the computation of some associated feature expectations, which is done through Monte Carlo simulation. However, this assumes to have full trajectories for the expert policy as well as at least a generative model for intermediate policies. In this paper, we introduce a temporal difference method, namely LSTD-mu, to compute these feature expectations. This allows extending apprenticeship learning to a batch and off-policy setting.},
+	Address = {Athens (Greece)},
+	Author = {Edouard Klein and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{Proceedings of the European Workshop on Reinforcement Learning (EWRL 2011)}},
+	Month = {september},
+	Pages = {12 pages},
+	Publisher = {Springer Verlag - Heidelberg Berlin},
+	Series = {Lecture Notes in Computer Science (LNCS)},
+	Title = {{Batch, Off-policy and Model-free Apprenticeship Learning}},
+	Url = {http://www.metz.supelec.fr//metz/personnel/geist_mat/pdfs/supelec726.pdf},
+	Year = {2011},
+	Bdsk-Url-1 = {http://www.metz.supelec.fr//metz/personnel/geist_mat/pdfs/supelec726.pdf}}
+
+@conference{klein2011batch1,
+	Abstract = {Ce papier s'int\'eresse au probl\`eme de l'apprentissage par imitation, c'est {\`a} dire la r\'esolution du probl\`eme du contr\^ole optimal {\`a} partir de donn\'ees tir\'ees d'une d\'emonstration d'expert. L'apprentissage par renforcement inverse (IRL) propose un cadre efficace pour r\'esoudre ce probl\`eme. En se basant sur l'hypoth\`ese que l'expert maximise un crit\`ere, l'IRL essaie d'apprendre la r\'ecompense qui d\'efinit ce crit\`ere {\`a} partir de trajectoires d'exemple. Beaucoup d'algorithmes d'IRL font l'hypoth\`ese de l'existence d'un bon approximateur lin\'eaire pour la fonction de r\'ecompense et calculent l'attribut moyen (le cumul moyen pond\'er\'e des fonctions de base, relatives {\`a} la param\'etrisation lin\'eaire suppos\'ee de la r\'ecompense, \'evalu\'ees en les \'etats d'une trajectoire associ\'ee {\`a} une certaine politique) via une estimation de Monte-Carlo. Cela implique d'avoir acc\`es {\`a} des trajectoires compl\`ete de l'expert ainsi qu'{\`a} au moins un mod\`ele g\'en\'eratif pour tester les politiques interm\'ediaires. Dans ce papier nous introduisons une m\'ethode de diff\'erence temporelle, LSTD-$\mu$, pour calculer cet attribut moyen. Cela permet d'\'etendre l'apprentissage par imitation aux cas batch et off-policy.},
+	Address = {Rouen (France)},
+	Author = {Edouard Klein and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{Sixi\`emes Journ\'ees Francophones de Planification, D\'ecision et Apprentissage pour la conduite de syst\`emes (JFPDA 2011)}},
+	Date-Modified = {2013-06-27 14:53:39 +0000},
+	Month = {June},
+	Pages = {9 pages},
+	Title = {{Apprentissage par imitation \'etendu au cas batch, off-policy et sans mod\`ele}},
+	Url = {http://www.metz.supelec.fr/~geist_mat/pdfs/Supelec702.pdf},
+	Year = {2011},
+	Bdsk-Url-1 = {http://www.metz.supelec.fr/~geist_mat/pdfs/Supelec702.pdf}}
+
+@conference{klein2011batch2,
+	Abstract = {This paper addresses the problem of apprenticeship learning, that is learning control policies from demonstration by an expert. An efficient framework for it is inverse reinforcement learning (IRL). Based on the assumption that the expert maximizes a utility function, IRL aims at learning the underlying reward from example trajectories. Many IRL algorithms assume that the reward function is linearly parameterized and rely on the computation of some associated feature expectations, which is done through Monte Carlo simulation. However, this assumes to have full trajectories for the expert policy as well as at least a generative model for intermediate policies. In this paper, we introduce a temporal difference method, namely LSTD-mu, to compute these feature expectations. This allows extending apprenticeship learning to a batch and offpolicy setting.},
+	Address = {Barcelona (Spain)},
+	Author = {Edouard Klein and Matthieu Geist and Olivier Pietquin},
+	Booktitle = {{IJCAI Workshop on Agents Learning Interactively from Human Teachers (ALIHT 2011)}},
+	Date-Modified = {2013-06-27 14:53:50 +0000},
+	Month = {July},
+	Note = {6 pages},
+	Title = {{Batch, Off-policy and Model-Free Apprenticeship Learning}},
+	Url = {http://www.cs.utexas.edu/~bradknox/IJCAI-ALIHT11/Accepted_Papers.html},
+	Year = {2011},
+	Bdsk-Url-1 = {http://www.cs.utexas.edu/~bradknox/IJCAI-ALIHT11/Accepted_Papers.html}}
