@@ -88,7 +88,7 @@
 #+LaTeX_header:\newacronym{gpirl}{GPIRL}{\emph{Gaussian Processes Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{firl}{FIRL}{\emph{Feature Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{irlgp}{FIRL}{\emph{Inverse Reinforcement Learning with Gaussian Processes}}
-#+LaTeX_header:\newacronym{lstdmu}{LSTD-$\mu$}{\emph{Least Square Tenporal Differences feature expectations}}
+#+LaTeX_header:\newacronym{lstdmu}{LSTD-$\mu$}{\emph{Least Square Temporal Differences feature expectations}}
 #+LaTeX_header:\newacronym{lstd}{LSTD}{\emph{Least Square Tenporal Differences}}
 #+LaTeX_header:\newacronym{scirl}{SCIRL}{\emph{Structured Classification for Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{cascading}{CSI}{\emph{Cascaded Supervised learning for Inverse reinforcement learning}}
@@ -169,16 +169,16 @@
     Avec la tour : on peut optimiser de manière différente
     Avec le fou : on peut optimiser mieux si on a pas le même espace d'état
 * Introduction
-Ce chapitre expose les motivations de nos travaux et situe nos contributions. Nous faisons la liste de ces contributions ainsi que des publications auxquelles elles ont données lieu. Nous terminons par une vue d'ensemble du manuscrit.
+Ce chapitre expose les motivations de nos travaux et situe nos contributions. Nous faisons la liste de ces contributions ainsi que des publications auxquelles elles ont donné lieu. Nous terminons par une vue d'ensemble du manuscrit.
 ** Motivations
-Dans les pays développés, peu de travaux confiés à des humains peuvent aujourd'hui être confiés à des machines[fn::Dans les pays en développement ou non développés, il est plus rentable de payer un travailleur non qualifié (voire d'exploiter un esclave) que d'utiliser un robot ou un ordinateur]. Les limitations des systèmes automatiques ne sont pas mécaniques, les machines aujourd'hui peuvent être plus puissantes et robustes que n'importe quel animal et plus précises et plus fiables que le meilleur artisan. La généralisation de l'automatisation est freinée par l'impossibilité pour une machine d'assumer la charge cognitive liée à la gestion des environnements dynamiques et incertains dans lesquels les humains parviennent à évoluer.
+Dans les pays développés, peu de travaux confiés à des humains peuvent aujourd'hui être confiés à des machines[fn::Dans les pays en développement ou non développés, il est plus rentable de payer un travailleur non qualifié que d'utiliser un robot ou un ordinateur]. Les limitations des systèmes automatiques ne sont pas mécaniques, les machines aujourd'hui peuvent être plus puissantes et robustes que n'importe quel animal et plus précises et plus fiables que le meilleur artisan. La généralisation de l'automatisation est freinée par l'impossibilité pour une machine d'assumer la charge cognitive liée à la gestion des environnements dynamiques et incertains dans lesquels les humains parviennent à évoluer.
 
 Le problème du /contrôle optimal/ consiste à influencer le comportement d'un système dynamique pour qu'il remplisse une tâche. Le concepteur d'un système informatique résolvant le problème du contrôle optimal doit faire preuve d'une double expertise :
  - il doit comprendre comment réaliser la tâche, c'est-à-dire prendre en compte les critères de réussite et d'échec, les risques associé à un échec catastrophique, les compromis entre les différents coûts (en temps, en énergie, en matières premières etc.) ;
  - il doit également savoir exprimer ces contraintes dans le cadre d'une méthode de recherche du contrôle optimal.
 
 
-Pour des tâches complexes il est coûteux de réunir ces deux types d'expertise dans une même équipe de développement. Pour réduire l'expertise nécessaire dans le domaine du contrôle optimal, nous allons, à partir d'une /démonstration/ du contrôle, extraire automatiquement une /description des contraintes de la tâche/ exploitable par des méthodes de recherche du contrôle optimal. Ce paradigme, l'/apprentissage par imitation/, espère permettre à un utilisateur non qualifié dans le domaine informatique, mais performant en ce qui concerne la tâche à effectuer, d'enseigner de nouveaux comportements à une machine simplement en les démontrant.
+Pour des tâches complexes il est coûteux de réunir ces deux types d'expertise dans une même équipe de développement. Pour réduire l'expertise nécessaire dans le domaine du contrôle optimal, nous allons, à partir d'une /démonstration/ du contrôle, extraire automatiquement une /description des contraintes de la tâche/ exploitable par des méthodes de recherche du contrôle optimal. Ce paradigme, l'/apprentissage par imitation/, espère permettre à un utilisateur non qualifié dans le domaine informatique, mais performant en ce qui concerne la tâche à effectuer, d'enseigner de nouveaux comportements à une machine simplement en en faisant l'exemple.
 
 L'application de ce paradigme à des domaines dynamiques dont le modèle est inconnu et possiblement non linéaire nous pousse à choisir l'/apprentissage par renforcement/ comme méthode de recherche du contrôle optimal. L'apprentissage par renforcement permet de manière générique[fn::C'est à dire qu'un même algorithme peut être utilisé pour apprendre à gérer deux domaines complètement différents.] d'apprendre le contrôle optimal à partir d'un signal de récompense, information localisée sur la qualité du contrôle, en exploitant l'information issue d'interactions avec le système. Nos contributions se situent donc dans le domaine de l'/apprentissage par renforcement inverse/, qui cherche à obtenir un signal de récompense cohérent avec une démonstration de la tâche que fournit un expert.
 
@@ -1380,8 +1380,7 @@ Un algorithme de ce type est l'approche de \citet{boularias2011relative}, \gls{r
 ** Conclusion
 
 L'algorithme \gls{lstdmu} que nous proposons nécessite pour fonctionner moins de données que l'algorithme d'\gls{rl} \gls{lspi}. Les garanties théoriques applicables à \gls{lstd} se transfèrent à \gls{lstdmu}. De manière générale, on peut imaginer adapter d'autres résultats de \gls{lstd} à \gls{lstdmu}, comme par exemple l'utilisation de traces d'éligibilité ou l'introduction de méthodes parcimonieuses \citep{geist2012dantzig,geist2012recursive}.
-* /Structured Classification for Inverse Reinforcement Learning/
-
+* Classification structurée pour l'apprentissage par renforcement inverse
 # <<hier:scirl>>  
 Comme nous venons de le voir sur l'exemple précédent, c'est bien la résolution répétée du \gls{mdp} qui rend les algorithmes d'\gls{irl} itératifs (\autoref{alg:repetee}) si gourmands en information. Il faut donc trouver un moyen de résoudre le problème de l'\gls{irl} sans avoir à résoudre de \gls{mdp}. Parmi les algorithmes les plus récents (\autoref{hier-nouveauxalgos}), la plupart ont besoin de données qui permettraient de résoudre le \gls{mdp}, et ne présentent donc pas, du point de vue de la facilité d'utilisation dans un cadre où la collecte de données est difficile, un avantage décisif sur les approches itératives.
 
@@ -1682,7 +1681,7 @@ la valeur d'une politique apprise sur une récompense aléatoire donne un point 
 
 #  Si l'on utilise un classifieur où cette fonction de score/qualité est approximée par un schéma linéaire, alors on retombe sur l'attribut moyen. Il faut encore approximer celui-ci, mais cela est courant dans la littérature, et surtout c'est précisément le problème résolu par \gls{lstdmu} (en [[hier:lstdmu]]). 
 
-* /Cascaded Supervised Learning for Inverse Reinforcement Learning/
+* Apprentissage par renforcement inverse en cascadant classification et régression
 # <<hier:cascading>>
 
 Les avantages présentés par \gls{scirl} découlent de l'identification de la fonction de score d'un classifieur à la fonction de qualité de l'expert. Cela permet d'introduire la dynamique du système dans une approche supervisée, combinant les avantages en terme de généralisation caractéristiques des approches d'\gls{irl} et la simplicité d'utilisation des approches supervisées.
@@ -2128,7 +2127,7 @@ Ce terme ne dépend pas de $s$ donc la norme infinie est identique, et finalemen
   et~\eqref{eroo2} dans l'équation~\eqref{erooesidual} achève la démonstration.%, which concludes the proof.
 \end{proof}
 
-** Borne sur la performance de \gls{cascading}
+** Borne sur la performance de \glstext{cascading}
 
 \begin{proof}[Preuve du \autoref{thm:csi}]
 %The difference between $\Rc$ and $\apprRc$ is noted $\epsilon^R=\Rc-\apprRc$.
