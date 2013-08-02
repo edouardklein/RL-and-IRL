@@ -38,6 +38,7 @@
 #+LATEX_HEADER: \usepackage{csquotes}
 #+LATEX_HEADER:\bibliography{Biblio,BiblioKlein}
 #+LaTeX_HEADER:\renewcommand{\theoremautorefname}{théorème}
+#+LaTeX_HEADER:\renewcommand{\appendixautorefname}{annexe}
 #+LATEX_HEADER:\hypersetup{ % config hyperref pour virer les box/color affreux...
 #+LATEX_HEADER:    colorlinks,%
 #+LATEX_HEADER:    citecolor=black,%
@@ -76,7 +77,7 @@
 #+LaTeX_header:\newacronym{irl}{ARI}{Apprentissage par Renforcement Inverse}
 #+LaTeX_header:\newacronym{dp}{PD}{Programmation Dynamique}
 #+LaTeX_header:\newacronym{rl}{AR}{Apprentissage par Renforcement}
-#+LaTeX_header:\newacronym{lspi}{LSPI}{\emph{Least Square Policy Iteration}}
+#+LaTeX_header:\newacronym{lspi}{LSPI}{\emph{Least Squares Policy Iteration}}
 #+LaTeX_header:\newacronym{pirl}{PIRL}{\emph{Projection Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{mmp}{MMP}{\emph{Maximum Margin Planning}}
 #+LaTeX_header:\newacronym{pm}{PM}{\emph{Policy Matching}}
@@ -88,13 +89,13 @@
 #+LaTeX_header:\newacronym{gpirl}{GPIRL}{\emph{Gaussian Processes Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{firl}{FIRL}{\emph{Feature Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{irlgp}{FIRL}{\emph{Inverse Reinforcement Learning with Gaussian Processes}}
-#+LaTeX_header:\newacronym{lstdmu}{LSTD-$\mu$}{\emph{Least Square Temporal Differences feature expectations}}
-#+LaTeX_header:\newacronym{lstd}{LSTD}{\emph{Least Square Tenporal Differences}}
+#+LaTeX_header:\newacronym{lstdmu}{LSTD-$\mu$}{\emph{Least Squares Temporal Differences feature expectations}}
+#+LaTeX_header:\newacronym{lstd}{LSTD}{\emph{Least Squares Temporal Differences}}
 #+LaTeX_header:\newacronym{scirl}{SCIRL}{\emph{Structured Classification for Inverse Reinforcement Learning}}
 #+LaTeX_header:\newacronym{cascading}{CSI}{\emph{Cascaded Supervised learning for Inverse reinforcement learning}}
 #+LaTeX_header:\newacronym{cnn}{CNN}{\emph{Convolutional Neural Network}}
-#+LaTeX_header:\newacronym{svm}{SVM}{\emph{Support Vector Machine} (Machine à Vecteur Support)}
-#+LaTeX_header:\newacronym{gmm}{GMM}{\emph{Gaussian Mixture Model} (Mélange de Modèles Gaussiens)}
+#+LaTeX_header:\newacronym{svm}{SVM}{\emph{Support Vector Machine} (Machine à Vecteurs Support)}
+#+LaTeX_header:\newacronym{gmm}{GMM}{\emph{Gaussian Mixture Model} (Modèle à base de Mélange de Gaussiennes)}
 #+LaTeX_header:\newacronym{alvinn}{ALVINN}{\emph{Autonomous Land Vehicle In a Neural Network}}
 #+LaTeX_header:\newacronym{churps}{CHURPs}{\emph{Compressed Heuristic Universal Reaction Planners}}
 #+LaTeX_header:\newacronym{knn}{$k$-NN}{$k$-\emph{plus proches voisins} (en anglais \emph{k-Nearest Neighboors})}
@@ -171,65 +172,66 @@
 * Introduction
 Ce chapitre expose les motivations de nos travaux et situe nos contributions. Nous faisons la liste de ces contributions ainsi que des publications auxquelles elles ont donné lieu. Nous terminons par une vue d'ensemble du manuscrit.
 ** Motivations
-Dans les pays développés, peu de travaux confiés à des humains peuvent aujourd'hui être confiés à des machines[fn::Dans les pays en développement ou non développés, il est plus rentable de payer un travailleur non qualifié que d'utiliser un robot ou un ordinateur]. Les limitations des systèmes automatiques ne sont pas mécaniques, les machines aujourd'hui peuvent être plus puissantes et robustes que n'importe quel animal et plus précises et plus fiables que le meilleur artisan. La généralisation de l'automatisation est freinée par l'impossibilité pour une machine d'assumer la charge cognitive liée à la gestion des environnements dynamiques et incertains dans lesquels les humains parviennent à évoluer.
+Dans les pays développés, peu de travaux confiés à des humains peuvent aujourd'hui être confiés à des machines[fn::Dans les pays en développement ou non développés, il est plus rentable de payer un travailleur non qualifié que d'utiliser un robot ou un ordinateur.]. Les limitations des systèmes automatiques ne sont pas mécaniques, les machines aujourd'hui peuvent être plus puissantes et robustes que n'importe quel animal et plus précises et plus fiables qu'un bon artisan. La généralisation de l'automatisation est freinée par l'impossibilité pour une machine d'assumer la charge cognitive liée à la gestion des environnements dynamiques et incertains dans lesquels les humains parviennent à évoluer.
 
 Le problème du /contrôle optimal/ consiste à influencer le comportement d'un système dynamique pour qu'il remplisse une tâche. Le concepteur d'un système informatique résolvant le problème du contrôle optimal doit faire preuve d'une double expertise :
- - il doit comprendre comment réaliser la tâche, c'est-à-dire prendre en compte les critères de réussite et d'échec, les risques associé à un échec catastrophique, les compromis entre les différents coûts (en temps, en énergie, en matières premières etc.) ;
+ - il doit comprendre comment réaliser la tâche, c'est-à-dire prendre en compte les critères de réussite et d'échec, les risques associés à un échec catastrophique, les compromis entre les différents coûts (en temps, en énergie, en matières premières etc.) ;
  - il doit également savoir exprimer ces contraintes dans le cadre d'une méthode de recherche du contrôle optimal.
 
 
-Pour des tâches complexes il est coûteux de réunir ces deux types d'expertise dans une même équipe de développement. Pour réduire l'expertise nécessaire dans le domaine du contrôle optimal, nous allons, à partir d'une /démonstration/ du contrôle, extraire automatiquement une /description des contraintes de la tâche/ exploitable par des méthodes de recherche du contrôle optimal. Ce paradigme, l'/apprentissage par imitation/, espère permettre à un utilisateur non qualifié dans le domaine informatique, mais performant en ce qui concerne la tâche à effectuer, d'enseigner de nouveaux comportements à une machine simplement en en faisant l'exemple.
+Pour des tâches complexes il est coûteux de réunir ces deux types d'expertise dans une même équipe de développement. Pour réduire l'expertise nécessaire dans le domaine du contrôle optimal, nous allons, à partir d'une /démonstration/ du contrôle, extraire automatiquement une /description des contraintes de la tâche/ exploitable par des méthodes de recherche du contrôle optimal. Ce paradigme, l'/apprentissage par imitation/, vise à permettre à un utilisateur non qualifié dans le domaine informatique, mais performant en ce qui concerne la tâche à effectuer, d'enseigner de nouveaux comportements à une machine simplement en en faisant l'exemple.
 
-L'application de ce paradigme à des domaines dynamiques dont le modèle est inconnu et possiblement non linéaire nous pousse à choisir l'/apprentissage par renforcement/ comme méthode de recherche du contrôle optimal. L'apprentissage par renforcement permet de manière générique[fn::C'est à dire qu'un même algorithme peut être utilisé pour apprendre à gérer deux domaines complètement différents.] d'apprendre le contrôle optimal à partir d'un signal de récompense, information localisée sur la qualité du contrôle, en exploitant l'information issue d'interactions avec le système. Nos contributions se situent donc dans le domaine de l'/apprentissage par renforcement inverse/, qui cherche à obtenir un signal de récompense cohérent avec une démonstration de la tâche que fournit un expert.
+L'application de ce paradigme à des domaines dynamiques dont le modèle est inconnu et possiblement non linéaire nous pousse à choisir l'\gls{rl} comme méthode de recherche du contrôle optimal. L'apprentissage par renforcement permet de manière générique[fn::C'est-à-dire qu'un même algorithme peut être utilisé pour apprendre à gérer deux domaines complètement différents.] d'apprendre le contrôle optimal à partir d'un signal de récompense, information locale sur la qualité du contrôle, en exploitant l'information issue d'interactions avec le système. Nos contributions se situent donc dans le domaine de l'\gls{irl}, qui cherche à obtenir un signal de récompense cohérent avec une démonstration de la tâche que fournit un expert.
 
 ** Contributions
 
 L'évaluation d'une méthode d'apprentissage par imitation peut se faire selon deux critères :
- - la nature et la quantité d'information qu'il faut lui donner pour qu'elle fonctionne,
- - la qualité du contrôle qu'elle offre, comparée à la qualité du contrôle de l'expert ayant effectué la démonstration
+ - la nature et la quantité d'information qu'il faut lui donner pour qu'elle fonctionne;
+ - la qualité du contrôle qu'elle offre, comparée à la qualité du contrôle de l'expert ayant effectué la démonstration.
 
 
-Les méthodes d'apprentissage numérique supervisé excellent quant au premier critère, elles ne nécessitent pour fonctionner que de disposer d'une base d'exemple du comportement expert. Les méthodes d'apprentissage par renforcement inverse de l'état de l'art ne sont pas aussi souples. Elles nécessitent[fn::Sauf une, \gls{relent}, que nous utiliserons de fait comme point de comparaison.] pour fonctionner au moins un simulateur du système dynamique à contrôler. Les contributions de cette thèse visent à s'affranchir de ce besoin. Les méthodes d'\gls{irl} sont intrinsèquement plus difficile à utiliser en pratique que les méthodes d'imitation supervisée car après avoir trouvé une récompense, il faut l'optimiser pour obtenir une politique de contrôle. Nous verrons cependant que si l'on peut surmonter cette contrainte alors les méthodes d'\gls{irl} que nous proposons dans cette thèse présentent expérimentalement une meilleure capacité de généralisation que les méthodes supervisées.
+Les méthodes d'apprentissage numérique supervisé excellent quant au premier critère, elles ne nécessitent pour fonctionner que de disposer d'une base d'exemples du comportement expert. Les méthodes d'apprentissage par renforcement inverse de l'état de l'art ne sont pas aussi souples. Elles nécessitent[fn::Sauf une à notre connaissance, \gls{relent}, que nous utiliserons de fait comme point de comparaison.] pour fonctionner au moins un simulateur du système dynamique à contrôler. Les contributions de cette thèse visent à s'affranchir de ce besoin. Les méthodes d'\gls{irl} sont intrinsèquement plus difficile à utiliser en pratique que les méthodes d'imitation supervisée car après avoir trouvé une récompense, il faut l'optimiser pour obtenir une politique de contrôle. Nous verrons cependant que si l'on peut surmonter cette contrainte, alors les méthodes d'\gls{irl} que nous proposons ici présentent expérimentalement une meilleure capacité de généralisation que les méthodes supervisées.
 
 *** \glstext{lstdmu}
 
 La première contribution, l'algorithme \gls{lstdmu}, auquel le \autoref{hier-lstdmu} est consacré, permet d'estimer une grandeur centrale en \gls{irl}, l'attribut moyen, sans avoir à utiliser un simulateur du système :
 
- - Elle a donné lieu à une première publication dans un atelier d'IJCAI portant sur l'apprentissage machine grâce à des instructeurs humains :
+ - Elle a donné lieu à une première communication dans un atelier d'IJCAI portant sur l'apprentissage machine grâce à des instructeurs humains :
 \fullcite{klein2011batch2}
  - Nous avons ensuite rencontré la communauté d'apprentissage francophone aux JFPDA :
 \fullcite{klein2011batch1}
- - Enfin, nous avons partagé ces travaux avec la communauté internationale d'apprentissage par renforcement à EWRL :
+ - Ces travaux ont donné lieu à une publication avec actes à la conférence EWRL, qui regroupe la communauté internationale d'apprentissage par renforcement.
  \fullcite{klein2011batch}
 
 *** \glstext{scirl}
 Vient ensuite le nouvel algorithme d'\gls{irl} \gls{scirl} que nous décrivons et étudions au \autoref{hier-scirl} et qui peut tirer parti des avancées offertes par \gls{lstdmu}. Grâce à une heuristique, il est capable de trouver une récompense à partir uniquement de données expertes.
 
-- Cet algorithme a été publié pour la première fois à EWRL.
+- Une version préliminaire de ces travaux a donné lieu à une communication sans actes à EWRL.
 \fullcite{klein2012structured3}
 - Nous avons par la suite présenté nos travaux à la communauté francophone à CAp.
 \fullcite{klein2012structured2}
-
-Après ces deux publications, des travaux supplémentaires ont permis de mieux comprendre le fonctionnement de \gls{scirl}. Les publications suivantes présentent une étude expérimentale (reproduite dans ce manuscrit) plus approfondies que les deux précédentes. L'analyse théorique a également été améliorée, puisque d'une preuve de convergence de la descente de gradient, on passe à une démonstration du fait que la récompense trouvée par \gls{scirl} est bien solution du problème de l'\gls{irl}.
- - Nous avons présenté ces nouveaux travaux à NIPS.
+- Une version aboutie de ces travaux a été publiée à NIPS.
 \fullcite{klein2012structured}
- - Ils ont également fait l'objet d'une publication dans RIA.
+- Une version étendue de l'article présenté à CAp a été publiée dans la revue francophone RIA.
  \fullcite{klein2012structured1}
 
 *** \glstext{cascading}
 
 Notre dernière contribution majeure est l'algorithme \gls{cascading} (\autoref{hier-cascading}), il s'agit d'un autre algorithme d'\gls{irl} un peu plus souple que \gls{scirl}. Les deux algorithmes ont été développés en même temps, mais les publications concernant \gls{cascading} sont plus récentes.
 - L'algorithme a été présenté aux JFPDA cette année.
-\fullcite{klein2012cascading}
-- Il sera également présenté à Prague à ECML/PKDD
 \fullcite{klein2012cascading1}
+- Il sera également présenté à Prague à ECML/PKDD
+\fullcite{klein2012cascading}
 
-L'analyse théorique de \gls{cascading} est due à un autre membre de l'équipe MaLIS, Bilal Piot. Elle précède l'analyse de \gls{scirl}, qui s'en inspire.
+L'analyse théorique de \gls{cascading} est due à un autre doctorant de l'équipe MaLIS, Bilal Piot. Elle précède chronologiquement l'analyse de \gls{scirl}, qui s'en inspire.
 
 *** Autres travaux
-D'autres travaux, parallèles à ceux présentés ici, n'ont pas donné de résultats satisfaisants. Les résultats préliminaires avaient cependant donné lieu à une publication.
+# <<hier:autrestravaux>>
+D'autres travaux, parallèles à ceux présentés ici, n'ont pas donné de résultats satisfaisants. Les résultats préliminaires avaient cependant donné lieu à une publication. L'idée est de réduire la dimension de l'espace d'hypothèses dans lequel on cherche une récompense en exploitant les transformations (translations, multiplications par un facteur positif) qu'il est possible, sur tout \gls{mdp}, d'appliquer à une récompense sans changer ses politiques optimales. Une modification de l'algorithme du simplexe permet, dans cet espace de dimension réduite, de trouver les récompenses creuses (différentes de zéro en seulement quelques points) expliquant le comportement de l'expert. Malheureusement l'existence de telles solutions n'est pas garantie et la complexité de l'algorithme croît exponentiellement avec le cardinal de l'espace d'état. \\
 \fullcite{klein2011dimentionality}
 
+Lors de la 8$^{\textrm{ème}}$ école d'été sur les interfaces multimodales (eNTERFACE'12), nous avons tenté d'appliquer l'\gls{irl} à un problème réel et de grande dimension : la commande d'un bras robot par le biais d'une interface cerveau/machine (/Brain Computer Interface/, BCI). En observant un oracle associer la sortie de la BCI (une fois filtrée) à un ordre (avancer, droite, gauche, etc.), le but est de trouver une récompense qui, une fois optimisée, permettrait à un agent de remplacer l'oracle. L'utilisation de l'\gls{rl} permettrait d'obtenir un agent s'améliorant au fur et à mesure que le nombre d'interactions augmente, et qui s'adapte à l'utilisateur. Les résultats ont été prometteurs, en ce sens que l'algorithme \gls{scirl} (que nous présentons au \autoref{hier-scirl}) a été en mesure de trouver une fonction de récompense. Nous avons cependant manqué de temps pour collecter les données nécessaires à l'optimisation de cette récompense, et n'avons de fait pas pu évaluer la qualité de la récompense fournie par \gls{scirl}.\\
+\fullcite{bougrain2012inverse}
 
 ** Vue d'ensemble du manuscrit
  Le \autoref{hier-formalisme} explore la problématique de l'apprentissage par imitation. Nous commençons par formaliser l'imitation par des méthodes supervisées, dont nous proposons un état de l'art, avant d'introduire le cadre des \gls{mdp} et de l'\gls{rl}, prérequis pour expliquer l'\gls{irl}. L'état de l'art de l'\gls{irl} est donné au \autoref{hier-etatdelart}.
@@ -238,14 +240,14 @@ L'algorithme \gls{lstdmu} est exposé au \autoref{hier-lstdmu}. Nous y expliquon
 
 Le \autoref{hier-scirl} est consacré à \gls{scirl}, un de nos deux nouveaux algorithmes d'\gls{irl}. Nous fournissons une preuve théorique de la validité de l'algorithme dans le cas général, et proposons une heuristique lui permettant de fonctionner en utilisant uniquement des données issues de la démonstration de l'expert. Nous illustrons empiriquement les bonnes performances de cet algorithme comparativement à une méthode supervisée et à \gls{relent}, une méthode récente d'\gls{irl}.
 
-Finalement nous présentons notre deuxième algorithme d'\gls{irl}, \gls{cascading}, au \autoref{hier-cascading}. Nous reproduisons les résultats théoriques obtenus par Bilal Piot, chronologiquement antérieurs à ceux que nous fournissons pour \gls{scirl}. Une offrons une autre heuristique qui permet à \gls{cascading} de fonctionner comme \gls{scirl} en utilisant uniquement des données issues de la démonstration de l'expert. Nous montrons qu'expérimentalement les performances de \gls{cascading} (dans sa version heuristique) sont légèrement supérieures à celles de \gls{scirl}. 
+Finalement nous présentons notre deuxième algorithme d'\gls{irl}, \gls{cascading}, au \autoref{hier-cascading}. Nous reproduisons les résultats théoriques obtenus par Bilal Piot, chronologiquement antérieurs à ceux que nous fournissons pour \gls{scirl}. Nous offrons une autre heuristique qui permet à \gls{cascading} de fonctionner comme \gls{scirl} en utilisant uniquement des données issues de la démonstration de l'expert. Nous montrons qu'expérimentalement les performances de \gls{cascading} (dans sa version heuristique) sont légèrement supérieures à celles de \gls{scirl}. 
 
 Le \autoref{hier-conclusion} résume les contributions apportées et propose des perspectives de recherche qu'il serait intéressant d'explorer pour étendre nos travaux ou profiter des opportunités qu'ils ont ouvert.
  
 Les deux annexes regroupent pour l'\autoref{hier-demo} la preuve des principaux résultats théoriques et pour l'\autoref{hier-jouets} une description des problèmes jouets sur lesquels nous évaluons empiriquement les nouvelles méthodes que nous proposons.
 * Apprentissage par imitation
 # <<hier:formalisme>>
-  L'\gls{irl} permet de transformer l'apprentissage de tâches complexes à partir d'un signal de récompense en apprentissage par imitation, en déduisant de démonstrations d'un expert un signal de récompense cohérent avec ces démonstrations. Ce chapitre formalise les notions qui nous seront utiles tout au long du manuscrit. Nous commençons par étudier l'apprentissage supervisé, d'un point de vue de l'apprentissage par imitation. Ces méthodes ne passent pas par une fonction de récompense, mais apprennent directement l'association que fait l'expert entre entrée sensorielles et actions sur l'environnement. Nous en présentons un état de l'art. Nous précisons ensuite le cadre de l'\gls{rl}, puis de l'\gls{irl}, dont nous ferons l'état de l'art au \autoref{hier-etatdelart}.
+  L'\gls{irl} permet de transformer l'apprentissage de tâches complexes à partir d'un signal de récompense en apprentissage par imitation, en déduisant de démonstrations d'un expert un signal de récompense cohérent avec ces démonstrations. Ce chapitre formalise les notions qui nous seront utiles tout au long du manuscrit. Nous commençons par étudier l'apprentissage supervisé, du point de vue de l'apprentissage par imitation. Ces méthodes ne passent pas par une fonction de récompense, mais apprennent directement l'association que fait l'expert entre entrées sensorielles et actions sur l'environnement. Nous en présentons un état de l'art. Nous précisons ensuite le cadre de l'\gls{rl}, puis de l'\gls{irl}, dont nous ferons l'état de l'art au \autoref{hier-etatdelart}.
 
 ** Imitation supervisée
 # <<hier:nonari>>
@@ -270,7 +272,7 @@ Nous réduisons dans cette section le problème de l'imitation supervisée à ce
 # Exemple: could use an exemple (pendule ?)
 # snippet: La notion d'agent artificiel déborde sur l'espace d'état, qui n'est lui même du coup pas directement lié à l'environnement. Un agent, ce n'est pas seulement une politique, mais aussi la définition de l'espace d'état et d'action, qui ne sont qu'une vue (plus ou moins bonne selon l'ingénierie) de la réalité
    
-   Les espaces d'état et d'action ne sont généralement pas des espaces vectoriels : la plage de valeurs que peut prendre une composante est rarement illimitée. Il s'agit même parfois d'ensembles finis. Dans ce cas on s'autorisera à manipuler les états comme les $|\statespace|$ premiers entiers, puisqu'il existe un isomorphisme entre $\statespace$ et $\llbracket 1;|\statespace|\\rrbracket$. C'est dans les problèmes qui nous intéressent quasiment toujours le cas pour l'espace d'action. Nous considérons par défaut qu'il s'agit d'un ensemble fini de petit cardinal. La plupart des notations que nous utiliserons supposent un espace d'état également fini, mais l'usage d'attributs judicieusement choisis (\autoref{hier-attributs}) permet dans la plupart des cas l'extension au cas continu.
+   Les espaces d'état et d'action ne sont généralement pas des espaces vectoriels : la plage de valeurs que peut prendre une composante est rarement illimitée. Il s'agit même parfois d'ensembles finis. Dans ce cas on s'autorisera à manipuler les états comme les $|\statespace|$ premiers entiers, puisqu'il existe un isomorphisme entre $\statespace$ et $\llbracket 1;|\statespace|\rrbracket$. C'est dans les problèmes qui nous intéressent quasiment toujours le cas pour l'espace d'action. Nous considérons par défaut qu'il s'agit d'un ensemble fini de petit cardinal. La plupart des notations que nous utiliserons supposent un espace d'état également fini, mais l'usage d'attributs judicieusement choisis (\autoref{hier-attributs}) permet dans la plupart des cas l'extension pratique au cas continu.
 
 *** Classification
 # <<hier:classification>>    
@@ -309,7 +311,7 @@ Il existe des conditions de consistance du principe de minimisation du risque em
 
 Généralement pour la classification, la distribution $\spacedistrib$ pour laquelle on cherche à minimiser l'erreur de classification est la même que celle selon laquelle on échantillonne les données. Il est alors possible de se baser sur le risque empirique pour résoudre le problème de la classification.
 
-Il peut être nécessaire de choisir une autre distribution $\spacedistrib$ sur laquelle optimiser la classification. On peut, comme on l'a vu intuitivement, favoriser les états de départ. Il est possible de tenter d'estimer à partir d'une base d'exemples la vraie distribution des états qui seront soumis au contrôle de l'agent (qui peut être différente de la distribution à laquelle l'expert est confronté). On peut également pour certains environnements accorder plus d'importance à certains états critiques où une erreur aurait des conséquences fâcheuses (si l'on dispose de cette connaissance /a priori/).
+Il peut être nécessaire de choisir une autre distribution $\spacedistrib$ sur laquelle optimiser la classification. On peut, comme on l'a vu intuitivement, favoriser les états de départ. Il est possible de tenter d'estimer à partir d'une base d'exemples la vraie distribution des états qui seront soumis au contrôle de l'agent (qui peut être différente de la distribution à laquelle l'expert est confronté). On peut également, pour certains environnements, accorder plus d'importance à certains états critiques où une erreur aurait des conséquences fâcheuses (si l'on dispose de cette connaissance /a priori/).
 
 *** Attributs
 # <<hier:attributs>>
@@ -323,13 +325,13 @@ La capacité d'une méthode d'imitation à extrapoler un contrôle satisfaisant 
 q_{\paramclassif} = \transpose{\paramclassif}\featurestateactionfunc_{\classifscorefunc}.
 \end{equation}
 Les approximations linéaires comme celle-ci ont plusieurs propriétés qui les rendent populaires :
- - Elles permettent de remplacer la recherche dans un espace fonctionnel par une recherche dans l'espace des paramètres $\reals^{\dimphi}$.
- - Deux vecteurs de paramètres $\paramclassif$ et $\paramclassif'$ proches dans cet espace (tels que $||\paramclassif - \paramclassif'||_2$ soit petit) correspondent à deux fonctions $q_{\paramclassif}$ et $q_{\paramclassif'}$ ressemblantes. Par contraste, dans les réseaux de neurones par exemple, la non linéarité des fonctions d'activation peut faire que deux jeux de paramètres semblables correspondent à deux objets radicalement différents.
- - Les fonctions linéaires sont dérivables en fonction du vecteur de paramètre. Le gradient fonctionnel est le vecteur d'attribut :
+ - elles permettent de remplacer la recherche dans un espace fonctionnel par une recherche dans l'espace des paramètres $\reals^{\dimphi}$ (elles ne sont bien sûr pas seules à permettre cela) ;
+ - deux vecteurs de paramètres $\paramclassif$ et $\paramclassif'$ proches dans cet espace (tels que $||\paramclassif - \paramclassif'||_2$ soit petit) correspondent à deux fonctions $q_{\paramclassif}$ et $q_{\paramclassif'}$ ressemblantes. Par contraste, dans les réseaux de neurones par exemple, la non linéarité des fonctions d'activation peut faire que deux jeux de paramètres semblables correspondent à deux objets radicalement différents ;
+ - les fonctions linéaires sont aisément dérivables en fonction du vecteur de paramètre. Le gradient est le vecteur d'attribut :
 \begin{equation}
-\subgrad_{\paramclassif} q_{\paramclassif} = \subgrad_{\paramclassif} (\transpose{\paramclassif}\featurestateactionfunc_{\classifscorefunc}) = \featurestateactionfunc_{\classifscorefunc}.
+\subgrad_{\paramclassif} q_{\paramclassif} = \subgrad_{\paramclassif} (\transpose{\paramclassif}\featurestateactionfunc_{\classifscorefunc}) = \featurestateactionfunc_{\classifscorefunc};
 \end{equation}
- - La mise en œuvre informatique est triviale, il s'agit du produit scalaire du vecteur de paramètres et du vecteur d'attributs.
+ - la mise en œuvre informatique est triviale, il s'agit du produit scalaire du vecteur de paramètres et du vecteur d'attributs.
 # ?s featurestatefunc '\psi' 'Fonction d{\apos}attribut sur l{\apos}espace d{\apos}état'
 # ?s dimpsi 'd_{\psi}' 'Dimension de l{\apos}espace d{\apos}attributs sur l{\apos}espace d{\apos}état'
 # ?cs 1 card '\left|#1\right|' '|A|' 'Cardinal de l{\apos}ensemble A'
@@ -355,14 +357,14 @@ Un avantage de ce schéma est qu'il permet une représentation exacte de la fonc
 
 # ?cs 1 gaussperdim 'g_{#1}' 'g_i' 'Nombre de gaussiennes pour la dimension $i$ dans un vecteur d{\apos}attributs basé sur un réseau de gaussiennes'
 # ?s dimstate 'd_{\mathcal{S}}' 'Dimension de l{\apos}espace d{\apos}état'
-# ?s gaussiancenter 'm' 'Centre d{\apos}une gaussienne'
+# ?s gaussiancenter '\mathfrak{m}' 'Centre d{\apos}une gaussienne'
 # ?s gaussianvar '\sigma' 'Ecart-type d{\apos}une gaussienne'
 # ?cs 3 gaussian '\mathfrak{G}^{#1}_{#2}(#3)' '\mathfrak{G}^{m}_{\sigma}' 'Fonction gaussienne de centre $m$ et d{\apos}écart-type $\sigma$'
 # ?cs 2 component '{#1}_{#2}' 'X_j' 'Composante $j$ du vecteur $X$'
 # ?s dimindex 'j' 'Entier indexant les dimensions d{\apos}un espace'
 # ?s dimindexbis 'k' 'Entier indexant les dimensions d{\apos}un espace'
 # FIXME: Vérifier sigma et G lorsque j'écrirai le code permettant de dessiner les features
-Pour les espaces continus, une paramétrisation usuelle consiste à paver l'espace de fonctions à base radiale, telles les gaussiennes. On assigne un nombre $\gaussperdim{\dimindex}$ à chacune des dimensions $0 < \dimindex \leq \dimstate$ de l'espace d'état et l'on construit un maillage de $\dimpsi = \prod_{\dimindex=1}^{\dimstate}\gaussperdim{\dimindex}$ points $m_{\dimindexbis}$, $0<\dimindexbis\leq\dimpsi$ équirépartis dans l'espace qui seront les centres des $\dimpsi$ composantes gaussiennes de la fonction d'attribut. L'écart-type pour une dimension $\dimindex$ peut être choisie par exemple comme :
+Pour les espaces continus, une paramétrisation usuelle consiste à paver l'espace de fonctions à base radiale, telles les gaussiennes. On assigne un nombre $\gaussperdim{\dimindex}$ à chacune des dimensions $0 < \dimindex \leq \dimstate$ de l'espace d'état et l'on construit un maillage de $\dimpsi = \prod_{\dimindex=1}^{\dimstate}\gaussperdim{\dimindex}$ points $\gaussiancenter_{\dimindexbis}$, $0<\dimindexbis\leq\dimpsi$ équirépartis dans l'espace qui seront les centres des $\dimpsi$ composantes gaussiennes de la fonction d'attribut. L'écart-type pour une dimension $\dimindex$ peut être choisie par exemple comme :
 \begin{equation}
 \gaussianvar^{\dimindex} = { \max(\component{\state}{\dimindex})-\min(\component{\state}{\dimindex})\over 2 \gaussperdim{\dimindex}},\textrm{ avec $\component{\state}{\dimindex}$ la $\dimindex^\textrm{ième}$ composante de $\state$.}
 \end{equation}
@@ -381,10 +383,10 @@ on obtient finalement la fonction d'attribut suivante après l'ajout d'une compo
 \end{pmatrix}.
 \label{eq:gaussianrbf}
 \end{equation}
-Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états topologiquement proches subiront l'influence de la même composante du vecteur de paramètre. Le nombre de gaussiennes du réseau croît de manière exponentielle avec le nombre de dimensions. Une illustration de ce type de vecteur d'attributs sur l'espace d'état bidimensionnel du \gls{mountaincar} (décrit en \autoref{hier-mountaincar}) est présentée Figure 2.1.
+Contrairement à la fonction d'attribut binaire précédente, celle-ci possède une structure spatiale. Les scores de deux états topologiquement proches subiront l'influence de la même composante du vecteur de paramètres. Le nombre de gaussiennes du réseau croît de manière exponentielle avec le nombre de dimensions. Une illustration de ce type de vecteur d'attributs sur l'espace d'état bidimensionnel du \gls{mountaincar} [fn:: Il s'agit d'un problème jouet où une voiture doit sortir d'une vallée, mais n'est pas assez puissante pour gravir la côte du premier coup. Ce problème est décrit en \autoref{hier-mountaincar}.] est présentée Figure 2.1.
 # \autoref{fig:mountain_car_psi}.
 
-Lorsque cela s'avère nécessaire, l'opérateur peut effectuer un travail d'ingénierie en construisant un vecteur d'attribut spécifique au problème courant, qui tient compte des informations /a priori/ disponibles sur celui-ci. Par exemple pour la fonction de valeur du \gls{mountaincar}, on pourrait envisager de calculer l'énergie cinétique et l'énergie potentielle. Ce n'est cependant pas la route que nous allons suivre. Notre but étant d'établir des modèles génériques, nous utiliserons dans nos expériences les attributs gaussiens et binaires que nous venons de décrire. 
+Lorsque cela s'avère nécessaire, l'opérateur peut effectuer un travail d'ingénierie en construisant un vecteur d'attribut spécifique au problème courant, qui tient compte des informations /a priori/ disponibles sur celui-ci. Par exemple pour la fonction de valeur d'un agent sur le problème du \gls{mountaincar}, on pourrait envisager de calculer l'énergie cinétique et l'énergie potentielle. Ce n'est cependant pas la route que nous allons suivre. Notre but étant d'établir des modèles génériques, nous utiliserons dans nos expériences les attributs gaussiens et binaires que nous venons de décrire. 
 \begin{figure*}
 \begin{tikzpicture}[scale=2.3]
 %\draw [help lines] (0,0) grid (6,-6);
@@ -473,7 +475,7 @@ Ce que nous cherchons maintenant est donc un bon vecteur de paramètres $\paramc
 
 
 # ?s slack '\zeta' 'Variable d{\apos}écart'
-Considérant que nous disposons d'un vecteur d'attributs permettant de continuer, examinons à des fins d'illustration le problème que \citet{taskar2005learning} se proposent de résoudre, problème que nous retrouverons lors de l'exposé de \gls{scirl}. Il s'agit d'un problème d'optimisation convexe sous contraintes[fn::Pour voir que les variables $\slack_{\datasetindex}$ sont positives, on peut poser $a=a_i$.] :
+Considérant que nous disposons d'un vecteur d'attributs permettant de continuer, examinons à des fins d'illustration le problème que \citet{taskar2005learning} se proposent de résoudre, problème que nous retrouverons \autoref{hier-scirl}. Il s'agit d'un problème d'optimisation convexe sous contraintes[fn::Pour voir que les variables $\slack_{\datasetindex}$ sont positives, on peut poser $a=a_i$.] :
 \begin{align}
 &\min\limits_{\slack \in \reals_{+}} {1\over \nbsamples}\sum\limits_{\datasetindex=1}^{\nbsamples}\slack_{\datasetindex}\\
 \textrm{sous les contraintes}\forall \datasetindex, \classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action_{\datasetindex}) \geq &\max\limits_{\action \in \actionspace}(\classifscorefunc_{\paramclassif}(\state_{\datasetindex},\action) + \margin(\state_{\datasetindex},\action)) - \slack_{\datasetindex}.
@@ -538,12 +540,12 @@ Il existe bien d'autres moyens de faire de la classification, comme par exemple 
 *** \glsentrytext{svm}
 # <<hier:svm>>
 
-    Une \gls{svm} est un séparateur linéaire. Plus précisément, une \gls{svm} va chercher, dans l'espace $\statespace$, l'hyperplan de marge maximale séparant les données : d'un côté de l'hyperplan se trouvent tous les états qui dans la base d'exemple sont associés à une certaine action $\action_1$, et de l'autre côté se trouvent les états associés à l'autre action $\action_2$. La notion de marge que nous utilisons dans cette sous-section diffère de celle utilisée dans la sous-section précédente[fn::Dans les publications anglophones, ces deux concepts différents sont tous deux appelés /margin/.].
+    Une \gls{svm} est un séparateur linéaire. Plus précisément, une \gls{svm} va chercher, dans l'espace $\statespace$, l'hyperplan de marge maximale séparant les données : d'un côté de l'hyperplan se trouvent tous les états qui dans la base d'exemples sont associés à une certaine action $\action_1$, et de l'autre côté se trouvent les états associés à l'autre action $\action_2$. La notion de marge que nous utilisons dans cette sous-section diffère de celle utilisée dans la sous-section précédente[fn::Dans les publications anglophones, ces deux concepts différents sont tous deux appelés /margin/.].
     - La /marge structurée/ de \citeauthor{taskar2005learning} impose une structure aux différentes actions en permettant d'établir un classement différenciant l'action choisie par l'expert des autres actions.
     - La marge d'une SVM a une interprétation géométrique. En la maximisant, on maximise une notion de distance entre l'hyperplan séparateur et les points de données.
 
 # ?s kernel '\kappa' 'Noyau pour une SVM'
-    C'est un vœu pieux de croire que l'espace $\statespace$ est construit d'une manière qui permette à un hyperplan de séparer les exemples (on parle de données linéairement séparables quand cela se produit). Une construction linéaire n'a bien souvent pas un pouvoir de représentation assez grand. Le classifieur à fonction de score paramétrée linéairement que nous avons décrit précédemment compense cela par une projection dans un espace d'attributs $\featurestateactionspace$. Les \gls{svm} utilisent une technique similaire, appelée l'astuce du noyau \citep{aizerman1964theoretical,boser1992training}. L'idée est de remplacer les produits scalaires $\scalarprod{\state}{\state'}_{\statespace}$ qui apparaissent dans l'algorithme par un produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}_{\Psi}$ dans l'espace d'attributs $\Psi$, dans l'espoir que les données soient linéairement séparables dans cet espace d'attributs. Plutôt que de définir explicitement cet attribut $\featurestatefunc$ et de calculer le produit scalaire associé, un noyau $\kernel$ est défini. Pour peu que $\kernel$ satisfassent certaines conditions[fn::\`A savoir être continu, symétrique et semi-défini positif.], alors il existe \citep{mercer1909functions} une fonction $\featurestatefunc$ telle que [fn::Le noyau $\kappa$ engendre un /Reproducing Kernel Hilbert Space/ (RKHS) \citep{berlinet2004reproducing}.]:
+    C'est un vœu pieux de croire que l'espace $\statespace$ est construit d'une manière qui permette à un hyperplan de séparer les exemples sans erreur. Le classifieur à fonction de score paramétrée linéairement que nous avons décrit précédemment compense cela par une projection dans un espace d'attributs $\featurestateactionspace$. Les \gls{svm} utilisent une technique similaire, appelée l'astuce du noyau \citep{aizerman1964theoretical,boser1992training}. L'idée est de remplacer les produits scalaires $\scalarprod{\state}{\state'}_{\statespace}$ qui apparaissent dans l'algorithme par un produit scalaire $\scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}_{\Psi}$ dans l'espace d'attributs $\Psi$, dans l'espoir que les données soient linéairement séparables dans cet espace d'attributs. L'astuce est d'observer que les données n'apparaissent dans l'algorithme que par le biais de leur produit scalaire ; plutôt que de définir explicitement cet attribut $\featurestatefunc$ et de calculer le produit scalaire associé, un noyau $\kernel$ est défini. Pour peu que $\kernel$ satisfassent certaines conditions[fn::\`A savoir être continu, symétrique et semi-défini positif.], alors il existe \citep{mercer1909functions} une fonction $\featurestatefunc$ telle que [fn::Le noyau $\kappa$ engendre un /Reproducing Kernel Hilbert Space/ (RKHS) \citep{berlinet2004reproducing}.]:
 \begin{equation}
 \kernel(\state,\state') = \scalarprod{\featurestatefunc(\state)}{\featurestatefunc(\state')}_{\Psi}.
 \end{equation} 
@@ -558,7 +560,7 @@ Le modèle que nous venons de décrire est celui de la \gls{svm} à marge dure \
 
 Les choses se complexifient bien sûr quand il y a plus de deux actions (voir \citep{guermeur2012generic} pour un modèle générique correspondant à ce cas, appelé cas multi-classe) mais pour simplifier l'exposé nous nous sommes cantonné au cas bi-classe.
 
-Les \gls{svm} sont très populaires et plusieurs implémentations existent. Il est donc facile de les mettre en œuvre, ce sont des modèles qui fonctionnent assez bien avec un réglage de méta-paramètres minimal.
+Les \gls{svm} sont très populaires et plusieurs implémentations existent. Il est donc facile de les mettre en œuvre sur les problèmes jouet que nous allons traiter ; ce sont des modèles qui fonctionnent assez bien avec un réglage de méta-paramètres minimal.
 # Goal: Faire une description rapide des MCSVM et de leurs avantages.
 # Goal: Introduire la notion de noyau, de kenel-trick et faire le lien avec les attributs (poil au cul)
 # Requires: attribut, classification
@@ -577,9 +579,9 @@ pour apprendre une politique experte pour un problème de locomotion quadrupède
 
 Le boosting permet de déplacer de manière intelligente le problème du choix des attributs, sans le régler totalement. Il reste en effet à construire l'espace d'hypothèses où choisir les nouveaux attributs. Un espace trop simple ne permettrait pas de minimiser efficacement la fonction de coût, tandis qu'un espace trop riche permettrait de l'annuler, mais sans doute au prix d'un sur-apprentissage aux conséquences fâcheuses. C'est donc cet espace qui doit être construit afin de donner au classifieur ses capacités de généralisation. \citet{ratliff2007imitation} proposent d'utiliser un réseau de neurones.
 
-Plus brutale[fn::puisqu'elle repose sur l'utilisation d'une base d'exemple exhaustive.], l'approche de \citet{lecun2006off} utilise un \gls{cnn} (réseau de convolution) à 6 couches pour apprendre une association directe entre une image (stéréo) d'entrée et un angle de braquage (la tâche à apprendre est la conduite d'un véhicule en terrain libre). Le problème de la généralisation est résolu en exigeant une base d'entraînement couvrant au maximum l'espace d'état. Les auteurs ne cachent pas la difficulté de constituer une telle base qui doit réunir des conditions de terrain et d'illumination variées tout en exigeant un comportement extrêmement cohérent et prédictible de la part de l'opérateur humain et ce sur un grand nombre de trajectoires (il faut réunir près d'une centaine de milliers d'échantillons). En contrepartie de ces efforts, la technique proposée est robuste et ne nécessite aucun travail d'ingénierie au niveau des attributs, puisque la politique apprise associe directement la sortie du capteur à la consigne de l'actuateur du robot. Bien que cela soit moins problématique aujourd'hui avec l'augmentation de puissance des équipements embarqués, elle semble également plus rapide (dans l'exploitation, non dans l'apprentissage) que l'état de l'art de l'époque. Elle améliore les résultats notamment par rapport à \gls{alvinn} \citep{pomerleau1993knowledge} en ceci que la résolution des caméras peut être augmentée sans une trop grande explosion du réseau grâce à l'usage de la convolution et non d'un réseau complètement connecté, et que la tâche apprise est plus difficile, il s'agit de conduire en terrain libre et non de suivre une route.
+Plus brutale[fn::Puisqu'elle repose sur l'utilisation d'une base d'exemple exhaustive.], l'approche de \citet{lecun2006off} utilise un \gls{cnn} (réseau de convolution) à 6 couches pour apprendre une association directe entre une image (stéréo) d'entrée et un angle de braquage (la tâche à apprendre est la conduite d'un véhicule en terrain libre). Le problème de la généralisation est résolu en exigeant une base d'entraînement couvrant au maximum l'espace d'état. Les auteurs ne cachent pas la difficulté de constituer une telle base qui doit réunir des conditions de terrain et d'illumination variées tout en exigeant un comportement extrêmement cohérent et prédictible de la part de l'opérateur humain et ce sur un grand nombre de trajectoires (il faut réunir près d'une centaine de milliers d'échantillons). En contrepartie de ces efforts, la technique proposée est robuste et ne nécessite aucun travail d'ingénierie au niveau des attributs, puisque la politique apprise associe directement la sortie du capteur à la consigne de l'actuateur du robot. Bien que cela soit moins problématique aujourd'hui avec l'augmentation de puissance des équipements embarqués, elle semble également plus rapide (dans l'exploitation, non dans l'apprentissage) que l'état de l'art de l'époque. Elle améliore les résultats notamment par rapport à \gls{alvinn} \citep{pomerleau1993knowledge} en ceci que la résolution des caméras peut être augmentée sans une trop grande explosion du réseau grâce à l'usage de la convolution et non d'un réseau complètement connecté, et que la tâche apprise est plus difficile, il s'agit de conduire en terrain libre et non de suivre une route.
 
-Nous venons de voir deux outils différents (\gls{boosting} et réseau de convolution) permettant d'apprendre une politique sans contrôler le système, de manière supervisée, avec une intervention humaine minimale : soit on dispose de suffisamment de données pour que le risque empirique soit proche du risque réel, soit on construit des attributs tels que l'apprentissage au mieux (en minimisant une fonction de coût exprimée sur les données) ne soit pas un apprentissage par cœur, mais un apprentissage généralisant sur tout l'espace d'état. Apprendre une politique de manière locale, c'est-à-dire en se concentrant trop sur une base de données ne couvrant pas tout l'espace d'état, n'est pas satisfaisant. Cela donne un résultat fragile, l'agent sera en effet pris au dépourvu s'il a à contrôler le système dans une configuration différente de celles sur lesquelles il a été entraîné : il ne dispose ni d'information relative au comportement de l'expert dans une telle situation, ni d'information sur la tâche à accomplir qui lui permettraient de déduire ce que pourrait être ce comportement.
+Nous venons de voir deux outils différents (\gls{boosting} et réseau de convolution) permettant d'apprendre une politique sans contrôler le système, de manière supervisée, avec une intervention humaine minimale : soit l'on dispose de suffisamment de données pour que le risque empirique soit proche du risque réel, soit l'on construit des attributs tels que l'apprentissage au mieux (en minimisant une fonction de coût exprimée sur les données) ne soit pas un apprentissage par cœur, mais un apprentissage généralisant sur tout l'espace d'état. Apprendre une politique de manière locale, c'est-à-dire en se concentrant trop sur une base de données ne couvrant pas tout l'espace d'état, n'est pas satisfaisant. Cela donne un résultat fragile, l'agent sera en effet pris au dépourvu s'il a à contrôler le système dans une configuration différente de celles sur lesquelles il a été entraîné : il ne dispose ni d'information relative au comportement de l'expert dans une telle situation, ni d'information sur la tâche à accomplir qui lui permettraient de déduire ce que pourrait être ce comportement.
 
 L'idée de demander ces échantillons de manière interactive a été proposée afin de minimiser la quantité de données nécessaire à l'apprentissage de la politique experte. Un exemple d'une telle approche est décrit par \citet{chernova2007confidence}. Des \gls{gmm} sont appris à partir d'une base de données experte de départ, puis l'agent applique la politique apprise tout en demandant à l'expert, lorsque l'incertitude est trop grande, de lui fournir un échantillon supplémentaire. Cette approche permet de limiter la redondance de la base d'entraînement et de guider l'échantillonnage vers les zones intéressantes de l'espace d'état, ce qui est également une solution au problème de la généralisation : quand l'agent ne sait pas généraliser, il demande à l'expert. Cela est connu sous le nom d'apprentissage actif.
 
@@ -635,7 +637,7 @@ Pour comprendre ce but de l'expert qu'il nous importe de connaître, ce n'est pa
 L'agent (qu'il s'agisse de l'expert ou d'un agent artificiel que l'on entraîne) aux manettes du système contrôle celui-ci non pas ponctuellement de temps à autres mais de manière cohérente sur un laps de temps durant lequel il devra opérer des actions de contrôle les unes après les autres. Il est donc naturel d'indexer ces actions et les états traversés par un indice temporel $\timeindex \in \llbracket 0;\infty\rrbracket$. Par exemple, cette formulation n'impose pas de pas d'échantillonnage constant, il s'agit ici d'ordonner les états et actions par ordre de causalité, ce qui incidemment correspond[fn::\`A moins que /Doctor Who/ et /Retour vers le futur/ ne soient des documentaires.] à un indice temporel croissant, non pas de transcrire avec quelque fidélité les problèmes de l'échantillonnage temporel. Qui plus est cette formulation correspond à la réalité du contrôle numérique, intrinsèquement discret.
 
 # ?s transprobfunc 'p' 'Probabilités de transition'
-# ?cs 3 transprobfunceval 'p\left(#3|#1,#2\right)' 'p(s\prime|s,a)' 'Probabilité qu{\apos}un agent transite en $s\prime$ après avoir choisi l{\apos}action $a$ dans l{\apos}état $s$'
+# ?cs 3 transprobfunceval 'p\left(#3|#1,#2\right)' 'p(s\apos|s,a)' 'Probabilité qu{\apos}un agent transite en $s\apos$ après avoir choisi l{\apos}action $a$ dans l{\apos}état $s$'
 Pour prendre en compte les imperfections de la modélisation ou plus simplement parfois la nature réellement stochastique du problème, les effets d'une action qui sont décrits par une loi de probabilité, qui, informée d'un état $\state_{\timeindex}$ et d'une action $\action_{\timeindex}$, prédit vers quel état $\state_{\timeindex+1}$ le système va transiter. On note cela (encore une fois en identifiant loi de probabilité et densité de probabilité)[fn::Avec $f\in\twosetsfunctions{A}{B\times C\times D}$, la notation $f(b,\cdot,d)$ désigne la fonction de $C$ dans $A$ : $c \rightarrow f(b,c,d)$.] :
 \begin{equation}
 \state_{\timeindex+1}\sim \transprobfunceval{\state_{\timeindex}}{\action_{\timeindex}}{\cdot}, \transprobfunc \in \twosetsfunctions{\statespace \times \actionspace \times \statespace}{[0;1]}.
@@ -644,7 +646,7 @@ On constate que l'information sur l'état vers lequel on transite ne dépend que
 # ?cs 1 transprobmat 'P^{#1}' 'P^{\pi}' 'Matrice des probabilités de transition induites par la politique $\policy$'
 # ?cs 3 matrixbyterm '\left({#1}\right)_{{#2},{#3}}' '\left(f(i,j)\right)_{i,j}' 'Matrice dont l{\apos}élément de ligne $i$ et de colonne $j$ est $f(i,j)$'
 # ?cs 1 stationarydistrib '\rho_{#1}' '\rho_\pi' 'Distribution stationnaire induite par la politique $\pi$'
-La répétition du cycle consistant à choisir une action puis à transiter vers un nouvel état où l'agent choisit une action qui le fera transiter vers un nouvel état (etc.) forme une trajectoire. Les probabilités de transitions contraintes par une politique $\policy$ peuvent être dans le cas fini $\card{\statespace}<\infty$ représentées[fn::En utilisant l'isomorphisme naturel entre $\statespace$ et $\rrbracket 1,|\statespace|\llbracket$.] par une matrice stochastique de taille $\card{\statespace}\times\card{\statespace}$ :
+La répétition du cycle consistant à choisir une action puis à transiter vers un nouvel état où l'agent choisit une action qui le fera transiter vers un nouvel état (etc.) forme une trajectoire. Les probabilités de transitions contraintes par une politique $\policy$ peuvent être dans le cas fini $\card{\statespace}<\infty$ représentées[fn::En utilisant l'isomorphisme naturel entre $\statespace$ et $\llbracket 1,|\statespace|\rrbracket$.] par une matrice stochastique de taille $\card{\statespace}\times\card{\statespace}$ :
 \begin{equation}
 \transprobmat{\policy} = \matrixbyterm{\transprobfunceval{\state}{\policy(\state)}{\state'}}{\state}{\state'},
 \end{equation}
@@ -853,12 +855,12 @@ Plus subtilement, utiliser le formalisme des \gls{mdp} présuppose que certaines
 # ?s expertdistrib '\rho_E' 'Distribution stationnaire de l{\apos}expert'
 Ces conditions, qu'il est difficile de satisfaire en totalité, ne vont cependant pas nous préoccuper. Nous nous attelons à trouver de nouvelles solutions au problème formulé par \citet{russell1998learning}. Pour mesurer notre succès, nous envisageons deux mesures de la qualité de la récompense $\appr{\rewardfunc}$ trouvée par un algorithme d'\gls{irl}. L'une est objective :
 \begin{equation}
-\expectationknowing{{\color{blue}\rlvalue{\expertpolicy}{\expertreward}(\state)} - {\color{brown}\rlvalue{\optimalpolicy{\appr{\rewardfunc}}}{\expertreward}(\state)}}{\state\sim\expertdistrib},
+\expectationknowing{{\color{blue}V^{\pi^E}_{R^E}(s)} - {\color{brown}V^{\pi^*_{\hat{R}}}_{R^E}(s)}}{\state\sim\expertdistrib},
 \label{eq:aricriterebis}
 \end{equation}
 l'autre est estimable :
 \begin{equation}
-\expectationknowing{{\color{blue}\rlvalue{\optimalpolicy{\appr{\rewardfunc}}}{\appr{\rewardfunc}}(\state)} - {\color{brown}\rlvalue{\expertpolicy}{\appr{\rewardfunc}}(\state)}}{\state \sim \expertdistrib}.
+\expectationknowing{{\color{blue}V^{\pi^*_{\hat{R}}}_{\hat{R}}} - {\color{brown}V^{\pi^E}_{\hat{R}}(s)}}{\state \sim \expertdistrib}.
 \label{eq:aricritere}
 \end{equation}
 
@@ -924,12 +926,12 @@ Alors quelle que soit la récompense $\rewardfunc_{\paramirl} = \transpose{\para
 D'après l'\autoref{eq:vthetamu} : 
 \begin{align}
 \forall \state \in \statespace, \left|\rlvalue{\policy_1}{\rewardfunc_{\paramirl}}(s)-\rlvalue{\policy_2}{\rewardfunc_{\paramirl}}(s)\right|
- &= \left|\transpose{\paramirl}\rlmu{\policy_1}(s)-\transpose{\paramirl}\rlmu{\policy_1}(s)\right|\\
-&= \left|\transpose{\paramirl}(\rlmu{\policy_1}(s)-\rlmu{\policy_1}(s))\right|.\\
+ &= \left|\transpose{\paramirl}\rlmu{\policy_1}(s)-\transpose{\paramirl}\rlmu{\policy_2}(s)\right|\\
+&= \left|\transpose{\paramirl}(\rlmu{\policy_1}(s)-\rlmu{\policy_2}(s))\right|.\\
 \end{align}
 En utilisant l'inégalité de Cauchy-Schwartz, on conclut : 
 \begin{align}
-\forall \state \in \statespace, \left|\rlvalue{\policy_1}{\rewardfunc_{\paramirl}}(s)-\rlvalue{\policy_2}{\rewardfunc_{\paramirl}}(s)\right| &\leq \norm{2}{\paramirl}\left|\rlmu{\policy_1}-\rlmu{\policy_1}\right|\\
+\forall \state \in \statespace, \left|\rlvalue{\policy_1}{\rewardfunc_{\paramirl}}(s)-\rlvalue{\policy_2}{\rewardfunc_{\paramirl}}(s)\right| &\leq \norm{2}{\paramirl}\left\|\rlmu{\policy_1}(s)-\rlmu{\policy_2}(s)\right\|_2\\
 &\leq \norm{2}{\paramirl}\epsilon.
 \end{align}
 \end{proof}
@@ -997,7 +999,7 @@ Ce résultat est assez intuitif, si deux politiques induisent les mêmes traject
 \end{tikzpicture}
 \caption[Attribut moyen de l'expert sur le \glstext{mountaincar}]{\`A comparer à la Figure 2.1
 %\autoref{fig:mountain_car_psi}
-, l'attribut moyen (ici celui de l'expert sur le \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen.}
+, l'attribut moyen (ici celui de l'expert sur le problème du \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen.}
 \label{fig:mountain_car_mu}
 \end{figure*}
 
@@ -1379,7 +1381,7 @@ Un algorithme de ce type est l'approche de \citet{boularias2011relative}, \gls{r
 # ?s spaceindex 'm' 'Entier indexant un ensemble'
 ** Conclusion
 
-L'algorithme \gls{lstdmu} que nous proposons nécessite pour fonctionner moins de données que l'algorithme d'\gls{rl} \gls{lspi}. Les garanties théoriques applicables à \gls{lstd} se transfèrent à \gls{lstdmu}. De manière générale, on peut imaginer adapter d'autres résultats de \gls{lstd} à \gls{lstdmu}, comme par exemple l'utilisation de traces d'éligibilité ou l'introduction de méthodes parcimonieuses \citep{geist2012dantzig,geist2012recursive}.
+L'algorithme \gls{lstdmu} que nous proposons nécessite pour fonctionner moins de données que l'algorithme d'\gls{rl} \gls{lspi}. Les garanties théoriques applicables à \gls{lstd} se transfèrent à \gls{lstdmu}. De manière générale, on peut imaginer adapter d'autres résultats de \gls{lstd} à \gls{lstdmu}, comme par exemple l'introduction d'un paramètre $\lambda$ pour une mise à jour incrémentale, après chaque transition, du vecteur de paramètres (\gls{lstd} correspond au cas $\lambda=0$) \citep{boyan2002technical}, l'utilisation de traces d'éligibilité \citep{geist2012dantzig}, l'utilisation de projections aléatoires \citep{ghavamzadeh2010lstd} ou l'introduction de méthodes parcimonieuses \citep{geist2012recursive}.
 * Classification structurée pour l'apprentissage par renforcement inverse
 # <<hier:scirl>>  
 Comme nous venons de le voir sur l'exemple précédent, c'est bien la résolution répétée du \gls{mdp} qui rend les algorithmes d'\gls{irl} itératifs (\autoref{alg:repetee}) si gourmands en information. Il faut donc trouver un moyen de résoudre le problème de l'\gls{irl} sans avoir à résoudre de \gls{mdp}. Parmi les algorithmes les plus récents (\autoref{hier-nouveauxalgos}), la plupart ont besoin de données qui permettraient de résoudre le \gls{mdp}, et ne présentent donc pas, du point de vue de la facilité d'utilisation dans un cadre où la collecte de données est difficile, un avantage décisif sur les approches itératives.
@@ -1416,7 +1418,7 @@ L'algorithme \gls{cascading} du chapitre suivant et \gls{scirl}, que nous prése
 
 # snippet: tiré de ratliff2009learning, l'extrait suivant est exactement ce que SCIRL fait : Unfortunately, such a system is inherently myopic. This form of imitation learning assumes that all information necessary to make a decision at the current state can be easily encoded into a single vector of features that enables prediction with a relatively simple, learned function. However, this is often particularly difficult because the features must encode information regarding the future long-term consequences of taking an action. Under this framework, much of the work that we would like learning to handle is pushed onto the engineer in the form of feature extraction.
    
-Nous décrivons les principe général de \gls{scirl} \autoref{hier-scirlprinciple}, puis présentons une instanciation particulière[fn::qui grâce à une heuristique peut fonctionner en utilisant uniquement des données expertes.] (\autoref{hier-scirlinstan}) qui sera celle utilisée pour les expériences (\autoref{hier-scirlexp}).
+Nous décrivons les principe général de \gls{scirl} \autoref{hier-scirlprinciple}, puis présentons une instanciation particulière[fn::Qui grâce à une heuristique peut fonctionner en utilisant uniquement des données expertes.] (\autoref{hier-scirlinstan}) qui sera celle utilisée pour les expériences (\autoref{hier-scirlexp}).
 *** Principe général
 # <<hier:scirlprinciple>>
 
@@ -1511,7 +1513,7 @@ Procéder à la descente de sous-gradient dont le sous-gradient est :
 # <<hier:scirltheo>>
 
 
-Maintenant que le principe de \gls{scirl} ainsi qu'une instanciation particulière utilisant l'\autoref{alg:taskar} et \gls{lstdmu} sont en place, Nous fournissons des garanties théoriques sur les performances d'imitation de \gls{scirl} [fn::Chronologiquement antérieures à celles concernant l'algorithme \gls{cascading}, qui sont dues au travail d'un autre membre de l'équipe MaLIS, Bilal Piot.].
+Maintenant que le principe de \gls{scirl} ainsi qu'une instanciation particulière utilisant l'\autoref{alg:taskar} et \gls{lstdmu} sont en place, Nous fournissons des garanties théoriques sur les performances d'imitation de \gls{scirl} [fn::Chronologiquement postérieures à celles concernant l'algorithme \gls{cascading}, qui sont dues au travail d'un autre membre de l'équipe MaLIS, Bilal Piot.].
 
    Lorsque nous avons posé le problème de l'\gls{irl}, nous avons discuté des critères permettant d'évaluer la qualité de la solution. Dans l'analyse théorique de \gls{scirl}, c'est le critère de l'\autoref{eq:aricritere} qui nous intéresse. Il mesure l'optimalité de la politique de l'expert pour la récompense renvoyée par \gls{scirl}. Nous allons le borner par un terme qui dépend d'objets dont certains n'ont pas encore été introduits.
 
@@ -1654,7 +1656,7 @@ En utilisant un peu plus[fn::La classification utilise une base $\satrace{\exper
 
     Les résultats obtenus sont donnés Figure 5.2.
 # \autoref{fig:scirlhighway}.
-Les résultats présentent bien la hiérarchie à laquelle nous nous attendions : l'algorithme supervisé ne parvient à apprendre un bon contrôle que petit à petit, à mesure que la taille de la base de données experte croît. L'ordre est le même que pour le \gls{mountaincar}, mais les performances de \gls{relent} diffèrent en ceci qu'elles sont maintenant beaucoup plus proches de celles de \gls{scirl} (qui reste malgré tout au dessus) que de la classification.
+Les résultats présentent bien la hiérarchie à laquelle nous nous attendions : l'algorithme supervisé ne parvient à apprendre un bon contrôle que petit à petit, à mesure que la taille de la base de données experte croît. L'ordre est le même que pour le problème du \gls{mountaincar}, mais les performances de \gls{relent} diffèrent en ceci qu'elles sont maintenant beaucoup plus proches de celles de \gls{scirl} (qui reste malgré tout au dessus) que de la classification.
 
     Dans un domaine où les attributs (discrets) n'ont pas été en mesure de fournir à la méthode supervisée la moindre information /a priori/ sur le système (précédemment pour le \gls{mountaincar}, le noyau gaussien de la \gls{svm} possède la propriété de cohérence spatiale[fn::Deux états proches auront des attributs proches.]), les méthodes d'\gls{irl} présentent de bien meilleures capacités de généralisation.
 
@@ -1862,7 +1864,7 @@ Cette borne est également rassurante en ce qui concerne l'apparition de solutio
 La borne théorique donnée à la section précédente ne prend pas l'heuristique proposée \autoref{eq:csiheuristique} en compte, puisque celle-ci introduit des échantillons non conformes à l'\autoref{eq:csinormalrctrace}. Nous allons donc, comme nous l'avons fait pour \gls{scirl} \autoref{hier-scirlexp} tester empiriquement la version heuristique de \gls{cascading} afin de montrer que l'heuristique est valable.
 *** Introduction 
 
-Nous retrouvons ici les bancs d'essai utilisés \autoref{hier-scirlexp}, le \gls{mountaincar} et le \gls{highway}. La classification s'étant avérée moins performante que les méthodes d'\gls{irl}, nous nous concentrons ici sur celles-ci, et comparons \gls{scirl}, \gls{cascading} et \gls{relent}. Le critère utilisé est le même que celui des expériences précédentes, à savoir un critère donnant une idée de l'optimalité de la politique optimale pour $\apprRc$ par rapport à la récompense inconnue $\expertreward$.
+Nous retrouvons ici les bancs d'essai utilisés \autoref{hier-scirlexp}, le problème du \gls{mountaincar} et celui du \gls{highway}. La classification s'étant avérée moins performante que les méthodes d'\gls{irl}, nous nous concentrons ici sur celles-ci, et comparons \gls{scirl}, \gls{cascading} et \gls{relent}. Le critère utilisé est le même que celui des expériences précédentes, à savoir un critère donnant une idée de l'optimalité de la politique optimale pour $\apprRc$ par rapport à la récompense inconnue $\expertreward$.
 
 L'instanciation de \gls{cascading} utilisée est celle de l'\autoref{alg:csiheuristique}. Nous préciserons dans les sous-sections le choix du classifieur et du régresseur.
 
@@ -1894,7 +1896,7 @@ $100$ & $1.3e-02$\\
 $300$ & $7.4e-01$\\
 \bottomrule
 \end{tabular}
-\caption[Départager \glstext{scirl} et \glstext{cascading} sur le \glstext{mountaincar}]{Test d'égalité des moyennes de Student ou de Welch concernant \gls{cascading} et \gls{scirl} sur le \gls{mountaincar}. Des $p$-valeurs élevées ($>1.0\e{-02}$) signifient que l'hypothèse d'égalité des moyennes ne peut être rejetée.}
+\caption[Départager \glstext{scirl} et \glstext{cascading} sur le \glstext{mountaincar}]{Test d'égalité des moyennes de Student ou de Welch concernant \gls{cascading} et \gls{scirl} sur le problème du \gls{mountaincar}. Des $p$-valeurs élevées ($>1.0\e{-02}$) signifient que l'hypothèse d'égalité des moyennes ne peut être rejetée.}
 \label{tab:mountaincar}
 \end{table}
 *** \glstext{cascading} appliqué au \glstext{highway}
@@ -1957,7 +1959,7 @@ Taille de la base experte & $p$-valeur\\
       $400$ & $\mathbf{2.0e-50}$\\
 \bottomrule
 \end{tabular}
-\caption[Départager \glstext{scirl} et \glstext{cascading} sur le \glstext{highway}]{Test d'égalité des moyennes de Student ou de Welch concernant \gls{cascading} et \gls{scirl} sur le \gls{highway}. Des $p$-valeurs élevées ($>1.0\e{-02}$) signifient que l'hypothèse d'égalité des moyennes ne peut être rejetées.}
+\caption[Départager \glstext{scirl} et \glstext{cascading} sur le \glstext{highway}]{Test d'égalité des moyennes de Student ou de Welch concernant \gls{cascading} et \gls{scirl} sur le problème du \gls{highway}. Des $p$-valeurs élevées ($>1.0\e{-02}$) signifient que l'hypothèse d'égalité des moyennes ne peut être rejetées.}
 \label{tab:highway}
 \end{table}
 
@@ -1967,7 +1969,7 @@ Taille de la base experte & $p$-valeur\\
 
    La souplesse offerte par la liberté de choix des deux approches supervisées laisse à l'opérateur la possibilité d'adapter l'approche au problème qu'il cherche à résoudre. Une heuristique est offerte qui permet à \gls{cascading} de fonctionner avec une expertise humaine minimale en n'utilisant que des données expertes. Cela est illustré sur les mêmes bancs d'essai que ceux qui ont permis la validation empirique de \gls{scirl}. Les performances empiriques offertes par \gls{cascading} sont légèrement supérieures à celles de \gls{scirl}. Les deux approches sont plus performantes que l'approche supervisée au prix cependant de devoir résoudre le \gls{mdp} une fois la récompense obtenue.
 
-* Conclusion
+* Conclusions et perspectives
 ** Rappel des contributions 
 # <<hier:conclusion>>
 L'un des freins à l'adoption généralisée de la robotique dans la société est le coût élevé des dispositifs automatiques. Du fait de l'augmentation exponentielle des capacités techniques du matériel, le goulot d'étranglement se situe de plus en plus au niveau du coût de conception des systèmes intelligents. Le développement d'algorithmes génériques pouvant s'adapter à une vaste gamme de problèmes est l'un des moyens par lesquels la réduction de ces coûts de développement pourrait être réalisée.
@@ -1996,9 +1998,9 @@ Les systèmes réels sont souvent fragiles et interagir avec peut être coûteux
 
 # %Les trois contributions ont ceci de commun qu'elles peuvent fonctionner en conditions à peu de données, mais elles peuvent faire usage très facilement de savoir à priori si on en a. Donc SCIRL et CSI sont non seulement les deux seules qui semblent fonctionner de manière générique dans les situations à la con, mais pour les situations encore plus à la con on peut espérer utiliser des méthodes /ad-hoc/ pour aller encore plus loin. (Selon les sous routines qu'on choisit, on peut même utiliser des experts non optimaux : les samples optimaux sont balancés en vracs dans DE, on s'en sortira, les non optimaux dans Dsim, on pourra quand même les exploiter.)
 ** Perspectives de recherche 
-Les deux nouveaux algorithmes d'\gls{irl} que nous proposons disposent de garanties théoriques et une étude empirique illustre le fait qu'ils sont plus performants que les méthodes de l'état de l'art. Il serait souhaitable de renforcer cette étude empirique en les appliquant à d'autres problèmes, que ce soit des problèmes déjà résolus par d'autres méthodes, à des fins comparatives, ou des problèmes ouverts. Notamment, deux domaines ont commencé à être explorés, mais les travaux n'ont pu être menés à terme et de fait n'apparaissent pas dans ce manuscrit. Le premier est l'/Arcade Learning Environment/ (ALE) : il s'agit d'un émulateur d'Amiga 2600 permettant de jouer à une vaste collection de jeux vidéos. Le second est l'application d'algorithmes d'\gls{irl} à la commande d'un bras robot à partir de signaux issus d'une interface cerveau/machine (/Brain Computer Interface/, BCI).  Dans ces deux cas, la difficulté n'est pas dans l'application des algorithmes d'\gls{irl} eux même, mais dans l'optimisation de la récompense qu'ils trouvent afin d'obtenir une politique de contrôle. Nous avons dans nos travaux considéré que cette étape ne posait pas problème, afin de nous concentrer sur le problème de l'\gls{irl} telle qu'envisagé par la communauté. L'application à des problèmes pratiques doit faire face à l'optimisation de la récompense, il faut alors faire appel à des méthodes de l'état de l'art en \gls{rl} et des adaptations /ad-hoc/ au problème (par exemple dans le choix des attributs).
+Les deux nouveaux algorithmes d'\gls{irl} que nous proposons disposent de garanties théoriques et une étude empirique illustre le fait qu'ils sont plus performants que les méthodes de l'état de l'art. Il serait souhaitable de renforcer cette étude empirique en les appliquant à d'autres problèmes, que ce soit des problèmes déjà résolus par d'autres méthodes, à des fins comparatives, ou des problèmes ouverts. Notamment, deux domaines ont commencé à être explorés, mais les travaux n'ont pu être menés à terme et de fait n'apparaissent pas dans ce manuscrit. Le premier est l'/Arcade Learning Environment/ (ALE) : il s'agit d'un émulateur d'Amiga 2600 permettant de jouer à une vaste collection de jeux vidéos. Le second est l'application d'algorithmes d'\gls{irl} à la commande d'un bras robot à partir de signaux issus d'une interface cerveau/machine (/Brain Computer Interface/, BCI)[fn::Voir la \autoref{hier-autrestravaux} pour une description des travaux effectués sur la BCI.].  Dans ces deux cas, la difficulté n'est pas dans l'application des algorithmes d'\gls{irl} eux même, mais dans l'optimisation de la récompense qu'ils trouvent afin d'obtenir une politique de contrôle. Nous avons dans nos travaux considéré que cette étape ne posait pas problème, afin de nous concentrer sur le problème de l'\gls{irl} telle qu'envisagé par la communauté. L'application à des problèmes pratiques doit faire face à l'optimisation de la récompense, il faut alors faire appel à des méthodes de l'état de l'art en \gls{rl} et des adaptations /ad-hoc/ au problème (par exemple dans le choix des attributs).
 
-Pour pallier de manière plus générale à ce problème[fn::Qui n'affecte pas les approches supervisées.], nous pourrions également tenter de développer un cadre pour les algorithmes d'\gls{irl} dans lequel l'optimisation finale de la récompense est simplifiée ou contournée. La politique de classification du classifieur paramétré par l'attribut moyen de l'expert qui constitue \gls{scirl} est par exemple une bonne politique de départ pour un algorithme d'\gls{rl} en ligne. Les données nécessaires à l'apprentissage de la politique de contrôle (dont \gls{scirl} n'a pas besoin, grâce à son heuristique, pour trouver la récompense) pourraient alors être recueillies par la politique de classification, qui convergerait alors petit à petit grâce à l'algorithme d'\gls{rl} en ligne vers la politique optimale pour la récompense trouvée par \gls{scirl}. La politique issue de la première étape supervisée de \gls{cascading} pourrait être utilisée de la même manière.
+Pour pallier de manière plus générale à ce problème[fn::Qui n'affecte pas les approches supervisées.], nous pourrions également tenter de développer un cadre pour les algorithmes d'\gls{irl} dans lequel l'optimisation finale de la récompense est simplifiée ou contournée. La politique de classification du classifieur paramétré par l'attribut moyen de l'expert qui constitue \gls{scirl} est par exemple une bonne politique de départ pour un algorithme d'\gls{rl} en ligne. Les données nécessaires à l'apprentissage de la politique de contrôle (dont \gls{scirl} n'a pas besoin, grâce à son heuristique, pour trouver la récompense) pourraient alors être recueillies par la politique de classification, qui convergerait alors petit à petit grâce à l'algorithme d'\gls{rl} en ligne vers la politique optimale pour la récompense trouvée par \gls{scirl}. La politique issue de la première étape supervisée de \gls{cascading} pourrait être utilisée de la même manière. Il est également possible de poursuivre l'approche envisagée dans \citep{geist2013cascading}, consistant à instancier \gls{cascading} avec une \gls{svm} et une SVR et à réunir les deux problèmes d'optimisation en un seul, dont la résolution permettrait d'obtenir directement une politique prenant en compte la structure de la récompense.
 
 Finalement, il faudrait intégrer l'\gls{rl} et l'\gls{irl} dans des systèmes informatiques réels aux mains d'utilisateurs non qualifiés. Cela nécessitera sans doute d'important travaux concernant l'intégration de multiples algorithmes dans un schéma hiérarchique : avant d'apprendre à un robot à faire un mojito, il faut qu'il apprenne à saisir un verre et une bouteille. Mais lorsqu'on lui apprend la recette, on ne veut pas avoir à se soucier des détails de la saisie manuelle d'objet, on fonctionne à un niveau d'abstraction plus élevé. Il faut donc qu'une politique par exemple "Saisir un verre" faisant appel à des actions telles que "Fermer doigt 1 de la main gauche" et "Tourner poignet gauche dans le sens direct" puisse être utilisée directement comme une action par une politique de plus haut niveau, à côté d'actions telles que "Piler la glace" et "Placer la rondelle de citron". Il faudra également effectuer des progrès dans le domaine de l'interface homme/machine pour parvenir à gérer intuitivement des systèmes aussi complexes. Au delà de l'aspect robotique grand public, les chercheurs et ingénieurs ont eux aussi beaucoup à gagner à manipuler intuitivement les machines, mais cela n'est pas facilement compatible avec la nécessité de rapidement changer de multiples paramètres.
  
@@ -2252,7 +2254,7 @@ L'expert pour ce problème est un agent entraîné avec \gls{lspi} (voir aussi \
 ** Problème du \glstext{mountaincar}
 # <<hier:mountaincar>>
 
-Dans le \gls{mountaincar}, une voiture placée dans un creux doit gravir une côte trop pentue pour qu'elle puisse la surmonter du premier coup. La solution du problème consiste à reculer, donc à s'éloigner de l'objectif, en remontant la pente opposée puis à profiter de l'élan pour gravir la pente. Le processus peut-être répété si besoin. Cette nécessité contre-intuitive de devoir s'éloigner de l'objectif pour pouvoir l'atteindre fait de ce problème jouet un bon test pour les algorithmes d'\gls{rl}. Il a été proposé pour la première fois par \citet{moore1990efficient} et a été popularisé lors son introduction dans le livre de \citet{sutton1998reinforcement}.
+Dans le problème du \gls{mountaincar}, une voiture placée dans un creux doit gravir une côte trop pentue pour qu'elle puisse la surmonter du premier coup. La solution du problème consiste à reculer, donc à s'éloigner de l'objectif, en remontant la pente opposée puis à profiter de l'élan pour gravir la pente. Le processus peut-être répété si besoin. Cette nécessité contre-intuitive de devoir s'éloigner de l'objectif pour pouvoir l'atteindre fait de ce problème jouet un bon test pour les algorithmes d'\gls{rl}. Il a été proposé pour la première fois par \citet{moore1990efficient} et a été popularisé lors son introduction dans le livre de \citet{sutton1998reinforcement}.
 
 La Figure 1.2 
 # \autoref{fig:mcstatespace}
@@ -2276,12 +2278,16 @@ débute dans le quadrant Sud-Ouest de l'espace d'état, correspondant à une pos
 
 ** Problème du \glstext{highway}
 # <<hier:highway>>
-Utilisé sous diverses variantes comme banc d'essai de plusieurs algorithmes d'\gls{irl} \citep{abbeel2004apprenticeship,syed2008apprenticeship}, le simulateur de conduite sur autoroute place l'agent au volant d'une voiture plus rapide que le trafic, et qui de fait doit éviter les voitures plus lentes présentes sur la route. La voiture peut choisir parmi trois voies de circulation, et peut également rouler dans les deux bas-côtés de chaque côté de la route. Il y a trois vitesses possibles (toutes plus élevées que celles des voitures à éviter), une seule autre voiture est visible, quand l'agent la dépasse une autre apparaît dans une voie choisie aléatoirement par le simulateur. \`A la vitesse maximale, l'agent ne peut éviter la voiture qui arrive si elle est située dans la même voie que lui. \`A chaque instant, il peut choisir de se décaler à droite ou à gauche, ou d'accélérer ou ralentir, il peut également ne rien changer.
+Utilisé sous diverses variantes comme banc d'essai de plusieurs algorithmes d'\gls{irl} \citep{abbeel2004apprenticeship,syed2008game,syed2008apprenticeship}, le simulateur de conduite sur autoroute place l'agent au volant d'une voiture (bleue) plus rapide que le trafic, et qui de fait doit éviter les voitures plus lentes (rouges) présentes sur la route. La voiture peut choisir parmi trois voies de circulation, et peut également rouler dans les deux bas-côtés de chaque côté de la route. Il y a trois vitesses possibles (toutes plus élevées que celles des voitures à éviter), une seule autre voiture est visible, quand l'agent la dépasse une autre apparaît dans une voie choisie aléatoirement par le simulateur. \`A la vitesse maximale, l'agent ne peut éviter la voiture qui arrive si elle est située dans la même voie que lui. \`A chaque instant, il peut choisir de se décaler à droite ou à gauche, ou d'accélérer ou ralentir, il peut également ne rien changer.
 
 Ce simulateur est intéressant car beaucoup de comportements différents sont envisageables, pouvant présenter un subtil compromis entre vitesse et sécurité par exemple. Il est possible de conduire raisonnablement sans aucune collision et sans sortir de la route, à condition de ne pas aller vite. Il est également possible d'aller vite et d'éviter les collisions, à condition que l'on accepte de sortir de la route. Arriver à identifier les motivations précises d'un expert en observant sa conduite est donc un défi.
 
-Contrairement au \gls{mountaincar}, l'espace d'état est de dimension trop large pour être représenté. On y trouve en effet la vitesse de l'agent, sa position horizontale, et la position verticale et horizontale de l'autre voiture.
-
+Contrairement au problème du \gls{mountaincar}, l'espace d'état est de dimension trop large pour être représenté. On y trouve en effet la vitesse de l'agent, sa position horizontale, et la position verticale et horizontale de l'autre voiture.
+\begin{figure}
+\includegraphics[width=\textwidth]{Figures/Highway.png}
+\caption[Capture d'écran du problème du \gls{highway}]{Capture d'écran du problème du \gls{highway}.}
+\label{fig:highwayscreenshot}
+\end{figure}
 # %  Justement, on aimerait faire des trucs plus couillus
 # % \bibliographystyle{myplainnat}
 \begin{fullwidth}
