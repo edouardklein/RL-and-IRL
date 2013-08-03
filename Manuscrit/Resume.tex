@@ -1,0 +1,50 @@
+\documentclass[11pt]{article}
+\pagestyle{empty}
+\usepackage[francais]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+
+\usepackage{graphicx}
+\usepackage{fancybox}
+
+\setlength{\textwidth}{160mm}
+
+\setlength{\oddsidemargin}{0mm}
+% \setlength{\evensidemargin}{30mm}
+
+\begin{document}
+\section*{Résumé}
+Cette thèse, intitulée "Contributions à l'apprentissage par renforcement inverse", fournit trois contributions majeures au domaine.
+La première est une méthode d'estimation de l'attribut moyen,
+une quantité exploitée par la grande majorité des approches constituant
+l'état de l'art. Elle a permis d'étendre ces approches au cadre {\em batch}
+et {\em off-policy}.
+La seconde contribution majeure est un algorithme d'apprentissage par
+renforcement inverse, 
+{\em structured classification for inverse reinforcement learning}
+(SCIRL), qui relâche une contrainte standard du domaine, la résolution répétée
+d'un processus décisionnel de Markov en introduisant la structure temporelle (par le biais de l'attribut moyen) de ce processus dans
+un algorithme de classification structurée. 
+Les garanties théoriques qui lui sont attachées et ses bonnes performances
+en pratique ont permis sa présentation dans une conférence internationale
+prestigieuse~: NIPS.
+Enfin, la troisième contribution est constituée par la méthode
+{\em cascaded supervised learning for inverse reinforcement learning}
+(CSI) consistant à apprendre le comportement de l'expert par une méthode supervisée puis à introduire la structure temporelle du MDP par une régression mettant en jeu la fonction de score du classifieur utilisé. Cette méthode offre des garanties théoriques de même nature que celles
+de SCIRL tout en présentant l'aventage d'utiliser des composants standards pour la classification et la régression,
+ce qui simplifie la mise en \oe uvre. Ce travail sera présenté dans une autre
+conférence internationale prestigieuse~: ECML.\\
+{\bf Mots-clefs :} Apprentissage par renforcement inverse, Imitation, Apprentissage à partir de démonstrations, Processus décisionnels de Markov, Prédiction structurée.
+\section*{Summary}
+This thesis, "Contributions à l'apprentissage par renforcement inverse", brings three major contributions to the community.
+The first one is a method for estimating the feature expectation, a quantity involved in most of state-of-the-art approaches which were thus extended to a batch off-policy setting.
+The second major contribution is an Inverse Reinforcement Learning algorithm, 
+{\em structured classification for inverse reinforcement learning}
+(SCIRL), which relaxes a standard constraint in the field, the repeated solving of a Markov Decision Process, by introducing the temporal structure (using the feature expectation) of this process into a structured margin classification algorithm.
+The afferent theoritical guarantee and the good empirical performance it exhibited allowed it to be presentend in a good international conference: NIPS.
+Finally, the third contribution is {\em cascaded supervised learning for inverse reinforcement learning}
+(CSI) a method consisting in learning the expert's behavior via a supervised learning approach, and then introducing the temporal structure of the MDP via a regression involving the score function of the classifier. This method presents the same type of theoretical guarantee as SCIRL, but uses standard components for classification and regression, which makes its use simpler. This work will be presented in another good international conference: ECML.
+
+
+\end{document}
