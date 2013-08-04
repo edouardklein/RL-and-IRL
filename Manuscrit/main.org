@@ -1215,41 +1215,39 @@ $\paramlstdmu \leftarrow (A+\reg I)^{-1}b$\;
 # <<hier:lstdmuerror>>
 \citet{lazaric2010finiteLSTD} proposent une borne sur la performance de \gls{lstd} lorsque celui-ci est employé pour l'estimation d'un fonction de valeur à l'aide d'une base de $\nbsamples$ échantillons. Avec probabilité $1-\delta$, on a :
 \begin{align}
-\|\hat{V}^\pi_R - \rlvalue{\policy}{\rewardfunc}\|_N &\leq \epsilon_{\phi} + O\left(\sqrt{\frac{\ln(\frac{1}{\delta})}{\nbsamples}}\right)\\
+\|\hat{V}^\pi_R - \rlvalue{\policy}{\rewardfunc}\|_N &\leq \epsilon_{\phi_V} + O\left(\sqrt{\frac{ \dimx{\phi_V}\ln(\frac{\dimx{\phi_V}}{\delta})}{\nbsamples}}\right)\\
 \textrm{avec :}\|f\|_N &= \frac{1}{\nbsamples}\sum_{\timeindex=1}^{\nbsamples}f(s_{\timeindex})^2
 \end{align}
-Chaque composante de l'attribut moyen étant exactement une fonction de valeur (\autoref{eq:muvaleurvec}) cette borne s'applique donc directement. La différence entre la valeur recherchée $\rlvalue{\policy}{\component{\featurestateactionfunc_{\rewardfunc}}{\dimindex}}$ et la valeur trouvée par \gls{lstdmu} $(\hat{\mu}^\pi_{\zeta})_j$ est donc bornée par le terme d'erreur relatif au biais inductif $\epsilon_\phi$ qui dépend de la différence entre la meilleure approximation de $\rlvalue{\policy}{\component{\featurestateactionfunc_{\rewardfunc}}{\dimindex}}$ dans l'espace d'hypothèse induit par $\featurestateactionfunc_\mu$ et $\rlvalue{\policy}{\component{\featurestateactionfunc_{\rewardfunc}}{\dimindex}}$ elle-même. \`A cela s'ajoute un terme dépendant de la taille $\nbsamples$ de la base d'entraînement.
-
-En fonction de la norme que l'on choisit, il est possible d'étendre la borne à la fonction vectorielle $\hat{\mu}^\pi_{\zeta}$ renvoyée par \gls{lstdmu} avec une probabilité $1 -\delta$ :
+Chaque composante de l'attribut moyen étant exactement une fonction de valeur (\autoref{eq:muvaleurvec}) cette borne s'applique donc directement. La différence entre la valeur recherchée $\rlvalue{\policy}{\component{\featurestateactionfunc_{\rewardfunc}}{\dimindex}}$ et la valeur trouvée par \gls{lstdmu} $(\hat{\mu}^\pi_{\zeta})_j$ est donc bornée par le terme d'erreur relatif au biais inductif $\epsilon_{\phi_\mu}$ qui dépend de la différence entre la projection empirique de $\rlvalue{\policy}{\component{\featurestateactionfunc_{\rewardfunc}}{\dimindex}}$ dans l'espace d'hypothèse induit par $\featurestateactionfunc_\mu$ et $\rlvalue{\policy}{\component{\featurestateactionfunc_{\rewardfunc}}{\dimindex}}$ elle-même. \`A cela s'ajoute un terme dépendant de la taille $\nbsamples$ de la base d'entraînement.
+\begin{equation}
+\|\rlvalue{\policy}{\component{\featurestateactionfunc_{\rewardfunc}}{\dimindex}} - (\hat{\mu}^\pi_{\zeta})_j\|_N = \|\mu^\pi_j - (\hat{\mu}^\pi_{\zeta})_j\|_N \leq \epsilon_{\phi_\mu}^j + O\left(\sqrt{\frac{ \dimx{\phi_\mu}\ln(\frac{\dimx{\phi_\mu}}{\delta})}{\nbsamples}}\right)
+\end{equation}
+En appliquant ce résultat à chacune des $\dimx{\phi_R}$ composantes de la fonction vectorielle $\mu^\pi$ avec probabilité $1-\delta'$, nous pourrions borner l'écart maximum avec un probabilité $1-\dimx{\phi_R}\delta'$. En posant $\delta' = \frac{\delta}{\dimx{\phi_R}}$, on obtient donc avec probabilité $1-\delta$ : 
 \begin{align}
-\|\hat{\mu}^\pi_{\zeta} - \rlmu{\policy}\| &\leq \epsilon_{\phi} + O\left(\sqrt{\frac{\ln(\frac{ \dimx{\phi_R}}{\delta})}{\nbsamples}}\right),\\
+\|\hat{\mu}^\pi_{\zeta} - \rlmu{\policy}\| &\leq \max_{\dimindex \in \llbracket1,\dimx{\phi_R}\rrbracket}\left[\epsilon_{\phi_\mu}^j\right] + O\left(\sqrt{\frac{\dimx{\phi_\mu}\ln(\frac{ \dimx{\phi_\mu}\dimx{\phi_R}}{\delta})}{\nbsamples}}\right),\label{eq:lstdmuborne}\\
 \textrm{avec : } \|\mu\| &= \max_{\dimindex \in \llbracket1,\dimx{\phi_R}\rrbracket} \|\mu_j\|_N.
 \end{align}
 
 Lors des évaluations empiriques des algorithmes que nous proposons, nous prendrons :
 \begin{equation}
-\phi_\mu = \phi_R,
+\phi_\mu = \phi_R.
 \end{equation}
-afin de minimiser le travail d'ingénierie. Nous utiliserons les attributs standards définis équations \ref{eq:attributsdiscrets} et \ref{eq:gaussianrbf}.
+Afin de ne pas fournir d'information /ad-hoc/ aux problèmes sur lesquels nous testons nos approches, nous utiliserons les attributs standards définis équations \ref{eq:attributsdiscrets} et \ref{eq:gaussianrbf}.
 
-Pour minimiser le terme d'erreur $\epsilon_\phi$ il est cependant possible de réfléchir à un choix d'attributs plus performants. Il est même possible d'estimer chaque composante de $\rlmu{\policy}$ séparément, et donc de choisir des fonctions d'attribut différentes pour chaque composante. Les autres termes d'erreur diminuent lorsqu'on augmente la taille $\nbsamples$ de la base d'entraînement.
+Pour minimiser les termes d'erreurs $\epsilon_{\phi_\mu}^j$ il est cependant possible de réfléchir à un choix d'attributs plus performants. Il est même possible d'estimer chaque composante de $\rlmu{\policy}$ séparément, et donc de choisir des fonctions d'attribut différentes pour chaque composante. Les autres termes d'erreur diminuent lorsqu'on augmente la taille $\nbsamples$ de la base d'entraînement.
 
 Cette borne portant sur les échantillons disponibles pour calculer l'approximation, elle est particulièrement adaptée à l'usage que nous ferons de \gls{lstdmu} au \autoref{hier-scirl}, lorsqu'il sera utilisé pour fournir à \gls{scirl} une estimation de l'attribut moyen de l'expert sur les données que celui-ci a échantillonné.
 
-Une borne en généralisation, plus générale, a également été fournie par \citeauthor{lazaric2010finiteLSTD}. Elle s'applique lorsque la chaine de Markov issue du \gls{mdp} contraint par la politique que l'on souhaite évaluer admet une distribution stationnaire $\rho$ et que les échantillons sont acquis après que le régime stationnaire ait été atteint.
-
-On définit $\Pi$ comme l'opérateur de projection sur l'espace d'hypothèses. Ainsi, $\Pi V$ est la meilleure approximation de $V$ dans l'espace d'hypothèses.
-
-La borne en généralisation est : 
+Une borne en généralisation a également été fournie par \citeauthor{lazaric2010finiteLSTD}. Elle s'applique lorsque la chaine de Markov issue du \gls{mdp} contraint par la politique que l'on souhaite évaluer admet une distribution stationnaire $\rho$ et que les échantillons sont acquis après que le régime stationnaire ait été atteint.
 \begin{equation}
-\|\hat{V}^\pi_R - \rlvalue{\policy}{\rewardfunc}\|_\rho \leq O\left( {1\over 1- \gamma}||V - \Pi V||_\rho + {1\over 1-\gamma}{1\over \sqrt{\nbsamples}}\right)
+\|\hat{V}^\pi_R - \rlvalue{\policy}{\rewardfunc}\|_\rho \leq \epsilon_{\phi_V}^\rho + O\left(\sqrt{\frac{ \dimx{\phi_V}\ln(\frac{\dimx{\phi_V}}{\delta})}{\nbsamples}}\right)
 \end{equation}
 Là encore, il est possible d'étendre cette borne à l'attribut moyen :
 \begin{align}
-\|\hat{\mu}^\pi_{\zeta} - \rlmu{\policy}\| &\leq O\left( {1\over 1- \gamma}||\rlmu{\policy}-\Pi \rlmu{\policy}|| + {1\over 1-\gamma}{1\over \sqrt{\nbsamples}}\right),\\
+\|\hat{\mu}^\pi_{\zeta} - \rlmu{\policy}\| &\leq \max_{\dimindex \in \llbracket1,\dimx{\phi_R}\rrbracket}\left[\epsilon_{\phi_\mu}^{\rho,j}\right] + O\left(\sqrt{\frac{\dimx{\phi_\mu}\ln(\frac{ \dimx{\phi_\mu}\dimx{\phi_R}}{\delta})}{\nbsamples}}\right),\\
 \textrm{avec : } \|\mu\| &= \max_{\dimindex \in \llbracket1,\dimx{\phi_R}\rrbracket} \|\mu_j\|_\rho.
 \end{align}
-
+Les différences principales avec la borne de l'\autoref{eq:lstdmuborne} sont l'utilisation de la norme sur la distribution $\rho$ et la présence du terme $\epsilon^\rho_{\phi}$ qui dépend non plus de la projection empirique de l'objet recherché sur l'espace d'hypothèses, mais simplement de sa projection.
 ** Avantages dans le cadre des approches existantes
 # <<hier:lstdmuavantages>>
    
