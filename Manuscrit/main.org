@@ -35,6 +35,7 @@
 #+LaTeX_CLASS: tufte-book
 #+LaTeX_CLASS_OPTIONS: [frenchb,a4paper,justified,notoc]
 #+LATEX_HEADER:\input{titlepage}   
+#+LATEX_HEADER:\linespread{1.6}
 #+LATEX_HEADER: \usepackage{csquotes}
 #+LATEX_HEADER:\bibliography{Biblio,BiblioKlein}
 #+LaTeX_HEADER:\renewcommand{\theoremautorefname}{théorème}
@@ -346,6 +347,7 @@ Contrairement à la fonction d'attribut binaire précédente, celle-ci possède 
 # \autoref{fig:mountain_car_psi}.
 
 Lorsque cela s'avère nécessaire, l'opérateur peut effectuer un travail d'ingénierie en construisant un vecteur d'attribut spécifique au problème courant, qui tient compte des informations /a priori/ disponibles sur celui-ci. Par exemple pour la fonction de valeur d'un agent sur le problème du \gls{mountaincar}, on pourrait envisager de calculer l'énergie cinétique et l'énergie potentielle. Ce n'est cependant pas la route que nous allons suivre. Notre but étant d'établir des modèles génériques, nous utiliserons dans nos expériences les attributs gaussiens et binaires que nous venons de décrire. 
+\pagebreak
 \begin{figure*}
 \begin{tikzpicture}[scale=2.3]
 %\draw [help lines] (0,0) grid (6,-6);
@@ -895,6 +897,8 @@ En utilisant l'inégalité de Cauchy-Schwartz, on conclut :
 \end{proof}
 Ce résultat est assez intuitif, si deux politiques induisent les mêmes trajectoires, elles auront même valeur. La manière dont l'apprentissage supervisé résout le problème de l'imitation donne ce type de résultat. Il est intéressant de noter que dans certains cas la réciproque est fausse. Il est donc théoriquement possible de résoudre le problème de l'\gls{irl} en s'éloignant des solutions que l'apprentissage supervisé peut proposer. Il est en effet possible d'imaginer qu'un algorithme d'\gls{irl} renvoie une récompense qui, une fois optimisée, donnera une politique dont l'attribut moyen est différent de celui de la politique de l'expert, mais de valeur semblable.
 
+
+\pagebreak
 \begin{figure*}
 \begin{tikzpicture}[scale=2.3]
 %\draw [help lines] (0,0) grid (6,-6);
@@ -960,7 +964,7 @@ Ce résultat est assez intuitif, si deux politiques induisent les mêmes traject
 , l'attribut moyen (ici celui de l'expert sur le problème du \gls{mountaincar}) est un reflet de la dynamique du système contraint par la politique. La forme en escargot, caractéristique de trajectoires en va-et-vient à l'apogée de plus en plus haute, a clairement laissé sa trace sur l'attribut moyen.}
 \label{fig:mountain_car_mu}
 \end{figure*}
-
+\clearpage
 * Problématique de l'\glstext{irl} et état de l'art
 # <<hier:etatdelart>>
   Avant d'analyser les approches existantes d'\gls{irl}, intéressons nous plus en détail à la définition précise de la fonction de récompense. Nous allons voir quelles transformations il est possible de lui appliquer sans changer les politiques optimales, une technique connue sous le nom de \gls{rewardshaping}. 
