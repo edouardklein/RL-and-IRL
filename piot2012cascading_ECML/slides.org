@@ -51,9 +51,9 @@
 #+LaTeX_HEADER: \usetikzlibrary{decorations.pathmorphing,shapes.misc}
 
 #+BEAMER_HEADER_EXTRA:\title[CSI]{A cascaded supervised learning approach to inverse reinforcement learning}
-#+BEAMER_HEADER_EXTRA:\author[MaLIS Team]{JFPDA2013\\Edouard Klein$^{\dag\ddag}$, Bilal Piot$^{\dag\textrm{\Ankh}}$, Matthieu Geist$^\dag$ and \underline{Olivier Pietquin}$^{\dag\textrm{\Ankh}}$\\\texttt{firstname.lastname@supelec.fr}}
+#+BEAMER_HEADER_EXTRA:\author[MaLIS Team]{ECMLPKDD 2013\\Edouard Klein$^{\dag\ddag}$, \underline{Bilal Piot}$^{\dag\textrm{\Ankh}}$, Matthieu Geist$^\dag$ and {Olivier Pietquin}$^{\dag\textrm{\Ankh}}$\\\texttt{firstname.lastname@supelec.fr}}
 #+BEAMER_HEADER_EXTRA:\institute[Supélec]{$\dag$Equipe IMS/MaLIS (Supélec), France\\$\ddag$Equipe ABC UMR 7503 (Loria-CNRS), France\\\Ankh UMI 2958 (GeorgiaTech-CNRS)}
-#+BEAMER_HEADER_EXTRA:\date{01-02 Juillet 2013}
+#+BEAMER_HEADER_EXTRA:\date{September 23-27}
 
 
 
@@ -120,7 +120,7 @@ fill=orange!20]
     :ORDERED:  t
     :END:
      - CSI Algorithm
-       - Vanilla classification step…
+       - Classification step…
        - …followed by a regression step that introduces the temporal structure of the MDP
        - Only needs data from the expert (if we use the heuristics)
        - Can use other data if available
@@ -163,7 +163,7 @@ fill=orange!20]
     :END:
      \begin{equation}
      \label{eqn:V}
-     V^\pi_R(s_t) = E\left[\left.\sum\limits_{i}\gamma^i R(s_{t+i})\right|\pi\right]
+     V^\pi_R(s) = E\left[\left.\sum\limits_{t\geq 0}\gamma^t R(s_{t})\right|s_0=s,\pi\right]
      \end{equation}
 **** Goal							   :B_block:
     :PROPERTIES:
@@ -179,11 +179,20 @@ fill=orange!20]
     :BEAMER_env: block
     :END:
      Finding the reward $R$ so that the observed behavior is optimal
-**** Ill-posed 						      :B_alertblock:
+**** Ill-posed						       :B_alertblock:
     :PROPERTIES:
     :BEAMER_env: alertblock
     :END:
      The null reward $\forall s, R(s) = 0$ is a solution
+**** Existing solutions
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+  - Most algorithms follow (Abbeel and Ng, 2004), they need to repeatedly solve the MDP
+  - Most others need to know the transition probabilities $p$
+  - The two least data greedy algorithms are :
+    - RelEnt from (Boularias et al, 2011)
+    - SCIRL
 ** CSI Algorithm
 *** A certain class of classifiers
 **** Score function based classifiers 				    :B_block:
@@ -324,6 +333,23 @@ $\sastrace{\expertpolicy} = \{(s_i,a_i,s'_i)_{1\leq i \leq N}\}$
 0\leq\expectationknowing{\rlvalue{\optimalpolicy{\apprRc}}{\apprRc}(s)-\rlvalue{\expertpolicy}{\apprRc}(s)}{s\sim\expertdistrib}\leq \frac{1}{1-\gamma}\left(\epsilon_C\Delta q +\epsilon_R(1+\ccoeffpi{\optimalpolicy{\apprRc}})\right).
 \end{equation}
 \end{alertblock}
+\begin{block}{Notation}
+\begin{columns}
+\begin{column}{.45\textwidth}
+\begin{itemize}
+\item $\hat{R}^C$: Reward learned by CSI
+\item $\rho_E$: Expert distribution
+\end{itemize}
+\end{column}
+\begin{column}{.45\textwidth}
+\begin{itemize}
+\item $\epsilon_C$ : classification error
+\item $\epsilon_R$ : regression error
+\item $C_{\pi^*_{\hat{R}^C}}$: concentration coefficient
+\end{itemize}
+\end{column}
+\end{columns}
+\end{block}
 #+end_latex
 * Experimental results
 ** Mountain car
@@ -338,10 +364,8 @@ $\sastrace{\expertpolicy} = \{(s_i,a_i,s'_i)_{1\leq i \leq N}\}$
     :BEAMER_env: ignoreheading
     :END:
 #+begin_latex
-     \uncover<2->{
 \includegraphics[width=0.47\textwidth]{Exp14}
      \includegraphics[width=0.47\textwidth]{Exp14_zoom}
-}
 #+end_latex
 **** Description 						    :B_block:
     :PROPERTIES:
@@ -354,6 +378,13 @@ $\sastrace{\expertpolicy} = \{(s_i,a_i,s'_i)_{1\leq i \leq N}\}$
 * Opening and future work
 ** Future work
 *** Possible future work
+**** CSI
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+     - A theoretically sound, empirically promising new IRL algorithm.
+     - Can use most off-the-shelf classifiers and any off-the-shelf regressor
+     - Favorably compares to the most efficient existing approaches
 **** Real world problems
     :PROPERTIES:
     :BEAMER_env: block
