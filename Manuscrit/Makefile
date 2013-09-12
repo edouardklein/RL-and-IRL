@@ -12,6 +12,13 @@ show: main.pdf
 main.pdf: main.org titlepage.tex
 	$(call org2pdf,"main")
 
+maindiff.pdf: main_for_diff.tex test
+	latexdiff main_for_diff.tex tmp.tex > maindiff.tex
+	pdflatex maindiff.tex
+	biber maindiff
+	pdflatex maindiff.tex
+	pdflatex maindiff.tex
+
 integration: non_interactive_spellcheck count_pages
 	echo Spelling errors: $$(make -s non_interactive_spellcheck)
 	echo $$(make -s count_pages)
