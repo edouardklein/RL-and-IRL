@@ -1186,7 +1186,7 @@ L'attribut moyen est donc l'espérance du cumul $\discount$-pondéré de l'attri
 \label{eq:paramlstdmu}
 \end{equation}
 
-Ceci posé, l'adaptation de l'algorithme est relativement simple, le calcul de la matrice de paramètres $\paramlstdmu$ est décrit \autoref{alg:lstdmu}. La principale différence avec \gls{lstd}-$Q$ réside dans la dimension du vecteur de paramètres. Pour \gls{lstd}-$Q$, il s'agit d'un vecteur de dimension $\dimx{\phi_V}$, tandis que pour \gls{lstdmu}, il s'agit d'une matrice de taille $\dimx{\featurestateactionfunc_{\mu}} \times \dimx{\featurestateactionfunc_{\rewardfunc}}$. Pour l'évaluation de $\hat\mu^{\pi}_\zeta$ en un couple $(\state,\action)$, il suffit d'utiliser l'\autoref{eq:paramlstdmu}. L'inversion de matrice au cœur de l'algorithme est la même pour toutes les composantes du vecteur d'attribut moyen, il n'y a donc à la faire qu'une seule fois. La complexité algorithmique de \gls{lstdmu} est donc (asymptotiquement) la même que celle de \gls{lstd}-$Q$.
+Ceci posé, l'adaptation de l'algorithme est relativement simple, le calcul de la matrice de paramètres $\paramlstdmu$ est décrit \autoref{alg:lstdmu}. La principale différence avec \gls{lstd}-$Q$ réside dans la dimension du vecteur de paramètres. Pour \gls{lstd}-$Q$, il s'agit d'un vecteur de dimension $\dimx{\phi_V}$, tandis que pour \gls{lstdmu}, il s'agit d'une matrice de taille $\dimx{\featurestateactionfunc_{\mu}} \times \dimx{\featurestateactionfunc_{\rewardfunc}}$. Pour l'évaluation de $\hat\mu^{\pi}_\zeta$ en un couple $(\state,\action)$, il suffit d'utiliser l'\autoref{eq:paramlstdmu}. L'inversion de matrice au cœur de l'algorithme est la même pour toutes les composantes du vecteur d'attribut moyen, il n'y a donc à la faire qu'une seule fois. La complexité algorithmique de \gls{lstdmu} est donc (asymptotiquement) la même que celle de \gls{lstd}-$Q$, à savoir $O(N+\dimx{\phi_\mu}^3)$, où $N$ est la taille de la base de données $\sasrtrace{\featurestateactionfunc_{\rewardfunc}}$ et où le terme cubique est dû à l'inversione matrice de la ligne 6.
 
 # ?s reg '\lambda' 'Coefficient de régularisation'
 
@@ -1464,6 +1464,27 @@ Procéder à la descente de sous-gradient dont le sous-gradient est :
 \caption{\glstext{scirl} uniquement sur des données expertes}
 \label{alg:scirlonlyexpert}
 \end{algorithm}
+*** Complexité algorithmique
+Le schéma général de \gls{scirl} fourni \autoref{alg:scirlgenerique} n'est pas assez précis pour permettre une analyse de sa complexité algorithmique, qui dépendra du choix de la méthode d'approximation de $\expertmu$ et de la méthode de classification. Plus subtilement, certains détails d'implémentation autorisent un compromis entre mémoire et temps de calcul. En effet il peut être intéressant de stocker les valeurs de $\hat\mu^E$ pour les couples $(s,a)$ dont le classifieur a besoin, plutôt que d'intéroger systématiquement la méthode d'approximation.
+
+# ?s iterlimit 'T' 'Nombre maximum d{\apos}itérations'
+Considérons à titre d'exemple le classifieur utilisé dans notre instanciation particulière de \gls{scirl} (\autoref{alg:scirlonlyexpert}). Si l'on cherche à minimiser le temps de calcul, alors il est possible de stocker les valeurs de $\hat \mu^E$ dans une table de hachage de taille $O(\card{\actionspace}\nbsamples\dimx{\phi_R})$ dont nous supposons qu'elle offre un temps d'accès en moyenne constant. La complexité algorithmique de la descente de gradient (pour peu qu'elle soit limitée à $\iterlimit$ itérations) est alors en $O(TN\card{\actionspace}\dimx{\phi_R})$.
+
+Si les valeurs approchées de $\hat\mu^E$ sont trop nombreuses pour être stockées, alors il est possible en utilisant par exemple \gls{lstdmu} de ne stocker que la matrice de taille $\dimx{\phi_\mu}\times\dimx{\phi_R}$ que celui-ci utilise, mais évaluer $\hat\mu^E$ ne se fera alors plus à temps constant, mais en $O(\dimx{\phi_\mu}\dimx{\phi_R})$ (le prix du produit matriciel de l'\autoref{eq:paramlstdmu}). La complexité temporelle de la descente de gradient est alors en $O(TN\card{\actionspace}\dimx{\phi_\mu}(\dimx{\phi_R})^2)$. La table 5.1 regroupe ces résultats.
+
+\begin{table}
+\centering
+\begin{tabular}{ccc}
+\toprule
+&Temps & Mémoire\\
+\midrule
+Optimisation temporelle &$O(TN\card{\actionspace}\dimx{\phi_R})$&$O(\card{\actionspace}\nbsamples\dimx{\phi_R})$\\
+Optimisation spatiale &$O(TN\card{\actionspace}\dimx{\phi_\mu}(\dimx{\phi_R})^2)$&$O(\dimx{\phi_\mu}\dimx{\phi_R})$\\
+\bottomrule
+\end{tabular}
+\caption[Complexité algorithmique de \glstext{scirl}]{Complexités algorithmiques asymptotiques d'une implémentation de \gls{scirl} faisant usage du classifieur décrit \autoref{hier-taskar}, selon que l'on calcule les valeurs de $\hat\mu^E$ (optimisation spatiale) ou qu'elle sont stockées (optimisation temporelle).}
+\label{tab:complexscirl}
+\end{table}
 
 ** Validation théorique 
 # <<hier:scirltheo>>
@@ -1717,6 +1738,10 @@ Entraîner le régresseur sur la base $\rctrace$, obtenant ainsi $\apprRc$\;
 
 Grâce à l'utilisation de l'équation de Bellman, cascader deux approches supervisées permet (comme nous allons le montrer dans les deux sections qui suivent) de trouver une récompense. La plupart des méthodes de classification utilisent une fonction de score. N'importe quelle méthode de régression peut être utilisée pour la seconde étape. Cette grande latitude dans le choix d'un algorithme ou d'un autre pour chacune des étapes est une force de \gls{cascading} qui peut ainsi profiter du large éventail de techniques de l'apprentissage supervisé afin de limiter l'effort de l'opérateur lorsque cela est possible, ou de permettre à celui-ci d'adapter chaque étape au problème courant lorsque cela est nécessaire.
  
+*** Complexité algorithmique
+Le schéma général de \gls{cascading} laisse comme celui de \gls{scirl} une franche latitude à l'utilisateur en ce qui concerne le choix des sous routines. Les deux étapes en jeu sont cependant bien plus indépendantes que dans \gls{scirl}. L'interface entre les deux est la construction de la base de données $\rctrace$ entre la classification et la régression.
+
+La complexité algorithmique finale de \gls{cascading} est donc celle de l'étape (classification ou régression) la plus gourmande. Cela dépend donc complètement du type de classifieur et du type de régresseur choisis ainsi que de l'implémentation utilisée (par exemple \citep{chang2011libsvm} ou \citep{lauer2011msvmpack} pour les \gls{svm}).
 *** Heuristique pour étendre \glstext{cascading} au cas où seules les données expertes sont disponibles
 
     La version générique de \gls{cascading} repose sur la disponibilité de deux bases de données, une experte et l'autre non, comme c'est aussi le cas pour par exemple \gls{relent}. Nous avons vu que \gls{scirl} peut, grâce à une heuristique, fonctionner à l'aide d'uniquement des données expertes. Il est souhaitable d'étendre cette capacité à \gls{cascading}. Voyons comment l'absence de base d'entraînement $\sastrace{\sim}$ impacte l'algorithme, et voyons surtout comment compenser ce manque.
