@@ -1445,7 +1445,7 @@ Pour introduire intuitivement l'heuristique, imaginons dans une voiture à doubl
 \label{eq:heuristiquescirl}
 \end{equation}
 
-Armés de notre méthode de classification à fonction de score linéairement paramétrée ainsi que de notre heuristique pour le calcul de l'attribut moyen de l'expert, il est maintenant possible d'instancier \gls{scirl} afin qu'il apprenne une récompense uniquement nourri de données expertes (\autoref{alg:scirlonlyexpert}).
+Armés de notre méthode de classification à fonction de score linéairement paramétrée ainsi que de notre heuristique pour le calcul de l'attribut moyen de l'expert, il est maintenant possible d'instancier \gls{scirl} afin qu'il apprenne une récompense uniquement nourri de données expertes (\autoref{alg:scirlonlyexpert}). \`A première vue similaire à l'approche de Ratliff et al., cet algorithme en diffère fondamentalement par l'utilisation de l'attribut moyen de l'expert dans une approche de classification au niveau état-action.
 
 \begin{algorithm}
 \Entree{
