@@ -231,7 +231,7 @@ Nous réduisons dans cette section le problème de l'imitation supervisée à ce
 # Exemple: could use an exemple (pendule ?)
 # snippet: La notion d'agent artificiel déborde sur l'espace d'état, qui n'est lui même du coup pas directement lié à l'environnement. Un agent, ce n'est pas seulement une politique, mais aussi la définition de l'espace d'état et d'action, qui ne sont qu'une vue (plus ou moins bonne selon l'ingénierie) de la réalité
    
-   Les espaces d'état et d'action ne sont généralement pas des espaces vectoriels : la plage de valeurs que peut prendre une composante est rarement illimitée. Il s'agit même parfois d'ensembles finis. Dans ce cas, on s'autorisera à manipuler les états comme les $|\statespace|$ premiers entiers, puisqu'il existe un isomorphisme entre $\statespace$ et $\llbracket 1;|\statespace|\rrbracket$. C'est dans les problèmes qui nous intéressent quasiment toujours le cas pour l'espace d'action. Nous considérons par défaut qu'il s'agit d'un ensemble fini de petit cardinal. La plupart des notations que nous utiliserons supposent un espace d'état également fini, mais l'usage d'attributs judicieusement choisis (\autoref{hier-attributs}) permet dans la plupart des cas l'extension pratique au cas continu.
+   Les espaces d'état et d'action ne sont généralement pas des espaces vectoriels : la plage de valeurs que peut prendre une composante est rarement illimitée. Il s'agit même parfois d'ensembles finis. Dans ce cas, on s'autorisera à manipuler les états comme les $|\statespace|$ premiers entiers, puisqu'il existe un isomorphisme entre $\statespace$ et $\llbracket 1;|\statespace|\rrbracket$. C'est dans les problèmes qui nous intéressent quasiment toujours le cas pour l'espace d'action. Nous considérons par défaut qu'il s'agit d'un ensemble fini de faible cardinalité. La plupart des notations que nous utiliserons supposent un espace d'état également fini, mais l'usage d'attributs judicieusement choisis (\autoref{hier-attributs}) permet dans la plupart des cas l'extension pratique au cas continu.
 
 *** Classification
 # <<hier:classification>>    
@@ -239,7 +239,7 @@ Nous réduisons dans cette section le problème de l'imitation supervisée à ce
 # ?s expertpolicy '\pi^E' 'Politique de l{\apos}expert'
    Il est possible de voir le problème de l'imitation comme celui de la recherche d'une politique correspondant à celle de l'expert, si possible pour chaque état ou au mieux en fonction des contraintes en mémoire et en temps de l'agent. Il est en effet évident que si les politiques des deux agents sont identiques alors ces deux agents accomplissent la même tâche avec le même degré d'efficacité. Même lorsque la politique de l'expert (notée $\expertpolicy$) est intégralement connue, cette formulation n'est pas forcément dénuée d'intérêt, il peut en effet être souhaitable de remplacer l'expert par un agent moins coûteux mais probablement plus limité. Apprendre parfaitement (ou apprendre au mieux avec quelques erreurs) la politique de l'expert est alors sensé.
 
-   Bien souvent, cependant, il est impossible de connaître intégralement la politique de l'expert, ne fut-ce que parce que l'espace d'état est trop grand. Il faut alors se contenter d'exemples sur un certain nombre $\nbsamples$ d'états [fn::L'indice $sa$ de $\satrace{\expertpolicy}$ indique quels éléments (ici des couples $(\state_{\datasetindex},\action_{\datasetindex})$) composent la base. A l'\autoref{eq:sastracedef}, par exemple, ce sont des quadruplets $(\state_i,a_i,s'_i,r_i)$ qui sont utilisés.]:
+   Bien souvent, cependant, il est impossible de connaître intégralement la politique de l'expert, ne fut-ce que parce que l'espace d'état est trop grand. Il faut alors se contenter de $\nbsamples$ exemples[fn::L'indice $sa$ de $\satrace{\expertpolicy}$ indique quels éléments (ici des couples $(\state_{\datasetindex},\action_{\datasetindex})$) composent la base. A l'\autoref{eq:sastracedef}, par exemple, ce sont des quadruplets $(\state_i,a_i,s'_i,r_i)$ qui sont utilisés.]:
 # ?cs 1 satrace 'D_{sa}^{#1}' 'D_{sa}^{\policy}' 'Base de type $s,a$ obtenue en suivant la politique $\policy$'
 # ?s nbsamples 'N' 'Nombre d{\apos}exemples dans une base'
 # ?s action 'a' 'Une action'
@@ -248,7 +248,7 @@ Nous réduisons dans cette section le problème de l'imitation supervisée à ce
 \satrace{\expertpolicy} = \{(\state_{\datasetindex},\action_{\datasetindex}=\expertpolicy(\state_{\datasetindex})) | \datasetindex \in \llbracket 1;\nbsamples\rrbracket\}.
 \end{equation}
 
-   Le problème de l'imitation se trouve ainsi réduit à celui de la classification. Étant donné que l'espace d'action est fini et de petit cardinal, chaque action est vue comme une étiquette à appliquer à un état. La démonstration de l'expert fournit la base d'entraînement.
+   Le problème de l'imitation se trouve ainsi réduit à celui de la classification. Étant donné que l'espace d'action est fini et de faible cardinalité, chaque action est vue comme une étiquette à appliquer à un état. La démonstration de l'expert fournit la base d'entraînement.
 
 # ?s spacedistrib '\rho' 'Loi de probabilité ou fonction de poids'
 # ?s classifpolicy '\pi^C' 'Politique issue d{\apos}un classifieur'
