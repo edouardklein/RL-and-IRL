@@ -1186,7 +1186,7 @@ L'attribut moyen est donc l'espérance du cumul $\discount$-pondéré de l'attri
 \label{eq:paramlstdmu}
 \end{equation}
 
-Ceci posé, l'adaptation de l'algorithme est relativement simple, le calcul de la matrice de paramètres $\paramlstdmu$ est décrit \autoref{alg:lstdmu}. La principale différence avec \gls{lstd}-$Q$ réside dans la dimension du vecteur de paramètres. Pour \gls{lstd}-$Q$, il s'agit d'un vecteur de dimension $\dimx{\phi_V}$, tandis que pour \gls{lstdmu}, il s'agit d'une matrice de taille $\dimx{\featurestateactionfunc_{\mu}} \times \dimx{\featurestateactionfunc_{\rewardfunc}}$. Pour l'évaluation de $\hat\mu^{\pi}_\zeta$ en un couple $(\state,\action)$, il suffit d'utiliser l'\autoref{eq:paramlstdmu}. L'inversion de matrice au cœur de l'algorithme est la même pour toutes les composantes du vecteur d'attribut moyen, il n'y a donc à la faire qu'une seule fois. La complexité algorithmique de \gls{lstdmu} est donc (asymptotiquement) la même que celle de \gls{lstd}-$Q$, à savoir $O(N+\dimx{\phi_\mu}^3)$, où $N$ est la taille de la base de données $\sasrtrace{\featurestateactionfunc_{\rewardfunc}}$ et où le terme cubique est dû à l'inversione matrice de la ligne 6.
+Ceci posé, l'adaptation de l'algorithme est relativement simple, le calcul de la matrice de paramètres $\paramlstdmu$ est décrit \autoref{alg:lstdmu}. La principale différence avec \gls{lstd}-$Q$ réside dans la dimension du vecteur de paramètres. Pour \gls{lstd}-$Q$, il s'agit d'un vecteur de dimension $\dimx{\phi_V}$, tandis que pour \gls{lstdmu}, il s'agit d'une matrice de taille $\dimx{\featurestateactionfunc_{\mu}} \times \dimx{\featurestateactionfunc_{\rewardfunc}}$. Pour l'évaluation de $\hat\mu^{\pi}_\zeta$ en un couple $(\state,\action)$, il suffit d'utiliser l'\autoref{eq:paramlstdmu}. L'inversion de matrice au cœur de l'algorithme est la même pour toutes les composantes du vecteur d'attribut moyen, il n'y a donc à la faire qu'une seule fois. La complexité algorithmique de \gls{lstdmu} est donc (asymptotiquement) la même que celle de \gls{lstd}-$Q$, à savoir $O(N+\dimx{\phi_\mu}^3)$, où $N$ est la taille de la base de données $\sasrtrace{\featurestateactionfunc_{\rewardfunc}}$ et où le terme cubique est dû à l'inversion de matrice de la ligne 6.
 
 # ?s reg '\lambda' 'Coefficient de régularisation'
 
@@ -1389,11 +1389,11 @@ Nous décrivons les principe général de \gls{scirl} \autoref{hier-scirlprincip
 \label{eq:qemuparam}
 \end{align}
 
-Sachant tout cela, nous choisissons un classifieur à fonction de score $\classifscorefunc_{\paramirl}$ qui puisse être paramétrée linéairement. Comme nous avons identifié le rôle de la fonction de score et celui de la fonction de qualité optimale, nous utilisons comme attribut pour la paramétrisation linéaire de la fonction de score une approximation $\hat\expertmu$ de l'attribut moyen de l'expert $\expertmu$ afin d'obtenir une expression identique à l'\autoref{eq:qemuparam} :
+Sachant tout cela, nous choisissons un classifieur à fonction de score $\classifscorefunc_{\paramirl}$ qui puisse être paramétrée linéairement. Comme nous avons identifié le rôle de la fonction de score et celui de la fonction de qualité optimale, nous utilisons comme attribut pour la paramétrisation linéaire de la fonction de score une approximation $\hat\mu^E$ de l'attribut moyen de l'expert $\expertmu$ afin d'obtenir une expression identique à l'\autoref{eq:qemuparam} :
 \begin{equation}
 \classifscorefunc_{\paramirl} = \transpose{\paramirl}\hat{\mu}^E.
 \end{equation}
-L'algorithme \gls{lstdmu} du \autoref{hier-lstdmu} est tout indiqué pour fournir cette estimation.
+L'algorithme \gls{lstdmu} du \autoref{hier-lstdmu} est tout indiqué pour fournir cette estimation. Si celle-ci est parfaite, alors $\classifscorefunc_{\paramirl}$ est exactement la fonction de qualité de l'expert pour la récompense $R_\theta$, $\quality{\expertpolicy}{\rewardfunc_{\paramirl}}$ (\autoref{eq:qemuparam}).
 
 Ce que le classifieur apprend en réalité quand il apprend la fonction de score est le vecteur de paramètres $\paramirl$, qui est également le vecteur de paramètres de la fonction de récompense (\autoref{eq:paramirl}). Ainsi, en résolvant de manière supervisée le problème de l'imitation, on trouve une récompense (qui est l'objet d'intérêt de l'\gls{irl}), simplement en paramétrant la classification avec un objet porteur de la structure temporelle du \gls{mdp}. Tout cela est résumé \autoref{alg:scirlgenerique}.
 
