@@ -15,7 +15,8 @@ def non_scalar_vectorize(func, input_shape, output_shape):
     """
     def vectorized_func(arg):
         #print 'Vectorized : arg = '+str(arg)
-        nbinputs = prod(arg.shape)/prod(input_shape)
+        assert prod(arg.shape) % prod(input_shape) == 0, "Baaa"
+        nbinputs = prod(arg.shape)//prod(input_shape)
         if nbinputs == 1:
             return func(arg)
         outer_shape = arg.shape[:len(arg.shape)-len(input_shape)]
